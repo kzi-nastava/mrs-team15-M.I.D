@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component'
-
+import { RouterLink } from '@angular/router'
 @Component({
   selector: 'app-login-form',
   standalone: true,
-  imports: [Button, InputComponent],
+  imports: [Button, InputComponent, RouterLink],
   templateUrl: './login-form.html',
   styleUrl: './login-form.css',
 })
