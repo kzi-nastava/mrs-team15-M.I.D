@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component'
-
+import { RouterLink } from '@angular/router'
 @Component({
   selector: 'app-reset-password-form',
-  imports: [Button, InputComponent],
+  imports: [Button, InputComponent, RouterLink],
   standalone: true, 
   templateUrl: './reset-password-form.html',
   styleUrl: './reset-password-form.css',
