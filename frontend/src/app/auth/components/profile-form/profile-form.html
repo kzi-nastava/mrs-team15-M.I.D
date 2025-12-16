@@ -6,6 +6,7 @@
     <h2 class="profile-name">
       {{ user.firstName }} {{ user.lastName }}
     </h2>
+    
 
   <div class="row g-2 mt-2">
         <div class="col-12 col-md-6">
@@ -55,6 +56,17 @@
         [value]="user.email">
       </app-input-component>
 
+        <div class="driver-stats">
+        <span>Active hours last 24h: {{ user.activeHours }}h</span>
+        
+        </div>
+
+
+      <app-vehicle-form
+        [vehicle]="user.vehicle">
+      </app-vehicle-form>
+
+
       <div class="form-actions">
         <app-button
         width="220px"
@@ -70,4 +82,5 @@
         text="Save Changes">
         </app-button>
       </div>
+
 </form>
