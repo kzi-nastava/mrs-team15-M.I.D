@@ -1,0 +1,50 @@
+.profile-form {
+  max-width: 700px;
+  margin: 60px auto;
+  padding: 0 20px;
+  text-align: center;
+  background: #ffffff;
+}
+
+.avatar {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 16px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar img {
+  width: 60%;
+  opacity: 0.6;
+}
+
+.profile-name {
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+
+.row {
+  margin-bottom: 8px;
+}
+
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .form-actions app-button {
+    width: 100%;
+  }
+}

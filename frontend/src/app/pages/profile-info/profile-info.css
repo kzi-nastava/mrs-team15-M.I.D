@@ -1,0 +1,11 @@
+.profile-container {
+  max-width: 720px;
+}
+
+.profile-container .card {
+  background: #fff;
+}
+
+.profile-container .fw-bold {
+  color: #333;
+}

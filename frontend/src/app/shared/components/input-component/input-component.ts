@@ -13,4 +13,5 @@ export class InputComponent {
   @Input() width: string = '100%';
   @Input() height: string = '100%';
   @Input() borderColor: string = '#000000';
+  @Input() value: string = '';
 }
