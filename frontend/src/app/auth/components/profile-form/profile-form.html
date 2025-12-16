@@ -1,0 +1,73 @@
+<form class="profile-form">
+  <div class="avatar">
+      <img src="assets/pfp/default-avatar-icon.jpg" alt="Profile picture" />
+    </div>
+
+    <h2 class="profile-name">
+      {{ user.firstName }} {{ user.lastName }}
+    </h2>
+
+  <div class="row g-2 mt-2">
+        <div class="col-12 col-md-6">
+          <app-input-component
+            type="text"
+            height="35px"
+            placeholder="First name"
+            [value]="user.firstName">
+          </app-input-component>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <app-input-component
+            type="text"
+            height="35px"
+            placeholder="Last name"
+            [value]="user.lastName">
+          </app-input-component>
+        </div>
+      </div>
+
+      <div class="row g-2 mt-2">
+        <div class="col-12 col-md-6">
+          <app-input-component
+            type="tel"
+            height="35px"
+            placeholder="Phone number"
+            [value]="user.phone">
+          </app-input-component>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <app-input-component
+            type="text"
+            height="35px"
+            placeholder="Address"
+            [value]="user.address">
+          </app-input-component>
+        </div>
+      </div>
+
+      <app-input-component
+        class="form-input w-100 mt-3"
+        type="email"
+        height="35px"
+        placeholder="Email"
+        [value]="user.email">
+      </app-input-component>
+
+      <div class="form-actions">
+        <app-button
+        width="220px"
+        height="40px"
+        variant="secondary"
+        text="Change Password">
+        </app-button>
+
+        <app-button
+        width="220px"
+        height="40px"
+        variant="primary"
+        text="Save Changes">
+        </app-button>
+      </div>
+</form>
