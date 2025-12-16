@@ -1,0 +1,13 @@
+<button 
+  class="button"
+  [style.width]="width"
+  [style.height]="height"
+  [class.primary]="variant === 'primary'"
+  [class.secondary]="variant === 'secondary'"
+  [class.danger]="variant === 'danger'"
+  [class.ghost]="variant === 'ghost'" 
+  [style.font-weight]="fontWeight"
+  [style.text-transform]="textTransform"
+  variant="">
+  {{ text }}
+</button>
