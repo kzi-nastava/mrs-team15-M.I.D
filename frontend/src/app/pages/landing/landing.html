@@ -1,14 +1,17 @@
 <div class="container-fluid px-0">
-  <div class="row vh-70 mt-5">
-    <div class="col-md-8 ps-5 pe-3">
-      <div class="h-100 rounded-4 bg-light overflow-hidden">
+  <div class="row mt-5 g-0 g-md-3 row-height">
+    <!-- Map section - full width on mobile, 2/3 on desktop -->
+    <div class="col-12 col-md-8 ps-md-5 pe-md-3 order-1 mb-3 mb-md-0 map-col-height">
+      <div class="rounded-4 bg-light overflow-hidden h-100">
         <div id="map" class="h-100 w-100"></div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="h-100 bg-black text-white rounded-start-4 p-4 pt-5">
+
+    <!-- Form section - full width on mobile, 1/3 on desktop -->
+    <div class="col-12 col-md-4 order-2 px-3 px-md-0 form-col-height">
+      <div class="bg-black text-white rounded-4 rounded-md-start-4 p-4 pt-5 h-100">
         <h2>Estimate your ride</h2>
-        <input type="text" class="form-control mb-3 bg-black text-white border-white mt-5" placeholder="Enter your adress">
+        <input type="text" class="form-control mb-3 bg-black text-white border-white mt-5" placeholder="Enter your address">
         <input type="text" class="form-control mb-3 bg-black text-white border-white" placeholder="Enter destination address">
         <button class="btn btn-primary bg-white text-black btn-lg mt-3 w-100" type="button">Show route</button>
       </div>
