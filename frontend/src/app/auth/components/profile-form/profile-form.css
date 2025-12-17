@@ -70,11 +70,27 @@ profile-form.css
   margin-bottom: 8px;
 }
 
-.form-actions {
-  margin-top: 32px;
+
+
+.change-password {
+  max-width: 720px;
+  margin: 20px auto;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.change-actions {
   display: flex;
+  gap: 12px;
   justify-content: center;
-  gap: 24px;
+}
+
+.text-danger {
+  color: #c7254e;
+  text-align: center;
+  margin-top: 8px;
 }
 .driver-stats {
   margin: 24px 0; 
@@ -83,7 +99,24 @@ profile-form.css
   flex-direction: column;
   gap: 6px; 
 }
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: space-between; /* rasporedi dugmad skroz levo i desno */
+  flex-wrap: wrap;
+  gap: 16px;
+}
 
+/* Za desktop: prvo dugme ostaje levo, drugo dugme desno */
+.form-actions app-button:first-child {
+  margin-left: 0;
+}
+
+.form-actions app-button:last-child {
+  margin-left: auto;
+}
+
+/* Responsive za manje ekrane */
 @media (max-width: 768px) {
   .form-actions {
     flex-direction: column;
@@ -92,5 +125,7 @@ profile-form.css
 
   .form-actions app-button {
     width: 100%;
+    margin-left: 0;
   }
 }
+
