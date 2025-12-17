@@ -1,0 +1,60 @@
+<div class="vehicle-form">
+
+  <h3 class="section-title">Vehicle</h3>
+
+  <div class="row g-2 mt-2">
+    <div class="col-12 col-md-6">
+      <app-input-component
+        type="text"
+        height="35px"
+        placeholder="License plate"
+        [value]="vehicle.licensePlate">
+      </app-input-component>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <app-input-component
+        type="text"
+        height="35px"
+        placeholder="Car model"
+        [value]="vehicle.model">
+      </app-input-component>
+    </div>
+  </div>
+
+  <div class="row g-2 mt-2">
+    <div class="col-12 col-md-6">
+      <app-input-component
+        type="number"
+        height="35px"
+        placeholder="Seats"
+        [value]="vehicle.seats">
+      </app-input-component>
+    </div>
+
+    <div class="col-12 col-md-6">
+    <select id="vehicleType" [(ngModel)]="vehicle.type" class="form-select">
+        <option value="Standard">Standard</option>
+        <option value="Luksuz">Luksuz</option>
+        <option value="Kombi">Kombi</option>
+    </select>
+    </div>
+
+  </div>
+
+  <div class="indicators mt-2">
+    <label class="toggle-label">
+    <input type="checkbox" [(ngModel)]="vehicle.petFriendly" />
+    <span class="toggle-slider"></span>
+    Pet friendly
+    </label>
+
+    <label class="toggle-label ms-3">
+    <input type="checkbox" [(ngModel)]="vehicle.babyFriendly" />
+    <span class="toggle-slider"></span>
+    Baby friendly
+    </label>
+
+  </div>
+
+</div>

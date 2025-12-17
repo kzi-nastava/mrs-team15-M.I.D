@@ -1,0 +1,11 @@
+.select {
+  border-radius: 8px;
+  border: 1px solid #000; 
+  padding-left: 11px;
+  height: 35px;
+  width: 100%;
+  box-sizing: border-box;
+  background: white;
+}
+
+

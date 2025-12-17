@@ -5,9 +5,9 @@
   [class.primary]="variant === 'primary'"
   [class.secondary]="variant === 'secondary'"
   [class.danger]="variant === 'danger'"
-  [class.ghost]="variant === 'ghost'" 
+  [class.ghost]="variant === 'ghost'"
   [style.font-weight]="fontWeight"
   [style.text-transform]="textTransform"
-  variant="">
+  (click)="onClick()">
   {{ text }}
 </button>
