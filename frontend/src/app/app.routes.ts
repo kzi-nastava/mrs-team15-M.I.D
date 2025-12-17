@@ -5,15 +5,17 @@ import { Login } from './auth/pages/login/login'
 import { ForgotPassword } from './auth/pages/forgot-password/forgot-password';
 import { ResetPassword } from './auth/pages/reset-password/reset-password';
 import { Registration } from './auth/pages/registration/registration';
+import { ChangePasswordPage } from './pages/change-password/change-password';
 import { DriverHistory } from './pages/driver-history/driver-history';
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
     { path: 'landing', component: Landing },  // /landing route
-    { path: 'driver-history', component: DriverHistory },
     { path: 'login', component: Login},        
     { path: 'forgot-password', component: ForgotPassword},
     { path: 'reset-password', component: ResetPassword},
     { path: 'registration', component: Registration},
-    { path: 'profile', component: ProfileInfo }
+    { path: 'profile', component: ProfileInfo },
+    { path: 'change-password', component: ChangePasswordPage },
+    { path: 'driver-history', component: DriverHistory }
 ];

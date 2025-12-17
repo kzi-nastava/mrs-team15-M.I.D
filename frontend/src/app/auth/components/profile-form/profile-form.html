@@ -1,7 +1,13 @@
 <form class="profile-form">
-  <div class="avatar">
-      <img src="assets/pfp/default-avatar-icon.jpg" alt="Profile picture" />
+
+        <div class="avatar" (click)="onSelectPhoto()">
+    <img src="assets/pfp/default-avatar-icon.jpg" alt="Profile picture" />
+    <div class="avatar-overlay">
     </div>
+    <input type="file" #fileInput accept="image/*" style="display: none" (change)="onFileSelected($event)" />
+    </div>
+
+
 
     <h2 class="profile-name">
       {{ user.firstName }} {{ user.lastName }}
@@ -72,15 +78,18 @@
         width="220px"
         height="40px"
         variant="secondary"
-        text="Change Password">
+        text="Change Password"
+        (clicked)="goToChangePassword()">
         </app-button>
 
         <app-button
         width="220px"
         height="40px"
         variant="primary"
-        text="Save Changes">
+        text="Save Changes"
+        (clicked)="onSave()">
         </app-button>
+
       </div>
 
 </form>
