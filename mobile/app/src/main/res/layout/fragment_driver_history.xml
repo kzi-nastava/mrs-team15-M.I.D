@@ -4,21 +4,111 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="top|center_horizontal">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Driver History"
-        android:textSize="24sp"
+        android:text="Ride History"
+        android:textSize="35sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="5dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="The driver's past rides and performance statistics."
-        android:textSize="18sp"
-        android:gravity="center" />
+        android:text="Review your completed rides"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="30dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TableLayout
+                android:id="@+id/tableDriverHistory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:stretchColumns="*">
+
+                <!-- Header Row -->
+                <TableRow
+                    android:padding="12dp">
+
+                    <TextView
+                        android:text="Route"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="100dp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:text="Passengers"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="120dp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:text="Date"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="90dp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:text="Duration"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="100dp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:text="Cancelled"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="100dp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:text="Cost"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="70dp"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:text="Panic Button"
+                        android:textStyle="bold"
+                        android:padding="8dp"
+                        android:minWidth="100dp"
+                        android:gravity="center" />
+
+                </TableRow>
+
+                <!-- Horizontal line after header -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#CCCCCC" />
+
+                <!-- Horizontal line after each data row -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#CCCCCC" />
+
+            </TableLayout>
+
+        </HorizontalScrollView>
+
+    </ScrollView>
+
 
 </LinearLayout>
