@@ -15,10 +15,16 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
         LoginResponseDTO response = new LoginResponseDTO();
+        response.setId(1L);
         response.setActive(true);
         response.setEmail(request.getEmail());
         response.setFirstName("Jane");
         response.setLastName("Doe");
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestParam Long id){
+        return ResponseEntity.ok().build();
     }
 }
