@@ -12,7 +12,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideEstimateResponseDTO;
 public class RideController {
 
     @GetMapping("/estimate")
-    public ResponseEntity<RideEstimateResponseDTO> estimateRide(@RequestParam String from, @RequestParam String to){
+    public ResponseEntity<RideEstimateResponseDTO> estimateRide(@RequestParam String startAddress, @RequestParam String destinationAddress){
         RideEstimateResponseDTO response = new RideEstimateResponseDTO();
         response.setEstimatedDurationMin(24);
         return ResponseEntity.ok(response);
