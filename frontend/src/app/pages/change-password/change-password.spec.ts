@@ -1,20 +1,21 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangePasswordPage } from './change-password';
+import { Button } from '../../shared/components/button/button';
+import { CommonModule } from '@angular/common';
 
-import { ChangePassword } from './change-password';
-
-describe('ChangePassword', () => {
-  let component: ChangePassword;
-  let fixture: ComponentFixture<ChangePassword>;
+describe('ChangePasswordPage', () => {
+  let component: ChangePasswordPage;
+  let fixture: ComponentFixture<ChangePasswordPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChangePassword]
-    })
-    .compileComponents();
+      imports: [ChangePasswordPage, Button, CommonModule] // dodaj sve potrebne imports
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(ChangePassword);
+    fixture = TestBed.createComponent(ChangePasswordPage);
     component = fixture.componentInstance;
     await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

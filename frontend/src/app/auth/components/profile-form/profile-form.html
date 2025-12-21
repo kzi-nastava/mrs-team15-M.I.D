@@ -1,4 +1,11 @@
-<form class="profile-form">
+<form class="profile-form" (ngSubmit)="$event.preventDefault()">
+
+  <div class="toast-notification" [class.show]="showToast">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z" fill="white"/>
+    </svg>
+    <span>{{toastMessage}}</span>
+  </div>
 
         <div class="avatar" (click)="onSelectPhoto()">
     <img src="assets/pfp/default-avatar-icon.jpg" alt="Profile picture" />
@@ -62,13 +69,14 @@
         [value]="user.email">
       </app-input-component>
 
-        <div class="driver-stats">
+        <div class="driver-stats" *ngIf="user.role === 'driver'">
         <span>Active hours last 24h: {{ user.activeHours }}h</span>
         
         </div>
 
 
       <app-vehicle-form
+        *ngIf="user.role === 'driver'"
         [vehicle]="user.vehicle">
       </app-vehicle-form>
 
@@ -79,6 +87,7 @@
         height="40px"
         variant="secondary"
         text="Change Password"
+        fontWeight="600"
         (clicked)="goToChangePassword()">
         </app-button>
 
@@ -86,7 +95,8 @@
         width="220px"
         height="40px"
         variant="primary"
-        text="Save Changes"
+        fontWeight="600"
+        [text]="user.role === 'driver' ? 'Request Changes' : 'Save Changes'"
         (clicked)="onSave()">
         </app-button>
 
