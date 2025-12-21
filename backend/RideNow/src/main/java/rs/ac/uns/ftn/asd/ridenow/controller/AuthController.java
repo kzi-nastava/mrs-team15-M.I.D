@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.auth.ForgotPasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginResponseDTO;
 
@@ -25,6 +26,14 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestParam Long id){
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequestDTO request){
+        if(request.getEmail() == null || request.getEmail().isEmpty()){
+            return ResponseEntity.status(400).build();
+        }
         return ResponseEntity.ok().build();
     }
 }
