@@ -11,7 +11,12 @@ public class User {
     private boolean active;
     private boolean blocked;
 
-    public User(String email, String password, String firstName, String lastName, String phoneNumber, Long id, String profileImage, boolean active, boolean blocked) {
+    public User(){
+        super();
+    }
+
+    public User(String email, String password, String firstName, String lastName, String phoneNumber, Long id,
+                String profileImage, boolean active, boolean blocked) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
