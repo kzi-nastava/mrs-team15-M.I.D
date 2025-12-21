@@ -1,12 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
-import { Button } from '../../../shared/components/button/button';
 import { FormsModule } from '@angular/forms'; // <-- dodaj ovo
 
 @Component({
   selector: 'app-vehicle-form',
   standalone: true,
-  imports: [Button, InputComponent, FormsModule], // <-- FormsModule ovde
+  imports: [InputComponent, FormsModule], // <-- FormsModule ovde
   templateUrl: './vehicle-form.html',
   styleUrl: './vehicle-form.css',
 })

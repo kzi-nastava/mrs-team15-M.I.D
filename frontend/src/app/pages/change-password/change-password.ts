@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 import { Button } from '../../shared/components/button/button';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-change-password',
   standalone: true,
-  imports: [Button],
+  imports: [Button, CommonModule],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css',
 })
@@ -15,11 +16,11 @@ export class ChangePasswordPage {
   showCurrent = false;
   showNew = false;
   showConfirm = false;
-  
-  constructor(private location: Location) {}
+
+  constructor(private router: Router) {}
 
   goBack() {
-    this.location.back();
+    this.router.navigate(['/profile']);
   }
 
   changePassword(current: string, next: string, confirm: string) {
@@ -40,8 +41,13 @@ export class ChangePasswordPage {
       return;
     }
 
-    console.log('Change password:', { current, next });
+    this.router.navigate(['/profile'], {
+      state: {
+        toastMessage: 'Your password has been changed successfully.',
+      },
+    });
   }
+
   toggleShow(field: 'current' | 'new' | 'confirm') {
     if (field === 'current') this.showCurrent = !this.showCurrent;
     if (field === 'new') this.showNew = !this.showNew;
