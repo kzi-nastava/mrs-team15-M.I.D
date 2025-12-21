@@ -1,105 +1,65 @@
-<form class="profile-form" (ngSubmit)="$event.preventDefault()">
+<form class="container py-5" (ngSubmit)="$event.preventDefault()">
 
-  <div class="toast-notification" [class.show]="showToast">
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-1 15l-5-5 1.41-1.41L9 12.17l7.59-7.59L18 6l-9 9z" fill="white"/>
-    </svg>
-    <span>{{toastMessage}}</span>
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+    <div class="toast align-items-center text-white bg-success border-0" [class.show]="showToast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          {{ toastMessage }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showToast = false" aria-label="Close"></button>
+      </div>
+    </div>
   </div>
 
-        <div class="avatar" (click)="onSelectPhoto()">
-    <img src="assets/pfp/default-avatar-icon.jpg" alt="Profile picture" />
-    <div class="avatar-overlay">
+  <div class="text-center mb-4">
+    <div class="avatar position-relative d-inline-block" (click)="onSelectPhoto()">
+      <img [src]="userAvatar || 'assets/pfp/default-avatar-icon.jpg'" class="rounded-circle w-100 h-100 object-fit-cover" alt="Profile picture">
+      <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex justify-content-center align-items-center">
+        <i class="bi bi-camera text-white fs-4"></i>
+      </div>
+      <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)">
     </div>
-    <input type="file" #fileInput accept="image/*" style="display: none" (change)="onFileSelected($event)" />
+    <h2 class="mt-3">{{ user.firstName }} {{ user.lastName }}</h2>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="First name" [(ngModel)]="user.firstName" name="firstName">
     </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="Last name" [(ngModel)]="user.lastName" name="lastName">
+    </div>
+    <div class="col-md-6">
+      <input type="tel" class="form-control input-focus" placeholder="Phone number" [(ngModel)]="user.phone" name="phone">
+    </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="Address" [(ngModel)]="user.address" name="address">
+    </div>
+    <div class="col-12">
+      <input type="email" class="form-control input-focus" placeholder="Email" [(ngModel)]="user.email" name="email">
+    </div>
+  </div>
 
+  <div *ngIf="user.role === 'driver'" class="mt-3">
+    <p>Active hours last 24h: {{ user.activeHours }}h</p>
+    <app-vehicle-form [vehicle]="user.vehicle"></app-vehicle-form>
+  </div>
 
+  <div class="d-flex flex-wrap justify-content-between mt-4 gap-2">
+  <button type="button"
+          class="btn fw-semibold"
+          style="min-width: 180px; height: 40px; background-color: #f0f0f0; color: #000; border: 1px solid #ccc;"
+          (click)="goToChangePassword()">
+    Change Password
+  </button>
+  
+  <button type="button"
+          class="btn btn-dark fw-semibold"
+          style="min-width: 180px; height: 40px;"
+          (click)="onSave()">
+    {{ user.role === 'driver' ? 'Request Changes' : 'Save Changes' }}
+  </button>
+</div>
 
-    <h2 class="profile-name">
-      {{ user.firstName }} {{ user.lastName }}
-    </h2>
-    
-
-  <div class="row g-2 mt-2">
-        <div class="col-12 col-md-6">
-          <app-input-component
-            type="text"
-            height="35px"
-            placeholder="First name"
-            [value]="user.firstName">
-          </app-input-component>
-        </div>
-
-        <div class="col-12 col-md-6">
-          <app-input-component
-            type="text"
-            height="35px"
-            placeholder="Last name"
-            [value]="user.lastName">
-          </app-input-component>
-        </div>
-      </div>
-
-      <div class="row g-2 mt-2">
-        <div class="col-12 col-md-6">
-          <app-input-component
-            type="tel"
-            height="35px"
-            placeholder="Phone number"
-            [value]="user.phone">
-          </app-input-component>
-        </div>
-
-        <div class="col-12 col-md-6">
-          <app-input-component
-            type="text"
-            height="35px"
-            placeholder="Address"
-            [value]="user.address">
-          </app-input-component>
-        </div>
-      </div>
-
-      <app-input-component
-        class="form-input w-100 mt-3"
-        type="email"
-        height="35px"
-        placeholder="Email"
-        [value]="user.email">
-      </app-input-component>
-
-        <div class="driver-stats" *ngIf="user.role === 'driver'">
-        <span>Active hours last 24h: {{ user.activeHours }}h</span>
-        
-        </div>
-
-
-      <app-vehicle-form
-        *ngIf="user.role === 'driver'"
-        [vehicle]="user.vehicle">
-      </app-vehicle-form>
-
-
-      <div class="form-actions">
-        <app-button
-        width="220px"
-        height="40px"
-        variant="secondary"
-        text="Change Password"
-        fontWeight="600"
-        (clicked)="goToChangePassword()">
-        </app-button>
-
-        <app-button
-        width="220px"
-        height="40px"
-        variant="primary"
-        fontWeight="600"
-        [text]="user.role === 'driver' ? 'Request Changes' : 'Save Changes'"
-        (clicked)="onSave()">
-        </app-button>
-
-      </div>
 
 </form>

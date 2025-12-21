@@ -1,60 +1,53 @@
-<div class="vehicle-form">
+<div class="vehicle-form mt-4">
 
-  <h3 class="section-title">Vehicle</h3>
+  <h3 class="fw-semibold mb-3">Vehicle</h3>
 
-  <div class="row g-2 mt-2">
+  <div class="row g-2 mb-3">
     <div class="col-12 col-md-6">
-      <app-input-component
-        type="text"
-        height="35px"
-        placeholder="License plate"
-        [value]="vehicle.licensePlate">
-      </app-input-component>
+      <input type="text"
+             class="form-control input-focus"
+             placeholder="License plate"
+             [(ngModel)]="vehicle.licensePlate" />
     </div>
-
     <div class="col-12 col-md-6">
-      <app-input-component
-        type="text"
-        height="35px"
-        placeholder="Car model"
-        [value]="vehicle.model">
-      </app-input-component>
+      <input type="text"
+             class="form-control input-focus"
+             placeholder="Car model"
+             [(ngModel)]="vehicle.model" />
     </div>
   </div>
 
-  <div class="row g-2 mt-2">
+  <div class="row g-2 mb-3">
     <div class="col-12 col-md-6">
-      <app-input-component
-        type="number"
-        height="35px"
-        placeholder="Seats"
-        [value]="vehicle.seats">
-      </app-input-component>
+      <input type="number"
+             class="form-control input-focus"
+             placeholder="Seats"
+             [(ngModel)]="vehicle.seats" />
     </div>
-
     <div class="col-12 col-md-6">
-    <select id="vehicleType" [(ngModel)]="vehicle.type" class="form-select">
+      <select class="form-select input-focus"
+              [(ngModel)]="vehicle.type">
         <option value="Standard">Standard</option>
         <option value="Luksuz">Luksuz</option>
         <option value="Kombi">Kombi</option>
-    </select>
+      </select>
     </div>
-
   </div>
 
-  <div class="indicators mt-2">
-    <label class="toggle-label">
-    <input type="checkbox" [(ngModel)]="vehicle.petFriendly" />
-    <span class="toggle-slider"></span>
-    Pet friendly
-    </label>
-
-    <label class="toggle-label ms-3">
-    <input type="checkbox" [(ngModel)]="vehicle.babyFriendly" />
-    <span class="toggle-slider"></span>
-    Baby friendly
-    </label>
-
+  <div class="row g-2 mt-3">
+    <div class="col-12 col-md-6">
+      <div class="form-check form-switch custom-switch">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="vehicle.petFriendly" id="petFriendly">
+        <label class="form-check-label" for="petFriendly">Pet friendly</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-check form-switch custom-switch">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="vehicle.babyFriendly" id="babyFriendly">
+        <label class="form-check-label" for="babyFriendly">Baby friendly</label>
+      </div>
+    </div>
   </div>
 
 </div>
+
