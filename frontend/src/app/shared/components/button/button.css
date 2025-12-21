@@ -1,26 +1,55 @@
 .button {
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  margin-top: 20px;
   border: 1px solid transparent;
-  width: 100%;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 600; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
+
 
 @media (max-width: 576px) {
   .button {
-    height: 40px; 
+    height: 40px;
   }
 }
 
 .button.primary {
-  background-color: black;
-  color: white;
+  background-color: #000;
+  color: #fff;
 }
 
 .button.primary:hover {
-  background-color: white;
-  color: black;
-  border-color: black;
-  transition-duration: 700ms;
+  background-color: #2b2b2b;
+}
+
+.button.secondary {
+  background-color: #e0e0e0;
+  color: #000;
+}
+
+.button.secondary:hover {
+  background-color: #cfcfcf;
+}
+
+.button.danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.button.danger:hover {
+  background-color: #b52a37;
+}
+
+.button.ghost {
+  background-color: transparent;
+  color: #000;
+  border: 1px solid #ccc;
+}
+
+.button.ghost:hover {
+  background-color: #f2f2f2;
 }
