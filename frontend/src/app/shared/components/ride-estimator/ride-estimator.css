@@ -1,0 +1,11 @@
+input.bg-black::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 1;
+}
+
+input.bg-black:focus {
+  background-color: #000;
+  border-color: #fff;
+  color: #fff;
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
