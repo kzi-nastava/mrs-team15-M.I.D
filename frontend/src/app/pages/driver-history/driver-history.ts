@@ -1,30 +1,15 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-interface Ride {
-  route: string;
-  passengers: string;
-  date: string;
-  duration: string;
-  timeRange: string;
-  cancelled: string | null;
-  cancelledBy: string | null;
-  cost: string;
-  panicButton: boolean;
-  panicBy: string | null;
-}
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
+import { RideHistoryTableComponent, Ride } from '../../shared/components/ride-history-table/ride-history-table';
 
 @Component({
   selector: 'app-driver-history',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [PageHeaderComponent, RideHistoryTableComponent],
   templateUrl: './driver-history.html',
   styleUrl: './driver-history.css',
 })
 export class DriverHistory {
-filterDate: string = '';
-
   allRides: Ride[] = [
     {
       route: 'Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd',
@@ -35,7 +20,7 @@ filterDate: string = '';
       cancelled: null,
       cancelledBy: null,
       cost: '1550 RSD',
-      panicButton: false,
+      panicButton: null,
       panicBy: null
     },
     {
@@ -47,7 +32,7 @@ filterDate: string = '';
       cancelled: 'Od strane putnika',
       cancelledBy: 'Petar Petrović',
       cost: '800 RSD',
-      panicButton: false,
+      panicButton: null,
       panicBy: null
     },
     {
@@ -59,7 +44,7 @@ filterDate: string = '';
       cancelled: null,
       cancelledBy: null,
       cost: '1275 RSD',
-      panicButton: true,
+      panicButton: "Od strane putnika",
       panicBy: 'Jovana Nikolić'
     },
     {
@@ -71,7 +56,7 @@ filterDate: string = '';
       cancelled: 'Od strane vozača',
       cancelledBy: null,
       cost: '1800 RSD',
-      panicButton: false,
+      panicButton: null,
       panicBy: null
     },
     {
@@ -83,28 +68,22 @@ filterDate: string = '';
       cancelled: null,
       cancelledBy: null,
       cost: '2050 RSD',
-      panicButton: false,
+      panicButton: null,
       panicBy: null
     }
   ];
 
   filteredRides: Ride[] = [...this.allRides];
 
-  filterRides(): void {
-    if (this.filterDate) {
-      this.filteredRides = this.allRides.filter(ride => ride.date === this.filterDate);
+  onFilter(filterDate: string): void {
+    if (filterDate) {
+      this.filteredRides = this.allRides.filter(ride => ride.date === filterDate);
     } else {
       this.filteredRides = [...this.allRides];
     }
   }
 
-  clearFilter(): void {
-    this.filterDate = '';
+  onClearFilter(): void {
     this.filteredRides = [...this.allRides];
-  }
-
-  formatDate(date: string): string {
-    const d = new Date(date);
-    return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
   }
 }

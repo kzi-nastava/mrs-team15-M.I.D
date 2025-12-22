@@ -1,7 +1,3 @@
-.vh-70 {
-  height: 70vh;
-}
-
 /* Column heights: fixed on mobile, 100% on desktop */
 .map-col-height,
 .form-col-height {
@@ -21,17 +17,3 @@
   }
 }
 
-#map {
-  z-index: 1;
-}
-
-input.bg-black::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-  opacity: 1;
-}
-
-input.bg-black:focus {
-  background-color: #00000000;
-  border-color: #fff;
-  color: #fff;
-}

@@ -1,0 +1,19 @@
+<div class="bg-black text-white rounded-4 rounded-md-start-4 p-4 pt-5 h-100">
+  <h2>Estimate your ride</h2>
+  <input
+    type="text"
+    class="form-control mb-3 bg-black text-white border-white mt-5"
+    placeholder="Enter your address"
+    [(ngModel)]="fromAddress">
+  <input
+    type="text"
+    class="form-control mb-3 bg-black text-white border-white"
+    placeholder="Enter destination address"
+    [(ngModel)]="toAddress">
+  <button
+    class="btn btn-primary bg-white border-white text-black btn-lg mt-3 w-100"
+    type="button"
+    (click)="onShowRoute()">
+    Show route
+  </button>
+</div>

@@ -1,0 +1,53 @@
+<div class="px-5 pb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Route</th>
+          <th scope="col">Passengers</th>
+          <th scope="col">Date</th>
+          <th scope="col">Duration</th>
+          <th scope="col">Cancelled</th>
+          <th scope="col">Cost</th>
+          <th scope="col">Panic Button</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ride of rides; track ride.date) {
+          <tr>
+            <td>{{ ride.route }}</td>
+            <td>{{ ride.passengers }}</td>
+            <td>{{ formatDate(ride.date) }}</td>
+            <td>
+              {{ ride.duration }}<br>
+              <small class="text-muted">{{ ride.timeRange }}</small>
+            </td>
+            <td>
+              @if (ride.cancelled) {
+                <span class="badge bg-danger">{{ ride.cancelled }}</span>
+                @if (ride.cancelledBy) {
+                  <br>
+                  <small>{{ ride.cancelledBy }}</small>
+                }
+              } @else {
+                <span>N/A</span>
+              }
+            </td>
+            <td>{{ ride.cost }}</td>
+            <td>
+              @if (ride.panicButton) {
+                <span class="badge bg-danger">{{ ride.panicButton }}</span>
+                @if (ride.panicBy) {
+                  <br>
+                  <small>{{ ride.panicBy }}</small>
+                }
+              } @else {
+                <span>N/A</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

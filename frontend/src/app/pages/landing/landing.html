@@ -3,21 +3,14 @@
     <!-- Map section - full width on mobile, 2/3 on desktop -->
     <div class="col-12 col-md-8 ps-md-5 pe-md-3 order-1 mb-3 mb-md-0 map-col-height">
       <div class="rounded-4 bg-light overflow-hidden h-100">
-        <div id="map" class="h-100 w-100"></div>
+        <app-map [centerLat]="45.2552" [centerLng]="19.8452" [zoom]="13" [showVehicles]="true"></app-map>
       </div>
     </div>
 
     <!-- Form section - full width on mobile, 1/3 on desktop -->
     <div class="col-12 col-md-4 order-2 px-3 px-md-0 form-col-height">
-      <div class="bg-black text-white rounded-4 rounded-md-start-4 p-4 pt-5 h-100">
-        <h2>Estimate your ride</h2>
-        <input type="text" class="form-control mb-3 bg-black text-white border-white mt-5" placeholder="Enter your address">
-        <input type="text" class="form-control mb-3 bg-black text-white border-white" placeholder="Enter destination address">
-        <button class="btn btn-primary bg-white border-white text-black btn-lg mt-3 w-100" type="button">Show route</button>
-      </div>
+      <app-ride-estimator (showRoute)="onShowRoute($event)"></app-ride-estimator>
     </div>
   </div>
 </div>
-<div>
 
-</div>
