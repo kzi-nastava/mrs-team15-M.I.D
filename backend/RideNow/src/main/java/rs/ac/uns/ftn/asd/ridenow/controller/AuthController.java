@@ -2,10 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.ForgotPasswordRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.ResetPasswordRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,5 +45,23 @@ public class AuthController {
             return ResponseEntity.status(400).build();
         }
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO request){
+        if (request.getEmail() == null || request.getPassword() == null || request.getConfirmPassword() == null ||
+            request.getEmail().isEmpty() || request.getPassword().isEmpty() || request.getConfirmPassword().isEmpty()){
+            return ResponseEntity.status(400).build();
+        }
+        if(!request.getPassword().equals(request.getConfirmPassword())){
+            return ResponseEntity.status(400).build();
+        }
+        RegisterResponseDTO response = new RegisterResponseDTO();
+        response.setId(1L);
+        response.setActive(false);
+        response.setEmail(request.getEmail());
+        response.setFirstName(request.getFirstName());
+        response.setLastName(request.getLastName());
+        return ResponseEntity.status(201).body(response);
     }
 }
