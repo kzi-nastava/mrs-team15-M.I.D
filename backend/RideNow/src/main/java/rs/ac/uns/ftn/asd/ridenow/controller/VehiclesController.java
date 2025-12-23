@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/vehicles/api")
 public class VehiclesController {
-    @GetMapping("/getAll")
+    @GetMapping("/get-all")
     public ResponseEntity<List<VehicleDTO>> getAll() {
         VehicleDTO vehicle1 = new VehicleDTO();
         vehicle1.setLicencePlate("NS123AB");
@@ -40,7 +40,7 @@ public class VehiclesController {
         return ResponseEntity.ok(vehicles);
     }
 
-    @GetMapping("/updateLocation/{id}")
+    @GetMapping("/update-location/{id}")
     public ResponseEntity<VehicleDTO> updateVehicleLocation(@PathVariable String id, double lat, double lon) {
         VehicleDTO vehicle = new VehicleDTO();
         vehicle.setLicencePlate(id);
