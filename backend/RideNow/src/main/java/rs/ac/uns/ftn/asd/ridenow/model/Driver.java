@@ -6,15 +6,17 @@ public class Driver extends User {
     private boolean available;
     private double workingHoursLast24;
     private double rating;
+    private Vehicle vehicle;
 
     public Driver(String email, String password, String firstName, String lastName, String phoneNumber, Long id,
                   String profileImage, boolean active, boolean blocked, DriverStatus status, boolean available,
-                  double workingHoursLast24, double rating) {
+                  double workingHoursLast24, double rating, Vehicle vehicle) {
         super(email, password, firstName, lastName, phoneNumber, id, profileImage, active, blocked);
         this.status = status;
         this.available = available;
         this.workingHoursLast24 = workingHoursLast24;
         this.rating = rating;
+        this.vehicle = vehicle;
     }
 
     public DriverStatus getStatus() {
@@ -47,5 +49,13 @@ public class Driver extends User {
 
     public void setRating(double rating) {
         this.rating = rating;
+    }
+
+    public Vehicle getVehicle() {
+        return vehicle;
+    }
+
+    public void setVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
     }
 }
