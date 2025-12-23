@@ -1,30 +1,46 @@
-package rs.ac.uns.ftn.asd.ridenow.dto.auth;
+package rs.ac.uns.ftn.asd.ridenow.dto.admin;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 
-public class RegisterDriverResponseDTO {
-    private Long id;
+public class RegisterDriverRequestDTO {
+    @NotBlank
+    @Email
     private String email;
+
+    @NotBlank
     private String firstName;
+
+    @NotBlank
     private String lastName;
-    private boolean active;
-    private String address;
+
+    @NotBlank
     private String phoneNumber;
+
+    @NotBlank
+    private String address;
+
+    private String profileImage;
+
+    @NotBlank
     private String licensePlate;
+
+    @NotBlank
     private String vehicleModel;
-    private String vehicleType;
-    private int numberOfSeats ;
+
+    @NotNull
+    private VehicleType vehicleType;
+
+    @Min(1)
+    private int numberOfSeats;
+
     private boolean babyFriendly;
     private boolean petFriendly;
 
-    public RegisterDriverResponseDTO(){
+    public RegisterDriverRequestDTO() {
         super();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getEmail() {
@@ -51,21 +67,25 @@ public class RegisterDriverResponseDTO {
         this.lastName = lastName;
     }
 
-    public boolean isActive() {
-        return active;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public  String getAddress() { return address; }
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public String getAddress() { return address; }
 
     public void setAddress(String address) { this.address = address; }
-
-    public String getPhoneNumber() { return phoneNumber; }
-
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     public String getLicensePlate() { return licensePlate; }
 
@@ -75,9 +95,9 @@ public class RegisterDriverResponseDTO {
 
     public void setVehicleModel(String vehicleModel) { this.vehicleModel = vehicleModel; }
 
-    public String getVehicleType() { return vehicleType; }
+    public VehicleType getVehicleType() { return vehicleType; }
 
-    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
+    public void setVehicleType(VehicleType vehicleType) { this.vehicleType = vehicleType; }
 
     public int getNumberOfSeats() { return numberOfSeats; }
 
@@ -90,6 +110,5 @@ public class RegisterDriverResponseDTO {
     public boolean isPetFriendly() { return petFriendly; }
 
     public void setPetFriendly(boolean petFriendly) { this.petFriendly = petFriendly; }
-
 
 }
