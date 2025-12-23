@@ -1,22 +1,33 @@
-package rs.ac.uns.ftn.asd.ridenow.dto.auth;
+package rs.ac.uns.ftn.asd.ridenow.dto.admin;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
-public class RegisterDriverRequestDTO {
+public class RegisterDriverResponseDTO {
+    private Long id;
     private String email;
     private String firstName;
     private String lastName;
-    private String phoneNumber;
+    private boolean active;
     private String address;
+    private String phoneNumber;
     private String profileImage;
 
     private String licensePlate;
     private String vehicleModel;
-    private String vehicleType;
+    private VehicleType vehicleType;
     private int numberOfSeats ;
     private boolean babyFriendly;
     private boolean petFriendly;
 
-    public RegisterDriverRequestDTO() {
+    public RegisterDriverResponseDTO(){
         super();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getEmail() {
@@ -43,25 +54,25 @@ public class RegisterDriverRequestDTO {
         this.lastName = lastName;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
-    public String getProfileImage() {
-        return profileImage;
-    }
-
-    public void setProfileImage(String profileImage) {
-        this.profileImage = profileImage;
-    }
-
-    public String getAddress() { return address; }
+    public  String getAddress() { return address; }
 
     public void setAddress(String address) { this.address = address; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public String getProfileImage() { return profileImage; }
+
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
 
     public String getLicensePlate() { return licensePlate; }
 
@@ -71,9 +82,9 @@ public class RegisterDriverRequestDTO {
 
     public void setVehicleModel(String vehicleModel) { this.vehicleModel = vehicleModel; }
 
-    public String getVehicleType() { return vehicleType; }
+    public VehicleType getVehicleType() { return vehicleType; }
 
-    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
+    public void setVehicleType(VehicleType vehicleType) { this.vehicleType = vehicleType; }
 
     public int getNumberOfSeats() { return numberOfSeats; }
 
@@ -86,5 +97,6 @@ public class RegisterDriverRequestDTO {
     public boolean isPetFriendly() { return petFriendly; }
 
     public void setPetFriendly(boolean petFriendly) { this.petFriendly = petFriendly; }
+
 
 }

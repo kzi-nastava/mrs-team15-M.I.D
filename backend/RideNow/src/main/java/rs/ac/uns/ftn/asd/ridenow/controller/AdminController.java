@@ -4,6 +4,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideDetailsDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverResponseDTO;
+import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,10 +63,9 @@ public class AdminController {
     }
 
     @PostMapping("/driver/register")
-    public ResponseEntity<RegisterDriverResponseDTO> register(@RequestBody RegisterDriverRequestDTO request){
-        if (request.getEmail() == null || request.getEmail().isEmpty()){
-            return ResponseEntity.status(400).build();
-        }
+    public ResponseEntity<RegisterDriverResponseDTO> register(
+            @Valid @RequestBody RegisterDriverRequestDTO request){
+
         RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
         response.setId(1L);
         response.setActive(false);
