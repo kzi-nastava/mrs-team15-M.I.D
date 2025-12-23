@@ -58,4 +58,27 @@ public class AdminController {
         details.setRating(4.8);
         return ResponseEntity.ok(details);
     }
+
+    @PostMapping("/driver/register")
+    public ResponseEntity<RegisterDriverResponseDTO> register(@RequestBody RegisterDriverRequestDTO request){
+        if (request.getEmail() == null || request.getEmail().isEmpty()){
+            return ResponseEntity.status(400).build();
+        }
+        RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
+        response.setId(1L);
+        response.setActive(false);
+        response.setEmail(request.getEmail());
+        response.setFirstName(request.getFirstName());
+        response.setLastName(request.getLastName());
+        response.setAddress(request.getAddress());
+        response.setPhoneNumber(request.getPhoneNumber());
+        response.setLicensePlate(request.getLicensePlate());
+        response.setVehicleModel(request.getVehicleModel());
+        response.setVehicleType(request.getVehicleType());
+        response.setNumberOfSeats(request.getNumberOfSeats());
+        response.setBabyFriendly(request.isBabyFriendly());
+        response.setPetFriendly(request.isPetFriendly());
+        return ResponseEntity.status(201).body(response);
+    }
+
 }
