@@ -1,19 +1,19 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Ride {
     private Long id;
     private double price;
     private double distanceKm;
     private RideStatus status;
-    private LocalDate scheduledTime;
-    private LocalDate startTime;
-    private LocalDate endTime;
+    private LocalDateTime scheduledTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String cancelReason;
 
-    public Ride(Long id, String cancelReason, LocalDate endTime, LocalDate startTime, LocalDate scheduledTime,
+    public Ride(Long id, String cancelReason, LocalDateTime endTime, LocalDateTime startTime, LocalDateTime scheduledTime,
                 RideStatus status, double distanceKm, double price) {
         this.id = id;
         this.cancelReason = cancelReason;
@@ -49,19 +49,19 @@ public class Ride {
         this.distanceKm = distanceKm;
     }
 
-    public LocalDate getScheduledTime() {
+    public LocalDateTime getScheduledTime() {
         return scheduledTime;
     }
 
-    public void setScheduledTime(LocalDate scheduledTime) {
+    public void setScheduledTime(LocalDateTime scheduledTime) {
         this.scheduledTime = scheduledTime;
     }
 
-    public LocalDate getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDate startTime) {
+    public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
 
@@ -81,11 +81,11 @@ public class Ride {
         this.status = status;
     }
 
-    public LocalDate getEndTime() {
+    public LocalDateTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(LocalDate endTime) {
+    public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
 }
