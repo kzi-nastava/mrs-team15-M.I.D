@@ -1,0 +1,61 @@
+package rs.ac.uns.ftn.asd.ridenow.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideDetailsDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin")
+public class AdminController {
+    @GetMapping("/users/{id}/rides")
+    public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@PathVariable Long id,
+           @RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
+           @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){
+        List<RideHistoryItemDTO> rides = new ArrayList<>();
+
+        RideHistoryItemDTO firstRide = new RideHistoryItemDTO();
+        firstRide.setId(1L);
+        firstRide.setStartAddress("Bulevar Oslobođenja 45, Novi Sad");
+        firstRide.setEndAddress("Narodnog fronta 12, Novi Sad");
+        firstRide.setStartTime(LocalDateTime.of(2025, 5, 10, 14, 30));
+        firstRide.setEndTime(LocalDateTime.of(2025, 5, 10, 14, 50));
+        firstRide.setCancelled(false);
+        firstRide.setCancelledBy(null);
+        firstRide.setPrice(520.00);
+        firstRide.setPanicTriggered(false);
+
+        RideHistoryItemDTO secondRide = new RideHistoryItemDTO();
+        secondRide.setId(2L);
+        secondRide.setStartAddress("Trg slobode 3, Novi Sad");
+        secondRide.setEndAddress("Bulevar Evrope 28, Novi Sad");
+        secondRide.setStartTime(LocalDateTime.of(2025, 5, 11, 9, 15));
+        secondRide.setEndTime(LocalDateTime.of(2025, 5, 11, 9, 40));
+        secondRide.setCancelled(true);
+        secondRide.setCancelledBy("PASSENGER");
+        secondRide.setPrice(0.00);
+        secondRide.setPanicTriggered(false);
+
+        rides.add(firstRide);
+        rides.add(secondRide);
+        return ResponseEntity.ok().body(rides);
+    }
+
+    @GetMapping("/rides/{id}")
+    public ResponseEntity<RideDetailsDTO> getRideDetails(@PathVariable Long id){
+        RideDetailsDTO details = new RideDetailsDTO();
+        details.setRideId(1L);
+        details.setRoute("Bulevar Oslobođenja 45 → Narodnog fronta 12, Novi Sad");
+        details.setDriver("Marko Marković");
+        details.setPassenger("Ana Anić");
+        details.setPrice(520.00);
+        details.setPanicTriggered(false);
+        details.setInconsistencies(null);
+        details.setRating(4.8);
+        return ResponseEntity.ok(details);
+    }
+}
