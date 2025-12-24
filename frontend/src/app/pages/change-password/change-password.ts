@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-change-password',
   standalone: true,
-  imports: [Button, CommonModule],
+  imports: [CommonModule],
   templateUrl: './change-password.html',
   styleUrl: './change-password.css',
 })
