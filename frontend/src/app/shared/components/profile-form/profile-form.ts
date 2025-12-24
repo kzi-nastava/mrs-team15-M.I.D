@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VehicleForm } from '../vehicle-form/vehicle-form';
 import { Router } from '@angular/router';
-import { Button } from '../../../shared/components/button/button';
+import { Button } from '../button/button';
 
 @Component({
   selector: 'app-profile-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, VehicleForm, Button],
+  imports: [CommonModule, FormsModule, VehicleForm],
   templateUrl: './profile-form.html',
   styleUrl: './profile-form.css',
 })
@@ -25,7 +25,7 @@ export class ProfileForm implements OnInit {
     phone: '0601234567',
     address: 'Bulevar cara Lazara 1, Novi Sad',
     email: 'john.doe@example.com',
-    role: 'user',
+    role: 'driver',
     activeHours: 8,
     vehicle: {
       licensePlate: 'NS123AB',

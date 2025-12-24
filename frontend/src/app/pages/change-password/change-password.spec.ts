@@ -9,7 +9,7 @@ describe('ChangePasswordPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChangePasswordPage, Button, CommonModule] // dodaj sve potrebne imports
+      imports: [ChangePasswordPage, Button, CommonModule] 
     }).compileComponents();
 
     fixture = TestBed.createComponent(ChangePasswordPage);

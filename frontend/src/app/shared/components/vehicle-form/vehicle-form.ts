@@ -1,11 +1,11 @@
 import { Component, Input } from '@angular/core';
-import { InputComponent } from '../../../shared/components/input-component/input-component';
+import { InputComponent } from '../input-component/input-component';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-vehicle-form',
   standalone: true,
-  imports: [InputComponent, FormsModule],
+  imports: [FormsModule],
   templateUrl: './vehicle-form.html',
   styleUrl: './vehicle-form.css',
 })

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ProfileForm } from '../../auth/components/profile-form/profile-form';
+import { ProfileForm } from '../../shared/components/profile-form/profile-form';
 
 @Component({
   selector: 'app-profile-info',
