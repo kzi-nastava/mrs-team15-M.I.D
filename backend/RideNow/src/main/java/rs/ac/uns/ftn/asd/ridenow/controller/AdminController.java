@@ -62,7 +62,7 @@ public class AdminController {
         return ResponseEntity.ok(details);
     }
 
-    @PostMapping("/driver/register")
+    @PostMapping("/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
             @Valid @RequestBody RegisterDriverRequestDTO request){
 
@@ -83,4 +83,30 @@ public class AdminController {
         return ResponseEntity.status(201).body(response);
     }
 
+    @GetMapping("/driver-change-requests")
+    public ResponseEntity<List<DriverChangeRequestDTO>> getPendingRequests() {
+        List<DriverChangeRequestDTO> requests = new ArrayList<>();
+
+        DriverChangeRequestDTO req = new DriverChangeRequestDTO();
+        req.setId(1L);
+        req.setDriverEmail("driver@mail.com");
+        req.setRequestedChanges("Phone number, vehicle model");
+        req.setStatus("PENDING");
+
+        requests.add(req);
+
+        return ResponseEntity.ok(requests);
+    }
+
+    @PutMapping("/driver-change-requests/{id}/approve")
+    public ResponseEntity<Void> approveRequest(@PathVariable Long id) {
+        // to do : approving logic
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/driver-change-requests/{id}/reject")
+    public ResponseEntity<Void> rejectRequest(@PathVariable Long id) {
+        // to do : rejecting logic
+        return ResponseEntity.ok().build();
+    }
 }

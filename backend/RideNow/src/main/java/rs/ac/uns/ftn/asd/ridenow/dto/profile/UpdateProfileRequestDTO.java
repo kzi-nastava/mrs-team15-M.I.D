@@ -1,0 +1,40 @@
+package rs.ac.uns.ftn.asd.ridenow.dto.profile;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+
+
+public class UpdateProfileRequestDTO {
+
+    @Email
+    @NotBlank
+    private String email;
+
+    @NotBlank
+    private String firstName;
+
+    @NotBlank
+    private String lastName;
+
+    @NotBlank
+    private String phoneNumber;
+
+    @NotBlank
+    private String address;
+
+    private String profileImage;
+
+    @NotBlank
+    private String vehicleModel;
+
+    @Min(1)
+    private int numberOfSeats;
+
+    @NotNull
+    private VehicleType vehicleType;
+
+    private Boolean babyFriendly;
+    private Boolean petFriendly;
+}
+
