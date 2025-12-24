@@ -1,4 +1,4 @@
-package rs.ac.uns.ftn.asd.ridenow.dto.vehicles;
+package rs.ac.uns.ftn.asd.ridenow.dto.vehicle;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 

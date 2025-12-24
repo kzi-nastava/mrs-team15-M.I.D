@@ -5,14 +5,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import rs.ac.uns.ftn.asd.ridenow.dto.vehicles.VehicleDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.VehicleDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/vehicles/api")
-public class VehiclesController {
+public class VehicleController {
     @GetMapping("/get-all")
     public ResponseEntity<List<VehicleDTO>> getAll() {
         VehicleDTO vehicle1 = new VehicleDTO();
@@ -42,6 +42,13 @@ public class VehiclesController {
 
     @GetMapping("/update-location/{id}")
     public ResponseEntity<VehicleDTO> updateVehicleLocation(@PathVariable String id, double lat, double lon) {
+        if (id == null || id.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+            return ResponseEntity.badRequest().build();
+        }
+
         VehicleDTO vehicle = new VehicleDTO();
         vehicle.setLicencePlate(id);
         vehicle.setLat(lat);
