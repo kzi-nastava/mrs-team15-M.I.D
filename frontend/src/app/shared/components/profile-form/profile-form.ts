@@ -1,6 +1,6 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { VehicleForm } from '../vehicle-form/vehicle-form';
 import { Router } from '@angular/router';
 import { Button } from '../button/button';
@@ -8,7 +8,7 @@ import { Button } from '../button/button';
 @Component({
   selector: 'app-profile-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, VehicleForm],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehicleForm],
   templateUrl: './profile-form.html',
   styleUrl: './profile-form.css',
 })
@@ -18,6 +18,7 @@ export class ProfileForm implements OnInit {
   userAvatar: string = '';
   showToast = false;
   toastMessage = '';
+  toastType: 'success' | 'error' = 'success';
 
   user = {
     firstName: 'John',
@@ -43,6 +44,56 @@ export class ProfileForm implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     const toastMessage = navigation?.extras?.state?.['toastMessage'] || history.state?.['toastMessage'];
     if (toastMessage) this.showToastMessage(toastMessage);
+  }
+
+  private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
+  private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
+
+  isEmailValid(email: string): boolean {
+    if (!email) return false;
+    return this.emailPattern.test(email);
+  }
+
+  isPhoneValid(phone: string): boolean {
+    if (!phone) return false;
+    return this.phonePattern.test(phone);
+  }
+
+  getEmailErrorMessage(): string {
+    if (!this.user.email) return 'Email is required';
+    if (!this.isEmailValid(this.user.email)) return 'Email is invalid';
+    return '';
+  }
+
+  getPhoneErrorMessage(): string {
+    if (!this.user.phone) return 'Phone number is required';
+    if (!this.isPhoneValid(this.user.phone)) return 'Phone number is invalid (e.g: 0601234567 or +381601234567)';
+    return '';
+  }
+
+  isFieldEmpty(field: string): boolean {
+    return !field || field.trim() === '';
+  }
+
+  private licensePlatePattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
+
+  isLicensePlateValid(licensePlate: string): boolean {
+    if (!licensePlate) return false;
+    return this.licensePlatePattern.test(licensePlate.toUpperCase());
+  }
+
+  hasValidationErrors(): boolean {
+    if (this.isFieldEmpty(this.user.firstName) || this.isFieldEmpty(this.user.lastName) || this.isFieldEmpty(this.user.address)) {
+      return true;
+    }
+    if (!this.isEmailValid(this.user.email) || !this.isPhoneValid(this.user.phone)) {
+      return true;
+    }
+    if (this.user.role === 'driver' && !this.isLicensePlateValid(this.user.vehicle.licensePlate)) {
+      return true;
+    }
+    return false;
   }
 
   onSelectPhoto(): void {
@@ -71,6 +122,7 @@ export class ProfileForm implements OnInit {
 
   private showToastMessage(message: string): void {
     this.toastMessage = message;
+    this.toastType = 'success';
     this.showToast = true;
     this.cdr.detectChanges();
 
