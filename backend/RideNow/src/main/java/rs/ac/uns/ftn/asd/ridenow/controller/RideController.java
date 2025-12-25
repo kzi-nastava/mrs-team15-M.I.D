@@ -1,14 +1,20 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideEstimateResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.ride.StopRideResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
+import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 
 @RestController
 @RequestMapping("/api/rides")
 public class RideController {
+
+    private final RideService rideService;
+
+    public RideController(RideService rideService) {
+        this.rideService = rideService;
+    }
 
     @GetMapping("/estimate")
     public ResponseEntity<RideEstimateResponseDTO> estimate(@RequestParam String startAddress, @RequestParam String destinationAddress){
@@ -31,5 +37,21 @@ public class RideController {
             return ResponseEntity.status(400).build();
         }
         return ResponseEntity.status(204).build();
+    }
+
+    @PostMapping("/route")
+    public ResponseEntity<RouteResponseDTO> estimateRoute(
+            @Valid @RequestBody EstimateRouteRequestDTO dto) {
+
+        RouteResponseDTO response = rideService.estimateRoute(dto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<OrderRideResponseDTO> orderRide(
+            @Valid @RequestBody OrderRideRequestDTO dto) {
+
+        OrderRideResponseDTO response = rideService.createRide(1l, dto);
+        return ResponseEntity.ok(response);
     }
 }
