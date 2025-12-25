@@ -5,6 +5,7 @@
 
     <!-- nav -->
     <string name="nav_login">Login</string>
+    <string name="nav_forgot_password">Forgot password</string>
 
     <!-- login -->
     <string name="login_title">Welcome back</string>
@@ -17,5 +18,10 @@
     <string name="no_account">Don\'t have an account?</string>
     <string name="login">Log in</string>
     <string name="sign_up">Sign up</string>
+    <string name="back_to_login">Back to login</string>
+    <string name="send_reset_link">send reset link</string>
 
+    <!-- forgot password -->
+    <string name="forgot_password_title">Forgot your password?</string>
+    <string name="forgot_password_subtitle">We\'ll send you a link to reset your password.</string>
 </resources>
