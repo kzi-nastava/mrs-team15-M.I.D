@@ -1,44 +1,24 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.profile;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
+
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
-
-public class UpdateProfileRequestDTO {
-
-    @Email
-    @NotBlank
+public class UserResponseDTO {
     private String email;
-
-    @NotBlank
     private String firstName;
-
-    @NotBlank
     private String lastName;
-
-    @NotBlank
-    private String phoneNumber;
-
-    @NotBlank
+    private boolean active;
     private String address;
-
+    private String phoneNumber;
     private String profileImage;
 
-    @NotBlank
+    private String licensePlate;
     private String vehicleModel;
-
-    @Min(1)
-    private int numberOfSeats;
-
-    @NotNull
     private VehicleType vehicleType;
+    private int numberOfSeats ;
+    private boolean babyFriendly;
+    private boolean petFriendly;
 
-    private Boolean babyFriendly;
-    private Boolean petFriendly;
-
-    public UpdateProfileRequestDTO() { super(); }
+    public UserResponseDTO() { super(); }
 
     public String getEmail() { return email; }
 
@@ -52,37 +32,44 @@ public class UpdateProfileRequestDTO {
 
     public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getPhoneNumber() { return phoneNumber; }
+    public boolean isActive() { return active; }
 
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setActive(boolean active) { this.active = active; }
 
     public String getAddress() { return address; }
 
     public void setAddress(String address) { this.address = address; }
 
+    public String getPhoneNumber() { return phoneNumber; }
+
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
     public String getProfileImage() { return profileImage; }
 
     public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
+
+    public String getLicensePlate() { return licensePlate; }
+
+    public void setLicensePlate(String licensePlate) { this.licensePlate = licensePlate; }
 
     public String getVehicleModel() { return vehicleModel; }
 
     public void setVehicleModel(String vehicleModel) { this.vehicleModel = vehicleModel; }
 
-    public int getNumberOfSeats() { return numberOfSeats; }
-
-    public void setNumberOfSeats(int numberOfSeats) { this.numberOfSeats = numberOfSeats; }
-
     public VehicleType getVehicleType() { return vehicleType; }
 
     public void setVehicleType(VehicleType vehicleType) { this.vehicleType = vehicleType; }
 
-    public Boolean getBabyFriendly() { return babyFriendly; }
+    public int getNumberOfSeats() { return numberOfSeats; }
 
-    public void setBabyFriendly(Boolean babyFriendly) { this.babyFriendly = babyFriendly; }
+    public void setNumberOfSeats(int numberOfSeats) { this.numberOfSeats = numberOfSeats; }
 
-    public Boolean getPetFriendly() { return petFriendly; }
+    public boolean isBabyFriendly() { return babyFriendly; }
 
-    public void setPetFriendly(Boolean petFriendly) { this.petFriendly = petFriendly; }
-    
+    public void setBabyFriendly(boolean babyFriendly) { this.babyFriendly = babyFriendly; }
+
+    public boolean isPetFriendly() { return petFriendly; }
+
+    public void setPetFriendly(boolean petFriendly) { this.petFriendly = petFriendly; }
+
 }
-

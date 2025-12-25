@@ -1,4 +1,5 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.admin;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -39,7 +40,9 @@ public class DriverChangeRequestDTO {
     private boolean babyFriendly;
     private boolean petFriendly;
 
-    public RegisterDriverRequestDTO() {
+    private DriverChangesStatus status;
+
+    public DriverChangeRequestDTO() {
         super();
     }
 
@@ -111,4 +114,7 @@ public class DriverChangeRequestDTO {
 
     public void setPetFriendly(boolean petFriendly) { this.petFriendly = petFriendly; }
 
+    public DriverChangesStatus getStatus() { return status; }
+
+    public void setStatus(DriverChangesStatus status) { this.status = status; }
 }

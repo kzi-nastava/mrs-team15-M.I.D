@@ -6,7 +6,10 @@ import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideDetailsDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.DriverChangeRequestDTO;
 import jakarta.validation.Valid;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -88,10 +91,21 @@ public class AdminController {
         List<DriverChangeRequestDTO> requests = new ArrayList<>();
 
         DriverChangeRequestDTO req = new DriverChangeRequestDTO();
-        req.setId(1L);
-        req.setDriverEmail("driver@mail.com");
-        req.setRequestedChanges("Phone number, vehicle model");
-        req.setStatus("PENDING");
+
+        req.setEmail("driver@mail.com");
+        req.setFirstName("John");
+        req.setLastName("Doe");
+        req.setPhoneNumber("123-456-7890");
+        req.setProfileImage("profile_image_url");
+        req.setAddress("123 Main St, Cityville");
+        req.setLicensePlate("NS123AB");
+        req.setVehicleModel("Toyota Prius");
+        req.setVehicleType(VehicleType.valueOf("Standard"));
+        req.setNumberOfSeats(4);
+        req.setBabyFriendly(true);
+        req.setPetFriendly(false);
+
+        req.setStatus(DriverChangesStatus.valueOf("PENDING"));
 
         requests.add(req);
 
