@@ -14,4 +14,9 @@
         android:name="com.example.ridenow.DriverHistoryFragment"
         android:label="Profile" />
 
+    <fragment
+        android:id="@+id/login"
+        android:name="com.example.ridenow.LoginFragment"
+        android:label="@string/nav_login"/>
+
 </navigation>

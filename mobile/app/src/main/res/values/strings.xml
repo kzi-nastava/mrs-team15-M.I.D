@@ -2,4 +2,18 @@
     <string name="app_name">RideNow</string>
     <string name="open_drawer">Open navigation drawer</string>
     <string name="close_drawer">Close navigation drawer</string>
+
+    <!-- nav -->
+    <string name="nav_login">Login</string>
+
+    <!-- login -->
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to your Ride Now account</string>
+    <string name="login_email">Email address</string>
+    <string name="login_password">Password</string>
+    <string name="login_forgot_password">Forgot password?</string>
+    <string name="login_button">LOG IN</string>
+    <string name="login_no_account">Don\'t have an account?</string>
+    <string name="login_sign_up">Sign up</string>
+
 </resources>
