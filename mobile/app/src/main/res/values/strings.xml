@@ -9,11 +9,13 @@
     <!-- login -->
     <string name="login_title">Welcome back</string>
     <string name="login_subtitle">Sign in to your Ride Now account</string>
-    <string name="login_email">Email address</string>
-    <string name="login_password">Password</string>
-    <string name="login_forgot_password">Forgot password?</string>
-    <string name="login_button">LOG IN</string>
-    <string name="login_no_account">Don\'t have an account?</string>
-    <string name="login_sign_up">Sign up</string>
+
+    <!-- forms -->
+    <string name="email">Email address</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="login">Log in</string>
+    <string name="sign_up">Sign up</string>
 
 </resources>
