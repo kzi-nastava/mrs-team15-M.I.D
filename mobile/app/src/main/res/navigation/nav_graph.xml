@@ -21,7 +21,12 @@
 
     <fragment
         android:id="@+id/forgot_password"
-        android:name='com.example.ridenow.ForgotPasswordFragment'
+        android:name="com.example.ridenow.ForgotPasswordFragment"
         android:label="@string/nav_forgot_password"/>
+
+    <fragment
+        android:id="@+id/reset_password"
+        android:name="com.example.ridenow.ResetPasswordFragment"
+        android:label="@string/nav_reset_password"/>
 
 </navigation>
