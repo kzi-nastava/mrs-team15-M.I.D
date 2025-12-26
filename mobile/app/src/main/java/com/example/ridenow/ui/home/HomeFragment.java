@@ -1,10 +1,12 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.home;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
+
+import com.example.ridenow.R;
 
 public class HomeFragment extends Fragment {
 

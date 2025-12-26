@@ -1,4 +1,4 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.auth;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import com.example.ridenow.R;
 
 public class LoginFragment extends Fragment {
 

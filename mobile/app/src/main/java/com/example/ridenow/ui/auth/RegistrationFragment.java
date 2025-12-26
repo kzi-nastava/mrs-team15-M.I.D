@@ -1,4 +1,4 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.auth;
 
 import android.os.Bundle;
 
@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.example.ridenow.R;
 
 public class RegistrationFragment extends Fragment {
 
