@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="176dp"
-    android:background="?attr/colorPrimary"
+    android:background="@color/black"
     android:orientation="vertical"
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
@@ -13,7 +13,8 @@
         android:layout_marginTop="24dp"
         android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="18sp"
-        android:textColor="@android:color/black" />
+        android:textSize="40sp"
+        android:textColor="@android:color/white"
+        android:fontFamily="@font/inter_semibold"/>
 
 </LinearLayout>

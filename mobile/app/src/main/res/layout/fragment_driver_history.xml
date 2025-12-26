@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:hint="Select date (dd/mm/yyyy)"
+            android:hint="@string/driver_history_filter_hint"
             android:inputType="date"
             android:focusable="false"
             android:clickable="true"
@@ -52,7 +52,7 @@
             android:id="@+id/btnApplyFilter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Apply"
+            android:text="@string/driver_history_filter_button"
             android:layout_marginTop="10dp"
             android:backgroundTint="@color/black" />
 
@@ -60,7 +60,7 @@
             android:id="@+id/btnClearFilter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Clear"
+            android:text="@string/driver_history_clear_button"
             android:layout_marginTop="10dp"
             android:textColor="@color/black"
             />
@@ -87,6 +87,7 @@
                     android:padding="12dp">
 
                     <TextView
+                        android:id="@+id/headerRoute"
                         android:text="@string/driver_history_route"
                         android:textStyle="bold"
                         android:padding="8dp"
@@ -94,6 +95,7 @@
                         android:gravity="center" />
 
                     <TextView
+                        android:id="@+id/headerPassengers"
                         android:text="@string/driver_history_passengers"
                         android:textStyle="bold"
                         android:padding="8dp"
@@ -101,6 +103,7 @@
                         android:gravity="center" />
 
                     <TextView
+                        android:id="@+id/headerDate"
                         android:text="@string/driver_history_date"
                         android:textStyle="bold"
                         android:padding="8dp"
@@ -108,6 +111,7 @@
                         android:gravity="center" />
 
                     <TextView
+                        android:id="@+id/headerDuration"
                         android:text="@string/driver_history_duration"
                         android:textStyle="bold"
                         android:padding="8dp"
@@ -115,6 +119,7 @@
                         android:gravity="center" />
 
                     <TextView
+                        android:id="@+id/headerCancelled"
                         android:text="@string/driver_history_cancelled"
                         android:textStyle="bold"
                         android:padding="8dp"
@@ -122,6 +127,7 @@
                         android:gravity="center" />
 
                     <TextView
+                        android:id="@+id/headerCost"
                         android:text="@string/driver_history_cost"
                         android:textStyle="bold"
                         android:padding="8dp"
@@ -129,6 +135,7 @@
                         android:gravity="center" />
 
                     <TextView
+                        android:id="@+id/headerPanicButton"
                         android:text="@string/driver_history_panic_button"
                         android:textStyle="bold"
                         android:padding="8dp"

@@ -27,6 +27,8 @@ public class DriverHistoryFragment extends Fragment {
     private Button btnApplyFilter, btnClearFilter;
     private TableLayout tableDriverHistory;
     private Calendar selectedDate;
+    private int currentSortColumn = 2;
+    private boolean isAscending = true;
 
     private final String[][] rideDataTest = {
             {"Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd", "Marko Marković, Ana Jovanović", "2025-12-12", "25 min", "14:30 - 14:55", null, null, "1550 RSD", null, null},
@@ -53,6 +55,165 @@ public class DriverHistoryFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupHeaderClickListeners();
+        populateDriverHistoryTable(rideDataTest);
+        sortTable(2);
+        updateSortIndicators();
+    }
+
+    private void setupHeaderClickListeners() {
+        View rootView = getView();
+        if (rootView == null) return;
+
+        // Assuming your headers have these IDs in the layout
+        rootView.findViewById(R.id.headerRoute).setOnClickListener(v -> sortTable(0));
+        rootView.findViewById(R.id.headerPassengers).setOnClickListener(v -> sortTable(1));
+        rootView.findViewById(R.id.headerDate).setOnClickListener(v -> sortTable(2));
+        rootView.findViewById(R.id.headerDuration).setOnClickListener(v -> sortTable(3));
+        rootView.findViewById(R.id.headerCancelled).setOnClickListener(v -> sortTable(5));
+        rootView.findViewById(R.id.headerCost).setOnClickListener(v -> sortTable(7));
+        rootView.findViewById(R.id.headerPanicButton).setOnClickListener(v -> sortTable(8));
+    }
+
+    private void updateSortIndicators() {
+        View rootView = getView();
+        if (rootView == null) return;
+
+        // Reset all headers to remove existing arrows
+        resetHeaderText(rootView.findViewById(R.id.headerRoute), "Route");
+        resetHeaderText(rootView.findViewById(R.id.headerPassengers), "Passengers");
+        resetHeaderText(rootView.findViewById(R.id.headerDate), "Date");
+        resetHeaderText(rootView.findViewById(R.id.headerDuration), "Duration");
+        resetHeaderText(rootView.findViewById(R.id.headerCancelled), "Cancelled");
+        resetHeaderText(rootView.findViewById(R.id.headerCost), "Cost");
+        resetHeaderText(rootView.findViewById(R.id.headerPanicButton), "Panic Button");
+
+        // Add arrow to current sorted column
+        String arrow = isAscending ? " ▲" : " ▼";
+        TextView currentHeader = null;
+
+        switch (currentSortColumn) {
+            case 0:
+                currentHeader = rootView.findViewById(R.id.headerRoute);
+                break;
+            case 1:
+                currentHeader = rootView.findViewById(R.id.headerPassengers);
+                break;
+            case 2:
+                currentHeader = rootView.findViewById(R.id.headerDate);
+                break;
+            case 3:
+                currentHeader = rootView.findViewById(R.id.headerDuration);
+                break;
+            case 5:
+                currentHeader = rootView.findViewById(R.id.headerCancelled);
+                break;
+            case 7:
+                currentHeader = rootView.findViewById(R.id.headerCost);
+                break;
+            case 8:
+                currentHeader = rootView.findViewById(R.id.headerPanicButton);
+                break;
+        }
+
+        if (currentHeader != null) {
+            String currentText = currentHeader.getText().toString();
+            currentHeader.setText(currentText + arrow);
+        }
+    }
+
+    private void resetHeaderText(TextView header, String originalText) {
+        if (header != null) {
+            header.setText(originalText);
+        }
+    }
+
+    private void sortTable(int columnIndex) {
+        if (currentSortColumn == columnIndex) {
+            isAscending = !isAscending;
+        } else {
+            currentSortColumn = columnIndex;
+            isAscending = true;
+        }
+
+        updateSortIndicators(); // Add this line
+
+        String[][] sortedData = getSortedData();
+
+        // Clear existing rows except header
+        int childCount = tableDriverHistory.getChildCount();
+        if (childCount > 2) {
+            tableDriverHistory.removeViews(2, childCount - 2);
+        }
+
+        populateDriverHistoryTable(sortedData);
+    }
+
+    private String[][] getSortedData() {
+        String[][] dataToSort;
+
+        if (selectedDate != null) {
+            // If filter is applied, get filtered data
+            java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String filterDateString = dateFormat.format(selectedDate.getTime());
+            dataToSort = java.util.Arrays.stream(rideDataTest)
+                    .filter(ride -> ride[2].equals(filterDateString))
+                    .toArray(String[][]::new);
+        } else {
+            dataToSort = rideDataTest.clone();
+        }
+
+        java.util.Arrays.sort(dataToSort, (row1, row2) -> {
+            String value1 = row1[currentSortColumn] != null ? row1[currentSortColumn] : "";
+            String value2 = row2[currentSortColumn] != null ? row2[currentSortColumn] : "";
+
+            int comparison;
+
+            // Special handling for different column types
+            switch (currentSortColumn) {
+                case 2: // Date column
+                    try {
+                        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        java.util.Date date1 = dateFormat.parse(value1);
+                        java.util.Date date2 = dateFormat.parse(value2);
+                        comparison = date1.compareTo(date2);
+                    } catch (Exception e) {
+                        comparison = value1.compareTo(value2);
+                    }
+                    break;
+                case 7: // Cost column
+                    try {
+                        // Extract numeric value from cost string (e.g., "1550 RSD" -> 1550)
+                        int cost1 = Integer.parseInt(value1.replaceAll("[^0-9]", ""));
+                        int cost2 = Integer.parseInt(value2.replaceAll("[^0-9]", ""));
+                        comparison = Integer.compare(cost1, cost2);
+                    } catch (Exception e) {
+                        comparison = value1.compareTo(value2);
+                    }
+                    break;
+                case 3: // Duration column
+                    try {
+                        // Extract numeric value from duration string (e.g., "25 min" -> 25)
+                        int duration1 = Integer.parseInt(value1.replaceAll("[^0-9]", ""));
+                        int duration2 = Integer.parseInt(value2.replaceAll("[^0-9]", ""));
+                        comparison = Integer.compare(duration1, duration2);
+                    } catch (Exception e) {
+                        comparison = value1.compareTo(value2);
+                    }
+                    break;
+                default:
+                    comparison = value1.compareToIgnoreCase(value2);
+                    break;
+            }
+
+            return isAscending ? comparison : -comparison;
+        });
+
+        return dataToSort;
+    }
 
     private void setupDatePicker() {
         etDateFilter.setOnClickListener(v -> {
@@ -92,12 +253,13 @@ public class DriverHistoryFragment extends Fragment {
     private void applyDateFilter() {
         // Clear existing rows except header
         int childCount = tableDriverHistory.getChildCount();
-        if (childCount > 2) { // Keep header row and separator
+        if (childCount > 2) {
             tableDriverHistory.removeViews(2, childCount - 2);
         }
 
-        // Load filtered data based on selectedDate
-        loadFilteredDriverHistory(selectedDate);
+        // Load filtered and sorted data
+        String[][] sortedData = getSortedData();
+        populateDriverHistoryTable(sortedData);
         Toast.makeText(getContext(), "Filter applied", Toast.LENGTH_SHORT).show();
     }
 
@@ -111,8 +273,9 @@ public class DriverHistoryFragment extends Fragment {
             tableDriverHistory.removeViews(2, childCount - 2);
         }
 
-        // Reload all data
-        loadDriverHistory();
+        // Reload sorted data
+        String[][] sortedData = getSortedData();
+        populateDriverHistoryTable(sortedData);
         Toast.makeText(getContext(), "Filter cleared", Toast.LENGTH_SHORT).show();
     }
 
@@ -130,12 +293,6 @@ public class DriverHistoryFragment extends Fragment {
                 .toArray(String[][]::new);
 
         populateDriverHistoryTable(filteredData);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        populateDriverHistoryTable(rideDataTest);
     }
 
     private void populateDriverHistoryTable(String[][] rideData) {
