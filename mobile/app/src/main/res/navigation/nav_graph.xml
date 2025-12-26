@@ -29,4 +29,9 @@
         android:name="com.example.ridenow.ResetPasswordFragment"
         android:label="@string/nav_reset_password"/>
 
+    <fragment
+        android:id="@+id/registration"
+        android:name="com.example.ridenow.RegistrationFragment"
+        android:label="nav_registration"/>
+
 </navigation>

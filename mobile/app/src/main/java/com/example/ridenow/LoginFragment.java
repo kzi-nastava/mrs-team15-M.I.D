@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 public class LoginFragment extends Fragment {
 
     public LoginFragment() {
@@ -22,6 +24,10 @@ public class LoginFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
         EditText etPassword = view.findViewById(R.id.etPassword);
+        TextView tvSignUp = view.findViewById(R.id.tvSignUp);
+        tvSignUp.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this).navigate(R.id.registration);
+        });
 
         // Add an event listener to the password input field
         etPassword.setOnTouchListener((v, event) -> {
