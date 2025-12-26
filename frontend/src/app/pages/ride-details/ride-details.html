@@ -1,9 +1,9 @@
 <div class="container mt-4">
   @if (ride) {
 
+    <!-- Map Section -->
     <div class="row">
-      <!-- Map Section -->
-      <div class="col-md-8 mb-4">
+      <div class="col-12 mb-4">
         <div class="card">
           <div class="card-header">
             <h5 class="mb-0">Route Map</h5>
@@ -19,7 +19,10 @@
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- Ride Details Row -->
+    <div class="row">
       <!-- Ride Details Section -->
       <div class="col-md-4 mb-4">
         <div class="card">
@@ -58,9 +61,11 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Status Card -->
-        <div class="card mt-3">
+      <!-- Status Column -->
+      <div class="col-md-4 mb-4">
+        <div class="card">
           <div class="card-header">
             <h5 class="mb-0">Status</h5>
           </div>
@@ -121,10 +126,12 @@
             </div>
           </div>
         }
+      </div>
 
-        <!-- Inconsistencies Card -->
+      <!-- Inconsistencies Column -->
+      <div class="col-md-4 mb-4">
         @if (ride.inconsistencies && ride.inconsistencies.length > 0) {
-          <div class="card mt-3">
+          <div class="card">
             <div class="card-header">
               <h5 class="mb-0">Ride Inconsistencies</h5>
             </div>
