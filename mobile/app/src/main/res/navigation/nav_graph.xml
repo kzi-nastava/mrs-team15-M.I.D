@@ -6,32 +6,32 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.example.ridenow.HomeFragment"
+        android:name="com.example.ridenow.ui.home.HomeFragment"
         android:label="Home" />
 
     <fragment
         android:id="@+id/nav_profile"
-        android:name="com.example.ridenow.DriverHistoryFragment"
+        android:name="com.example.ridenow.ui.history.DriverHistoryFragment"
         android:label="Profile" />
 
     <fragment
         android:id="@+id/login"
-        android:name="com.example.ridenow.LoginFragment"
+        android:name="com.example.ridenow.ui.auth.LoginFragment"
         android:label="@string/nav_login"/>
 
     <fragment
         android:id="@+id/forgot_password"
-        android:name="com.example.ridenow.ForgotPasswordFragment"
+        android:name="com.example.ridenow.ui.auth.ForgotPasswordFragment"
         android:label="@string/nav_forgot_password"/>
 
     <fragment
         android:id="@+id/reset_password"
-        android:name="com.example.ridenow.ResetPasswordFragment"
+        android:name="com.example.ridenow.ui.auth.ResetPasswordFragment"
         android:label="@string/nav_reset_password"/>
 
     <fragment
         android:id="@+id/registration"
-        android:name="com.example.ridenow.RegistrationFragment"
+        android:name="com.example.ridenow.ui.auth.RegistrationFragment"
         android:label="nav_registration"/>
 
 </navigation>

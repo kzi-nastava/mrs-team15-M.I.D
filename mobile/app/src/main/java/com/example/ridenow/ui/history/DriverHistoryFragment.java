@@ -1,4 +1,4 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.history;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,6 +12,8 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import com.example.ridenow.R;
 
 public class DriverHistoryFragment extends Fragment {
 

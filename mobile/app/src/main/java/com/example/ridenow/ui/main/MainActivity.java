@@ -1,4 +1,4 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.main;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -12,6 +12,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.ridenow.R;
 import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
