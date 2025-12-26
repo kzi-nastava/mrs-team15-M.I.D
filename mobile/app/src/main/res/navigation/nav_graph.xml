@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/nav_home">
 
@@ -12,7 +13,12 @@
     <fragment
         android:id="@+id/nav_profile"
         android:name="com.example.ridenow.DriverHistoryFragment"
-        android:label="Profile" />
+        android:label="Profile">
+        <action
+            android:id="@+id/action_driverHistory_to_rideDetails"
+            app:destination="@id/rideDetailsFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/login"
@@ -28,5 +34,11 @@
         android:id="@+id/reset_password"
         android:name="com.example.ridenow.ResetPasswordFragment"
         android:label="@string/nav_reset_password"/>
+
+    <fragment
+        android:id="@+id/rideDetailsFragment"
+        android:name="com.example.ridenow.RideDetailsFragment"
+        android:label="Ride Details"
+        tools:layout="@layout/fragment_ride_details" />
 
 </navigation>

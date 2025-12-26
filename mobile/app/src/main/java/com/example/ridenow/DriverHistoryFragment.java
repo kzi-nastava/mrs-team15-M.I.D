@@ -1,7 +1,13 @@
 package com.example.ridenow;
 
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorEventListener2;
+import android.hardware.SensorManager;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.os.Bundle;
@@ -19,23 +25,30 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import java.util.Locale;
 
-public class DriverHistoryFragment extends Fragment {
+public class DriverHistoryFragment extends Fragment implements SensorEventListener {
     private EditText etDateFilter;
     private Button btnApplyFilter, btnClearFilter;
     private TableLayout tableDriverHistory;
     private Calendar selectedDate;
     private int currentSortColumn = 2;
     private boolean isAscending = true;
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private static final float SHAKE_THRESHOLD = 12.0f;
+    private static final int SHAKE_TIMEOUT = 500;
+    private long lastShakeTime = 0;
 
     private final String[][] rideDataTest = {
-            {"Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd", "Marko Marković, Ana Jovanović", "2025-12-12", "25 min", "14:30 - 14:55", null, null, "1550 RSD", null, null},
-            {"Trg slobode → Železnička stanica", "Petar Petrović", "2025-12-11", "12 min", "09:15 - 09:27", "Od strane putnika", "Petar Petrović", "800 RSD", null, null},
-            {"Liman 3 → Promenada Shopping", "Jovana Nikolić, Stefan Stojanović", "2025-12-12", "18 min", "16:00 - 16:18", null, null, "1275 RSD", "Od strane putnika", "Jovana Nikolić"},
-            {"Hotel Park → Spens", "Milica Đorđević", "2025-12-10", "30 min", "11:00 - 11:30", "Od strane vozača", null, "1800 RSD", null, null},
-            {"Centar → Štrand", "Nikola Ilić, Jelena Pavlović, Dušan Stanković", "2025-12-12", "22 min", "13:45 - 14:07", null, null, "2050 RSD", null, null}
+            {"Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd", "Marko Marković, Ana Jovanović", "2025-12-12", "25 min", "14:30 - 14:55", null, null, "1550 RSD", null, null, "4", "Losa tura"},
+            {"Trg slobode → Železnička stanica", "Petar Petrović", "2025-12-11", "12 min", "09:15 - 09:27", "Od strane putnika", "Petar Petrović", "800 RSD", null, null, "3", null},
+            {"Liman 3 → Promenada Shopping", "Jovana Nikolić, Stefan Stojanović", "2025-12-12", "18 min", "16:00 - 16:18", null, null, "1275 RSD", "Od strane putnika", "Jovana Nikolić", "5", null},
+            {"Hotel Park → Spens", "Milica Đorđević", "2025-12-10", "30 min", "11:00 - 11:30", "Od strane vozača", null, "1800 RSD", null, null, "2", "Vozac je kasnio"},
+            {"Centar → Štrand", "Nikola Ilić, Jelena Pavlović, Dušan Stanković", "2025-12-12", "22 min", "13:45 - 14:07", null, null, "2050 RSD", null, null, "4", null}
     };
 
     @Override
@@ -62,6 +75,63 @@ public class DriverHistoryFragment extends Fragment {
         populateDriverHistoryTable(rideDataTest);
         sortTable(2);
         updateSortIndicators();
+        setupShakeDetection();
+    }
+
+    private void setupShakeDetection() {
+        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
+
+            double acceleration = Math.sqrt(x * x + y * y + z * z) - SensorManager.GRAVITY_EARTH;
+
+            if (acceleration > SHAKE_THRESHOLD) {
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastShakeTime > SHAKE_TIMEOUT) {
+                    lastShakeTime = currentTime;
+                    onShakeDetected();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // No need for this
+    }
+
+    private void onShakeDetected() {
+        // Trigger the same action as clicking the date header
+        if (currentSortColumn == 2) { // If already sorted by date
+            isAscending = !isAscending; // Reverse sort direction
+        } else {
+            currentSortColumn = 2; // Set to date column
+            isAscending = true; // Ascending
+        }
+        sortTable(2);
     }
 
     private void setupHeaderClickListeners() {
@@ -305,6 +375,8 @@ public class DriverHistoryFragment extends Fragment {
             TableRow tableRow = new TableRow(getContext());
             tableRow.setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12));
             tableRow.setGravity(Gravity.CENTER);
+            tableRow.setOnClickListener(v -> openRideDetails(ride));
+            tableRow.setBackgroundResource(android.R.drawable.list_selector_background);
 
             // Route column
             TextView routeText = new TextView(getContext());
@@ -471,9 +543,17 @@ public class DriverHistoryFragment extends Fragment {
         }
     }
 
+    private void openRideDetails(String[] rideData) {
+        Bundle bundle = new Bundle();
+        bundle.putStringArray("ride_data", rideData);
+
+        NavController navController = Navigation.findNavController(requireView());
+        navController.navigate(R.id.action_driverHistory_to_rideDetails, bundle);
+    }
+
+
     private int dpToPx(int dp) {
         float density = getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
-
 }

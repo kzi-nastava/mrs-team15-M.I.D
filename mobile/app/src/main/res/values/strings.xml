@@ -48,4 +48,21 @@
     <string name="driver_history_filter_hint">Select date (dd/mm/yyyy)</string>
     <string name="driver_history_filter_button">Apply</string>
     <string name="driver_history_clear_button">Clear</string>
+
+    <!-- ride details -->
+    <string name="ride_details_title">Ride Details</string>
+    <string name="ride_details_map">Route Map</string>
+    <string name="ride_details_ride_information">Ride Information</string>
+    <string name="ride_details_route">Route: </string>
+    <string name="ride_details_passengers">Passengers: </string>
+    <string name="ride_details_date">Date: </string>
+    <string name="ride_details_duration">Duration: </string>
+    <string name="ride_details_cost">Cost: </string>
+    <string name="ride_details_status">Status</string>
+    <string name="ride_details_cancelled">Cancelled: </string>
+    <string name="ride_details_panic_button">Panic Button: </string>
+    <string name="ride_details_rating_title">Rating</string>
+    <string name="ride_details_rating">Rating: </string>
+    <string name="ride_details_inconsistencies_title">Inconsistencies</string>
+    <string name="ride_details_inconsistencies">Inconsistencies: </string>
 </resources>
