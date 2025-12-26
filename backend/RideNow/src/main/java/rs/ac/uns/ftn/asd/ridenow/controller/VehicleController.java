@@ -2,14 +2,14 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.vehicles.VehicleResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.VehicleResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/vehicle")
-public class VehiclesController {
+@RequestMapping("/vehicles/api")
+public class VehicleController {
     @GetMapping("/")
     public ResponseEntity<List<VehicleResponseDTO>> getAll() {
         VehicleResponseDTO vehicle1 = new VehicleResponseDTO();
@@ -37,8 +37,15 @@ public class VehiclesController {
         return ResponseEntity.ok(vehicles);
     }
 
-    @PutMapping("/{id}/location")
-    public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable String id, double lat, double lon) {
+    @GetMapping("/update-location/{id}")
+    public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable String id, @RequestParam double lat, @RequestParam double lon) {
+        if (id == null || id.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+            return ResponseEntity.badRequest().build();
+        }
+
         VehicleResponseDTO vehicle = new VehicleResponseDTO();
         vehicle.setLicencePlate(id);
         vehicle.setLat(lat);
