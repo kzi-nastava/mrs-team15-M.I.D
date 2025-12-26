@@ -2,6 +2,7 @@ package com.example.ridenow.ui.auth;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -21,20 +22,23 @@ public class RegistrationFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-       View view = inflater.inflate(R.layout.fragment_registration, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_registration, container, false);
+    }
 
-       TextView tvLogin = view.findViewById(R.id.tvLogin);
-       tvLogin.setOnClickListener( v ->
-                NavHostFragment.findNavController(this).navigate(R.id.login));
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-       EditText etPassword = view.findViewById(R.id.etPassword);
-       PasswordToggleUtil.addPasswordToggle(etPassword);
+        TextView tvLogin = view.findViewById(R.id.tvLogin);
+        tvLogin.setOnClickListener(
+                v -> NavHostFragment.findNavController(this).navigate(R.id.login)
+        );
 
-       EditText etConfirmPassword = view.findViewById(R.id.etConfirmPassword);
+        EditText etPassword = view.findViewById(R.id.etPassword);
+        PasswordToggleUtil.addPasswordToggle(etPassword);
+
+        EditText etConfirmPassword = view.findViewById(R.id.etConfirmPassword);
         PasswordToggleUtil.addPasswordToggle(etConfirmPassword);
-
-       return view;
     }
 }
