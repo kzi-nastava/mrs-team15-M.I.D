@@ -2,7 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.dto.vehicles;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
-public class VehicleDTO {
+public class VehicleResponseDTO {
     private String licencePlate;
     private double lat;
     private double lon;
@@ -13,7 +13,7 @@ public class VehicleDTO {
     private VehicleType type;
 
 
-    public VehicleDTO() {
+    public VehicleResponseDTO() {
     }
 
     public String getLicencePlate() {
