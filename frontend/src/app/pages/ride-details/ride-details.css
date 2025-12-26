@@ -48,13 +48,13 @@
 }
 
 .card-header {
-  background-color: #f8f9fa;
+  background-color: #000000;
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
   padding: 1rem;
 }
 
 .card-header h5 {
-  color: #212529;
+  color: #ffffff;
 }
 
 .btn-outline-primary {
