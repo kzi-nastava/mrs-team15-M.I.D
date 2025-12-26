@@ -1,45 +1,148 @@
 package com.example.ridenow;
 
+import android.app.DatePickerDialog;
 import android.graphics.Color;
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import java.util.Locale;
+
 public class DriverHistoryFragment extends Fragment {
+    private EditText etDateFilter;
+    private Button btnApplyFilter, btnClearFilter;
+    private TableLayout tableDriverHistory;
+    private Calendar selectedDate;
+
+    private final String[][] rideDataTest = {
+            {"Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd", "Marko Marković, Ana Jovanović", "2025-12-12", "25 min", "14:30 - 14:55", null, null, "1550 RSD", null, null},
+            {"Trg slobode → Železnička stanica", "Petar Petrović", "2025-12-11", "12 min", "09:15 - 09:27", "Od strane putnika", "Petar Petrović", "800 RSD", null, null},
+            {"Liman 3 → Promenada Shopping", "Jovana Nikolić, Stefan Stojanović", "2025-12-12", "18 min", "16:00 - 16:18", null, null, "1275 RSD", "Od strane putnika", "Jovana Nikolić"},
+            {"Hotel Park → Spens", "Milica Đorđević", "2025-12-10", "30 min", "11:00 - 11:30", "Od strane vozača", null, "1800 RSD", null, null},
+            {"Centar → Štrand", "Nikola Ilić, Jelena Pavlović, Dušan Stanković", "2025-12-12", "22 min", "13:45 - 14:07", null, null, "2050 RSD", null, null}
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_driver_history, container, false);
+        View view = inflater.inflate(R.layout.fragment_driver_history, container, false);
+
+        // Initialize views
+        etDateFilter = view.findViewById(R.id.etDateFilter);
+        btnApplyFilter = view.findViewById(R.id.btnApplyFilter);
+        btnClearFilter = view.findViewById(R.id.btnClearFilter);
+        tableDriverHistory = view.findViewById(R.id.tableDriverHistory);
+
+        setupDatePicker();
+        setupButtons();
+        loadDriverHistory();
+
+        return view;
+    }
+
+
+    private void setupDatePicker() {
+        etDateFilter.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(),
+                    R.style.CustomDatePickerDialog,
+                    (view, selectedYear, selectedMonth, selectedDay) -> {
+                        selectedDate = Calendar.getInstance();
+                        selectedDate.set(selectedYear, selectedMonth, selectedDay);
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        etDateFilter.setText(dateFormat.format(selectedDate.getTime()));
+                    }, year, month, day);
+
+            datePickerDialog.show();
+        });
+    }
+
+    private void setupButtons() {
+        btnApplyFilter.setOnClickListener(v -> {
+            if (selectedDate != null) {
+                applyDateFilter();
+            } else {
+                Toast.makeText(getContext(), "Please select a date first", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnClearFilter.setOnClickListener(v -> {
+            clearFilter();
+        });
+    }
+
+    private void applyDateFilter() {
+        // Clear existing rows except header
+        int childCount = tableDriverHistory.getChildCount();
+        if (childCount > 2) { // Keep header row and separator
+            tableDriverHistory.removeViews(2, childCount - 2);
+        }
+
+        // Load filtered data based on selectedDate
+        loadFilteredDriverHistory(selectedDate);
+        Toast.makeText(getContext(), "Filter applied", Toast.LENGTH_SHORT).show();
+    }
+
+    private void clearFilter() {
+        etDateFilter.setText("");
+        selectedDate = null;
+
+        // Clear existing rows except header
+        int childCount = tableDriverHistory.getChildCount();
+        if (childCount > 2) {
+            tableDriverHistory.removeViews(2, childCount - 2);
+        }
+
+        // Reload all data
+        loadDriverHistory();
+        Toast.makeText(getContext(), "Filter cleared", Toast.LENGTH_SHORT).show();
+    }
+
+    private void loadDriverHistory() {
+        populateDriverHistoryTable(rideDataTest);
+    }
+
+    private void loadFilteredDriverHistory(Calendar filterDate) {
+        // For demonstration, we will filter the test data based on the date string
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String filterDateString = dateFormat.format(filterDate.getTime());
+
+        String[][] filteredData = java.util.Arrays.stream(rideDataTest)
+                .filter(ride -> ride[2].equals(filterDateString))
+                .toArray(String[][]::new);
+
+        populateDriverHistoryTable(filteredData);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        populateDriverHistoryTable();
+        populateDriverHistoryTable(rideDataTest);
     }
 
-    private void populateDriverHistoryTable() {
+    private void populateDriverHistoryTable(String[][] rideData) {
         View rootView = getView();
         if (rootView == null) return;
 
         TableLayout tableLayout = rootView.findViewById(R.id.tableDriverHistory);
-
-        // Sample data based on your JSON
-        String[][] rideData = {
-                {"Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd", "Marko Marković, Ana Jovanović", "2025-12-12", "25 min", "14:30 - 14:55", null, null, "1550 RSD", null, null},
-                {"Trg slobode → Železnička stanica", "Petar Petrović", "2025-12-11", "12 min", "09:15 - 09:27", "Od strane putnika", "Petar Petrović", "800 RSD", null, null},
-                {"Liman 3 → Promenada Shopping", "Jovana Nikolić, Stefan Stojanović", "2025-12-12", "18 min", "16:00 - 16:18", null, null, "1275 RSD", "Od strane putnika", "Jovana Nikolić"},
-                {"Hotel Park → Spens", "Milica Đorđević", "2025-12-10", "30 min", "11:00 - 11:30", "Od strane vozača", null, "1800 RSD", null, null},
-                {"Centar → Štrand", "Nikola Ilić, Jelena Pavlović, Dušan Stanković", "2025-12-12", "22 min", "13:45 - 14:07", null, null, "2050 RSD", null, null}
-        };
 
         for (String[] ride : rideData) {
             TableRow tableRow = new TableRow(getContext());
