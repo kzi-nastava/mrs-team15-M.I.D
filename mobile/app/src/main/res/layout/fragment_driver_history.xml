@@ -10,16 +10,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/driver_history_title"
-        android:textSize="35sp"
-        android:textStyle="bold"
+        style="@style/TitleText"
         android:layout_marginBottom="5dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/driver_history_subtitle"
-        android:textSize="20sp"
-        android:gravity="center"
+        style="@style/SubtitleText"
         android:layout_marginBottom="30dp"/>
 
     <!-- Filter Section -->
@@ -35,17 +33,12 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:autofillHints=""
             android:hint="@string/driver_history_filter_hint"
             android:inputType="date"
             android:focusable="false"
             android:clickable="true"
-            android:background="@drawable/edittext_bg"
-            android:drawablePadding="10sp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:minHeight="48dp"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp"
+            style="@style/TextInput"
             android:layout_marginTop="10dp"/>
 
         <Button
@@ -54,7 +47,7 @@
             android:layout_height="wrap_content"
             android:text="@string/driver_history_filter_button"
             android:layout_marginTop="10dp"
-            android:backgroundTint="@color/black" />
+            style="@style/ButtonPrimary"/>
 
         <Button
             android:id="@+id/btnClearFilter"
@@ -62,7 +55,7 @@
             android:layout_height="wrap_content"
             android:text="@string/driver_history_clear_button"
             android:layout_marginTop="10dp"
-            android:textColor="@color/black"
+            style="@style/ButtonSecondary"
             />
 
     </LinearLayout>
@@ -157,10 +150,6 @@
                     android:background="#CCCCCC" />
 
             </TableLayout>
-
         </HorizontalScrollView>
-
     </ScrollView>
-
-
 </LinearLayout>

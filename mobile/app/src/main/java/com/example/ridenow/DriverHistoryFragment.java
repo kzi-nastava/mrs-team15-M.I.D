@@ -40,7 +40,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private static final float SHAKE_THRESHOLD = 12.0f;
-    private static final int SHAKE_TIMEOUT = 500;
+    private static final int SHAKE_TIMEOUT = 1000;
     private long lastShakeTime = 0;
 
     private final String[][] rideDataTest = {
@@ -125,9 +125,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
     private void onShakeDetected() {
         // Trigger the same action as clicking the date header
-        if (currentSortColumn == 2) { // If already sorted by date
-            isAscending = !isAscending; // Reverse sort direction
-        } else {
+        if (currentSortColumn != 2) { // If already sorted by date
             currentSortColumn = 2; // Set to date column
             isAscending = true; // Ascending
         }
@@ -209,7 +207,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             isAscending = true;
         }
 
-        updateSortIndicators(); // Add this line
+        updateSortIndicators();
 
         String[][] sortedData = getSortedData();
 
@@ -376,7 +374,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             tableRow.setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12));
             tableRow.setGravity(Gravity.CENTER);
             tableRow.setOnClickListener(v -> openRideDetails(ride));
-            tableRow.setBackgroundResource(android.R.drawable.list_selector_background);
+            tableRow.setBackgroundResource(R.drawable.custom_row_selector);
 
             // Route column
             TextView routeText = new TextView(getContext());

@@ -17,8 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/ride_details_title"
-            android:textSize="30sp"
-            android:textStyle="bold"
+            style="@style/TitleText"
             android:layout_marginBottom="20dp"
             android:gravity="center" />
 
@@ -145,7 +144,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Status"
+                    android:text="@string/ride_details_status"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
@@ -216,7 +215,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:elevation="4dp"
-            app:cardCornerRadius="12dp">
+            app:cardCornerRadius="12dp"
+            android:layout_marginBottom="5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
