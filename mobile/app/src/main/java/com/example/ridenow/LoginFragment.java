@@ -2,6 +2,8 @@ package com.example.ridenow;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
+
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
@@ -9,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class LoginFragment extends Fragment {
 
@@ -33,6 +36,11 @@ public class LoginFragment extends Fragment {
             }
             return false;
         });
+
+         TextView tvForgotPasswordLink = view.findViewById(R.id.tvForgotPasswordLink);
+        tvForgotPasswordLink.setOnClickListener(
+                v -> NavHostFragment.findNavController(this).navigate(R.id.forgot_password)
+        );
         return view;
     }
 
