@@ -9,5 +9,5 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/driver")
-public class AdminController {
+public class DriverController {
 }

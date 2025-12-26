@@ -7,13 +7,21 @@
       <input type="text"
              class="form-control input-focus"
              placeholder="License plate"
-             [(ngModel)]="vehicle.licensePlate" />
+             [(ngModel)]="vehicle.licensePlate"
+              [class.is-invalid]="isFieldEmpty(vehicle.licensePlate) || !isLicensePlateValid(vehicle.licensePlate)" />
+            <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.licensePlate) || !isLicensePlateValid(vehicle.licensePlate)">
+        {{ getLicensePlateErrorMessage() }}
+      </div>
     </div>
     <div class="col-12 col-md-6">
       <input type="text"
              class="form-control input-focus"
              placeholder="Car model"
-             [(ngModel)]="vehicle.model" />
+             [(ngModel)]="vehicle.model"
+             [class.is-invalid]="isFieldEmpty(vehicle.model)" />
+       <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.model)">
+         {{ getModelErrorMessage() }}
+       </div>
     </div>
   </div>
 
@@ -22,15 +30,24 @@
       <input type="number"
              class="form-control input-focus"
              placeholder="Seats"
-             [(ngModel)]="vehicle.seats" />
+             [(ngModel)]="vehicle.seats"
+             min="1" step="1"
+             [class.is-invalid]="vehicle.seats === undefined || vehicle.seats === null || vehicle.seats === '' || vehicle.seats < 1" />
+       <div class="invalid-feedback d-block" *ngIf="vehicle.seats === undefined || vehicle.seats === null || vehicle.seats === '' || vehicle.seats < 1">
+         {{ getSeatsErrorMessage() }}
+       </div>
     </div>
     <div class="col-12 col-md-6">
       <select class="form-select input-focus"
-              [(ngModel)]="vehicle.type">
+              [(ngModel)]="vehicle.type"
+              [class.is-invalid]="isFieldEmpty(vehicle.type)">
         <option value="Standard">Standard</option>
         <option value="Luksuz">Luksuz</option>
         <option value="Kombi">Kombi</option>
       </select>
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.type)">
+        {{ getTypeErrorMessage() }}
+      </div>
     </div>
   </div>
 

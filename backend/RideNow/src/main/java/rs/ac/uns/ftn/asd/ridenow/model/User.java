@@ -7,6 +7,7 @@ public class User {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+    private String address;
     private String profileImage;
     private boolean active;
     private boolean blocked;
@@ -15,13 +16,14 @@ public class User {
         super();
     }
 
-    public User(String email, String password, String firstName, String lastName, String phoneNumber, Long id,
+    public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,Long id,
                 String profileImage, boolean active, boolean blocked) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
+        this.address = address;
         this.id = id;
         this.profileImage = profileImage;
         this.active = active;
@@ -75,6 +77,10 @@ public class User {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
+    public String getAddress() { return address; }
+
+    public void setAddress(String address) { this.address = address; }
 
     public String getProfileImage() {
         return profileImage;

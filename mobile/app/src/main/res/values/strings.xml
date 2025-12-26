@@ -2,4 +2,34 @@
     <string name="app_name">RideNow</string>
     <string name="open_drawer">Open navigation drawer</string>
     <string name="close_drawer">Close navigation drawer</string>
+
+    <!-- nav -->
+    <string name="nav_login">Login</string>
+    <string name="nav_forgot_password">Forgot password</string>
+    <string name="nav_reset_password">Reset password</string>
+
+    <!-- login -->
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to your Ride Now account</string>
+
+    <!-- forms -->
+    <string name="email">Email address</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="login">Log in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="back_to_login">Back to login</string>
+    <string name="send_reset_link">send reset link</string>
+    <string name="new_password">New password</string>
+    <string name="confirm_new_password">Confirm new password</string>
+    <string name="reset_password">Reset password</string>
+
+    <!-- forgot password -->
+    <string name="forgot_password_title">Forgot your password?</string>
+    <string name="forgot_password_subtitle">We\'ll send you a link to reset your password.</string>
+
+    <!-- reset password -->
+    <string name="reset_password_title">Reset your password</string>
+    <string name="reset_password_subtitle">Enter your new password below.</string>
 </resources>
