@@ -15,7 +15,7 @@ import com.example.ridenow.R;
 public class ForgotPasswordFragment extends Fragment {
 
     public ForgotPasswordFragment() {
-        // Required empty public constructor
+
     }
 
     @Override
