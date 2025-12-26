@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    android:id="@+id/loginContainer"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <TextView
+        android:id="@+id/tvRegistrationTitle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/registration_title"
+        android:gravity="center"
+        android:layout_marginBottom="10sp"
+        android:fontFamily="@font/inter_semibold"
+        android:textSize="28sp"
+        android:textColor="@color/black"/>
+
+    <EditText
+        android:id="@+id/tvFirstName"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/edittext_bg"
+        android:inputType="text"
+        android:autofillHints="name"
+        android:hint="@string/first_name"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:layout_marginTop="10dp"/>
+
+    <EditText
+        android:id="@+id/tvLastName"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/edittext_bg"
+        android:inputType="text"
+        android:hint="@string/last_name"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:layout_marginTop="10dp"/>
+
+    <EditText
+        android:id="@+id/tvPhoneNumber"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/edittext_bg"
+        android:inputType="phone"
+        android:autofillHints="phone"
+        android:hint="@string/phone_number"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:layout_marginTop="10dp"/>
+
+    <EditText
+        android:id="@+id/tvAddress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/edittext_bg"
+        android:inputType="textPostalAddress"
+        android:autofillHints="postalAddress"
+        android:hint="@string/address"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:layout_marginTop="10dp"/>
+
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="emailAddress"
+        android:hint="@string/email"
+        android:inputType="textEmailAddress"
+        android:background="@drawable/edittext_bg"
+        android:minHeight="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:layout_marginTop="10dp" />
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="password"
+        android:hint="@string/password"
+        android:inputType="textPassword"
+        android:background="@drawable/edittext_bg"
+        android:drawableEnd="@drawable/visibility_24px"
+        android:drawablePadding="10sp"
+        android:paddingStart="16dp"
+        android:minHeight="48dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:layout_marginTop="10dp" />
+
+    <EditText
+        android:id="@+id/etConfirmPassword"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/edittext_bg"
+        android:drawableEnd="@drawable/visibility_24px"
+        android:layout_marginTop="10sp"
+        android:minHeight="48sp"
+        android:drawablePadding="10sp"
+        android:paddingStart="16dp"
+        android:paddingEnd="7dp"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp"
+        android:hint="@string/confirm_password"
+        android:inputType="textPassword"/>
+
+    <Button
+        android:id="@+id/btnUploadPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/black"
+        android:layout_marginTop="10sp"
+        android:text="@string/upload_photo" />
+
+    <Button
+        android:id="@+id/btnSignUp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/black"
+        android:textAllCaps="true"
+        android:text="@string/sign_up" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="5dp">
+
+        <TextView
+            android:id="@+id/tvAccount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/account"
+            android:fontFamily="@font/inter_light"
+            android:textSize="14sp"
+            android:textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/tvLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/login"
+            android:fontFamily="@font/inter_semibold"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+            android:layout_marginStart="4dp" />
+
+    </LinearLayout>
+</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
