@@ -10,4 +10,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/driver")
 public class DriverController {
+    @GetMapping("/{id}/ride-history")
+    public ResponseEntity<List<String>> getRideHistory(@PathVariable int id) {
+        if (id <= 0) {
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
 }
