@@ -19,5 +19,11 @@
 
     <item
         android:id="@+id/registration"
-        android:title="@string/nav_registration"/>
+        android:title="@string/nav_registration" />
+    <item
+        android:id="@+id/profile"
+        android:title="@string/nav_profile" />
+    <item
+        android:id="@+id/change_password"
+        android:title="@string/nav_change_password" />
 </menu>

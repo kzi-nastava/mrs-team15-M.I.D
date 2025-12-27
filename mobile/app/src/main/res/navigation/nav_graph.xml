@@ -43,5 +43,13 @@
         android:id="@+id/registration"
         android:name="com.example.ridenow.ui.auth.RegistrationFragment"
         android:label="nav_registration"/>
+    <fragment
+        android:id="@+id/change_password"
+        android:name="com.example.ridenow.ui.profile.ChangePasswordFragment"
+        android:label="ChangePasswordFragment" />
+    <fragment
+        android:id="@+id/profile"
+        android:name="com.example.ridenow.ui.profile.ProfileInfoFragment"
+        android:label="ProfileInfoFragment" />
 
 </navigation>
