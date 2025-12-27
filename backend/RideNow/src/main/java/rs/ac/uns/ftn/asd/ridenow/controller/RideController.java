@@ -79,12 +79,13 @@ public class RideController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderRideResponseDTO> orderRide(
-            @Valid @RequestBody OrderRideRequestDTO dto) {
+    public ResponseEntity<Void> orderRide(
+            @Valid @RequestBody OrderRideRequestDTO request) {
 
-        OrderRideResponseDTO response = rideService.createRide(1L, dto);
-        return ResponseEntity.ok(response);
+        rideService.orderRide(request);
+        return ResponseEntity.ok().build();
     }
+
 
     @PostMapping("/{id}/finish")
     public ResponseEntity<RideResponseDTO> finish(@PathVariable Long id){
