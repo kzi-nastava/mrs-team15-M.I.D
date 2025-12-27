@@ -7,6 +7,7 @@
     <string name="nav_login">Login</string>
     <string name="nav_forgot_password">Forgot password</string>
     <string name="nav_reset_password">Reset password</string>
+    <string name="nav_registration">Registration</string>
 
     <!-- login -->
     <string name="login_title">Welcome back</string>
@@ -15,15 +16,22 @@
     <!-- forms -->
     <string name="email">Email address</string>
     <string name="password">Password</string>
+    <string name="last_name">Last name</string>
+    <string name="first_name">First name</string>
+    <string name="phone_number">Phone number</string>
+    <string name="address">Address</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="no_account">Don\'t have an account?</string>
+    <string name="account">Already have an account?</string>
     <string name="login">Log in</string>
     <string name="sign_up">Sign up</string>
     <string name="back_to_login">Back to login</string>
     <string name="send_reset_link">send reset link</string>
     <string name="new_password">New password</string>
+    <string name="confirm_password">Confirm password</string>
     <string name="confirm_new_password">Confirm new password</string>
     <string name="reset_password">Reset password</string>
+    <string name="upload_photo">Upload photo</string>
 
     <!-- forgot password -->
     <string name="forgot_password_title">Forgot your password?</string>
@@ -32,4 +40,40 @@
     <!-- reset password -->
     <string name="reset_password_title">Reset your password</string>
     <string name="reset_password_subtitle">Enter your new password below.</string>
+
+    <!-- driver history -->
+    <string name="driver_history_title">Ride History</string>
+    <string name="driver_history_subtitle">Review your completed rides</string>
+    <!-- driver history table headers -->
+    <string name="driver_history_route">Route</string>
+    <string name="driver_history_passengers">Passengers</string>
+    <string name="driver_history_date">Date</string>
+    <string name="driver_history_duration">Duration</string>
+    <string name="driver_history_cancelled">Cancelled</string>
+    <string name="driver_history_cost">Cost</string>
+    <string name="driver_history_panic_button">Panic Button</string>
+    <!-- driver history filter -->
+    <string name="driver_history_filter_hint">Select date (dd/mm/yyyy)</string>
+    <string name="driver_history_filter_button">Apply</string>
+    <string name="driver_history_clear_button">Clear</string>
+
+    <!-- ride details -->
+    <string name="ride_details_title">Ride Details</string>
+    <string name="ride_details_map">Route Map</string>
+    <string name="ride_details_ride_information">Ride Information</string>
+    <string name="ride_details_route">Route: </string>
+    <string name="ride_details_passengers">Passengers: </string>
+    <string name="ride_details_date">Date: </string>
+    <string name="ride_details_duration">Duration: </string>
+    <string name="ride_details_cost">Cost: </string>
+    <string name="ride_details_status">Status</string>
+    <string name="ride_details_cancelled">Cancelled: </string>
+    <string name="ride_details_panic_button">Panic Button: </string>
+    <string name="ride_details_rating_title">Rating</string>
+    <string name="ride_details_rating">Rating: </string>
+    <string name="ride_details_inconsistencies_title">Inconsistencies</string>
+    <string name="ride_details_inconsistencies">Inconsistencies: </string>
+  
+    <!-- registration -->
+    <string name="registration_title">Join Ride Now and let\'s be on our way</string>
 </resources>

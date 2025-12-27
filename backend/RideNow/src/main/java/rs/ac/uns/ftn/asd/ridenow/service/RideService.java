@@ -20,7 +20,7 @@ public class RideService {
         return response;
     }
 
-    public OrderRideResponseDTO createRide(Long routeId, OrderRideRequestDTO dto) {
+    public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto) {
         OrderRideResponseDTO response = new OrderRideResponseDTO();
 
         //  test ride data
@@ -34,4 +34,5 @@ public class RideService {
 
         return response;
     }
+
 }
