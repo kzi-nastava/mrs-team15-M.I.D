@@ -5,9 +5,29 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderRideRequestDTO {
+    @NotBlank
+    private String startAddress;
 
     @NotNull
-    private Long routeId;
+    private Double startLatitude;
+
+    @NotNull
+    private Double startLongitude;
+
+    @NotBlank
+    private String endAddress;
+
+    @NotNull
+    private Double endLatitude;
+
+    @NotNull
+    private Double endLongitude;
+
+    private List<@NotBlank String> stopAddresses;
+
+    private List<@NotNull Double> stopLatitudes;
+
+    private List<@NotNull Double> stopLongitudes;
 
     @NotBlank
     private String vehicleType;
@@ -37,9 +57,7 @@ public class OrderRideRequestDTO {
 
     public void setScheduledTime(LocalDateTime scheduledTime) { this.scheduledTime = scheduledTime; }
 
-    public Long getRouteId() { return routeId; }
 
-    public void setRouteId(Long routeId) { this.routeId = routeId; }
 
     public List<String> getLinkedPassengers() { return linkedPassengers; }
 
