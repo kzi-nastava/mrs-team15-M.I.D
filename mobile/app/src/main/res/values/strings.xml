@@ -8,7 +8,8 @@
     <string name="nav_forgot_password">Forgot password</string>
     <string name="nav_reset_password">Reset password</string>
     <string name="nav_registration">Registration</string>
-    <string name="nav_profile">Profile</string>
+    <string name="nav_user_profile">Profile</string>
+    <string name="nav_driver_profile">Driver Profile</string>
     <string name="nav_change_password">Change Password</string>
 
     <!-- login -->
@@ -101,4 +102,6 @@
     <string name="profile_save_changes">Save Changes</string>
     <string name="profile_request_changes">Request Changes</string>
     <string name="profile_change_password">Change Password</string>
+    <string name="profile_img">Profile Picture</string>
+
 </resources>

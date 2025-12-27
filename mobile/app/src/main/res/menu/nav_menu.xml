@@ -22,7 +22,12 @@
         android:title="@string/nav_registration" />
     <item
         android:id="@+id/profile"
-        android:title="@string/nav_profile" />
+        android:icon="@drawable/ic_person"
+        android:title="@string/nav_user_profile" />
+    <item
+        android:id="@+id/driver_profile"
+        android:icon="@drawable/ic_person"
+        android:title="@string/nav_driver_profile" />
     <item
         android:id="@+id/change_password"
         android:title="@string/nav_change_password" />

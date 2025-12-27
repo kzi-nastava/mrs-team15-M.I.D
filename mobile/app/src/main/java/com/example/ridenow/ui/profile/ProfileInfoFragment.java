@@ -4,15 +4,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.ridenow.R;
-import com.example.ridenow.ui.auth.util.PasswordToggleUtil;
 
 public class ProfileInfoFragment extends Fragment {
 
@@ -24,14 +25,16 @@ public class ProfileInfoFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        TextView tvLogin = view.findViewById(R.id.tvLogin);
-        tvLogin.setOnClickListener(
-                v -> NavHostFragment.findNavController(this).navigate(R.id.login)
-        );
+        ImageView ivAvatar = view.findViewById(R.id.ivAvatar);
+        ivAvatar.setOnClickListener(v -> Toast.makeText(getContext(), "Select avatar (not implemented)", Toast.LENGTH_SHORT).show());
 
+        Button btnChange = view.findViewById(R.id.btnChangePassword);
+        btnChange.setOnClickListener(v -> NavHostFragment.findNavController(this).navigate(R.id.change_password));
 
+        Button btnSave = view.findViewById(R.id.btnSaveChanges);
+        btnSave.setOnClickListener(v -> Toast.makeText(getContext(), "Saved (not implemented)", Toast.LENGTH_SHORT).show());
     }
 }

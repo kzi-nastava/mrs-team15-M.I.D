@@ -19,17 +19,37 @@
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent">
 
-    <ImageButton
-        android:id="@+id/imageButton"
+    <FrameLayout
+        android:id="@+id/avatarContainer"
         android:layout_width="126dp"
-        android:layout_height="84dp"
-        app:srcCompat="@drawable/ic_person" />
+        android:layout_height="126dp"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:id="@+id/ivAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            app:srcCompat="@drawable/ic_person"
+            android:background="@drawable/circle_bg" />
+
+        <ImageView
+            android:id="@+id/ivCamera"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="6dp"
+            app:srcCompat="@drawable/ic_camera"
+            android:background="@drawable/camera_bg"
+            android:padding="6dp" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tvUserName"
         style="@style/TitleText"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="10sp"
         android:gravity="center"
         android:text="Profil"
@@ -38,7 +58,7 @@
     <EditText
         android:id="@+id/tvFirstName"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:inputType="text"
         android:autofillHints="name"
         android:hint="@string/first_name"
@@ -47,7 +67,7 @@
     <EditText
         android:id="@+id/tvLastName"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:inputType="text"
         android:hint="@string/last_name"
         style="@style/TextInput"/>
@@ -55,7 +75,7 @@
     <EditText
         android:id="@+id/tvPhoneNumber"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:inputType="phone"
         android:autofillHints="phone"
         android:hint="@string/phone_number"
@@ -64,7 +84,7 @@
     <EditText
         android:id="@+id/tvAddress"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:inputType="textPostalAddress"
         android:autofillHints="postalAddress"
         android:hint="@string/address"

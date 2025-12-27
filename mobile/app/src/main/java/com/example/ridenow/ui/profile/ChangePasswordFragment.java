@@ -26,8 +26,9 @@ public class ChangePasswordFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         TextView tvBackToLogin = view.findViewById(R.id.tvBackToLogin);
+        // Use navigateUp() so this returns to whichever fragment navigated here (profile or driver profile)
         tvBackToLogin.setOnClickListener(
-                v -> NavHostFragment.findNavController(this).navigate(R.id.login)
+                v -> NavHostFragment.findNavController(this).navigateUp()
         );
 
         EditText etCurrentPassword = view.findViewById(R.id.etCurrentPassword);
