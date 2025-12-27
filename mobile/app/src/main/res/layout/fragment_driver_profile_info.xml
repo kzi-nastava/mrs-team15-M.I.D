@@ -126,20 +126,40 @@
             android:hint="@string/vehicle_model"
             android:inputType="text" />
 
-        <EditText
-            android:id="@+id/etVehicleType"
-            style="@style/TextInput"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:importantForAutofill="no"
-            android:hint="@string/vehicle_type"
-            android:inputType="text" />
+            android:foregroundGravity="right|center_vertical">
+
+            <Spinner
+                android:id="@+id/spVehicleType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:prompt="@string/vehicle_type"
+                android:spinnerMode="dropdown"
+                style="@style/TextInput"
+                android:paddingStart="12dp"
+                android:paddingEnd="36dp"
+                android:background="@drawable/edittext_bg"
+                android:popupBackground="?attr/colorSurfaceVariant" />
+
+            <ImageView
+                android:id="@+id/ivDropdownArrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@string/vehicle_type"
+                android:src="@drawable/ic_dropdown_arrow" />
+
+        </FrameLayout>
 
         <EditText
             android:id="@+id/etVehicleSeats"
             style="@style/TextInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:importantForAutofill="no"
             android:hint="@string/vehicle_number_of_seats"
             android:inputType="number" />
 
