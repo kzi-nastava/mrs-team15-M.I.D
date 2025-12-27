@@ -40,5 +40,10 @@
         android:name="com.example.ridenow.RideDetailsFragment"
         android:label="Ride Details"
         tools:layout="@layout/fragment_ride_details" />
+  
+    <fragment
+        android:id="@+id/registration"
+        android:name="com.example.ridenow.RegistrationFragment"
+        android:label="nav_registration"/>
 
 </navigation>

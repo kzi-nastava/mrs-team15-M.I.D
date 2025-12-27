@@ -3,18 +3,32 @@
     <table class="table table-hover align-middle">
       <thead>
         <tr>
-          <th scope="col">Route</th>
-          <th scope="col">Passengers</th>
-          <th scope="col">Date</th>
-          <th scope="col">Duration</th>
-          <th scope="col">Cancelled</th>
-          <th scope="col">Cost</th>
-          <th scope="col">Panic Button</th>
+          <th scope="col" class="sortable" (click)="sort('route')">
+            Route <span class="sort-icon">{{ getSortIcon('route') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('passengers')">
+            Passengers <span class="sort-icon">{{ getSortIcon('passengers') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('date')">
+            Date <span class="sort-icon">{{ getSortIcon('date') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('duration')">
+            Duration <span class="sort-icon">{{ getSortIcon('duration') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('cancelled')">
+            Cancelled <span class="sort-icon">{{ getSortIcon('cancelled') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('cost')">
+            Cost <span class="sort-icon">{{ getSortIcon('cost') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('panicButton')">
+            Panic Button <span class="sort-icon">{{ getSortIcon('panicButton') }}</span>
+          </th>
         </tr>
       </thead>
       <tbody>
-        @for (ride of rides; track ride.date) {
-          <tr>
+        @for (ride of rides; track ride.id) {
+          <tr class="clickable-row" (click)="viewRideDetails(ride)">
             <td>{{ ride.route }}</td>
             <td>{{ ride.passengers }}</td>
             <td>{{ formatDate(ride.date) }}</td>

@@ -12,6 +12,7 @@ import { RideHistoryTableComponent, Ride } from '../../shared/components/ride-hi
 export class DriverHistory {
   allRides: Ride[] = [
     {
+      id: 1,
       route: 'Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd',
       passengers: 'Marko Marković, Ana Jovanović',
       date: '2025-12-12',
@@ -24,6 +25,7 @@ export class DriverHistory {
       panicBy: null
     },
     {
+      id: 2,
       route: 'Trg slobode → Železnička stanica',
       passengers: 'Petar Petrović',
       date: '2025-12-11',
@@ -36,6 +38,7 @@ export class DriverHistory {
       panicBy: null
     },
     {
+      id: 3,
       route: 'Liman 3 → Promenada Shopping',
       passengers: 'Jovana Nikolić, Stefan Stojanović',
       date: '2025-12-12',
@@ -48,6 +51,7 @@ export class DriverHistory {
       panicBy: 'Jovana Nikolić'
     },
     {
+      id: 4,
       route: 'Hotel Park → Spens',
       passengers: 'Milica Đorđević',
       date: '2025-12-10',
@@ -60,6 +64,7 @@ export class DriverHistory {
       panicBy: null
     },
     {
+      id: 5,
       route: 'Centar → Štrand',
       passengers: 'Nikola Ilić, Jelena Pavlović, Dušan Stanković',
       date: '2025-12-12',
