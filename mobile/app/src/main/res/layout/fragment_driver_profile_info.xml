@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <FrameLayout
+            android:id="@+id/avatarContainer"
+            android:layout_width="126dp"
+            android:layout_height="126dp"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/circle_bg"
+                android:contentDescription="@string/profile_img"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/ic_person" />
+
+            <ImageView
+                android:id="@+id/ivCamera"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="6dp"
+                android:background="@drawable/camera_bg"
+                android:contentDescription="@string/profile_img"
+                android:padding="6dp"
+                app:srcCompat="@drawable/ic_camera" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvUserName"
+            style="@style/TitleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10sp"
+            android:gravity="center"
+            android:text="@string/nav_user_profile"
+            android:textSize="28sp" />
+
+        <EditText
+            android:id="@+id/etFirstName"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="name"
+            android:hint="@string/first_name"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etLastName"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="familyName"
+            android:hint="@string/last_name"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etPhone"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="phone"
+            android:hint="@string/phone_number"
+            android:inputType="phone" />
+
+        <EditText
+            android:id="@+id/etAddress"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="postalAddress"
+            android:hint="@string/address"
+            android:inputType="textPostalAddress" />
+
+        <EditText
+            android:id="@+id/etEmail"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="emailAddress"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress" />
+
+        <!-- Vehicle section -->
+
+        <TextView
+            android:id="@+id/tvVehicleTitle"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:text="@string/vehicle_title"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etLicensePlate"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:importantForAutofill="no"
+            android:hint="@string/vehicle_license_plate"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etVehicleModel"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:importantForAutofill="no"
+            android:hint="@string/vehicle_model"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etVehicleType"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:importantForAutofill="no"
+            android:hint="@string/vehicle_type"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/etVehicleSeats"
+            style="@style/TextInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/vehicle_number_of_seats"
+            android:inputType="number" />
+
+        <LinearLayout
+            android:id="@+id/babyFriendly"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="start"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/cbBabyFriendly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:padding="8dp"
+                android:minHeight="48dp"
+                android:text="@string/vehicle_baby_friendly" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="start"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/cbPetFriendly"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:padding="8dp"
+                android:minHeight="48dp"
+                android:text="@string/vehicle_pet_friendly" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnChangePasswordDriver"
+            style="@style/ButtonGrey"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/profile_change_password" />
+
+        <Button
+            android:id="@+id/btnSaveChangesDriver"
+            style="@style/ButtonPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/profile_request_changes" />
+
+    </LinearLayout>
+
+</ScrollView>
