@@ -68,6 +68,8 @@ public class RideController {
             return ResponseEntity.status(400).build();
         }
         return ResponseEntity.status(204).build();
+    }
+
     @PostMapping("/route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
