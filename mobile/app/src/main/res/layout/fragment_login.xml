@@ -23,19 +23,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login_title"
-            android:fontFamily="@font/inter_semibold"
-            android:textSize="32sp"
-            android:textColor="@color/black" />
+            style="@style/TitleText"/>
 
         <TextView
             android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login_subtitle"
-            android:fontFamily="@font/inter_semibold"
-            android:textSize="22sp"
-            android:textColor="@color/black"
-            android:layout_marginBottom="16dp" />
+            style="@style/SubtitleText"
+            android:layout_marginBottom="16dp"/>
 
         <EditText
             android:id="@+id/etEmail"
@@ -44,13 +40,7 @@
             android:autofillHints="emailAddress"
             android:hint="@string/email"
             android:inputType="textEmailAddress"
-            android:background="@drawable/edittext_bg"
-            android:minHeight="48dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="7dp"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp"
-            android:layout_marginTop="10dp" />
+            style="@style/TextInput"/>
 
         <EditText
             android:id="@+id/etPassword"
@@ -59,35 +49,24 @@
             android:autofillHints="password"
             android:hint="@string/password"
             android:inputType="textPassword"
-            android:background="@drawable/edittext_bg"
-            android:drawableEnd="@drawable/visibility_24px"
-            android:drawablePadding="10sp"
-            android:paddingStart="16dp"
-            android:minHeight="48dp"
-            android:paddingEnd="7dp"
-            android:paddingTop="7dp"
-            android:paddingBottom="7dp"
-            android:layout_marginTop="10dp" />
+            style="@style/PasswordInput"/>
 
         <TextView
             android:id="@+id/tvForgotPasswordLink"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/forgot_password"
-            android:fontFamily="@font/inter_light"
-            android:textSize="14sp"
             android:layout_marginTop="5sp"
             android:layout_marginStart="10sp"
-            android:textColor="@color/black" />
+            style="@style/TextSmall"/>
 
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/black"
             android:text="@string/login"
-            android:textAllCaps="true"
-            android:layout_marginTop="5dp" />
+            android:layout_marginTop="5dp"
+            style="@style/ButtonPrimary"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -101,19 +80,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/no_account"
-                android:fontFamily="@font/inter_light"
-                android:textSize="14sp"
-                android:textColor="@color/black" />
+                style="@style/TextSmall"/>
 
             <TextView
                 android:id="@+id/tvSignUp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/sign_up"
-                android:fontFamily="@font/inter_semibold"
-                android:textSize="14sp"
-                android:textColor="@color/black"
-                android:layout_marginStart="4dp" />
+                style="@style/TextSmallBold"
+                android:layout_marginStart="4dp"/>
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

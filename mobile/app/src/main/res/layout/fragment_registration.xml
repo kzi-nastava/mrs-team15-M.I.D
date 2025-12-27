@@ -7,7 +7,7 @@
     android:layout_height="match_parent">
 
 <LinearLayout
-    android:id="@+id/loginContainer"
+    android:id="@+id/registrationContainer"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -24,69 +24,44 @@
         android:layout_height="match_parent"
         android:text="@string/registration_title"
         android:gravity="center"
+        style="@style/TitleText"
         android:layout_marginBottom="10sp"
-        android:fontFamily="@font/inter_semibold"
-        android:textSize="28sp"
-        android:textColor="@color/black"/>
+        android:textSize="28sp"/>
 
     <EditText
         android:id="@+id/tvFirstName"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/edittext_bg"
         android:inputType="text"
         android:autofillHints="name"
         android:hint="@string/first_name"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:layout_marginTop="10dp"/>
+        style="@style/TextInput"/>
 
     <EditText
         android:id="@+id/tvLastName"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/edittext_bg"
         android:inputType="text"
         android:hint="@string/last_name"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:layout_marginTop="10dp"/>
+        style="@style/TextInput"/>
 
     <EditText
         android:id="@+id/tvPhoneNumber"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/edittext_bg"
         android:inputType="phone"
         android:autofillHints="phone"
         android:hint="@string/phone_number"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:layout_marginTop="10dp"/>
+        style="@style/TextInput"/>
 
     <EditText
         android:id="@+id/tvAddress"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/edittext_bg"
         android:inputType="textPostalAddress"
         android:autofillHints="postalAddress"
         android:hint="@string/address"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:layout_marginTop="10dp"/>
+        style="@style/TextInput"/>
 
     <EditText
         android:id="@+id/etEmail"
@@ -95,13 +70,7 @@
         android:autofillHints="emailAddress"
         android:hint="@string/email"
         android:inputType="textEmailAddress"
-        android:background="@drawable/edittext_bg"
-        android:minHeight="48dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:layout_marginTop="10dp" />
+        style="@style/TextInput"/>
 
     <EditText
         android:id="@+id/etPassword"
@@ -110,47 +79,30 @@
         android:autofillHints="password"
         android:hint="@string/password"
         android:inputType="textPassword"
-        android:background="@drawable/edittext_bg"
-        android:drawableEnd="@drawable/visibility_24px"
-        android:drawablePadding="10sp"
-        android:paddingStart="16dp"
-        android:minHeight="48dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:layout_marginTop="10dp" />
+        style="@style/PasswordInput"/>
 
     <EditText
         android:id="@+id/etConfirmPassword"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/edittext_bg"
-        android:drawableEnd="@drawable/visibility_24px"
-        android:layout_marginTop="10sp"
-        android:minHeight="48sp"
-        android:drawablePadding="10sp"
-        android:paddingStart="16dp"
-        android:paddingEnd="7dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
         android:hint="@string/confirm_password"
-        android:inputType="textPassword"/>
+        android:inputType="textPassword"
+        style="@style/PasswordInput"/>
 
     <Button
         android:id="@+id/btnUploadPhoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/black"
         android:layout_marginTop="10sp"
-        android:text="@string/upload_photo" />
+        android:text="@string/upload_photo"
+        style="@style/ButtonPrimary"/>
 
     <Button
         android:id="@+id/btnSignUp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/black"
-        android:textAllCaps="true"
-        android:text="@string/sign_up" />
+        android:text="@string/sign_up"
+        style="@style/ButtonPrimary"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -164,20 +116,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/account"
-            android:fontFamily="@font/inter_light"
-            android:textSize="14sp"
-            android:textColor="@color/black" />
+            style="@style/TextSmall"/>
 
         <TextView
             android:id="@+id/tvLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/login"
-            android:fontFamily="@font/inter_semibold"
-            android:textSize="14sp"
-            android:textColor="@color/black"
-            android:layout_marginStart="4dp" />
-
+            style="@style/TextSmallBold"
+            android:layout_marginStart="4dp"/>
     </LinearLayout>
 </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

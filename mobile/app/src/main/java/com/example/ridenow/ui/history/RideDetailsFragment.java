@@ -1,4 +1,4 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.history;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +8,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import com.example.ridenow.R;
 
 public class RideDetailsFragment extends Fragment {
     private static final String ARG_RIDE_DATA = "ride_data";

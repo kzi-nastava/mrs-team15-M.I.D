@@ -1,4 +1,4 @@
-package com.example.ridenow;
+package com.example.ridenow.ui.history;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorEventListener2;
 import android.hardware.SensorManager;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
@@ -29,6 +28,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import java.util.Locale;
+import com.example.ridenow.R;
 
 public class DriverHistoryFragment extends Fragment implements SensorEventListener {
     private EditText etDateFilter;
