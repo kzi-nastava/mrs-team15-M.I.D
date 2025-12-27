@@ -8,6 +8,9 @@
     <string name="nav_forgot_password">Forgot password</string>
     <string name="nav_reset_password">Reset password</string>
     <string name="nav_registration">Registration</string>
+    <string name="nav_user_profile">Profile</string>
+    <string name="nav_driver_profile">Driver Profile</string>
+    <string name="nav_change_password">Change Password</string>
 
     <!-- login -->
     <string name="login_title">Welcome back</string>
@@ -76,4 +79,29 @@
   
     <!-- registration -->
     <string name="registration_title">Join Ride Now and let\'s be on our way</string>
+
+    <!-- change password -->
+    <string name="change_password_title">Change your password</string>
+    <string name="change_password_back">Back to profile</string>
+    <string name="change_password_current">Current password</string>
+    <string name="change_password_new">New password</string>
+    <string name="change_password_confirm">Confirm new password</string>
+    <string name="change_password_button">SAVE PASSWORD</string>
+
+    <!-- vehicle -->
+    <string name="vehicle_title">Vehicle</string>
+    <string name="vehicle_license_plate">License plate</string>
+    <string name="vehicle_model">Vehicle model</string>
+    <string name="vehicle_type">Vehicle type</string>
+    <string name="vehicle_number_of_seats">Number of seats</string>
+    <string name="vehicle_baby_friendly">Baby friendly</string>
+    <string name="vehicle_pet_friendly">Pet friendly</string>
+
+
+    <!-- profile -->
+    <string name="profile_save_changes">Save Changes</string>
+    <string name="profile_request_changes">Request Changes</string>
+    <string name="profile_change_password">Change Password</string>
+    <string name="profile_img">Profile Picture</string>
+
 </resources>

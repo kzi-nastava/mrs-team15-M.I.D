@@ -37,6 +37,11 @@
         <item name="android:background">@drawable/button_border_bg</item>
     </style>
 
+    <style name="ButtonGrey" parent="ButtonPrimary">
+        <item name="android:backgroundTint">#F0F0F0</item>
+        <item name="android:textColor">#FF000000</item>
+    </style>
+
     <style name="TitleText">
         <item name="android:fontFamily">@font/inter_semibold</item>
         <item name="android:textSize">32sp</item>
