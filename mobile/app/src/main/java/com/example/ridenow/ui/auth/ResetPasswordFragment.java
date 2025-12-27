@@ -2,6 +2,7 @@ package com.example.ridenow.ui.auth;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -22,7 +23,12 @@ public class ResetPasswordFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view =  inflater.inflate(R.layout.fragment_reset_password, container, false);
+        return inflater.inflate(R.layout.fragment_reset_password, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         TextView tvBackToLogin = view.findViewById(R.id.tvBackToLogin);
         tvBackToLogin.setOnClickListener(
@@ -34,7 +40,5 @@ public class ResetPasswordFragment extends Fragment {
 
         EditText etConfirmPassword = view.findViewById(R.id.etConfirmPassword);
         PasswordToggleUtil.addPasswordToggle(etConfirmPassword);
-
-        return view;
     }
 }

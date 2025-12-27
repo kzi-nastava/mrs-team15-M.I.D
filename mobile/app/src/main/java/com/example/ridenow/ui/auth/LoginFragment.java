@@ -1,6 +1,8 @@
 package com.example.ridenow.ui.auth;
 
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -21,21 +23,24 @@ public class LoginFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_login, container, false);
+        return inflater.inflate(R.layout.fragment_login, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         EditText etPassword = view.findViewById(R.id.etPassword);
         PasswordToggleUtil.addPasswordToggle(etPassword);
 
         TextView tvSignUp = view.findViewById(R.id.tvSignUp);
-        tvSignUp.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this).navigate(R.id.registration);
-        });
+        tvSignUp.setOnClickListener(
+                v -> NavHostFragment.findNavController(this).navigate(R.id.registration)
+        );
 
         TextView tvForgotPasswordLink = view.findViewById(R.id.tvForgotPasswordLink);
         tvForgotPasswordLink.setOnClickListener(
                 v -> NavHostFragment.findNavController(this).navigate(R.id.forgot_password)
         );
-
-        return view;
     }
 }
