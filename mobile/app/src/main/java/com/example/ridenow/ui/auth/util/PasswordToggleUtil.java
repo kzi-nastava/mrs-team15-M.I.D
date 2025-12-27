@@ -13,7 +13,7 @@ public class PasswordToggleUtil {
     public static void  addPasswordToggle(EditText editText) {
         editText.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                int iconPosition = editText.getRight() - editText.getCompoundDrawables()[2].getBounds().width();
+                int iconPosition = editText.getRight() - editText.getCompoundDrawables()[2].getBounds().width() - editText.getPaddingEnd();
                 if (event.getRawX() >= iconPosition) {
                     togglePasswordVisibility(editText);
                     v.performClick();
