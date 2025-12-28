@@ -1,15 +1,13 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideDetailsDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.DriverChangeRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import rs.ac.uns.ftn.asd.ridenow.service.AdminService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
+
+    private final AdminService adminService;
+
+    @Autowired
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
+
     @GetMapping("/users/{id}/rides")
     public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@PathVariable Long id,
            @RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
@@ -65,9 +71,10 @@ public class AdminController {
         return ResponseEntity.ok(details);
     }
 
-    @PostMapping("/driver-register")
+    @PostMapping("{id}/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
-            @Valid @RequestBody RegisterDriverRequestDTO request){
+            @PathVariable Long id,
+            @Valid @RequestBody RegisterDriverRequestDTO request) {
 
         RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
         response.setId(1L);
@@ -83,44 +90,27 @@ public class AdminController {
         response.setNumberOfSeats(request.getNumberOfSeats());
         response.setBabyFriendly(request.isBabyFriendly());
         response.setPetFriendly(request.isPetFriendly());
+
         return ResponseEntity.status(201).body(response);
     }
 
-    @GetMapping("/driver-change-requests")
-    public ResponseEntity<List<DriverChangeRequestDTO>> getPendingRequests() {
-        List<DriverChangeRequestDTO> requests = new ArrayList<>();
+    @GetMapping("{id}/driver-requests")
+    public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests(
+            @PathVariable Long id) {
 
-        DriverChangeRequestDTO req = new DriverChangeRequestDTO();
 
-        req.setEmail("driver@mail.com");
-        req.setFirstName("John");
-        req.setLastName("Doe");
-        req.setPhoneNumber("123-456-7890");
-        req.setProfileImage("profile_image_url");
-        req.setAddress("123 Main St, Cityville");
-        req.setLicensePlate("NS123AB");
-        req.setVehicleModel("Toyota Prius");
-        req.setVehicleType(VehicleType.valueOf("Standard"));
-        req.setNumberOfSeats(4);
-        req.setBabyFriendly(true);
-        req.setPetFriendly(false);
-
-        req.setStatus(DriverChangesStatus.valueOf("PENDING"));
-
-        requests.add(req);
-
-        return ResponseEntity.ok(requests);
+        return ResponseEntity.ok(adminService.getDriverRequests());
     }
 
-    @PutMapping("/driver-change-requests/{id}/approve")
-    public ResponseEntity<Void> approveRequest(@PathVariable Long id) {
-        // to do : approving logic
+    @PutMapping("{id}/driver-requests/{requestId}")
+    public ResponseEntity<Void> reviewDriverRequest(
+            @PathVariable Long id,
+            @PathVariable Long requestId,
+            @Valid @RequestBody AdminChangesReviewRequestDTO dto) {
+
+
+        adminService.reviewDriverRequest(id, requestId, dto);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/driver-change-requests/{id}/reject")
-    public ResponseEntity<Void> rejectRequest(@PathVariable Long id) {
-        // to do : rejecting logic
-        return ResponseEntity.ok().build();
-    }
 }
