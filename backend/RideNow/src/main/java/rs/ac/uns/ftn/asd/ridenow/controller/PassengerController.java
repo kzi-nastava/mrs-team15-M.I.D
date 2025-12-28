@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.route.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateDriverResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateVehicleResponseDTO;
@@ -28,8 +27,7 @@ public class PassengerController {
         this.passengerService = passengerService;
     }
 
-    @PostMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<RouteResponseDTO> addToFavorites(
+
     @PostMapping("{userId}/rate-driver/{driverId}")
     public ResponseEntity<RateDriverResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long userId, @PathVariable @NotNull @Min(1) Long driverId, @Valid @RequestBody RateRequestDTO req) {
         RateDriverResponseDTO res = new RateDriverResponseDTO();
@@ -55,7 +53,7 @@ public class PassengerController {
     }
 
     @PutMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<Void> addToFavorites(
+    public ResponseEntity<RouteResponseDTO> addToFavorites(
             @PathVariable Long id,
             @PathVariable Long routeId) {
 
