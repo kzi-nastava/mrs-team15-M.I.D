@@ -63,7 +63,7 @@ public class DriverController {
         return  ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{driverId}")
+    @GetMapping("/{driverId}/rides")
     public ResponseEntity<List<RideResponseDTO>> findRides(@PathVariable @NotNull @Min(1) Long driverId){
         RideResponseDTO ride1 = new RideResponseDTO();
         ride1.setRideId(1L);
