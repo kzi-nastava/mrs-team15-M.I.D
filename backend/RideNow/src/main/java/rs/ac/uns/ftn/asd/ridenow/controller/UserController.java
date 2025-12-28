@@ -4,11 +4,14 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.route.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.service.UserService;
+
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/api/users")
@@ -57,6 +60,40 @@ public class UserController {
             @Valid @RequestBody UpdateProfileRequestDTO dto) {
 
         userService.updateUser(id, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/routes/{routeId}")
+    public ResponseEntity<Void> addToFavorites(
+            @PathVariable Long id,
+            @PathVariable Long routeId) {
+
+        userService.addToFavorites(id, routeId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/routes/{routeId}")
+    public ResponseEntity<Void> removeFromFavorites(
+            @PathVariable Long id,
+            @PathVariable Long routeId) {
+
+        userService.removeFromFavorites(id, routeId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/routes/{routeId}")
+    public ResponseEntity<RouteResponseDTO> getRouteById(
+            @PathVariable Long id,
+            @PathVariable Long routeId) {
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{userId}/routes")
+    public ResponseEntity<Collection<RouteResponseDTO>> getRoutes(
+            @PathVariable Long userId,
+            @RequestParam(required = false, defaultValue = "false") boolean favorite) {
+
         return ResponseEntity.ok().build();
     }
 
