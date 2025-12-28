@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.UpdateVehicleRequest;
@@ -29,14 +31,10 @@ public class VehicleController {
         return ResponseEntity.ok(vehicles);
     }
 
-    @PostMapping("/update-location/{id}")
-    public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable String id, @Valid @RequestBody UpdateVehicleRequest req) {
-        if (id == null || id.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
+    @PostMapping("/update-location/{licencePlate}")
+    public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable @NotNull @NotEmpty String licencePlate, @Valid @RequestBody UpdateVehicleRequest req) {
         VehicleResponseDTO vehicle = new VehicleResponseDTO();
-        vehicle.setLicencePlate(id);
+        vehicle.setLicencePlate(licencePlate);
         vehicle.setLocation(new Location(14L, req.getLat(), req.getLon(), ""));
         vehicle.setAvailable(true);
 

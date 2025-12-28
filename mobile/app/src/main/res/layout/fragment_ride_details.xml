@@ -44,14 +44,13 @@
                     android:background="@android:color/black"
                     android:padding="12dp" />
 
-                <TextView
+                <ImageView
+                    android:id="@+id/ivMapImage"
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
-                    android:text="MAP PLACEHOLDER\nRoute visualization will be here"
-                    android:textSize="18sp"
-                    android:gravity="center"
+                    android:scaleType="centerCrop"
                     android:background="#E0E0E0"
-                    android:padding="16dp" />
+                    android:src="@drawable/map_placeholder" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

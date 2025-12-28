@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.service.UserService;
 
 import java.util.Collection;
@@ -21,22 +20,6 @@ public class UserController {
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
-    }
-
-    @PostMapping("{userId}/rate-driver/{driverId}")
-    public ResponseEntity<RateRequestDTO> rateDriver(@PathVariable int userId, @PathVariable int driverId, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
-        if (userId <= 0 || driverId <= 0) {
-           return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.status(201).body(rateRequestDTO);
-    }
-
-    @PostMapping("{userId}/rate-vehicle/{vehicleId}")
-    public ResponseEntity<RateRequestDTO> rateVehicle(@PathVariable int userId, @PathVariable int vehicleId, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
-        if (userId <= 0 || vehicleId <= 0) {
-            return ResponseEntity.badRequest().build();
-        }
-        return  ResponseEntity.status(201).body(rateRequestDTO);
     }
 
     @PutMapping("/{id}/change-password")

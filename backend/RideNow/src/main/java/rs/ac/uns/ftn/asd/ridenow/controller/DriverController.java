@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
@@ -13,11 +15,7 @@ import java.util.List;
 @RequestMapping("/api/driver")
 public class DriverController {
     @GetMapping("/{id}/ride-history")
-    public ResponseEntity<List<DriverHistoryItemDTO>> getRideHistory(@PathVariable int id) {
-        if (id <= 0) {
-            return ResponseEntity.badRequest().build();
-        }
-
+    public ResponseEntity<List<DriverHistoryItemDTO>> getRideHistory(@PathVariable @NotNull @Min(1) Long id) {
         DriverHistoryItemDTO ride1 = new DriverHistoryItemDTO();
         Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
         Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
@@ -52,11 +50,7 @@ public class DriverController {
     }
 
     @PostMapping("/{id}/finish")
-    public ResponseEntity<RideResponseDTO> finish(@PathVariable Long id){
-        if (id <= 0){
-            return ResponseEntity.status(400).build();
-        }
-
+    public ResponseEntity<RideResponseDTO> finish(@PathVariable @NotNull @Min(1) Long id){
         RideResponseDTO response = new RideResponseDTO();
         response.setRideId(1L);
         Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
@@ -69,12 +63,8 @@ public class DriverController {
         return  ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{driverId}")
-    public ResponseEntity<List<RideResponseDTO>> findRides(@PathVariable Long driverId){
-        if (driverId <= 0){
-            return ResponseEntity.status(400).build();
-        }
-
+    @GetMapping("/{driverId}/rides")
+    public ResponseEntity<List<RideResponseDTO>> findRides(@PathVariable @NotNull @Min(1) Long driverId){
         RideResponseDTO ride1 = new RideResponseDTO();
         ride1.setRideId(1L);
         Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");

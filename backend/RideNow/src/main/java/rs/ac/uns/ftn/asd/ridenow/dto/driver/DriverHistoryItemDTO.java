@@ -11,8 +11,6 @@ import java.util.List;
 
 @Getter @Setter
 public class DriverHistoryItemDTO {
-    @NotNull
-    private Long routeId;
     @NotNull @NotEmpty
     private Route route;
     @NotNull @NotEmpty
