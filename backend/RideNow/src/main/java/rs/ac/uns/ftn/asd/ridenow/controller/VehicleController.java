@@ -10,7 +10,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/vehicle")
+@RequestMapping("/api/vehicles")
 public class VehicleController {
     @GetMapping("/")
     public ResponseEntity<List<VehicleResponseDTO>> getAll() {
