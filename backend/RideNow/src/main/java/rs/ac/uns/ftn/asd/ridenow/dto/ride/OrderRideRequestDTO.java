@@ -1,9 +1,13 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.ride;
 
 import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter @Setter
 public class OrderRideRequestDTO {
     @NotBlank
     private String startAddress;
@@ -39,28 +43,4 @@ public class OrderRideRequestDTO {
 
     @FutureOrPresent
     private LocalDateTime scheduledTime;
-
-
-    public String getVehicleType() { return vehicleType; }
-
-    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
-
-    public boolean isBabyFriendly() { return babyFriendly; }
-
-    public void setBabyFriendly(boolean babyFriendly) { this.babyFriendly = babyFriendly; }
-
-    public boolean isPetFriendly() { return petFriendly; }
-
-    public void setPetFriendly(boolean petFriendly) { this.petFriendly = petFriendly; }
-
-    public LocalDateTime getScheduledTime() { return scheduledTime; }
-
-    public void setScheduledTime(LocalDateTime scheduledTime) { this.scheduledTime = scheduledTime; }
-
-
-
-    public List<String> getLinkedPassengers() { return linkedPassengers; }
-
-    public void setLinkedPassengers(List<String> linkedPassengers) { this.linkedPassengers = linkedPassengers; }
-
 }

@@ -1,6 +1,9 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
+import lombok.Getter;
+import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 
+@Getter @Setter
 public class Driver extends User {
     private DriverStatus status;
     private boolean available;
@@ -16,46 +19,6 @@ public class Driver extends User {
         this.available = available;
         this.workingHoursLast24 = workingHoursLast24;
         this.rating = rating;
-        this.vehicle = vehicle;
-    }
-
-    public DriverStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(DriverStatus status) {
-        this.status = status;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
-    public double getWorkingHoursLast24() {
-        return workingHoursLast24;
-    }
-
-    public void setWorkingHoursLast24(double workingHoursLast24) {
-        this.workingHoursLast24 = workingHoursLast24;
-    }
-
-    public double getRating() {
-        return rating;
-    }
-
-    public void setRating(double rating) {
-        this.rating = rating;
-    }
-
-    public Vehicle getVehicle() {
-        return vehicle;
-    }
-
-    public void setVehicle(Vehicle vehicle) {
         this.vehicle = vehicle;
     }
 }

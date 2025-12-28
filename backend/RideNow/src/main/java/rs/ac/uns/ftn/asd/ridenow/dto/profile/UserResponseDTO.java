@@ -1,12 +1,12 @@
-package rs.ac.uns.ftn.asd.ridenow.dto.admin;
+package rs.ac.uns.ftn.asd.ridenow.dto.profile;
+
 import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 @Setter
 @Getter
-public class RegisterDriverResponseDTO {
-    private Long id;
+public class UserResponseDTO {
     private String email;
     private String firstName;
     private String lastName;
@@ -22,9 +22,6 @@ public class RegisterDriverResponseDTO {
     private boolean babyFriendly;
     private boolean petFriendly;
 
-    public RegisterDriverResponseDTO(){
-        super();
-    }
-
+    public UserResponseDTO() { super(); }
 
 }

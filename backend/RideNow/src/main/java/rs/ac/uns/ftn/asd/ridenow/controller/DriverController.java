@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Location;
+import rs.ac.uns.ftn.asd.ridenow.model.Route;
 
 import java.util.List;
 
@@ -17,8 +19,10 @@ public class DriverController {
         }
 
         DriverHistoryItemDTO ride1 = new DriverHistoryItemDTO();
-        ride1.setStartLocation("Bulevar Oslobodjenja 10, Novi Sad");
-        ride1.setEndLocation("Bulevar Oslobodjenja 24, Novi Sad");
+        Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
+        Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
+        Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
+        ride1.setRoute(new Route(13L, startLocation, endLocation, List.of(stopLocation1), 5, 15));
         ride1.setDate(java.sql.Date.valueOf("2024-01-15"));
         ride1.setCost(1500.0);
         ride1.setCancelled(false);
@@ -29,8 +33,11 @@ public class DriverController {
         ride1.setPassengers(List.of("Marko Markovic", "Jovana Jovanovic"));
 
         DriverHistoryItemDTO ride2 = new DriverHistoryItemDTO();
-        ride2.setStartLocation("Zmaj Jovina 5, Novi Sad");
-        ride2.setEndLocation("Trg Slobode 1, Novi Sad");
+        Location startLocation2 = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
+        Location endLocation2 = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
+        Location stopLocation2 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
+        Location stopLocation3 = new Location(43L, 41.423424, 42.42342, "Janka Cmelika 32, Novi Sad");
+        ride2.setRoute(new Route(13L, startLocation2, endLocation2, List.of(stopLocation2, stopLocation3), 5, 15));
         ride2.setDate(java.sql.Date.valueOf("2024-02-20"));
         ride2.setCost(800.0);
         ride2.setCancelled(true);
@@ -52,12 +59,10 @@ public class DriverController {
 
         RideResponseDTO response = new RideResponseDTO();
         response.setRideId(1L);
-        response.setStartLocation("Bulevar Oslobodjenja 45, Novi Sad");
-        response.setEndLocation("Narodnog fronta 12, Novi Sad");
-        response.setStartLatitude(21.23);
-        response.setStartLongitude(45.43);
-        response.setEndLatitude(22.23);
-        response.setEndLongitude(46.43);
+        Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
+        Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
+        Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
+        response.setRoute(new Route(13L, startLocation, endLocation, List.of(stopLocation1), 5, 15));
         response.setPassengerEmails(List.of("marko.maric@gmail.com", "ana.danic@gmail.com"));
         response.setStartTime("2024-05-10T14:30:00");
 
@@ -72,24 +77,21 @@ public class DriverController {
 
         RideResponseDTO ride1 = new RideResponseDTO();
         ride1.setRideId(1L);
-        ride1.setStartLocation("Bulevar Oslobodjenja 45, Novi Sad");
-        ride1.setEndLocation("Narodnog fronta 12, Novi Sad");
-        ride1.setStartLatitude(21.23);
-        ride1.setStartLongitude(45.43);
-        ride1.setEndLatitude(22.23);
-        ride1.setEndLongitude(46.43);
+        Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
+        Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
+        Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
+        ride1.setRoute(new Route(13L, startLocation, endLocation, List.of(stopLocation1), 5, 15));
         ride1.setPassengerEmails(List.of("danka.danic@gmail.com", "mario.ploros@gmail.com"));
         ride1.setStartTime("2024-05-10T14:30:00");
 
         RideResponseDTO ride2 = new RideResponseDTO();
         ride2.setRideId(2L);
-        ride2.setStartLocation("Trg Slobode 3, Novi Sad");
-        ride2.setEndLocation("Bulevar Evrope 28, Novi Sad");
-        ride2.setStartLatitude(23.23);
-        ride2.setStartLongitude(47.43);
-        ride2.setEndLatitude(24.23);
-        ride2.setEndLongitude(48.43);
-        ride2.setPassengerEmails(List.of("radovan.radinic@gmail.com", "galja.miric@g"));
+        Location startLocation2 = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
+        Location endLocation2 = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
+        Location stopLocation2 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
+        Location stopLocation3 = new Location(43L, 41.423424, 42.42342, "Janka Cmelika 32, Novi Sad");
+        ride2.setRoute(new Route(13L, startLocation2, endLocation2, List.of(stopLocation2, stopLocation3), 5, 15));
+        ride2.setPassengerEmails(List.of("radovan.radinic@gmail.com", "galja.miric@gmail.com"));
         ride2.setStartTime("2024-05-11T09:15:00");
         List<RideResponseDTO> rides = List.of(ride1, ride2);
         return ResponseEntity.ok(rides);

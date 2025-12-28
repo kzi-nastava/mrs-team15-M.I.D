@@ -6,7 +6,6 @@ import lombok.Setter;
 import java.util.List;
 
 public class RouteResponseDTO {
-
     @Getter @Setter
     private Long id;
 

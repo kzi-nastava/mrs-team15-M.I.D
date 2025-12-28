@@ -21,20 +21,20 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/rate-driver/{id}")
-    public ResponseEntity<Void> rateDriver(@PathVariable int id, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
-        if (id <= 0) {
+    @PostMapping("{userId}/rate-driver/{driverId}")
+    public ResponseEntity<RateRequestDTO> rateDriver(@PathVariable int userId, @PathVariable int driverId, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
+        if (userId <= 0 || driverId <= 0) {
            return ResponseEntity.badRequest().build();
         }
-        return  ResponseEntity.ok().build();
+        return ResponseEntity.status(201).body(rateRequestDTO);
     }
 
-    @PostMapping("/rate-vehicle/{id}")
-    public ResponseEntity<Void> rateVehicle(@PathVariable int id, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
-        if (id <= 0) {
+    @PostMapping("{userId}/rate-vehicle/{vehicleId}")
+    public ResponseEntity<RateRequestDTO> rateVehicle(@PathVariable int userId, @PathVariable int vehicleId, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
+        if (userId <= 0 || vehicleId <= 0) {
             return ResponseEntity.badRequest().build();
         }
-        return  ResponseEntity.ok().build();
+        return  ResponseEntity.status(201).body(rateRequestDTO);
     }
 
     @PutMapping("/{id}/change-password")

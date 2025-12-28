@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.Route;
 
 import java.util.List;
 
@@ -15,28 +16,7 @@ public class RideResponseDTO {
     private List<@NotBlank @NotNull String> passengerEmails;
 
     @NotNull @NotNull
-    private String startLocation;
-
-    @NotNull
-    private Double startLatitude;
-
-    @NotNull
-    private  Double startLongitude;
-
-    @NotNull @NotNull
-    private String endLocation;
-
-    @NotNull
-    private Double endLatitude;
-
-    @NotNull
-    private Double endLongitude;
-
-    private List<@NotBlank @NotNull String> stopAddresses;
-
-    private List<@NotNull Double> stopLatitudes;
-
-    private List<@NotNull Double> stopLongitudes;
+    private Route route;
 
     @NotBlank @NotNull
     private String startTime;

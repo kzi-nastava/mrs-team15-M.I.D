@@ -1,5 +1,10 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.auth;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class ForgotPasswordRequestDTO {
     private String email;
 
@@ -7,11 +12,4 @@ public class ForgotPasswordRequestDTO {
         super();
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 }

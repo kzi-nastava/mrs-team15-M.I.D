@@ -11,6 +11,8 @@ public class RateRequestDTO {
     @NotNull
     @DecimalMax("5.0")
     @DecimalMin("1.0")
-    private double rating;
+    private Double rating;
+    @NotNull
+    private Long rideId;
     private String comment;
 }

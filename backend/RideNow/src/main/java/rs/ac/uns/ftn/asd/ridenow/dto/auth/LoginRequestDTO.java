@@ -1,5 +1,10 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.auth;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class LoginRequestDTO {
     private String email;
     private String password;
@@ -8,19 +13,4 @@ public class LoginRequestDTO {
         super();
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
