@@ -48,4 +48,13 @@ public class OrderRideRequestDTO {
 
     @FutureOrPresent
     private LocalDateTime scheduledTime;
+
+    @NotNull
+    private double distanceKm;
+
+    @NotNull
+    private int estimatedTimeMinutes;
+
+    @NotNull
+    private double priceEstimate;
 }

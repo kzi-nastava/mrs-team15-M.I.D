@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/admins")
 public class AdminController {
 
     private final AdminService adminService;
@@ -74,7 +74,7 @@ public class AdminController {
     @PostMapping("{id}/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
             @PathVariable Long id,
-            @Valid @RequestBody RegisterDriverRequestDTO request) {
+             RegisterDriverRequestDTO request) {
 
         RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
         response.setId(1L);

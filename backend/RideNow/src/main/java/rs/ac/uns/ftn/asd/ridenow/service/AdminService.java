@@ -39,18 +39,6 @@ public class AdminService {
             Long adminId,
             Long requestId,
             AdminChangesReviewRequestDTO dto) {
-
-        if (dto.isApproved()) {
-            // mock approve logic
-            System.out.println(
-                    "Admin " + adminId + " approved driver request " + requestId
-            );
-        } else {
-            // mock reject logic
-            System.out.println(
-                    "Admin " + adminId + " rejected driver request " + requestId +
-                            ". Reason: " + dto.getMessage()
-            );
-        }
+        // mock: request reviewed
     }
 }
