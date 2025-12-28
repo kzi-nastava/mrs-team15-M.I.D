@@ -14,7 +14,7 @@ public class UserController {
         if (id <= 0) {
            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(rateRequestDTO);
+        return ResponseEntity.status(201).body(rateRequestDTO);
     }
 
     @PostMapping("/rate-vehicle/{id}")
@@ -22,6 +22,6 @@ public class UserController {
         if (id <= 0) {
             return ResponseEntity.badRequest().build();
         }
-        return  ResponseEntity.ok(rateRequestDTO);
+        return  ResponseEntity.status(201).body(rateRequestDTO);
     }
 }

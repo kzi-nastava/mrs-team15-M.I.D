@@ -63,7 +63,7 @@ public class RideController {
         if (description == null || description.isEmpty()) {
             return ResponseEntity.status(400).build();
         }
-        return ResponseEntity.ok(description);
+        return ResponseEntity.status(201).body(description);
     }
 
     @PostMapping("/route")
