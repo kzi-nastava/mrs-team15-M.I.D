@@ -63,39 +63,5 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<Void> addToFavorites(
-            @PathVariable Long id,
-            @PathVariable Long routeId) {
-
-        userService.addToFavorites(id, routeId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<Void> removeFromFavorites(
-            @PathVariable Long id,
-            @PathVariable Long routeId) {
-
-        userService.removeFromFavorites(id, routeId);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<RouteResponseDTO> getRouteById(
-            @PathVariable Long id,
-            @PathVariable Long routeId) {
-
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{userId}/routes")
-    public ResponseEntity<Collection<RouteResponseDTO>> getRoutes(
-            @PathVariable Long userId,
-            @RequestParam(required = false, defaultValue = "false") boolean favorite) {
-
-        return ResponseEntity.ok().build();
-    }
-
 
 }
