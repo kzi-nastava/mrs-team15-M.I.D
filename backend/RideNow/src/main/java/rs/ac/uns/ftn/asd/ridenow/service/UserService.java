@@ -28,12 +28,4 @@ public class UserService {
     public void updateUser(Long userId, UpdateProfileRequestDTO dto) {
         // mock: profile updated
     }
-
-    public void addToFavorites(Long userId, Long routeId) {
-        // mock: route added to favorites
-    }
-
-    public void removeFromFavorites(Long userId, Long routeId) {
-        // mock: route removed from favorites
-    }
 }
