@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.Route;
 
 import java.util.Date;
 import java.util.List;
@@ -13,10 +14,7 @@ public class DriverHistoryItemDTO {
     @NotNull
     private Long routeId;
     @NotNull @NotEmpty
-    private String startLocation;
-    @NotNull @NotEmpty
-    private String endLocation;
-    private List<String> stopLocations;
+    private Route route;
     @NotNull @NotEmpty
     private List<String> passengers;
     @NotNull
