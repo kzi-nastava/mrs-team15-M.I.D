@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
@@ -46,11 +48,7 @@ public class RideController {
     }
 
     @GetMapping("/{id}/track")
-    public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable Long id){
-        if (id == null || id <= 0){
-            return ResponseEntity.status(400).build();
-        }
-
+    public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
         TrackVehicleDTO vehicle = new TrackVehicleDTO();
         vehicle.setLocation(new Location(0L, 12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
         vehicle.setRemainingTimeInMinutes(12);
@@ -59,11 +57,14 @@ public class RideController {
     }
 
     @PostMapping("/{id}/inconsistency")
-    public ResponseEntity<String> reportInconsistency(@PathVariable Long id, @RequestBody String description) {
-        if (description == null || description.isEmpty()) {
-            return ResponseEntity.status(400).build();
-        }
-        return ResponseEntity.status(201).body(description);
+    public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@PathVariable @NotNull @Min(1) Long id, @RequestBody @Valid InconsistencyRequestDTO req){
+        InconsistencyResponseDTO res = new InconsistencyResponseDTO();
+        res.setRideId(id);
+        res.setDescription(req.getDescription());
+        res.setDriverId(req.getDriverId());
+        res.setPassengerId(req.getPassengerId());
+
+        return ResponseEntity.status(201).body(res);
     }
 
     @PostMapping("/route")
