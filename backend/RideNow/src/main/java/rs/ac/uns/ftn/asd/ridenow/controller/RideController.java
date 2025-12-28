@@ -67,6 +67,13 @@ public class RideController {
         return ResponseEntity.status(201).body(res);
     }
 
+    @PutMapping("/{id}/start")
+    public ResponseEntity<Void> startRide(@PathVariable Long id) {
+        rideService.startRide(id);
+        return ResponseEntity.ok().build();
+    }
+
+  // to do : estimate route for registered and unregistered users ?
     @PostMapping("/route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
