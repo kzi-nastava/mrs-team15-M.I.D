@@ -59,11 +59,11 @@ public class RideController {
     }
 
     @PostMapping("/{id}/inconsistency")
-    public ResponseEntity<Void> reportInconsistency(@PathVariable Long id, @RequestBody String description) {
+    public ResponseEntity<String> reportInconsistency(@PathVariable Long id, @RequestBody String description) {
         if (description == null || description.isEmpty()) {
             return ResponseEntity.status(400).build();
         }
-        return ResponseEntity.status(204).build();
+        return ResponseEntity.ok(description);
     }
 
     @PostMapping("/route")
