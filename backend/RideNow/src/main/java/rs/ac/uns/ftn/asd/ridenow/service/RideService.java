@@ -35,4 +35,7 @@ public class RideService {
         return response;
     }
 
+    public void startRide(Long rideId) {
+        // mock – no logic
+    }
 }
