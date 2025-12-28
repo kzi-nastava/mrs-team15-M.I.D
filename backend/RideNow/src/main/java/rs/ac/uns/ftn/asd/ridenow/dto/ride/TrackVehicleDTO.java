@@ -9,6 +9,8 @@ public class TrackVehicleDTO {
     @NotNull
     private Double longitude;
     @NotNull
+    private Double latitude;
+    @NotNull
     private Integer remainingTimeInMinutes;
 
     public TrackVehicleDTO() {
