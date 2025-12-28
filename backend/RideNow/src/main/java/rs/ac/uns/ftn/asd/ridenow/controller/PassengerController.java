@@ -66,7 +66,7 @@ public class PassengerController {
             @PathVariable Long routeId) {
 
         passengerService.removeFromFavorites(id, routeId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(204).build();
     }
 
     @GetMapping("/{id}/routes/{routeId}")

@@ -78,12 +78,12 @@ public class RideController {
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
 
         RouteResponseDTO response = rideService.estimateRoute(dto);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(201).body(response);
     }
 
     @PostMapping
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
-        return ResponseEntity.ok(rideService.orderRide(request));
+        return ResponseEntity.status(201).body(rideService.orderRide(request));
     }
 }
