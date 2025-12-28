@@ -9,17 +9,17 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 @RequestMapping("/api/user")
 public class UserController {
 
-    @PostMapping("/rate-driver/{id}")
-    public ResponseEntity<RateRequestDTO> rateDriver(@PathVariable int id, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
-        if (id <= 0) {
+    @PostMapping("{userId}/rate-driver/{driverId}")
+    public ResponseEntity<RateRequestDTO> rateDriver(@PathVariable int userId, @PathVariable int driverId, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
+        if (userId <= 0 || driverId <= 0) {
            return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.status(201).body(rateRequestDTO);
     }
 
-    @PostMapping("/rate-vehicle/{id}")
-    public ResponseEntity<RateRequestDTO> rateVehicle(@PathVariable int id, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
-        if (id <= 0) {
+    @PostMapping("{userId}/rate-vehicle/{vehicleId}")
+    public ResponseEntity<RateRequestDTO> rateVehicle(@PathVariable int userId, @PathVariable int vehicleId, @Valid @RequestBody RateRequestDTO rateRequestDTO) {
+        if (userId <= 0 || vehicleId <= 0) {
             return ResponseEntity.badRequest().build();
         }
         return  ResponseEntity.status(201).body(rateRequestDTO);
