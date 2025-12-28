@@ -3,9 +3,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
+import lombok.Getter;
+import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 
+@Setter
+@Getter
 public class UpdateProfileRequestDTO {
 
     @Email
@@ -40,49 +44,5 @@ public class UpdateProfileRequestDTO {
 
     public UpdateProfileRequestDTO() { super(); }
 
-    public String getEmail() { return email; }
-
-    public void setEmail(String email) { this.email = email; }
-
-    public String getFirstName() { return firstName; }
-
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
-    public String getPhoneNumber() { return phoneNumber; }
-
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-
-    public String getAddress() { return address; }
-
-    public void setAddress(String address) { this.address = address; }
-
-    public String getProfileImage() { return profileImage; }
-
-    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
-
-    public String getVehicleModel() { return vehicleModel; }
-
-    public void setVehicleModel(String vehicleModel) { this.vehicleModel = vehicleModel; }
-
-    public int getNumberOfSeats() { return numberOfSeats; }
-
-    public void setNumberOfSeats(int numberOfSeats) { this.numberOfSeats = numberOfSeats; }
-
-    public VehicleType getVehicleType() { return vehicleType; }
-
-    public void setVehicleType(VehicleType vehicleType) { this.vehicleType = vehicleType; }
-
-    public Boolean getBabyFriendly() { return babyFriendly; }
-
-    public void setBabyFriendly(Boolean babyFriendly) { this.babyFriendly = babyFriendly; }
-
-    public Boolean getPetFriendly() { return petFriendly; }
-
-    public void setPetFriendly(Boolean petFriendly) { this.petFriendly = petFriendly; }
-    
 }
 

@@ -1,7 +1,11 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
+@Getter @Setter
 public class Route {
 
     private Long id;
@@ -20,29 +24,4 @@ public class Route {
         this.distanceKm = distanceKm;
         this.estimatedTimeMin = estimatedTimeMin;
     }
-
-    public Long getId() { return id; }
-
-    public void setId(Long id) { this.id = id; }
-
-    public Location getStartLocation() { return startLocation; }
-
-    public void setStartLocation(Location startLocation) { this.startLocation = startLocation; }
-
-    public Location getEndLocation() { return endLocation; }
-
-    public void setEndLocation(Location endLocation) { this.endLocation = endLocation; }
-
-    public List<Location> getStopLocations() { return stopLocations; }
-
-    public void setStopLocations(List<Location> stopLocations) { this.stopLocations = stopLocations; }
-
-    public double getDistanceKm() { return distanceKm; }
-
-    public void setDistanceKm(double distanceKm) { this.distanceKm = distanceKm; }
-
-    public double getEstimatedTimeMin() { return estimatedTimeMin; }
-
-    public void setEstimatedTimeMin(double estimatedTimeMin) { this.estimatedTimeMin = estimatedTimeMin; }
-
 }

@@ -1,5 +1,10 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.ride;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class RideEstimateResponseDTO {
 
     private int estimatedDurationMin;
@@ -8,11 +13,4 @@ public class RideEstimateResponseDTO {
         super();
     }
 
-    public int getEstimatedDurationMin() {
-        return estimatedDurationMin;
-    }
-
-    public void setEstimatedDurationMin(int estimatedDurationMin) {
-        this.estimatedDurationMin = estimatedDurationMin;
-    }
 }
