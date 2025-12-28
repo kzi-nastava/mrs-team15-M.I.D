@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.route.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
@@ -43,7 +42,7 @@ public class UserController {
             @Valid @RequestBody UpdateProfileRequestDTO dto) {
 
         userService.updateUser(id, dto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(203).build();
     }
 
 

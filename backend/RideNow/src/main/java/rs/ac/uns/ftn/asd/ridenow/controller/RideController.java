@@ -73,8 +73,7 @@ public class RideController {
         return ResponseEntity.ok().build();
     }
 
-  // to do : estimate route for registered and unregistered users ?
-    @PostMapping("/route")
+    @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
 
@@ -83,10 +82,8 @@ public class RideController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> orderRide(
+    public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
-
-        rideService.orderRide(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(rideService.orderRide(request));
     }
 }

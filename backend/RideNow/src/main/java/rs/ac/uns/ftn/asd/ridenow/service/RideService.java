@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 import java.time.LocalDateTime;
 
@@ -25,10 +26,8 @@ public class RideService {
 
         //  test ride data
         response.setId(1L);
-        response.setStatus(RideStatus.valueOf("REQUESTED"));
-        response.setRouteId(1L);
-        response.setScheduledTime(LocalDateTime.parse("2024-07-01T10:00:00"));
-        response.setVehicleType("Standard");
+        response.setStatus(RideStatus.REQUESTED);
+        response.setVehicleType(VehicleType.STANDARD);
         response.setBabyFriendly(true);
         response.setPetFriendly(false);
 
