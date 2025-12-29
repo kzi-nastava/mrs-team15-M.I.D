@@ -1,0 +1,7 @@
+#map {
+  z-index: 1;
+}
+
+.leaflet-container {
+  border-radius: 1.5rem;
+}

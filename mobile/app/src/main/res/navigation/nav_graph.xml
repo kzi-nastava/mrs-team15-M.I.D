@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.ridenow.ui.home.HomeFragment"
+        android:label="Home" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.example.ridenow.ui.history.DriverHistoryFragment"
+        android:label="Profile" />
+        <action
+            android:id="@+id/action_driverHistory_to_rideDetails"
+            app:destination="@id/rideDetailsFragment" />
+
+    <fragment
+        android:id="@+id/login"
+        android:name="com.example.ridenow.ui.auth.LoginFragment"
+        android:label="@string/nav_login"/>
+
+    <fragment
+        android:id="@+id/forgot_password"
+        android:name="com.example.ridenow.ui.auth.ForgotPasswordFragment"
+        android:label="@string/nav_forgot_password"/>
+
+    <fragment
+        android:id="@+id/reset_password"
+        android:name="com.example.ridenow.ui.auth.ResetPasswordFragment"
+        android:label="@string/nav_reset_password"/>
+
+    <fragment
+        android:id="@+id/rideDetailsFragment"
+        android:name="com.example.ridenow.ui.history.RideDetailsFragment"
+        android:label="Ride Details"
+        tools:layout="@layout/fragment_ride_details" />
+
+    <fragment
+        android:id="@+id/registration"
+        android:name="com.example.ridenow.ui.auth.RegistrationFragment"
+        android:label="nav_registration"/>
+    <fragment
+        android:id="@+id/change_password"
+        android:name="com.example.ridenow.ui.profile.ChangePasswordFragment"
+        android:label="ChangePasswordFragment" />
+    <fragment
+        android:id="@+id/profile"
+        android:name="com.example.ridenow.ui.profile.ProfileInfoFragment"
+        android:label="ProfileInfoFragment" />
+
+    <fragment
+        android:id="@+id/driver_profile"
+        android:name="com.example.ridenow.ui.profile.DriverProfileInfoFragment"
+        android:label="DriverProfileInfoFragment" />
+
+</navigation>

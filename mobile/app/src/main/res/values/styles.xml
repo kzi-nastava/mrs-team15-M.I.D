@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CustomDatePickerDialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorAccent">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textColorPrimary">?attr/colorOnPrimary</item>
+        <item name="android:buttonBarButtonStyle">@style/DialogButton</item>
+    </style>
+
+    <style name="DialogButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textColorPrimary">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="TextInput">
+        <item name="android:background">@drawable/edittext_bg</item>
+        <item name="android:drawablePadding">10sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingTop">7dp</item>
+        <item name="android:paddingBottom">7dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+    </style>
+
+    <style name="ButtonPrimary">
+        <item name="android:backgroundTint">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:fontFamily">@font/inter_medium</item>
+    </style>
+
+    <style name="ButtonSecondary">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/button_border_bg</item>
+    </style>
+
+    <style name="ButtonGrey" parent="ButtonPrimary">
+        <item name="android:backgroundTint">#F0F0F0</item>
+        <item name="android:textColor">#FF000000</item>
+    </style>
+
+    <style name="TitleText">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorSecondary</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="SubtitleText">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">?attr/colorSecondary</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="TextMedium">
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:textColor">?attr/colorSecondary</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="TextSmall">
+        <item name="android:fontFamily">@font/inter_light</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextSmallBold">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="PasswordInput" parent="TextInput">
+        <item name="android:drawablePadding">10dp</item>
+        <item name="android:drawableEnd">@drawable/visibility_24px</item>
+    </style>
+</resources>

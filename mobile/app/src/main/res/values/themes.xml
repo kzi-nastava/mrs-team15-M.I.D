@@ -1,0 +1,35 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Base.Theme.RideNow" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- Primary colors -->
+        <item name="colorPrimary">@color/light_primary</item>
+        <item name="colorOnPrimary">@color/light_on_primary</item>
+        <item name="colorPrimaryContainer">@color/light_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/light_on_primary_container</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/light_secondary</item>
+        <item name="colorOnSecondary">@color/light_on_secondary</item>
+
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/light_surface</item>
+        <item name="colorOnSurface">@color/light_on_surface</item>
+        <item name="colorSurfaceVariant">@color/light_surface_variant</item>
+
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/light_background</item>
+        <item name="colorOnBackground">@color/light_on_background</item>
+
+        <!-- Navigation bar colors -->
+        <item name="android:navigationBarColor">@color/light_surface</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="Theme.RideNow" parent="Base.Theme.RideNow" >
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

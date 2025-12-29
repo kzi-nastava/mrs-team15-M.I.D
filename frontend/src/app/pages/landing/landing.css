@@ -1,0 +1,19 @@
+/* Column heights: fixed on mobile, 100% on desktop */
+.map-col-height,
+.form-col-height {
+  height: 400px;
+}
+
+/* Responsive height: viewport height on desktop only */
+@media (min-width: 768px) {
+  .row-height {
+    height: 70vh;
+    min-height: 500px;
+  }
+
+  .map-col-height,
+  .form-col-height {
+    height: 100%;
+  }
+}
+

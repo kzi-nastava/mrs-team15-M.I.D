@@ -1,0 +1,81 @@
+<form class="container py-5" (ngSubmit)="$event.preventDefault()">
+
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+    <div class="toast align-items-center text-white border-0" [class.bg-success]="toastType === 'success'" [class.bg-danger]="toastType === 'error'" [class.show]="showToast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          {{ toastMessage }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showToast = false" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mb-4">
+    <div class="avatar position-relative d-inline-block" (click)="onSelectPhoto()">
+      <img [src]="userAvatar || 'assets/pfp/default-avatar-icon.jpg'" class="rounded-circle w-100 h-100 object-fit-cover" alt="Profile picture">
+      <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex justify-content-center align-items-center">
+        <i class="bi bi-camera text-white fs-4"></i>
+      </div>
+      <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)">
+    </div>
+    <h2 class="mt-3">{{ user.firstName }} {{ user.lastName }}</h2>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="First name" [(ngModel)]="user.firstName" name="firstName" [class.is-invalid]="isFieldEmpty(user.firstName)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.firstName)">
+        First name is required
+      </div>
+    </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="Last name" [(ngModel)]="user.lastName" name="lastName" [class.is-invalid]="isFieldEmpty(user.lastName)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.lastName)">
+        Last name is required
+      </div>
+    </div>
+    <div class="col-md-6">
+      <input type="tel" class="form-control input-focus" placeholder="Phone number" [(ngModel)]="user.phone" name="phone" [class.is-invalid]="isFieldEmpty(user.phone) || !isPhoneValid(user.phone)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.phone) || !isPhoneValid(user.phone)">
+        {{ getPhoneErrorMessage() }}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="Address" [(ngModel)]="user.address" name="address" [class.is-invalid]="isFieldEmpty(user.address)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.address)">
+        Address is required
+      </div>
+    </div>
+    <div class="col-12">
+      <input type="email" class="form-control input-focus" placeholder="Email" [(ngModel)]="user.email" name="email" [class.is-invalid]="isFieldEmpty(user.email) || !isEmailValid(user.email)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.email) || !isEmailValid(user.email)">
+        {{ getEmailErrorMessage() }}
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="user.role === 'driver'" class="mt-3">
+    <p>Active hours last 24h: {{ user.activeHours }}h</p>
+    <app-vehicle-form [vehicle]="user.vehicle"></app-vehicle-form>
+  </div>
+
+  <div class="d-flex flex-wrap justify-content-between mt-4 gap-2">
+  <button type="button"
+          class="btn fw-semibold"
+          style="min-width: 180px; height: 40px; background-color: #f0f0f0; color: #000; border: 1px solid #ccc;"
+          (click)="goToChangePassword()">
+    Change Password
+  </button>
+  
+  <button type="button"
+          class="btn btn-dark fw-semibold"
+          style="min-width: 180px; height: 40px;"
+          [disabled]="hasValidationErrors()"
+          (click)="onSave()">
+    {{ user.role === 'driver' ? 'Request Changes' : 'Save Changes' }}
+  </button>
+</div>
+
+
+</form>

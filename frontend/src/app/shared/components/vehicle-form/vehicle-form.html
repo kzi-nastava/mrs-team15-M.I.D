@@ -1,0 +1,70 @@
+<div class="vehicle-form mt-4">
+
+  <h3 class="fw-semibold mb-3">Vehicle</h3>
+
+  <div class="row g-2 mb-3">
+    <div class="col-12 col-md-6">
+      <input type="text"
+             class="form-control input-focus"
+             placeholder="License plate"
+             [(ngModel)]="vehicle.licensePlate"
+              [class.is-invalid]="isFieldEmpty(vehicle.licensePlate) || !isLicensePlateValid(vehicle.licensePlate)" />
+            <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.licensePlate) || !isLicensePlateValid(vehicle.licensePlate)">
+        {{ getLicensePlateErrorMessage() }}
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <input type="text"
+             class="form-control input-focus"
+             placeholder="Car model"
+             [(ngModel)]="vehicle.model"
+             [class.is-invalid]="isFieldEmpty(vehicle.model)" />
+       <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.model)">
+         {{ getModelErrorMessage() }}
+       </div>
+    </div>
+  </div>
+
+  <div class="row g-2 mb-3">
+    <div class="col-12 col-md-6">
+      <input type="number"
+             class="form-control input-focus"
+             placeholder="Seats"
+             [(ngModel)]="vehicle.seats"
+             min="1" step="1"
+             [class.is-invalid]="vehicle.seats === undefined || vehicle.seats === null || vehicle.seats === '' || vehicle.seats < 1" />
+       <div class="invalid-feedback d-block" *ngIf="vehicle.seats === undefined || vehicle.seats === null || vehicle.seats === '' || vehicle.seats < 1">
+         {{ getSeatsErrorMessage() }}
+       </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <select class="form-select input-focus"
+              [(ngModel)]="vehicle.type"
+              [class.is-invalid]="isFieldEmpty(vehicle.type)">
+        <option value="Standard">Standard</option>
+        <option value="Luksuz">Luksuz</option>
+        <option value="Kombi">Kombi</option>
+      </select>
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.type)">
+        {{ getTypeErrorMessage() }}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-2 mt-3">
+    <div class="col-12 col-md-6">
+      <div class="form-check form-switch custom-switch">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="vehicle.petFriendly" id="petFriendly">
+        <label class="form-check-label" for="petFriendly">Pet friendly</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-check form-switch custom-switch">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="vehicle.babyFriendly" id="babyFriendly">
+        <label class="form-check-label" for="babyFriendly">Baby friendly</label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
