@@ -8,6 +8,7 @@ import { Registration } from './auth/pages/registration/registration';
 import { ChangePasswordPage } from './pages/change-password/change-password';
 import { DriverHistory } from './pages/driver-history/driver-history';
 import { RideDetails } from './pages/ride-details/ride-details';
+import {Home} from './home/pages/home/home'
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
@@ -19,5 +20,6 @@ export const routes: Routes = [
     { path: 'profile', component: ProfileInfo },
     { path: 'change-password', component: ChangePasswordPage },
     { path: 'driver-history', component: DriverHistory },
-    { path: 'ride-details/:id', component: RideDetails }
+    { path: 'ride-details/:id', component: RideDetails },
+    {path: 'home', component: Home}
 ];
