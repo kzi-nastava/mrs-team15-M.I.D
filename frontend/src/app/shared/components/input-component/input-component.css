@@ -6,3 +6,16 @@
     width: 100%;
     box-sizing: border-box;
 }
+
+.input.primary{
+    background-color: white;
+    color: black;
+    border-color: black;
+}
+
+.input.secondary{
+    margin-bottom: 20px;
+    background-color: transparent;
+    color: white;
+    border-color: white;
+}
