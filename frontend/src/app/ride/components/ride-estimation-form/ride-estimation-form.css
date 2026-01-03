@@ -1,0 +1,15 @@
+.ride-estimation-section{
+    height: 75vh;
+    z-index: 1;
+}
+
+.ride-estimation-form {
+    width: 100%;
+    margin-top: 15vh;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.form-title {
+  text-align: left;
+}

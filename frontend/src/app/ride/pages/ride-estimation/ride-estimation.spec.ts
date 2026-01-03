@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterLink } from '@angular/router';
-import { Button } from './button';
 
-describe('Button', () => {
-  let component: Button;
-  let fixture: ComponentFixture<Button>;
+import { RideEstimation } from './ride-estimation';
+
+describe('RideEstimation', () => {
+  let component: RideEstimation;
+  let fixture: ComponentFixture<RideEstimation>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Button, RouterLink]
+      imports: [RideEstimation]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Button);
+    fixture = TestBed.createComponent(RideEstimation);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
