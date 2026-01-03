@@ -19,7 +19,7 @@ public class AuthController {
         response.setEmail(request.getEmail());
         response.setFirstName("Jane");
         response.setLastName("Doe");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/logout")
@@ -32,10 +32,13 @@ public class AuthController {
         if(request.getEmail() == null || request.getEmail().isEmpty()){
             return ResponseEntity.status(400).build();
         }
+        if(!request.getEmail().contains("@")){
+            return ResponseEntity.status(400).build();
+        }
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/reset-password")
+    @PutMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDTO request){
         if (request.getNewPassword() == null || request.getConfirmNewPassword() == null
                 || request.getNewPassword().isEmpty() || request.getConfirmNewPassword().isEmpty()){
@@ -54,6 +57,9 @@ public class AuthController {
             return ResponseEntity.status(400).build();
         }
         if(!request.getPassword().equals(request.getConfirmPassword())){
+            return ResponseEntity.status(400).build();
+        }
+        if(!request.getEmail().contains("@")){
             return ResponseEntity.status(400).build();
         }
         RegisterResponseDTO response = new RegisterResponseDTO();

@@ -28,18 +28,18 @@ public class RideController {
     public ResponseEntity<RideEstimateResponseDTO> estimate(@RequestParam String startAddress, @RequestParam String destinationAddress){
         RideEstimateResponseDTO response = new RideEstimateResponseDTO();
         response.setEstimatedDurationMin(24);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().body(response);
     }
 
-    @PostMapping("/{id}/stop")
+    @PutMapping("/{id}/stop")
     public ResponseEntity<StopRideResponseDTO> stop (@PathVariable Long id){
         StopRideResponseDTO response = new StopRideResponseDTO();
         response.setEndLocation("Bulevar Oslobodjenja 24, Novi Sad");
         response.setPrice(570);
-        return  ResponseEntity.ok(response);
+        return  ResponseEntity.ok().body(response);
     }
 
-    @PostMapping("/{id}/cancel")
+    @PutMapping("/{id}/cancel")
     public ResponseEntity<Void> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request){
         if(request.getReason() == null || request.getReason().isEmpty()){
             return ResponseEntity.status(400).build();
