@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { RouterLink } from '@angular/router';
 import { WelcomeForm } from './welcome-form';
 
 describe('WelcomeForm', () => {
@@ -8,7 +8,7 @@ describe('WelcomeForm', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WelcomeForm]
+      imports: [WelcomeForm, RouterLink]
     })
     .compileComponents();
 

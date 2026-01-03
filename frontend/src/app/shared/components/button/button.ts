@@ -1,10 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-button',
   standalone: true,
   templateUrl: './button.html',
   styleUrl: './button.css',
+  imports: [RouterLink]
 })
 export class Button {
   @Input() text: string = '';
@@ -13,6 +15,7 @@ export class Button {
   @Input() fontWeight: string = '100';
   @Input() textTransform: string = 'none';
   @Input() variant: 'primary' | 'secondary' | 'danger' | 'ghost' = 'primary';
+  @Input() routerLink?: string;
 
   @Output() clicked = new EventEmitter<void>();
 

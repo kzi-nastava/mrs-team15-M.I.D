@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { RouterLink } from '@angular/router';
 import { Button } from './button';
 
 describe('Button', () => {
@@ -8,7 +8,7 @@ describe('Button', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Button]
+      imports: [Button, RouterLink]
     })
     .compileComponents();
 
