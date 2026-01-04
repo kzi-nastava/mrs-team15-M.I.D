@@ -1,5 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
+import { CancelRideModal } from '../cancel-ride-modal/cancel-ride-modal';
+import { CommonModule } from '@angular/common';
 
 export interface UpcomingRide{
   id: number;
@@ -14,7 +16,7 @@ type SortDirection = 'asc' | 'desc' | '';
 @Component({
   selector: 'app-upcoming-rides-table',
   standalone: true,
-  imports: [Button],
+  imports: [CommonModule, Button, CancelRideModal],
   templateUrl: './upcoming-rides-table.html',
   styleUrl: './upcoming-rides-table.css',
 })
@@ -96,5 +98,18 @@ private applySorting(): void {
       return '⇅';
     }
     return this.sortDirection === 'asc' ? '↑' : '↓';
+  }
+
+  selectedRide : UpcomingRide | null = null;
+  showCancelModal = false;
+
+  openCancelModal(upcomingRide : UpcomingRide) : void {
+    this.selectedRide = upcomingRide;
+    this.showCancelModal = true;
+  }
+
+  onCancelConfirmed(data: { id: number; reason: string }) {
+    alert(`Ride ${data.id} cancelled for reason: ${data.reason}`);
+    this.showCancelModal = false;
   }
 }
