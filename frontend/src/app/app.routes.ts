@@ -11,6 +11,7 @@ import { DriverHistory } from './pages/driver-history/driver-history';
 import { RideDetails } from './pages/ride-details/ride-details';
 import {Home} from './home/pages/home/home'
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
+import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides'
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
@@ -25,5 +26,6 @@ export const routes: Routes = [
     { path: 'driver-history', component: DriverHistory },
     { path: 'ride-details/:id', component: RideDetails },
     {path: 'home', component: Home},
-    {path: 'ride-estimation', component: RideEstimation}
+    {path: 'ride-estimation', component: RideEstimation},
+    {path: 'upcoming-rides', component: UpcomingRides }
 ];
