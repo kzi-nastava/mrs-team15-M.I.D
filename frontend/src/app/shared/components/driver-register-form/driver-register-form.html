@@ -1,0 +1,128 @@
+<form class="py-5" (ngSubmit)="$event.preventDefault()">
+
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+    <div class="toast align-items-center text-white border-0" [class.bg-success]="toastType === 'success'" [class.bg-danger]="toastType === 'error'" [class.show]="showToast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          {{ toastMessage }}
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showToast = false" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="First name" [(ngModel)]="user.firstName" name="firstName" [class.is-invalid]="isFieldEmpty(user.firstName)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.firstName)">
+        First name is required
+      </div>
+    </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="Last name" [(ngModel)]="user.lastName" name="lastName" [class.is-invalid]="isFieldEmpty(user.lastName)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.lastName)">
+        Last name is required
+      </div>
+    </div>
+    <div class="col-md-6">
+      <input type="tel" class="form-control input-focus" placeholder="Phone number" [(ngModel)]="user.phone" name="phone" [class.is-invalid]="isFieldEmpty(user.phone) || !isPhoneValid(user.phone)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.phone) || !isPhoneValid(user.phone)">
+        {{ getPhoneErrorMessage() }}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-focus" placeholder="Address" [(ngModel)]="user.address" name="address" [class.is-invalid]="isFieldEmpty(user.address)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.address)">
+        Address is required
+      </div>
+    </div>
+    <div class="col-12">
+      <input type="email" class="form-control input-focus" placeholder="Email" [(ngModel)]="user.email" name="email" [class.is-invalid]="isFieldEmpty(user.email) || !isEmailValid(user.email)">
+      <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(user.email) || !isEmailValid(user.email)">
+        {{ getEmailErrorMessage() }}
+      </div>
+    </div>
+  </div>
+
+  <div class="vehicle-form mt-2">
+
+      <h3 class="fw-semibold mb-3">Vehicle</h3>
+
+      <div class="row g-2 mb-3">
+        <div class="col-12 col-md-6">
+             <input type="text"
+               class="form-control input-focus"
+               placeholder="License plate"
+               name="vehicleLicensePlate"
+               [(ngModel)]="vehicle.licensePlate"
+                [class.is-invalid]="isVehicleFieldEmpty(vehicle.licensePlate) || !isLicensePlateValid(vehicle.licensePlate)" />
+                <div class="invalid-feedback d-block" *ngIf="isVehicleFieldEmpty(vehicle.licensePlate) || !isLicensePlateValid(vehicle.licensePlate)">
+            {{ getLicensePlateErrorMessage() }}
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+             <input type="text"
+               class="form-control input-focus"
+               placeholder="Vehicle model"
+               name="vehicleModel"
+               [(ngModel)]="vehicle.model"
+               [class.is-invalid]="isVehicleFieldEmpty(vehicle.model)" />
+           <div class="invalid-feedback d-block" *ngIf="isVehicleFieldEmpty(vehicle.model)">
+             {{ getModelErrorMessage() }}
+           </div>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-12 col-md-6">
+             <input type="number"
+               class="form-control input-focus"
+               placeholder="Number of seats"
+               name="vehicleSeats"
+               [(ngModel)]="vehicle.seats"
+               min="1" step="1"
+               [class.is-invalid]="vehicle.seats === undefined || vehicle.seats === null || vehicle.seats === '' || vehicle.seats < 1" />
+           <div class="invalid-feedback d-block" *ngIf="vehicle.seats === undefined || vehicle.seats === null || vehicle.seats === '' || vehicle.seats < 1">
+             {{ getSeatsErrorMessage() }}
+           </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <select class="form-select input-focus"
+              name="vehicleType"
+              [(ngModel)]="vehicle.type"
+              [class.is-invalid]="isVehicleFieldEmpty(vehicle.type)">
+            <option value="Standard">Standard</option>
+            <option value="Luksuz">Luksuz</option>
+            <option value="Kombi">Kombi</option>
+          </select>
+          <div class="invalid-feedback d-block" *ngIf="isVehicleFieldEmpty(vehicle.type)">
+            {{ getTypeErrorMessage() }}
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-2 mt-3">
+        <div class="col-12 col-md-6">
+          <div class="form-check form-switch custom-switch">
+            <input class="form-check-input" type="checkbox" name="vehiclePetFriendly" [(ngModel)]="vehicle.petFriendly" id="petFriendly">
+            <label class="form-check-label" for="petFriendly">Pet friendly</label>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="form-check form-switch custom-switch">
+            <input class="form-check-input" type="checkbox" name="vehicleBabyFriendly" [(ngModel)]="vehicle.babyFriendly" id="babyFriendly">
+            <label class="form-check-label" for="babyFriendly">Baby friendly</label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-footer mt-4 d-flex flex-column align-items-center">
+      <app-button width="250px" height="35px" variant="primary" fontWeight="700" textTransform="none" text="Upload photo"></app-button>
+      <div class="mt-3"></div>
+      <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Register as Driver"></app-button>
+    </div>
+
+</form>
+
+
