@@ -68,7 +68,7 @@ public class AdminController {
         details.setPanicTriggered(false);
         details.setInconsistencies(null);
         details.setRating(4.8);
-        return ResponseEntity.ok(details);
+        return ResponseEntity.ok().body(details);
     }
 
     @PostMapping("{id}/driver-register")
