@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Landing } from './pages/landing/landing';
 import { ProfileInfo } from './pages/profile-info/profile-info';
+import { DriverRegistration } from './pages/driver-registration/driver-registration';
 import { Login } from './auth/pages/login/login'
 import { ForgotPassword } from './auth/pages/forgot-password/forgot-password';
 import { ResetPassword } from './auth/pages/reset-password/reset-password';
@@ -19,6 +20,7 @@ export const routes: Routes = [
     { path: 'reset-password', component: ResetPassword},
     { path: 'registration', component: Registration},
     { path: 'profile', component: ProfileInfo },
+    { path: 'driver-registration', component: DriverRegistration },
     { path: 'change-password', component: ChangePasswordPage },
     { path: 'driver-history', component: DriverHistory },
     { path: 'ride-details/:id', component: RideDetails },
