@@ -1,0 +1,20 @@
+.welcome-form-section{
+    height: 75vh;
+    z-index: 1;
+}
+
+.welcome-title{
+    font-size: 32px;
+}
+
+.welcome-subtitle{
+    font-size: 26px;
+    font-weight: 400;
+}
+
+.welcome-form-container {
+    width: 100%;
+    min-width: 300px;
+    max-width: 500px;
+}
+

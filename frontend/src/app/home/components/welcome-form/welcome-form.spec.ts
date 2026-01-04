@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterLink } from '@angular/router';
-import { Button } from './button';
+import { WelcomeForm } from './welcome-form';
 
-describe('Button', () => {
-  let component: Button;
-  let fixture: ComponentFixture<Button>;
+describe('WelcomeForm', () => {
+  let component: WelcomeForm;
+  let fixture: ComponentFixture<WelcomeForm>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Button, RouterLink]
+      imports: [WelcomeForm, RouterLink]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Button);
+    fixture = TestBed.createComponent(WelcomeForm);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
