@@ -1,0 +1,5 @@
+<app-page-header
+    title="Ride history" [showDateFilter]="true"
+    (filter)="onFilter($event)" (clearFilter)="onClearFilter()">
+</app-page-header>
+<app-admin-history-table [rides]="filteredRides"></app-admin-history-table>
