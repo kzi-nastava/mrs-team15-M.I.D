@@ -54,7 +54,7 @@
               <label class="detail-label">Cost</label>
               <p class="detail-value fw-bold">{{ ride.cost }}</p>
             </div>
-            <app-button height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="reorder ride"></app-button>
+            <app-button height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="reorder ride" (clicked)="openReorderModal()"></app-button>
           </div>
         </div>
       </div>
@@ -150,3 +150,8 @@
     </div>
   }
 </div>
+
+<app-reorder-ride-modal 
+  *ngIf="showReorderModal" (close)="showReorderModal = false"
+  (bookNow)="onBookNow()" (schedule)="onScheduleForLater($event)">
+</app-reorder-ride-modal>

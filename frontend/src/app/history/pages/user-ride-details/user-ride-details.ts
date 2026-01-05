@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Ride } from '../../components/user-history-table/user-history-table';
 import { Button } from '../../../shared/components/button/button';
+import { ReorderRideModal } from '../../components/reorder-ride-modal/reorder-ride-modal';
 
 @Component({
   selector: 'app-user-ride-details',
   standalone: true,
-  imports: [CommonModule, Button],
+  imports: [CommonModule, Button, ReorderRideModal],
   templateUrl: './user-ride-details.html',
   styleUrls: ['./user-ride-details.css'],
 })
@@ -115,4 +116,19 @@ export class UserRideDetails implements OnInit {
     inconsistencies: ['Panic button activated', 'Ride duration longer than expected'],
   },
 ];
+
+showReorderModal = false;
+
+  openReorderModal(): void {
+    this.showReorderModal = true;
+  }
+
+  onBookNow(): void {
+    this.showReorderModal = false;
+  }
+
+  onScheduleForLater(data: { date: string; time: string }): void {
+    alert('Scheduled for: ' + data.date + ' at ' + data.time);
+    this.showReorderModal = false;
+  }
 }
