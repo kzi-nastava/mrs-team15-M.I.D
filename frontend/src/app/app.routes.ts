@@ -31,11 +31,11 @@ export const routes: Routes = [
     { path: 'driver-history', component: DriverHistory },
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory},
-    { path: 'user-ride-details/:id', component: UserRideDetails }
-    {path: 'home', component: Home},
-    {path: 'ride-estimation', component: RideEstimation},
-    {path: 'rating', component: Rating},
-    {path: 'upcoming-rides', component: UpcomingRides },
-    {path: 'admin-history', component: AdminHistory},
-    {path: 'history-ride-details/:id', component: HistoryRideDetails}
+    { path: 'user-ride-details/:id', component: UserRideDetails },
+    { path: 'home', component: Home},
+    { path: 'ride-estimation', component: RideEstimation},
+    { path: 'rating', component: Rating},
+    { path: 'upcoming-rides', component: UpcomingRides },
+    { path: 'admin-history', component: AdminHistory},
+    { path: 'history-ride-details/:id', component: HistoryRideDetails}
 ];
