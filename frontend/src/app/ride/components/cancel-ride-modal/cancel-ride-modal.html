@@ -1,0 +1,24 @@
+<div class="modal-backdrop" (click)="onClose()"></div>
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Cancel Ride</h5>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to cancel the ride:</p>
+      <p class="ride-details">
+        <strong>{{ride.route}}</strong>
+        <br>
+        <strong>{{ride.startTime}}</strong>
+        <br>
+        <strong>{{ride.passengers}}</strong>?
+      </p>
+      <label for="reason">Reason:</label>
+      <app-input-component type="text" placeholder="Enter reason" [value]="reason"  (valueChange)="reason = $event" borderColor="black" height="35px" width="100%"></app-input-component>
+    </div>
+    <div class="modal-footer">
+      <app-button width="150px" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
+      <app-button width="150px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase"(clicked)="onConfirm()" text="Cancel Ride"></app-button>
+    </div>
+  </div>
+</div>

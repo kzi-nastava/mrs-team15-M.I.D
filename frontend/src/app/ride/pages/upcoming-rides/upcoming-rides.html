@@ -1,0 +1,5 @@
+<app-page-header
+    title="Upcoming Ride" description="Manage your upcoming rides"
+    [showDateFilter]="true" (filter)="onFilter($event)" (clearFilter)="onClearFilter()">
+</app-page-header>
+<app-upcoming-rides-table [upcomingRides]="filteredUpcomingRides"></app-upcoming-rides-table>
