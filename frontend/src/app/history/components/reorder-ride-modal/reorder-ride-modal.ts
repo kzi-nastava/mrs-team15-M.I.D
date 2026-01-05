@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Button } from '../../../shared/components/button/button';
-import { Ride } from '../admin-history-table/admin-history-table';
+import { Ride } from '../user-history-table/user-history-table';
 import { FormsModule } from '@angular/forms';
 
 @Component({

@@ -12,6 +12,8 @@ import { RideDetails } from './pages/ride-details/ride-details';
 import {Home} from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
+import { UserHistory } from './history/pages/user-history/user-history';
+import { UserRideDetails } from './history/pages/user-ride-details/user-ride-details';
 import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
@@ -28,6 +30,8 @@ export const routes: Routes = [
     { path: 'change-password', component: ChangePasswordPage },
     { path: 'driver-history', component: DriverHistory },
     { path: 'ride-details/:id', component: RideDetails },
+    { path: 'user-history', component: UserHistory},
+    { path: 'user-ride-details/:id', component: UserRideDetails }
     {path: 'home', component: Home},
     {path: 'ride-estimation', component: RideEstimation},
     {path: 'rating', component: Rating},
