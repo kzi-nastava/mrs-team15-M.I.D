@@ -1,0 +1,72 @@
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <!-- Driver Rating Section -->
+       <div class="mb-5">
+          <h4 class="mb-4 text-center fw-semibold fs-2">Rate Your Driver</h4>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Rating</label>
+            <app-star-rating
+              [rating]="driverRating"
+              (ratingChange)="onDriverRatingChange($event)">
+            </app-star-rating>
+          </div>
+
+          <div class="mb-3">
+            <label for="driverComment" class="form-label fw-semibold">Comments</label>
+            <textarea
+              id="driverComment"
+              class="form-control"
+              rows="4"
+              [(ngModel)]="driverComment"
+              placeholder="Share your experience with the driver...">
+            </textarea>
+          </div>
+        </div>
+
+      <!-- Vehicle Rating Section -->
+        <div class="mb-5">
+          <h4 class="mb-4 text-center fw-semibold fs-2">Rate the Vehicle</h4>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Rating</label>
+            <app-star-rating
+              [rating]="vehicleRating"
+              (ratingChange)="onVehicleRatingChange($event)">
+            </app-star-rating>
+          </div>
+
+          <div class="mb-3">
+            <label for="vehicleComment" class="form-label fw-semibold">Comments</label>
+            <textarea
+              id="vehicleComment"
+              class="form-control"
+              rows="4"
+              [(ngModel)]="vehicleComment"
+              placeholder="Share your thoughts about the vehicle...">
+            </textarea>
+          </div>
+        </div>
+
+      <!-- Buttons -->
+      <div class="row g-3">
+        <div class="col-6">
+          <app-button
+            text="Skip"
+            variant="ghost"
+            (clicked)="skipRating()">
+          </app-button>
+        </div>
+        <div class="col-6">
+          <app-button
+            text="Submit Rating"
+            variant="primary"
+            [class.disabled]="!isRatingValid()"
+            (clicked)="submitRating()">
+          </app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -11,6 +11,7 @@ import { DriverHistory } from './pages/driver-history/driver-history';
 import { RideDetails } from './pages/ride-details/ride-details';
 import {Home} from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
+import { Rating } from './ride/pages/rating/rating';
 import { UserHistory } from './history/pages/user-history/user-history';
 import { UserRideDetails } from './history/pages/user-ride-details/user-ride-details';
 import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides';
@@ -33,6 +34,7 @@ export const routes: Routes = [
     { path: 'user-ride-details/:id', component: UserRideDetails }
     {path: 'home', component: Home},
     {path: 'ride-estimation', component: RideEstimation},
+    {path: 'rating', component: Rating},
     {path: 'upcoming-rides', component: UpcomingRides },
     {path: 'admin-history', component: AdminHistory},
     {path: 'history-ride-details/:id', component: HistoryRideDetails}
