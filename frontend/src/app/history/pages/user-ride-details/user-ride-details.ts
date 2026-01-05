@@ -1,17 +1,44 @@
-import { Component } from '@angular/core';
-import { UserHistoryTable } from '../../components/user-history-table/user-history-table';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Ride } from '../../components/user-history-table/user-history-table';
+import { Button } from '../../../shared/components/button/button';
 
 @Component({
-  selector: 'app-user-history',
+  selector: 'app-user-ride-details',
   standalone: true,
-  imports: [UserHistoryTable, PageHeaderComponent],
-  templateUrl: './user-history.html',
-  styleUrl: './user-history.css',
+  imports: [CommonModule, Button],
+  templateUrl: './user-ride-details.html',
+  styleUrls: ['./user-ride-details.css'],
 })
-export class UserHistory  {
-allRides: Ride[] = [
+export class UserRideDetails implements OnInit {
+
+  ride: Ride | null = null;
+  id!: number;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.id = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadRide();
+  }
+
+  private loadRide(): void {
+    this.ride = this.rides.find(r => r.id === this.id) ?? null;
+
+    if (!this.ride) {
+      this.router.navigate(['/user-history']);
+    }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/user-history']);
+  }
+
+  private rides: Ride[] = [
   {
     id: 1,
     route: 'Bulevar Oslobođenja 12 → Trg slobode 1',
@@ -88,21 +115,4 @@ allRides: Ride[] = [
     inconsistencies: ['Panic button activated', 'Ride duration longer than expected'],
   },
 ];
-  filteredRides: Ride[] = [...this.allRides]
-  onFilter(filterDate: string): void {
-    if(filterDate){
-      filterDate = formatFilterDate(filterDate)
-      this.filteredRides = this.allRides.filter(ride => ride.startTime.split(', ')[0] === filterDate);
-    }else{
-      this.filteredRides = [...this.allRides];
-    }
-  }
-  onClearFilter(): void {
-    this.filteredRides = [...this.allRides];
-  }
-}
-
-function formatFilterDate(filterDate: string): string {
-  const [year, month, day ] = filterDate.split('-');
-  return day + '-' + month + '-' + year;
 }

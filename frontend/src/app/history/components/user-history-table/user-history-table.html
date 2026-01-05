@@ -16,7 +16,7 @@
       </thead>
       <tbody>
         @for (ride of rides; track ride.id) {
-          <tr class="clickable-row">
+          <tr class="clickable-row" (click)="viewRideDetails(ride)">
             <td>{{ ride.route }}</td>
             <td>{{ ride.startTime }}</td>
             <td>{{ ride.endTime  }}</td>

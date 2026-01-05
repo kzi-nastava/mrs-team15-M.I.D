@@ -1,10 +1,20 @@
 import { Component, Input } from '@angular/core';
+import { Router } from '@angular/router';
 
 export interface Ride{
   id: number;
   route: string;
   startTime: string;
   endTime: string;
+  passengers: string;
+  driver: string;
+  cancelled: string | null;
+  cancelledBy: string | null;
+  cost: string;
+  panicButton: string | null;
+  panicBy: string | null;
+  rating?: number | null;
+  inconsistencies?: string[] | null;
 }
 
 type SortColumn = 'route' | 'startTime' | 'endTime' ;
@@ -18,7 +28,9 @@ type SortDirection = 'asc' | 'desc' | '';
   styleUrl: './user-history-table.css',
 })
 export class UserHistoryTable {
- private _rides : Ride[] = []
+  private _rides : Ride[] = []
+
+  constructor(private router: Router) {}
 
   @Input()
   set rides(value: Ride[]) {
@@ -96,4 +108,9 @@ private applySorting(): void {
     }
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
+
+  viewRideDetails(ride: Ride): void {
+    this.router.navigate(['/user-ride-details', ride.id], { state: { ride } });
+  }
+
 }
