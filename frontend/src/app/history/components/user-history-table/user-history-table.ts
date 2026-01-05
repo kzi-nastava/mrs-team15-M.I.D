@@ -110,7 +110,7 @@ private applySorting(): void {
   }
 
   viewRideDetails(ride: Ride): void {
-    this.router.navigate(['/user-ride-details', ride.id], { state: { ride } });
+    this.router.navigate(['/history-ride-details', ride.id], { state: { ride } });
   }
 
 }
