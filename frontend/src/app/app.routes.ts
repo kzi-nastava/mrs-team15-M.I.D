@@ -13,7 +13,6 @@ import {Home} from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
 import { UserHistory } from './history/pages/user-history/user-history';
-import { UserRideDetails } from './history/pages/user-ride-details/user-ride-details';
 import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
