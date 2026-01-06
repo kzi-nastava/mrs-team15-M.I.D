@@ -17,6 +17,7 @@ import { UserHistory } from './history/pages/user-history/user-history';
 import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
+import { CurrentRide } from './ride/pages/current-ride/current-ride';
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
@@ -32,11 +33,11 @@ export const routes: Routes = [
     { path: 'driver-rides', component: DriverAppointedRides },
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory},
-    { path: 'user-ride-details/:id', component: RideDetails },
-    { path: 'home', component: Home},
-    { path: 'ride-estimation', component: RideEstimation},
-    { path: 'rating', component: Rating},
-    { path: 'upcoming-rides', component: UpcomingRides },
-    { path: 'admin-history', component: AdminHistory},
-    { path: 'history-ride-details/:id', component: HistoryRideDetails}
+    {path: 'home', component: Home},
+    {path: 'ride-estimation', component: RideEstimation},
+    {path: 'rating', component: Rating},
+    {path: 'upcoming-rides', component: UpcomingRides },
+    {path: 'admin-history', component: AdminHistory},
+    {path: 'history-ride-details/:id', component: HistoryRideDetails},
+    {path: 'current-ride', component: CurrentRide}
 ];

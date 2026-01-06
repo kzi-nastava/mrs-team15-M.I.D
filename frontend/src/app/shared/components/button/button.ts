@@ -14,7 +14,7 @@ export class Button {
   @Input() height: string = '100%';
   @Input() fontWeight: string = '100';
   @Input() textTransform: string = 'none';
-  @Input() variant: 'primary' | 'secondary' | 'danger' | 'ghost' = 'primary';
+  @Input() variant: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' = 'primary';
   @Input() routerLink?: string;
 
   @Output() clicked = new EventEmitter<void>();
