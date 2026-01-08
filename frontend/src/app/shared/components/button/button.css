@@ -54,3 +54,14 @@
 .button.ghost:hover {
   background-color: #f2f2f2;
 }
+
+.button.outline {
+  background-color: transparent;
+  color: white;
+  border: 1px solid #ccc;
+}
+
+.button.outline:hover {
+  background-color: #f2f2f2;
+  color: black;
+}
