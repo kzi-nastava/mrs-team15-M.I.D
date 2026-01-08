@@ -25,7 +25,7 @@ export class CancelRideModal {
   validator :  FromValidator =  new FromValidator()
 
   hasErrors() : boolean {
-    return !!this.validator.ReasonError(this.reason);
+    return !!this.validator.reasonError(this.reason);
   }
 
 onConfirm() {

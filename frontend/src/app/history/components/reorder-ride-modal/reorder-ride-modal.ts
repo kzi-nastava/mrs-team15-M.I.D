@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Button } from '../../../shared/components/button/button';
 import { Ride } from '../user-history-table/user-history-table';
 import { FormsModule } from '@angular/forms';
+import { FromValidator } from '../../../shared/components/form-validator';
 
 @Component({
   selector: 'app-reorder-ride-modal',
@@ -47,5 +48,11 @@ export class ReorderRideModal {
 
   onScheduleForLater() {
     this.showScheduleInputs = true;
+  }
+
+  validator : FromValidator = new FromValidator();
+
+  hasErrors(){
+    return !! (this.validator.dateError(this.date) || this.validator.timeError(this.time))
   }
 }

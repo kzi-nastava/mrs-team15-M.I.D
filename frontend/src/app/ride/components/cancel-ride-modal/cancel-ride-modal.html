@@ -15,7 +15,7 @@
       </p>
       <label for="reason">Reason:</label>
       <app-input-component type="text" placeholder="Enter reason" [value]="reason"  (valueChange)="reason = $event" borderColor="black" height="35px" width="100%"></app-input-component>
-      <div class="error" *ngIf="validator.ReasonError(reason)"> {{validator.ReasonError(reason)}}</div>
+      <div class="error" *ngIf="validator.reasonError(reason)"> {{validator.reasonError(reason)}}</div>
     </div>
     <div class="modal-footer">
       <app-button width="150px" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
