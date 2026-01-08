@@ -24,4 +24,8 @@ export class FromValidator{
         if (!phone) return false;
         return this.phonePattern.test(phone);
     }
+
+    areMatch(firstValue : string, secondValue : string) : boolean{
+        return firstValue === secondValue
+    }
 }
