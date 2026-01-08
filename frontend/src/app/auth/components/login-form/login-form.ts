@@ -28,6 +28,6 @@ export class LoginForm {
   validator : FromValidator = new FromValidator();
 
   hasErrors() : boolean{
-    return this.validator.isEmailValid(this.email) === false || this.validator.isPasswordValid(this.password) === false;
+    return !!(this.validator.emailError(this.email) || this.validator.passwordError(this.password));
   }
 }

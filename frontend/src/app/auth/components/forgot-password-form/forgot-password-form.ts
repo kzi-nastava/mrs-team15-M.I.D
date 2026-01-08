@@ -15,6 +15,6 @@ export class ForgotPasswordForm {
   validator : FromValidator = new FromValidator();
 
   hasErrors() : boolean{
-    return this.validator.isEmailValid(this.email) === false
+    return !!(this.validator.emailError(this.email))
   }
 }
