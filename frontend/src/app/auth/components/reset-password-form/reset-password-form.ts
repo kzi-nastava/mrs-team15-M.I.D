@@ -4,6 +4,7 @@ import { InputComponent } from '../../../shared/components/input-component/input
 import { RouterLink } from '@angular/router'
 import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
+import { email } from '@angular/forms/signals';
 @Component({
   selector: 'app-reset-password-form',
   imports: [Button, InputComponent, RouterLink, CommonModule],
@@ -35,6 +36,6 @@ export class ResetPasswordForm {
   validator : FromValidator = new FromValidator();
 
   hasErrors() : boolean {
-    return this.validator.isPasswordValid(this.newPassword) === false ||  this.validator.isPasswordValid(this.newPassword) == false || this.validator.areMatch(this.newPassword, this.newConfirmedPassword) === false;
+    return !!(this.validator.passwordError(this.newPassword) || this.validator.confirmPasswordError(this.newPassword, this.newConfirmedPassword));
   }
 }

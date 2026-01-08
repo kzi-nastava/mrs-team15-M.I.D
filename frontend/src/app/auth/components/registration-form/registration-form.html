@@ -5,37 +5,42 @@
 
   <div class="row g-2 mt-2">
   <div class="col-12 col-md-6">
-    <app-input-component type="text" height="35px" placeholder="First Name"></app-input-component>
+    <app-input-component type="text" height="35px" placeholder="First Name" [value]="firstName" (valueChange)="firstName = $event"></app-input-component>
+    <div class="error" *ngIf=" this.validator.firstNameError(this.firstName)">{{  this.validator.firstNameError(this.firstName) }}</div>
   </div>
   <div class="col-12 col-md-6">
-    <app-input-component type="text" height="35px" placeholder="Last Name"></app-input-component>
+    <app-input-component type="text" height="35px" placeholder="Last Name" [value]="lastName" (valueChange)="lastName = $event"></app-input-component>
+    <div class="error" *ngIf="this.validator.lastNameError(this.lastName)">{{ this.validator.lastNameError(this.lastName) }}</div>
   </div>
 </div>
 
 <div class="row g-2 mt-2">
   <div class="col-12 col-md-6">
-    <app-input-component type="tel" height="35px" placeholder="Phone Number"></app-input-component>
+    <app-input-component type="tel" height="35px" placeholder="Phone Number" [value]="phoneNumber" (valueChange)="phoneNumber = $event"></app-input-component>
+    <div class="error" *ngIf="this.validator.phoneError(this.phoneNumber)"> {{ this.validator.phoneError(this.phoneNumber) }}</div>
   </div>
   <div class="col-12 col-md-6">
-    <app-input-component type="text" height="35px" placeholder="Address"></app-input-component>
+    <app-input-component type="text" height="35px" placeholder="Address" [value]="address" (valueChange)="address = $event"></app-input-component>
+    <div class="error" *ngIf="this.validator.addressError(this.address)"> {{ this.validator.addressError(this.address) }}</div>
   </div>
 </div>
 
-  <app-input-component class="form-input w-100 mt-3" type="email" height="35px" placeholder="Email address"></app-input-component>
-
+  <app-input-component class="form-input w-100 mt-3" type="email" height="35px" placeholder="Email address" [value]="email" (valueChange)="email = $event"></app-input-component>
+  <div class="error" *ngIf="this.validator.emailError(this.email) "> {{ this.validator.emailError(this.email) }}</div>
+  
   <div class="password-input-wrapper mt-3">
-    <app-input-component class="form-input w-100" type="password" height="35px" placeholder="Password"></app-input-component>
+    <app-input-component class="form-input w-100" type="password" height="35px" placeholder="Password" [value]="password" (valueChange)="password = $event"></app-input-component>
     <img [src]="passwordVisible ? '/assets/icons/show.png' : '/assets/icons/hide.png'" class="password-toggle" (click)="togglePassword('new')" alt="Toggle password visibility"/>
   </div>
-
+  <div class="error" *ngIf="this.validator.passwordError(this.password)"> {{ this.validator.passwordError(this.password) }}</div>
   <div class="password-input-wrapper mt-3">
-    <app-input-component class="form-input w-100" type="password" height="35px" placeholder="Confirm Password"></app-input-component>
+    <app-input-component class="form-input w-100" type="password" height="35px" placeholder="Confirm Password" [value]="confirmedPassword" (valueChange)="confirmedPassword = $event"></app-input-component>
     <img [src]="confirmPasswordVisible ? '/assets/icons/show.png' : '/assets/icons/hide.png'" class="password-toggle" (click)="togglePassword('confirm')" alt="Toggle password visibility"/>
   </div>
-
+ <div class="error" *ngIf="this.validator.confirmPasswordError(this.password, this.confirmedPassword)"> {{ this.validator.confirmPasswordError(this.password, this.confirmedPassword) }}</div>
   <div class="form-footer mt-4">
     <app-button width="250px" height="35px" variant="primary" fontWeight="700" textTransform="none" text="Upload photo"></app-button>
-    <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Sign Up"></app-button>
+    <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Sign Up" [disabled]="hasErrors()"></app-button>
     <p class="signup-link">Already have an account? <a routerLink="/login">Log in</a></p>
   </div>
 </form>
