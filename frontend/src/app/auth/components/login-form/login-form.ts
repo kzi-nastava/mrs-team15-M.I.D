@@ -25,7 +25,7 @@ export class LoginForm {
 
   email: string = '';
   password: string = '';
-  validator : FromValidator = new FromValidator()
+  validator : FromValidator = new FromValidator();
 
   hasErrors() : boolean{
     return this.validator.isEmailValid(this.email) === false || this.validator.isPasswordValid(this.password) === false;
