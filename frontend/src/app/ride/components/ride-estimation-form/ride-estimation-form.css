@@ -13,3 +13,10 @@
 .form-title {
   text-align: left;
 }
+
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-bottom: 5px;
+  margin-left: 12px;
+}
