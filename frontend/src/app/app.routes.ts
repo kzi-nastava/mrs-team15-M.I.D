@@ -7,8 +7,9 @@ import { ForgotPassword } from './auth/pages/forgot-password/forgot-password';
 import { ResetPassword } from './auth/pages/reset-password/reset-password';
 import { Registration } from './auth/pages/registration/registration';
 import { ChangePasswordPage } from './pages/change-password/change-password';
-import { DriverHistory } from './pages/driver-history/driver-history';
-import { RideDetails } from './pages/ride-details/ride-details';
+import { DriverHistory } from './history/pages/driver-history/driver-history';
+import { DriverAppointedRides } from './ride/pages/driver-appointed-rides/driver-appointed-rides';
+import { RideDetails } from './history/pages/ride-details/ride-details';
 import {Home} from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
@@ -28,9 +29,10 @@ export const routes: Routes = [
     { path: 'driver-registration', component: DriverRegistration },
     { path: 'change-password', component: ChangePasswordPage },
     { path: 'driver-history', component: DriverHistory },
+    { path: 'driver-rides', component: DriverAppointedRides },
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory},
-    { path: 'user-ride-details/:id', component: UserRideDetails },
+    { path: 'user-ride-details/:id', component: RideDetails },
     { path: 'home', component: Home},
     { path: 'ride-estimation', component: RideEstimation},
     { path: 'rating', component: Rating},

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header';
-import { RideHistoryTableComponent, Ride } from '../../shared/components/ride-history-table/ride-history-table';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { RideHistoryTableComponent, Ride } from '../../components/ride-history-table/ride-history-table';
 
 @Component({
   selector: 'app-driver-history',

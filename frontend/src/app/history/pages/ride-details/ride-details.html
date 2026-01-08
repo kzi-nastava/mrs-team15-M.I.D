@@ -9,12 +9,8 @@
             <h5 class="mb-0">Route Map</h5>
           </div>
           <div class="card-body p-0">
-            <div class="map-container">
-              <div class="map-placeholder">
-                <i class="bi bi-geo-alt-fill"></i>
-                <p class="text-muted mt-2">Map will be integrated here</p>
-                <small class="text-muted">Route: {{ ride.route }}</small>
-              </div>
+            <div class="map-container overflow-hidden">
+              <div id="rideMap" class="h-100 w-100"></div>
             </div>
           </div>
         </div>
