@@ -57,7 +57,7 @@
 
 .password-input-wrapper {
   position: relative;
-  margin-top: 30px;
+  margin-top: 10px;
 }
 
 .password-input-wrapper .password-toggle {
@@ -74,4 +74,5 @@
   color: #dc3545;
   font-size: 12px;
   margin-top: 2px;
+  margin-left: 12px;
 }
