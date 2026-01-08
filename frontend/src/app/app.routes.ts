@@ -9,7 +9,7 @@ import { Registration } from './auth/pages/registration/registration';
 import { ChangePasswordPage } from './pages/change-password/change-password';
 import { DriverHistory } from './history/pages/driver-history/driver-history';
 import { DriverAppointedRides } from './ride/pages/driver-appointed-rides/driver-appointed-rides';
-import { RideDetails } from './pages/ride-details/ride-details';
+import { RideDetails } from './history/pages/ride-details/ride-details';
 import {Home} from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
