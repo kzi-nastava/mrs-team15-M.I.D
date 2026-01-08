@@ -1,6 +1,4 @@
 export class FromValidator {
-
-
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
   private namePattern = /^[A-ZČĆŠĐŽ][a-zčćšđž]+$/;
@@ -48,9 +46,23 @@ export class FromValidator {
     return null;
   }
 
-  ReasonError(value: string) : string | null {
+  reasonError(value: string) : string | null {
     if(!value) return 'Reason is required';
     if(value.trim() === '') return  'Reason is required';
     return null;
   }
+
+  timeError(value: string): string | null {
+    if(!value) return 'Time is required';
+    if(value.trim() === '') return  'Time is required';
+    return null;
+  }
+  
+  dateError(value: string): string | null {
+    if(!value) return 'Date is required';
+    if(value.trim() === '') return  'Date is required';
+    return null;
+  }
+
+
 }
