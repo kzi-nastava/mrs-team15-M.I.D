@@ -32,7 +32,6 @@ export const routes: Routes = [
     { path: 'driver-rides', component: DriverAppointedRides },
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory},
-    { path: 'user-ride-details/:id', component: RideDetails },
     { path: 'home', component: Home},
     { path: 'ride-estimation', component: RideEstimation},
     { path: 'rating', component: Rating},
