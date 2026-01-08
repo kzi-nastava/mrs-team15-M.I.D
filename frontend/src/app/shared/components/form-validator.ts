@@ -1,5 +1,6 @@
 export class FromValidator {
 
+
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
   private namePattern = /^[A-ZČĆŠĐŽ][a-zčćšđž]+$/;
@@ -44,6 +45,12 @@ export class FromValidator {
   addressError(value: string): string | null {
     if (!value) return 'Address is required';
     if (!this.addressPattern.test(value)) return 'Address must be at least 5 characters';
+    return null;
+  }
+
+  ReasonError(value: string) : string | null {
+    if(!value) return 'Reason is required';
+    if(value.trim() === '') return  'Reason is required';
     return null;
   }
 }
