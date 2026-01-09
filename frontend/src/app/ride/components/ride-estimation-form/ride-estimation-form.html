@@ -1,11 +1,13 @@
 <div class="ride-estimation-section row m-0">
-    <div class="col-12 d-flex bg-black justify-content-center text-white rounded-4 custom-form-container">
+    <div class="col-12 bg-black text-white rounded-4 custom-form-container">
         <div class="ride-estimation-container p-4">
             <form class="ride-estimation-form">
                 <h2 class="form-title mb-4">Estimate your ride</h2>
-                <app-input-component class="form-input w-100 mb-3" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter pickup address"></app-input-component>
-                <app-input-component class="form-input w-100 mb-3" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter destination address"></app-input-component>
-                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Show route"></app-button>
+                <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter pickup address" [value]="pickupAddress" (valueChange)="pickupAddress = $event"></app-input-component>
+                <div class="error" *ngIf="this.validator.addressError(this.pickupAddress)"> {{ this.validator.addressError(this.pickupAddress) }}</div>
+                <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter destination address" [value]="destinationAddress" (valueChange)="destinationAddress = $event"></app-input-component>
+                <div class="error" *ngIf="this.validator.addressError(this.destinationAddress)"> {{ this.validator.addressError(this.destinationAddress) }}</div>
+                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Show route" [disabled]="hasErrors()"></app-button>
             </form>
         </div>
     </div>

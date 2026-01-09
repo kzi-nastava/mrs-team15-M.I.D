@@ -16,6 +16,7 @@ export class Button {
   @Input() textTransform: string = 'none';
   @Input() variant: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' = 'primary';
   @Input() routerLink?: string;
+  @Input() disabled: boolean = false;
 
   @Output() clicked = new EventEmitter<void>();
 

@@ -2,9 +2,12 @@ import { Component } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component'
 import { RouterLink } from '@angular/router'
+import { FromValidator } from '../../../shared/components/form-validator';
+import { CommonModule } from '@angular/common';
+import { email } from '@angular/forms/signals';
 @Component({
   selector: 'app-reset-password-form',
-  imports: [Button, InputComponent, RouterLink],
+  imports: [Button, InputComponent, RouterLink, CommonModule],
   standalone: true, 
   templateUrl: './reset-password-form.html',
   styleUrl: './reset-password-form.css',
@@ -25,5 +28,14 @@ export class ResetPasswordForm {
         inputs[1].type = this.confirmPasswordVisible ? 'text' : 'password';
       }
     }
+  }
+
+  newPassword : string = '';
+  newConfirmedPassword : string = '';
+
+  validator : FromValidator = new FromValidator();
+
+  hasErrors() : boolean {
+    return !!(this.validator.passwordError(this.newPassword) || this.validator.confirmPasswordError(this.newPassword, this.newConfirmedPassword));
   }
 }

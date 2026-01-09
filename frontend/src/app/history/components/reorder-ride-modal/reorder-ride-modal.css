@@ -57,3 +57,10 @@
     width: 90%;
   }
 }
+
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 2px;
+  margin-left: 12px;
+}

@@ -5,16 +5,17 @@
     <p class="header-text">Sign in to your Ride Now account</p>
   </div>
   
-  <app-input-component class="form-input w-100" type="email" height="35px" placeholder="Email address"></app-input-component>
+  <app-input-component class="form-input w-100" type="email" height="35px" placeholder="Email address" [value]="email" (valueChange)="email = $event"></app-input-component>
+  <div class="error" *ngIf="validator.emailError(email)"> {{validator.emailError(email)}}</div>
   <div class="password-input-wrapper" style="position: relative; width: 100%;">
-    <app-input-component class="form-input w-100" type="password" height="35px" placeholder="Password"></app-input-component>
+    <app-input-component class="form-input w-100" type="password" height="35px" placeholder="Password" [value]="password" (valueChange)="password = $event"></app-input-component>
     <img [src]="passwordVisible ? '/assets/icons/show.png' : '/assets/icons/hide.png'" class="password-toggle" (click)="togglePassword()" alt="Toggle password visibility"/>
   </div>
+  <div class="error" *ngIf="validator.passwordError(password)">{{ validator.passwordError(password) }}</div>
   <a routerLink="/forgot-password" class="forgot-password">Forgot password?</a>
   
   <div class="form-footer">
-    <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log in"></app-button>
+    <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log in" [disabled]="hasErrors()"></app-button>
     <p class="signup-link"> Don’t have an account? <a routerLink="/registration">Sign up</a></p>
   </div>
-
 </form>

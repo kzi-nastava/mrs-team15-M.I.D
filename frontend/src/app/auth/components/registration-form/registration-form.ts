@@ -2,10 +2,12 @@ import { Component } from '@angular/core';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 import { Button } from '../../../shared/components/button/button';
 import { RouterLink } from '@angular/router';
+import { FromValidator } from '../../../shared/components/form-validator';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-registration-form',
-  imports: [Button, RouterLink, InputComponent],
+  imports: [Button, RouterLink, InputComponent, CommonModule],
   templateUrl: './registration-form.html',
   styleUrl: './registration-form.css',
 })
@@ -26,6 +28,25 @@ export class RegistrationForm {
         inputs[1].type = this.confirmPasswordVisible ? 'text' : 'password';
       }
     }
+  }
+
+  firstName : string = '';
+  lastName : string = '';
+  phoneNumber : string = '';
+  address : string = '';
+  password : string = '';
+  confirmedPassword : string = '';
+  email : string = '';
+
+  validator : FromValidator = new FromValidator();
+
+  hasErrors(): boolean {
+  return !!(
+    this.validator.firstNameError(this.firstName) || this.validator.lastNameError(this.lastName) ||
+    this.validator.emailError(this.email) || this.validator.phoneError(this.phoneNumber) ||
+    this.validator.addressError(this.address) ||
+    this.validator.passwordError(this.password) ||
+    this.validator.confirmPasswordError(this.password, this.confirmedPassword));
   }
 }
 
