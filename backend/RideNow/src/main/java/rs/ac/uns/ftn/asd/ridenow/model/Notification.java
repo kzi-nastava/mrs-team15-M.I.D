@@ -31,8 +31,7 @@ public class Notification {
     @Column(nullable = false)
     private boolean seen = false;
 
-    public Notification(Long id, String message, NotificationType type, LocalDateTime createdAt, boolean seen) {
-        this.id = id;
+    public Notification(String message, NotificationType type, LocalDateTime createdAt, boolean seen) {
         this.message = message;
         this.type = type;
         this.createdAt = createdAt;

@@ -23,8 +23,7 @@ public class Message {
     @CreationTimestamp
     private LocalDateTime timestamp;
 
-    public Message(Long id, String message, LocalDateTime timestamp) {
-        this.id = id;
+    public Message(String message, LocalDateTime timestamp) {
         this.message = message;
         this.timestamp = timestamp;
     }

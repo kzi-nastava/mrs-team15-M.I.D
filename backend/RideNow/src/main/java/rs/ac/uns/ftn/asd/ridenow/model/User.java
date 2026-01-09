@@ -1,42 +1,51 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
 @Entity
-@Table(name = "users")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "user_type", discriminatorType = DiscriminatorType.STRING)
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true, nullable = false)
+
+    @Column(nullable = false, unique = true)
     private String email;
+
     @Column(nullable = false)
+    @Size(min = 6)
     private String password;
+
     @Column(nullable = false)
     private String firstName;
+
     @Column(nullable = false)
     private String lastName;
+
     @Column(nullable = false)
     private String phoneNumber;
+
     @Column(nullable = false)
     private String address;
+
     private String profileImage;
+
     @Column(nullable = false)
     private boolean active;
+
     @Column(nullable = false)
-    private boolean blocked;
+    private boolean blocked = false;
 
     public User(){
         super();
     }
 
-    public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,Long id,
+    public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                 String profileImage, boolean active, boolean blocked) {
         this.email = email;
         this.password = password;
@@ -44,10 +53,8 @@ public class User {
         this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.address = address;
-        this.id = id;
         this.profileImage = profileImage;
         this.active = active;
         this.blocked = blocked;
     }
-
 }
