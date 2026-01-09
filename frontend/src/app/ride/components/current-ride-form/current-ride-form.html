@@ -27,7 +27,7 @@
                <p class="emergency-text"> Use this only if something serious is happening.</p>
                <app-button width="100%" height="45px" variant="danger" fontWeight="700" textTransform="uppercase" (clicked)="openPanicModal()" text="PANIC"></app-button>
             </div>
-            <app-button *ngIf="isDriver" class="mb-2" width="100%" height="38px" variant="outline" fontWeight="700" textTransform="uppercase" text="Stop ride"></app-button>
+            <app-button *ngIf="isDriver" class="mb-2" width="100%" height="38px" variant="outline" fontWeight="700" textTransform="uppercase" text="Stop ride" (clicked)="openStopModal()"></app-button>
             <app-button *ngIf="isDriver" width="100%" height="38px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Mark completed"></app-button>
          </form>
     </div>
@@ -35,6 +35,7 @@
 </div>
 
 <app-report-inconsistency-modal (reportSubmitted)="handleReportSubmitted($event)"></app-report-inconsistency-modal>
+<app-stop-ride-modal *ngIf="showStopModal" (close)="showStopModal=false" (confirmStop)="onStopConfirmed()"></app-stop-ride-modal>
 <app-panic-modal *ngIf="showPanicModal" (close)="showPanicModal=false" (confirmPanic)="onPanicConfirmed()"></app-panic-modal>
 
 

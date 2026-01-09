@@ -1,0 +1,15 @@
+<div class="modal-backdrop" (click)="onClose()"></div>
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Stop ride</h5>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to stop the ride?</p>
+    </div>
+    <div class="modal-footer">
+      <app-button width="150px" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
+      <app-button width="150px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase"(clicked)="onConfirm()" text="Stop ride"></app-button>
+    </div>
+  </div>
+</div>
