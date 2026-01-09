@@ -39,7 +39,8 @@
   </div>
  <div class="error" *ngIf="this.validator.confirmPasswordError(this.password, this.confirmedPassword)"> {{ this.validator.confirmPasswordError(this.password, this.confirmedPassword) }}</div>
   <div class="form-footer mt-4">
-    <app-button width="250px" height="35px" variant="primary" fontWeight="700" textTransform="none" text="Upload photo"></app-button>
+    <app-button width="250px" height="35px" variant="primary" fontWeight="700" textTransform="none" text="Upload photo" (clicked)="openFilePicker()"></app-button>
+    <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)">
     <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Sign Up" [disabled]="hasErrors()"></app-button>
     <p class="signup-link">Already have an account? <a routerLink="/login">Log in</a></p>
   </div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 import { Button } from '../../../shared/components/button/button';
 import { RouterLink } from '@angular/router';
@@ -47,6 +47,22 @@ export class RegistrationForm {
     this.validator.addressError(this.address) ||
     this.validator.passwordError(this.password) ||
     this.validator.confirmPasswordError(this.password, this.confirmedPassword));
+  }
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  selectedFile: File | null = null;
+
+  openFilePicker(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+    this.selectedFile = input.files[0];
+    console.log(this.selectedFile);
   }
 }
 
