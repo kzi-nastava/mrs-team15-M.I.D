@@ -20,7 +20,7 @@
                <div class="ride-time"> 4 min</div>
             </div>
             <div *ngIf="isPassenger" class="mb-4">
-               <app-button *ngIf="isPassenger" class="mb-2" width="100%" height="38px" variant="outline" fontWeight="700" textTransform="uppercase" text="Report inconsistency"></app-button>
+               <app-button *ngIf="isPassenger" class="mb-2" width="100%" height="38px" variant="outline" fontWeight="700" textTransform="uppercase" text="Report inconsistency" (click)="openReportModal()"></app-button>
             </div>
             <div class="emergency-section mb-4">
                <h5 class="section-title">Emergency</h5>
@@ -33,6 +33,8 @@
     </div>
   </div>
 </div>
+
+<app-report-inconsistency-modal (reportSubmitted)="handleReportSubmitted($event)"></app-report-inconsistency-modal>
 
 
 
