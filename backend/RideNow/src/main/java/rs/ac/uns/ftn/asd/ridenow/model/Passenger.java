@@ -12,8 +12,12 @@ import java.util.List;
 @DiscriminatorValue("PASSENGER")
 public class Passenger extends User {
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "passenger_id")
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "passenger_favorite_routes",
+            joinColumns = @JoinColumn(name = "passenger_id"),
+            inverseJoinColumns = @JoinColumn(name = "route_id")
+    )
     private List<Route> favoriteRoutes;
 
     public Passenger(String email, String password, String firstName, String lastName, String phoneNumber, String address, Long id,
