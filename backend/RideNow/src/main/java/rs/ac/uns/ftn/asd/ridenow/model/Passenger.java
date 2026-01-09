@@ -3,27 +3,22 @@ package rs.ac.uns.ftn.asd.ridenow.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 
-import java.util.List;
-
-@Getter
 @Setter
+@Getter
 @Entity
-@DiscriminatorValue("PASSENGER")
-public class Passenger extends User {
+public class Passenger {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "passenger_favorite_routes",
-            joinColumns = @JoinColumn(name = "passenger_id"),
-            inverseJoinColumns = @JoinColumn(name = "route_id")
-    )
-    private List<Route> favoriteRoutes;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PassengerRole role;
 
-    public Passenger(String email, String password, String firstName, String lastName, String phoneNumber, String address, Long id,
-                     String profileImage, boolean active, boolean blocked, List<Route> favoriteRoutes) {
-        super(email, password, firstName, lastName, phoneNumber, address,id, profileImage, active, blocked);
-        this.favoriteRoutes = favoriteRoutes;
+    public Passenger(PassengerRole role) {
+        this.role = role;
     }
 
     public Passenger() {
