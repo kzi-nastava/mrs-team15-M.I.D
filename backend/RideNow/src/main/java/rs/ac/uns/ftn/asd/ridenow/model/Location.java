@@ -1,21 +1,24 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
+import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
+@Embeddable
 public class Location {
-
-    private Long id;
     private double latitude;
     private double longitude;
     private String address;
 
-    public Location(Long id, double latitude, double longitude, String address) {
-        this.id = id;
+    public Location(double latitude, double longitude, String address) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.address = address;
+    }
+
+    public Location() {
+
     }
 }
