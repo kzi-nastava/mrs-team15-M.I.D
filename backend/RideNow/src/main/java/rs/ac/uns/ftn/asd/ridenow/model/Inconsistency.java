@@ -11,17 +11,19 @@ public class Inconsistency {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
-    private Long rideId;
-    @Column(nullable = false)
-    private Long passengerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ride_id", nullable = false)
+    private Ride ride;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "passenger_id", nullable = false)
+    private Passenger passenger;
     @Column(length = 300, nullable = false)
     private String description;
 
-    public Inconsistency(Long id, Long rideId, Long passengerId, String description) {
+    public Inconsistency(Long id, Ride ride, Passenger passenger, String description) {
         this.id = id;
-        this.rideId = rideId;
-        this.passengerId = passengerId;
+        this.ride = ride;
+        this.passenger = passenger;
         this.description = description;
     }
 

@@ -11,24 +11,29 @@ public class DriverRating {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
-    private Long driverId;
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id", nullable = false)
+    private Driver driver;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "passenger_id", nullable = false)
+    private Passenger passenger;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ride_id", nullable = false)
+    private Ride ride;
     @Column(nullable = false)
     private int rating;
     @Column(length = 500)
     private String comment;
-    @Column(nullable = false)
-    private Long rideId;
 
-    public DriverRating(Long id, Long driverId, Long userId, int rating, String comment, Long rideId) {
+    public DriverRating(Long id, Driver driver, Passenger passenger, int rating, String comment, Ride ride) {
         this.id = id;
-        this.driverId = driverId;
-        this.userId = userId;
+        this.driver = driver;
+        this.passenger = passenger;
         this.rating = rating;
         this.comment = comment;
-        this.rideId = rideId;
+        this.ride = ride;
     }
 
     public DriverRating() {

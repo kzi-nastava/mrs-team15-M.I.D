@@ -11,25 +11,28 @@ public class VehicleRating {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
-    private Long vehicleId;
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id", nullable = false)
+    private Vehicle vehicle;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "passenger_id", nullable = false)
+    private Passenger passenger;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ride_id", nullable = false)
+    private Ride ride;
     @Column(nullable = false)
     private int rating;
     @Column(length = 500)
     private String comment;
-    @Column(nullable = false)
-    private Long rideId;
 
     public VehicleRating() {}
 
-    public VehicleRating(Long id, Long vehicleId, Long userId, int rating, String comment, Long rideId) {
+    public VehicleRating(Long id, Vehicle vehicle, Passenger passenger, int rating, String comment, Ride ride) {
         this.id = id;
-        this.vehicleId = vehicleId;
-        this.userId = userId;
+        this.vehicle = vehicle;
+        this.passenger = passenger;
         this.rating = rating;
         this.comment = comment;
-        this.rideId = rideId;
+        this.ride = ride;
     }
 }
