@@ -2,6 +2,7 @@
     <div class="col-12 bg-black text-white rounded-4 custom-form-container">
         <div class="ride-ordering-container p-4">
             <form class="ride-ordering-form">
+                <ng-container *ngIf="!showPreferences">
                 <h2 class="form-title mb-4">Order your ride</h2>
 
                                 <div class="custom-dropdown w-100 mb-2">
@@ -53,7 +54,12 @@
                     <app-button class="show-route-btn" width="120%" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Show route" (click)="showRoute()"></app-button>
                 </div>
 
-                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors()"></app-button>
+                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors()" (click)="chooseRoute()"></app-button>
+
+                </ng-container>
+                <ng-container *ngIf="showPreferences">
+                    <app-ride-preference-form (confirm)="onPreferencesConfirm($event)" (cancel)="showPreferences=false"></app-ride-preference-form>
+                </ng-container>
             </form>
         </div>
     </div>

@@ -1,0 +1,51 @@
+<div class="ride-preference-section p-3">
+  <h3 class="mb-2">Order your ride</h3>
+
+  <label class="form-label section-label">Vehicle preference</label>
+  <div class="w-100 mb-2">
+    <select class="form-select w-100" [(ngModel)]="vehicleType">
+      <option value="">Vehicle type</option>
+      <option value="standard">Standard</option>
+      <option value="luxury">Luxury</option>
+      <option value="van">Van</option>
+    </select>
+  </div>
+
+  <div class="row g-2 mb-2">
+    <div class="col-12 col-md-6">
+      <div class="form-check form-switch custom-switch">
+        <input class="form-check-input" type="checkbox" id="rpPet" [(ngModel)]="petFriendly">
+        <label class="form-check-label" for="rpPet">Pet friendly</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="form-check form-switch custom-switch">
+        <input class="form-check-input" type="checkbox" id="rpBabySeat" [(ngModel)]="babySeat">
+        <label class="form-check-label" for="rpBabySeat">Baby friendly</label>
+      </div>
+    </div>
+  </div>
+
+  <label class="form-label section-label">Guest list</label>
+  <div class="guests-list">
+    <div class="guest-row d-flex mb-3" *ngFor="let g of guests; let gi = index; trackBy: trackByIndex">
+      <div class="flex-grow-1">
+        <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter guest email" [value]="guests[gi]" (valueChange)="guests[gi] = $event"></app-input-component>
+        <div class="error" *ngIf="validator.emailError(guests[gi])">{{ validator.emailError(guests[gi]) }}</div>
+      </div>
+      <button type="button" class="trash-btn ms-2" (click)="removeGuest(gi)">🗑</button>
+    </div>
+
+    <div class="mb-2 d-flex align-items-center">
+      <button type="button" class="add-stop-icon" (click)="addEmptyGuest()" aria-label="Add guest"><span class="plus">+</span></button>
+      <label class="form-label ms-3 mb-0">Add guest</label>
+    </div>
+  </div>
+
+  <div class="route-buttons d-flex gap-2 mt-3 mb-3">
+        <app-button class="show-route-btn" width="120%" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Back" (clicked)="onCancel()"></app-button>
+    </div>
+
+    <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Order ride" ></app-button>
+
+</div>

@@ -4,6 +4,7 @@ import { InputComponent } from '../../../shared/components/input-component/input
 import { FormsModule } from '@angular/forms';
 import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
+import { RidePreferenceForm } from '../ride-preference-form/ride-preference-form';
 
 interface FavoriteRoute {
   name: string;
@@ -15,7 +16,7 @@ interface FavoriteRoute {
 @Component({
   selector: 'app-ride-ordering-form',
   standalone: true,
-  imports: [Button, InputComponent, CommonModule, FormsModule],
+  imports: [Button, InputComponent, CommonModule, FormsModule, RidePreferenceForm],
   templateUrl: './ride-ordering-form.html',
   styleUrls: ['./ride-ordering-form.css'],
 })
@@ -122,8 +123,15 @@ export class RideOrderingForm {
     console.log('Show route for', { pickup: this.pickupAddress, destination: this.destinationAddress, stops: this.stops });
   }
 
+  showPreferences: boolean = false;
+
   chooseRoute() {
-    console.log('Choose route');
+    this.showPreferences = true;
+  }
+
+  onPreferencesConfirm(prefs: any) {
+    console.log('Preferences confirmed from form:', prefs);
+    this.showPreferences = false;
   }
 
 }
