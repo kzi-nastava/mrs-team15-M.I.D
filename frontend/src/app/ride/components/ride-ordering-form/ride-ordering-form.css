@@ -1,0 +1,151 @@
+.ride-ordering-section{
+    height: 75vh;
+    z-index: 1;
+}
+
+.ride-ordering-form {
+  width: 100%;
+  margin-top: 5vh;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.form-title {
+  text-align: left;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-bottom: 5px;
+  margin-left: 12px;
+}
+
+.stops-section .stop-row {
+  gap: 8px;
+}
+
+.trash-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.add-stop-btn {
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.route-buttons app-button {
+  display: inline-block;
+}
+
+.show-route-btn ::ng-deep .button {
+  background-color: #6c757d !important; 
+  color: #fff !important;
+}
+
+.form-label {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-select {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 6px 10px;
+  height: 36px;
+  border-radius: 6px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-size: 14px;
+}
+
+.form-select:focus {
+  outline: 2px solid rgba(255,255,255,0.08);
+}
+
+.form-select option {
+  background: #000;
+  color: #fff;
+}
+
+/* Ensure shared form-select shows a visible border in this dark-themed form */
+.ride-ordering-container .form-select {
+  border: 1px solid rgba(255,255,255,0.95);
+  background: transparent;
+  color: #fff;
+  padding-right: 38px; /* space for arrow */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23fff'/></svg>");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 12px;
+}
+
+.ride-ordering-container .form-select option {
+  background: #000;
+  color: #fff;
+}
+
+/* Ensure background stays dark when focused/active (override browser defaults) */
+.ride-ordering-container .form-select:focus,
+.ride-ordering-container .form-select:active,
+.ride-ordering-container .form-select:focus-visible {
+  background-color: rgba(0,0,0,0.75) !important;
+  color: #fff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* On some platforms the dropdown's selected display can be reset; enforce background */
+.ride-ordering-container select.form-select::-ms-expand {
+  display: none; /* hide default arrow on IE/Edge */
+}
+
+/* Custom dropdown styles */
+.custom-dropdown {
+  position: relative;
+}
+.custom-dropdown-toggle {
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.95);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.custom-dropdown-toggle .chev {
+  margin-left: 8px;
+}
+.custom-dropdown-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  background: rgba(0,0,0,0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  list-style: none;
+  padding: 6px 0;
+  z-index: 50;
+  max-height: 200px;
+  overflow: auto;
+}
+.custom-dropdown-item {
+  padding: 8px 12px;
+  color: #fff;
+  cursor: pointer;
+}
+.custom-dropdown-item:hover {
+  background: rgba(255,255,255,0.03);
+}

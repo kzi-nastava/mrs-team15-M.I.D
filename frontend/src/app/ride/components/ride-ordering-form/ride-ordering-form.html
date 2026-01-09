@@ -1,0 +1,46 @@
+<div class="ride-ordering-section row m-0">
+    <div class="col-12 bg-black text-white rounded-4 custom-form-container">
+        <div class="ride-ordering-container p-4">
+            <form class="ride-ordering-form">
+                <h2 class="form-title mb-4">Order your ride</h2>
+
+                                <label class="form-label">Favorites</label>
+                                <div class="custom-dropdown w-100 mb-2">
+                                    <div class="custom-dropdown-toggle input-focus d-flex justify-content-between align-items-center" (click)="toggleFavoriteDropdown()">
+                                        <span class="selected-text">{{ selectedFavorite || '-- Choose favorite --' }}</span>
+                                        <span class="chev">▾</span>
+                                    </div>
+                                    <ul *ngIf="favoriteOpen" class="custom-dropdown-menu">
+                                        <li class="custom-dropdown-item" (click)="selectFavorite('')">-- Choose favorite --</li>
+                                        <li *ngFor="let f of favorites" class="custom-dropdown-item" (click)="selectFavorite(f.name)">{{ f.name }}</li>
+                                    </ul>
+                                </div>
+
+                <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter pickup address" [value]="pickupAddress" (valueChange)="pickupAddress = $event"></app-input-component>
+                <div class="error" *ngIf="validator.addressError(pickupAddress)"> {{ validator.addressError(pickupAddress) }}</div>
+
+                <div class="mt-2">
+                    <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter destination address" [value]="destinationAddress" (valueChange)="destinationAddress = $event"></app-input-component>
+                </div>
+                <div class="error" *ngIf="validator.addressError(destinationAddress)"> {{ validator.addressError(destinationAddress) }}</div>
+
+                <div class="stops-section mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label mb-0">Stops</label>
+                        <button type="button" class="add-stop-btn" (click)="addStop()">+ Add stop</button>
+                    </div>
+                    <div *ngFor="let stop of stops; let i = index" class="stop-row mb-2 d-flex align-items-center">
+                        <app-input-component class="form-input flex-grow-1" borderColor="white" variant="secondary" type="text" height="35px" [value]="stops[i]" (valueChange)="stops[i] = $event"></app-input-component>
+                        <button type="button" class="trash-btn ms-2" (click)="removeStop(i)">🗑</button>
+                    </div>
+                </div>
+
+                <div class="route-buttons d-flex gap-2 mt-3 mb-3">
+                    <app-button class="show-route-btn" width="120%" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Show route" (click)="showRoute()"></app-button>
+                </div>
+
+                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors()"></app-button>
+            </form>
+        </div>
+    </div>
+</div>

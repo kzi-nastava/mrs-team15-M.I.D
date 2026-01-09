@@ -26,7 +26,7 @@ export class ProfileForm implements OnInit {
     phone: '0601234567',
     address: 'Bulevar cara Lazara 1, Novi Sad',
     email: 'john.doe@example.com',
-    role: 'user',
+    role: 'driver',
     activeHours: 8,
     vehicle: {
       licensePlate: 'NS123AB',

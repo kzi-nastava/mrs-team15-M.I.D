@@ -1,4 +1,4 @@
-<select class="form-select">
+<select class="form-select" [value]="value" (change)="onChange($event)">
   <option
     *ngFor="let opt of options"
     [value]="valueOf(opt)"

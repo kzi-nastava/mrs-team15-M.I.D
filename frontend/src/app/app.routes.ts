@@ -18,6 +18,7 @@ import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
 import { CurrentRide } from './ride/pages/current-ride/current-ride';
+import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
@@ -39,5 +40,6 @@ export const routes: Routes = [
     {path: 'upcoming-rides', component: UpcomingRides },
     {path: 'admin-history', component: AdminHistory},
     {path: 'history-ride-details/:id', component: HistoryRideDetails},
-    {path: 'current-ride', component: CurrentRide}
+    {path: 'current-ride', component: CurrentRide},
+    {path: 'ride-ordering', component: RideOrdering}
 ];
