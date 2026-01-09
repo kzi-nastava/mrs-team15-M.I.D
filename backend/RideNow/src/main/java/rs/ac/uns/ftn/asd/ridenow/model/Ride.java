@@ -6,29 +6,36 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter
+@Setter
+@Getter
 @Entity
-@Table(name = "rides")
 public class Ride {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+
     private double price;
+
     private double distanceKm;
+
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private RideStatus status;
+
     @Column(nullable = false)
     private LocalDateTime scheduledTime;
-    @Column(nullable = false)
+
     private LocalDateTime startTime;
-    @Column(nullable = false)
+
     private LocalDateTime endTime;
+
+    @Lob
     private String cancelReason;
 
-    public Ride(Long id, String cancelReason, LocalDateTime endTime, LocalDateTime startTime, LocalDateTime scheduledTime,
+    private  boolean cancelled = false;
+
+    public Ride(String cancelReason, LocalDateTime endTime, LocalDateTime startTime, LocalDateTime scheduledTime,
                 RideStatus status, double distanceKm, double price) {
-        this.id = id;
         this.cancelReason = cancelReason;
         this.endTime = endTime;
         this.startTime = startTime;
@@ -38,5 +45,11 @@ public class Ride {
         this.price = price;
     }
 
-    public Ride() {}
+    public Ride(RideStatus status, LocalDateTime scheduledTime) {
+        this.status = status;
+        this.scheduledTime = scheduledTime;
+    }
+
+    public Ride() {
+    }
 }
