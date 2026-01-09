@@ -23,6 +23,8 @@ export class RideOrderingForm {
   pickupAddress: string = '';
   destinationAddress: string = '';
   stops: string[] = [];
+  draggedIndex: number | null = null;
+  dragOverIndex: number | null = null;
 
   favorites: FavoriteRoute[] = [
     { name: 'Home → Work', pickup: '123 Home St', destination: '456 Work Ave', stops: [] },
@@ -53,9 +55,12 @@ export class RideOrderingForm {
     this.favoriteOpen = !this.favoriteOpen;
   }
 
+  trackByIndex(index: number, _item: any) {
+    return index;
+  }
+
   selectFavorite(name: string) {
     if (name === '') {
-      // reset to initial empty state
       this.selectedFavorite = '';
       this.pickupAddress = '';
       this.destinationAddress = '';
@@ -69,6 +74,44 @@ export class RideOrderingForm {
 
   addStop() {
     this.stops.push('');
+  }
+
+  onDragStart(event: DragEvent, index: number) {
+    this.draggedIndex = index;
+    try { event.dataTransfer?.setData('text/plain', String(index)); } catch (e) {}
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  }
+
+  onDragOver(event: DragEvent, index: number) {
+    event.preventDefault();
+    this.dragOverIndex = index;
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  }
+
+  onDragLeave(_event: DragEvent, _index: number) {
+    this.dragOverIndex = null;
+  }
+
+  onDrop(event: DragEvent, index: number) {
+    event.preventDefault();
+    const from = this.draggedIndex !== null ? this.draggedIndex : Number(event.dataTransfer?.getData('text/plain'));
+    const to = index;
+    if (from === to || from == null) {
+      this.dragOverIndex = null;
+      this.draggedIndex = null;
+      return;
+    }
+    const item = this.stops.splice(from, 1)[0];
+    // If dragging from a position before the drop target and we removed it, the target index shifts down by 1
+    const insertIndex = from < to ? to : to;
+    this.stops.splice(insertIndex, 0, item);
+    this.dragOverIndex = null;
+    this.draggedIndex = null;
+  }
+
+  onDragEnd(_event: DragEvent) {
+    this.dragOverIndex = null;
+    this.draggedIndex = null;
   }
 
   removeStop(index: number) {

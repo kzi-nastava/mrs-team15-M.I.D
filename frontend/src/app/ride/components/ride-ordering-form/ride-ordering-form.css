@@ -21,15 +21,17 @@
   margin-left: 12px;
 }
 
-.stops-section .stop-row {
-  gap: 8px;
-}
 
 .trash-btn {
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 18px;
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
@@ -37,9 +39,29 @@
   background: transparent;
   border: 1px dashed rgba(255,255,255,0.2);
   color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+}
+
+.add-stop-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #fff;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.add-stop-icon .plus {
+  color: #000;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .route-buttons app-button {
@@ -148,4 +170,23 @@
 }
 .custom-dropdown-item:hover {
   background: rgba(255,255,255,0.03);
+}
+
+/* Drag & drop styles for stop rows */
+.stop-row[draggable="true"] {
+  cursor: grab;
+}
+.stop-row.drag-over {
+  outline: 2px dashed rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.015);
+}
+.stop-row.dragging {
+  opacity: 0.95;
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+  cursor: grabbing;
+  z-index: 60;
+}
+.stop-row {
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
 }
