@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
@@ -26,6 +28,8 @@ public class Vehicle {
     @Column(nullable = false)
     private boolean available = false;
 
+    @Min(0)
+    @Max(5)
     @Column(nullable = false)
     private double rating = 0.0;
 
@@ -36,6 +40,7 @@ public class Vehicle {
     private boolean childFriendly = false;
 
     @Column(nullable = false)
+    @Min(0)
     private int seatCount;
 
     @Column(nullable = false)
@@ -59,6 +64,14 @@ public class Vehicle {
 
     public Vehicle() {
 
+    }
+
+    public void markAsAvailable(){
+        available = true;
+    }
+
+    public void markAsUnavailable(){
+        available = false;
     }
 
     public void assignDriver(Driver driver) {

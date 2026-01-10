@@ -20,11 +20,11 @@ public class Passenger {
     @Enumerated(EnumType.STRING)
     private PassengerRole role;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ride_id", nullable = false)
     private Ride ride;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private RegisteredUser user;
 

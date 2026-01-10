@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
@@ -19,14 +20,17 @@ public class Driver extends User {
     private boolean available;
 
     @Column(nullable = false)
+    @Min(0)
     private double workingHoursLast24 = 0;
 
+    @Column(nullable = true)
+    @Min(0)
     private double rating = 0.0;
 
-    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Vehicle vehicle;
 
-    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Ride> rideHistory = new ArrayList<>();
 
     public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,

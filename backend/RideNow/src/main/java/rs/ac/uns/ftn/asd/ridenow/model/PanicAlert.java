@@ -22,7 +22,7 @@ public class PanicAlert {
     @Column(nullable = false)
     private boolean resolved = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ride_id", nullable = false)
     Ride ride;
 

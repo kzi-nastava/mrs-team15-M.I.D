@@ -50,11 +50,8 @@ public class RideController {
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
         TrackVehicleDTO vehicle = new TrackVehicleDTO();
-<<<<<<< HEAD
         vehicle.setLocation(new Location(12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
-=======
         //vehicle.setLocation(new Location(0L, 12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
->>>>>>> e03f35d (refactor: add JPA constraints to Location class #86)
         vehicle.setRemainingTimeInMinutes(12);
 
         return ResponseEntity.ok(vehicle);

@@ -16,8 +16,7 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    @Lob
+    @Column(nullable = false, length = 300)
     private String message;
 
     @Column(nullable = false)
@@ -31,7 +30,7 @@ public class Notification {
     @Column(nullable = false)
     private boolean seen = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 

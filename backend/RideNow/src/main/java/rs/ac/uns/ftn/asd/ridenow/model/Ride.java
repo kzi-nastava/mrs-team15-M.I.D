@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
@@ -16,8 +17,10 @@ public class Ride {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Min(0)
     private double price;
 
+    @Min(0)
     private double distanceKm;
 
     @Column(nullable = false)
@@ -27,33 +30,35 @@ public class Ride {
     @Column(nullable = false)
     private LocalDateTime scheduledTime;
 
+    @Column(nullable = true)
     private LocalDateTime startTime;
 
+    @Column(nullable = true)
     private LocalDateTime endTime;
 
-    @Lob
+    @Column(length = 200)
     private String cancelReason;
 
     private  boolean cancelled = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id", nullable = false)
     Driver driver;
 
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
     private Rating rating;
 
-    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<PanicAlert> panicAlerts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Passenger> passengers = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
-    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Inconsistency> inconsistencies = new ArrayList<>();
 
     public Ride(String cancelReason, LocalDateTime endTime, LocalDateTime startTime, LocalDateTime scheduledTime,

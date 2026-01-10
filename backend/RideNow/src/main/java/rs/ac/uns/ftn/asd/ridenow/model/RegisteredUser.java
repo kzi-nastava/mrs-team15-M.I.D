@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,10 +15,10 @@ import java.util.List;
 @Entity
 public class RegisteredUser extends User {
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Passenger> rideParticipation = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<FavoriteRoute> favoriteRoutes = new ArrayList<>();
 
     public RegisteredUser(String email, String password, String firstName, String lastName, String phoneNumber,

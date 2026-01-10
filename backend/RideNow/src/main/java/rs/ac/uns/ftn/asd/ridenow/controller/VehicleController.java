@@ -19,20 +19,13 @@ public class VehicleController {
         VehicleResponseDTO vehicle1 = new VehicleResponseDTO();
         vehicle1.setLicencePlate("NS123AB");
         vehicle1.setAvailable(true);
-<<<<<<< HEAD
         vehicle1.setLocation(new Location(23.42342, 42.312312, ""));
-=======
         //vehicle1.setLocation(new Location(42L, 23.42342, 42.312312, ""));
->>>>>>> e03f35d (refactor: add JPA constraints to Location class #86)
-
         VehicleResponseDTO vehicle2 = new VehicleResponseDTO();
         vehicle2.setLicencePlate("NS133AB");
         vehicle2.setAvailable(false);
-<<<<<<< HEAD
         vehicle2.setLocation(new Location(23.42342, 42.312312, ""));
-=======
         //vehicle2.setLocation(new Location(42L, 23.42342, 42.312312, ""));
->>>>>>> e03f35d (refactor: add JPA constraints to Location class #86)
 
         List<VehicleResponseDTO> vehicles = List.of(vehicle1, vehicle2);
 
@@ -43,13 +36,9 @@ public class VehicleController {
     public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable @NotNull @NotEmpty String licencePlate, @Valid @RequestBody UpdateVehicleRequest req) {
         VehicleResponseDTO vehicle = new VehicleResponseDTO();
         vehicle.setLicencePlate(licencePlate);
-<<<<<<< HEAD
         vehicle.setLocation(new Location(req.getLat(), req.getLon(), ""));
-=======
         //vehicle.setLocation(new Location(14L, req.getLat(), req.getLon(), ""));
->>>>>>> e03f35d (refactor: add JPA constraints to Location class #86)
         vehicle.setAvailable(true);
-
         return ResponseEntity.ok(vehicle);
     }
 }

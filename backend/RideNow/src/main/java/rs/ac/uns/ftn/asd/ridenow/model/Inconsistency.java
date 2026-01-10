@@ -12,16 +12,15 @@ public class Inconsistency {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ride_id", nullable = false)
     private Ride ride;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "passenger_id", nullable = false)
     private Passenger passenger;
 
-    @Column(nullable = false)
-    @Lob
+    @Column(nullable = false, length = 300)
     private String description;
 
     public Inconsistency(Ride ride, Passenger passenger, String description) {

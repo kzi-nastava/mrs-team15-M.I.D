@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,12 +18,16 @@ public class Rating {
     private Long id;
 
     @Column(nullable = false)
+    @Min(1)
+    @Max(5)
     private  int driverRating;
 
     @Column(nullable = false)
+    @Min(1)
+    @Max(5)
     private  int vehicleRating;
 
-    @Lob
+    @Column(length = 300)
     private String comment;
 
     @Column(nullable = false)
