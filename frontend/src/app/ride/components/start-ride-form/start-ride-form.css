@@ -1,0 +1,49 @@
+.start-ride-section{
+    height: 75vh;
+    z-index: 1;
+}
+
+.start-ride-form {
+    width: 100%;
+    margin-top: 10vh;
+    min-width: 300px;
+    max-width: 500px;
+    padding-left: 4%;
+}
+
+.form-title {
+  text-align: left;
+}
+
+.section-title{
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+
+.ride-value{
+  border: 1px solid white;
+  border-radius: 10px;
+  padding: 5px;
+  padding-left: 10px;
+}
+
+.ride-time{
+  padding-left: 5px;
+  font-weight: 700;
+}
+
+.passengers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.passengers-list .badge {
+  cursor: pointer;
+  user-select: none;
+}
+
+.passengers-list .badge.bg-success {
+  color: #fff;
+}

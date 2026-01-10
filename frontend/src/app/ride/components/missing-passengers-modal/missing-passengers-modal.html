@@ -1,0 +1,24 @@
+<div class="modal fade" id="missingPassengersModal" tabindex="-1" aria-labelledby="missingPassengersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-white text-black border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="missingPassengersModalLabel">Start Ride</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="!canStart" class="text-danger">{{ confirmMessage }}</p>
+        <div *ngIf="canStart">
+          <p>{{ confirmMessage }}</p>
+          <ul *ngIf="missingPassengers.length > 0">
+            <li *ngFor="let m of missingPassengers">{{ m }}</li>
+          </ul>
+          <p class="text-danger">Are you sure you want to start the ride without them?</p>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <app-button width="80px" height="38px" variant="secondary" fontWeight="700" text="Cancel" (click)="closeModal()"></app-button>
+        <app-button *ngIf="canStart" width="80px" height="38px" variant="primary" fontWeight="700" text="Confirm" (click)="doConfirm()"></app-button>
+      </div>
+    </div>
+  </div>
+</div>

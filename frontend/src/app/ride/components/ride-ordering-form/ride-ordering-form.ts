@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 import { FormsModule } from '@angular/forms';
@@ -132,6 +132,10 @@ export class RideOrderingForm {
   onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
     this.showPreferences = false;
+    // Notify parent that an order attempt was made (parent may show active-ride modal)
+    this.orderAttempt.emit(prefs);
   }
+
+  @Output() orderAttempt = new EventEmitter<any>();
 
 }

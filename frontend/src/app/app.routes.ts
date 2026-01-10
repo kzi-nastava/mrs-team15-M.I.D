@@ -18,6 +18,7 @@ import {UpcomingRides} from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
 import { CurrentRide } from './ride/pages/current-ride/current-ride';
+import { StartRide } from './ride/pages/start-ride/start-ride';
 import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 
 export const routes: Routes = [
@@ -41,5 +42,6 @@ export const routes: Routes = [
     {path: 'admin-history', component: AdminHistory},
     {path: 'history-ride-details/:id', component: HistoryRideDetails},
     {path: 'current-ride', component: CurrentRide},
+    {path: 'start-ride', component: StartRide},
     {path: 'ride-ordering', component: RideOrdering}
 ];
