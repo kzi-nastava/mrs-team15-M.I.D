@@ -102,12 +102,11 @@
   color: #fff;
 }
 
-/* Ensure shared form-select shows a visible border in this dark-themed form */
 .ride-ordering-container .form-select {
   border: 1px solid rgba(255,255,255,0.95);
   background: transparent;
   color: #fff;
-  padding-right: 38px; /* space for arrow */
+  padding-right: 38px; 
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23fff'/></svg>");
   background-position: right 12px center;
   background-repeat: no-repeat;
@@ -119,7 +118,6 @@
   color: #fff;
 }
 
-/* Ensure background stays dark when focused/active (override browser defaults) */
 .ride-ordering-container .form-select:focus,
 .ride-ordering-container .form-select:active,
 .ride-ordering-container .form-select:focus-visible {
@@ -129,12 +127,10 @@
   box-shadow: none !important;
 }
 
-/* On some platforms the dropdown's selected display can be reset; enforce background */
 .ride-ordering-container select.form-select::-ms-expand {
-  display: none; /* hide default arrow on IE/Edge */
+  display: none; 
 }
 
-/* Custom dropdown styles */
 .custom-dropdown {
   position: relative;
 }
@@ -172,7 +168,6 @@
   background: rgba(255,255,255,0.03);
 }
 
-/* Drag & drop styles for stop rows */
 .stop-row[draggable="true"] {
   cursor: grab;
 }
