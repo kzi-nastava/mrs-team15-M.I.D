@@ -5,6 +5,8 @@ import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
@@ -33,6 +35,24 @@ public class Ride {
     private String cancelReason;
 
     private  boolean cancelled = false;
+
+    @ManyToOne
+    @JoinColumn(name = "driver_id", nullable = false)
+    Driver driver;
+
+    @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Rating rating;
+
+    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<PanicAlert> panicAlerts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Passenger> passengers = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "route_id", nullable = false)
+    private Route route;
+
 
     public Ride(String cancelReason, LocalDateTime endTime, LocalDateTime startTime, LocalDateTime scheduledTime,
                 RideStatus status, double distanceKm, double price) {

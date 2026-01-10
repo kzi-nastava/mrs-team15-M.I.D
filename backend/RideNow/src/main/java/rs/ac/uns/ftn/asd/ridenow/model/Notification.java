@@ -31,17 +31,15 @@ public class Notification {
     @Column(nullable = false)
     private boolean seen = false;
 
-    public Notification(String message, NotificationType type, LocalDateTime createdAt, boolean seen) {
-        this.message = message;
-        this.type = type;
-        this.createdAt = createdAt;
-        this.seen = seen;
-    }
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    User user;
 
-    public Notification(String message, NotificationType type) {
+    public Notification(String message, NotificationType type, User user) {
         this.message = message;
         this.type = type;
         this.seen = false;
+        this.user = user;
     }
 
     public Notification() {

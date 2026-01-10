@@ -17,19 +17,24 @@ public class Message {
 
     @Column(nullable = false)
     @Lob
-    private String message;
+    private String content;
 
     @Column(nullable = false)
     @CreationTimestamp
     private LocalDateTime timestamp;
 
-    public Message(String message, LocalDateTime timestamp) {
-        this.message = message;
-        this.timestamp = timestamp;
-    }
+    @ManyToOne
+    @JoinColumn(name= "chat_id", nullable = false)
+    Chat chat;
 
-    public Message(String message) {
-        this.message = message;
+    @ManyToOne
+    @JoinColumn (name = "user_id", nullable = false)
+    User sender;
+
+    public Message(String content, Chat chat, User sender) {
+        this.chat = chat;
+        this.content = content;
+        this.sender = sender;
     }
 
     public Message() {

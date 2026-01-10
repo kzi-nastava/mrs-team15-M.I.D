@@ -24,7 +24,7 @@ public class Vehicle {
     private double lon;
 
     @Column(nullable = false)
-    private boolean available;
+    private boolean available = false;
 
     @Column(nullable = false)
     private double rating = 0.0;
@@ -42,24 +42,19 @@ public class Vehicle {
     @Enumerated(EnumType.STRING)
     private VehicleType type;
 
-    public Vehicle(String licencePlate, double lat, double lon, boolean available, double rating) {
-        this.licencePlate = licencePlate;
-        this.lat = lat;
-        this.lon = lon;
-        this.available = available;
-        this.rating = rating;
-    }
+    @OneToOne
+    @JoinColumn(name = "driver_id", nullable = false, unique = true)
+    private Driver driver;
 
-    public Vehicle(String licencePlate, String model, boolean available, double rating,
-                   boolean petFriendly, boolean childFriendly, int seatCount, VehicleType type) {
+    public Vehicle(String licencePlate, String model, boolean petFriendly,
+                   boolean childFriendly, int seatCount, VehicleType type, Driver driver) {
         this.licencePlate = licencePlate;
         this.model = model;
-        this.available = available;
-        this.rating = rating;
         this.petFriendly = petFriendly;
         this.childFriendly = childFriendly;
         this.seatCount = seatCount;
         this.type = type;
+        this.driver = driver;
     }
 
     public Vehicle() {

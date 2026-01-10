@@ -28,6 +28,10 @@ public class Rating {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @OneToOne(optional = false)
+    @JoinColumn(name = "ride_id", nullable = false, unique = true)
+    private Ride ride;
+
     public Rating(int driverRating, int vehicleRating, String comment) {
         this.driverRating = driverRating;
         this.vehicleRating = vehicleRating;

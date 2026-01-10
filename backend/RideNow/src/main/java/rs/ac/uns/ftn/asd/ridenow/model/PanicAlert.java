@@ -22,6 +22,10 @@ public class PanicAlert {
     @Column(nullable = false)
     private boolean resolved = false;
 
+    @ManyToOne
+    @JoinColumn(name = "ride_id", nullable = false)
+    Ride ride;
+
     public PanicAlert() {
     }
 }

@@ -17,7 +17,17 @@ public class Passenger {
     @Enumerated(EnumType.STRING)
     private PassengerRole role;
 
-    public Passenger(PassengerRole role) {
+    @ManyToOne
+    @JoinColumn(name = "ride_id", nullable = false)
+    private Ride ride;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private RegisteredUser user;
+
+    public Passenger(Ride ride, RegisteredUser user, PassengerRole role) {
+        this.ride = ride;
+        this.user = user;
         this.role = role;
     }
 

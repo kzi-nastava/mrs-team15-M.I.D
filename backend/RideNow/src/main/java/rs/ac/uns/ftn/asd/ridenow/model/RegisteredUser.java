@@ -1,9 +1,24 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
 @Entity
 public class RegisteredUser extends User {
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Passenger> rideParticipation = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FavoriteRoute> favoriteRoutes = new ArrayList<>();
 
     public RegisteredUser(String email, String password, String firstName, String lastName, String phoneNumber,
                           String address, String profileImage, boolean active, boolean blocked) {
