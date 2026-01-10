@@ -19,13 +19,30 @@
                <label class="mb-0">Estimated arrival:</label>
                <div class="ride-time"> 4 min</div>
             </div>
+            <div class="ride-field mb-3">
+               <label><i class="bi bi-people me-1"></i><strong>Passengers ({{ passengers.length }})</strong></label>
+               <div class="passengers-list mt-2">
+                  <span
+                    *ngFor="let p of passengers; trackBy: trackByPassenger"
+                    class="badge me-1 mb-1"
+                    [ngClass]="p.present ? 'bg-success' : 'bg-secondary'"
+                    (click)="togglePassenger(p)"
+                    role="button"
+                    aria-pressed="{{p.present}}"
+                  >
+                    {{ p.name }}
+                  </span>
+               </div>
+            </div>
             
-            <label style="color: red;">Start ride when all passengers are aboard.</label>
-            <app-button width="100%" height="38px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Start ride" (clicked)="startRide()"></app-button>
+                  <label *ngIf="presentCount < passengers.length" style="color: red;">Start ride when all passengers are aboard.</label>
+                  <app-button width="100%" height="38px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Start ride" (clicked)="startRide()"></app-button>
          </form>
     </div>
   </div>
 </div>
+
+<app-missing-passengers-modal #missingModal (confirm)="confirmStart()"></app-missing-passengers-modal>
 
 
 
