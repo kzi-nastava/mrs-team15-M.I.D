@@ -1,0 +1,16 @@
+<div class="modal fade" id="activeRideWarningModal" tabindex="-1" aria-labelledby="activeRideWarningModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-white text-black border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title text-danger" id="activeRideWarningModalLabel">Active Ride</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>You already have an active ride. You cannot order a new ride until the current one is completed.</p>
+      </div>
+      <div class="modal-footer border-secondary">
+        <app-button width="80px" height="38px" variant="primary" fontWeight="700" text="OK" (click)="closeModal()"></app-button>
+      </div>
+    </div>
+  </div>
+</div>
