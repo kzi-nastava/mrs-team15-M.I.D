@@ -18,7 +18,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-            app:navigationIconTint="@android:color/black"
+            app:navigationIconTint="?attr/colorOnPrimary"
             app:layout_constraintTop_toTopOf="parent"
             />
 

@@ -1,47 +1,62 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter @Setter
+@Setter
+@Getter
 @Entity
-@Table(name = "routes")
 public class Route {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "latitude", column = @Column(name = "start_latitude")),
-            @AttributeOverride(name = "longitude", column = @Column(name = "start_longitude")),
-            @AttributeOverride(name = "address", column = @Column(name = "start_address"))
-    })
-    private Location startLocation;
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "latitude", column = @Column(name = "end_latitude")),
-            @AttributeOverride(name = "longitude", column = @Column(name = "end_longitude")),
-            @AttributeOverride(name = "address", column = @Column(name = "end_address"))
-    })
-    private Location endLocation;
-    @ElementCollection
-    @CollectionTable(name = "route_stop_locations", joinColumns = @JoinColumn(name = "route_id"))
-    private List<Location> stopLocations;
+
+    @Column(nullable = false)
+    @Min(0)
     private double distanceKm;
+
+    @Column(nullable = false)
+    @Min(0)
     private double estimatedTimeMin;
 
-    public Route() {}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "start_location_id", nullable = false)
+    private Location startLocation;
 
-    public Route(Long id, Location startLocation, Location endLocation, List<Location> stopLocations,
-                 double distanceKm, double estimatedTimeMin) {
-        this.id = id;
-        this.startLocation = startLocation;
-        this.endLocation = endLocation;
-        this.stopLocations = stopLocations;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "end_location_id", nullable = false)
+    private Location endLocation;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "route_stop_locations",
+               joinColumns = @JoinColumn(name = "route_id"),inverseJoinColumns = @JoinColumn(name = "location_id"))
+    private List<Location> stopLocations = new ArrayList<>();
+
+    public Route(double distanceKm, double estimatedTimeMin, Location startLocation, Location endLocation) {
         this.distanceKm = distanceKm;
         this.estimatedTimeMin = estimatedTimeMin;
+        this.startLocation = startLocation;
+        this.endLocation = endLocation;
+    }
+
+    public Route() {
+    }
+
+    public void addStopLocation(Location location) {
+        // todo : change condition if it's allowed to have same stop location multiple time in route
+        if (location != null && !stopLocations.contains(location)) {
+            stopLocations.add(location);
+        }
+    }
+
+    public void removeStopLocation(Location location) {
+        if (location != null && !stopLocations.contains(location)) {
+            stopLocations.remove(location);
+        }
     }
 }

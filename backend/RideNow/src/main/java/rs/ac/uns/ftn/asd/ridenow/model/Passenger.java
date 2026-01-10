@@ -3,30 +3,60 @@ package rs.ac.uns.ftn.asd.ridenow.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
 @Setter
+@Getter
 @Entity
-@DiscriminatorValue("PASSENGER")
-public class Passenger extends User {
+public class Passenger {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "passenger_favorite_routes",
-            joinColumns = @JoinColumn(name = "passenger_id"),
-            inverseJoinColumns = @JoinColumn(name = "route_id")
-    )
-    private List<Route> favoriteRoutes;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PassengerRole role;
 
-    public Passenger(String email, String password, String firstName, String lastName, String phoneNumber, String address, Long id,
-                     String profileImage, boolean active, boolean blocked, List<Route> favoriteRoutes) {
-        super(email, password, firstName, lastName, phoneNumber, address,id, profileImage, active, blocked);
-        this.favoriteRoutes = favoriteRoutes;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ride_id", nullable = false)
+    private Ride ride;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private RegisteredUser user;
+
+    @OneToMany(mappedBy = "passenger", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Inconsistency> inconsistencies = new ArrayList<>();
+
+    public Passenger(Ride ride, RegisteredUser user, PassengerRole role) {
+        this.assignRide(ride);
+        this.assignUser(user);
+        this.role = role;
     }
 
     public Passenger() {
 
+    }
+
+    public void assignUser(RegisteredUser user) {
+        if(user != null && !user.getRideParticipation().contains(this)){
+            user.addParticipation(this);
+        }
+    }
+
+    public void assignRide(Ride ride) {
+        if(ride != null && !ride.getPassengers().contains(this)){
+            ride.addPassenger(this);
+        }
+    }
+
+    public void addInconsistency(Inconsistency inconsistency){
+        if(inconsistency != null && !inconsistencies.contains(inconsistency)){
+            inconsistencies.add(inconsistency);
+            inconsistency.setPassenger(this);
+        }
     }
 }
