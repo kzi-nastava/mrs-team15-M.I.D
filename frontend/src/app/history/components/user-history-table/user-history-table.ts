@@ -1,5 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AddFavoriteModal } from '../add-favorite-modal/add-favorite-modal';
+import { RemoveFavoriteModal } from '../remove-favorite-modal/remove-favorite-modal';
 
 export interface Ride{
   id: number;
@@ -15,6 +18,11 @@ export interface Ride{
   panicBy: string | null;
   rating?: number | null;
   inconsistencies?: string[] | null;
+  favorite?: boolean;
+  pickupAddress?: string | null;
+  destinationAddress?: string | null;
+  stopAddress?: string | null;
+  stopAddresses?: string[] | null;
 }
 
 type SortColumn = 'route' | 'startTime' | 'endTime' ;
@@ -23,12 +31,18 @@ type SortDirection = 'asc' | 'desc' | '';
 @Component({
   selector: 'app-user-history-table',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, AddFavoriteModal, RemoveFavoriteModal],
   templateUrl: './user-history-table.html',
   styleUrl: './user-history-table.css',
 })
 export class UserHistoryTable {
   private _rides : Ride[] = []
+
+  @ViewChild('addFav') addFavModal!: AddFavoriteModal;
+  @ViewChild('removeFav') removeFavModal!: RemoveFavoriteModal;
+
+  // ride pending favorite change
+  private pendingRide: Ride | null = null;
 
   constructor(private router: Router) {}
 
@@ -111,6 +125,48 @@ private applySorting(): void {
 
   viewRideDetails(ride: Ride): void {
     this.router.navigate(['/history-ride-details', ride.id], { state: { ride } });
+  }
+
+  // Request toggle: open appropriate modal
+  requestToggleFavorite(ride: Ride): void {
+    this.pendingRide = ride;
+    const label = ride.route || `Ride #${ride.id}`;
+    const stops = ride.stopAddresses ?? (ride.stopAddress ? [ride.stopAddress] : []);
+    let info = { pickup: ride.pickupAddress ?? null, destination: ride.destinationAddress ?? null, stop: stops };
+
+    // If no real route info available, provide mock sample data for preview
+    const noPickup = !info.pickup;
+    const noDestination = !info.destination;
+    const noStops = !info.stop || (Array.isArray(info.stop) && info.stop.length === 0);
+    if (noPickup && noDestination && noStops) {
+      info = {
+        pickup: 'Main Street 123, City',
+        destination: 'Central Station, City',
+        stop: ['Park Ave 5', 'Mall Entrance']
+      };
+    }
+
+    if (ride.favorite) {
+      if (this.removeFavModal) this.removeFavModal.openModal(label, info);
+    } else {
+      if (this.addFavModal) this.addFavModal.openModal(label, info);
+    }
+  }
+
+  // Called when add-favorite modal confirm is emitted
+  onAddFavoriteConfirmed(): void {
+    if (!this.pendingRide) return;
+    this.pendingRide.favorite = true;
+    this.pendingRide = null;
+    // TODO: persist favorite state via API if needed
+  }
+
+  // Called when remove-favorite modal confirm is emitted
+  onRemoveFavoriteConfirmed(): void {
+    if (!this.pendingRide) return;
+    this.pendingRide.favorite = false;
+    this.pendingRide = null;
+    // TODO: persist favorite state via API if needed
   }
 
 }
