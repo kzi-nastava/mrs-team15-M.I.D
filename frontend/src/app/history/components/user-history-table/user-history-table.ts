@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 export interface Ride{
   id: number;
@@ -15,6 +16,7 @@ export interface Ride{
   panicBy: string | null;
   rating?: number | null;
   inconsistencies?: string[] | null;
+  favorite?: boolean;
 }
 
 type SortColumn = 'route' | 'startTime' | 'endTime' ;
@@ -23,7 +25,7 @@ type SortDirection = 'asc' | 'desc' | '';
 @Component({
   selector: 'app-user-history-table',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './user-history-table.html',
   styleUrl: './user-history-table.css',
 })
@@ -111,6 +113,11 @@ private applySorting(): void {
 
   viewRideDetails(ride: Ride): void {
     this.router.navigate(['/history-ride-details', ride.id], { state: { ride } });
+  }
+
+  toggleFavorite(ride: Ride): void {
+    ride.favorite = !ride.favorite;
+    // TODO: persist favorite state via API if needed
   }
 
 }

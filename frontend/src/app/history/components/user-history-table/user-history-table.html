@@ -3,6 +3,7 @@
     <table class="table table-hover align-middle">
       <thead>
         <tr>
+          <th scope="col"></th>
           <th scope="col" class="sortable" (click)="sort('route')">
             Route <span class="sort-icon">{{ getSortIcon('route') }}</span>
           </th>
@@ -17,6 +18,9 @@
       <tbody>
         @for (ride of rides; track ride.id) {
           <tr class="clickable-row" (click)="viewRideDetails(ride)">
+            <td class="fav-cell">
+              <i class="bi" [ngClass]="ride.favorite ? 'bi-star-fill text-warning' : 'bi-star'" aria-hidden="true" (click)="$event.stopPropagation(); toggleFavorite(ride)"></i>
+            </td>
             <td>{{ ride.route }}</td>
             <td>{{ ride.startTime }}</td>
             <td>{{ ride.endTime  }}</td>

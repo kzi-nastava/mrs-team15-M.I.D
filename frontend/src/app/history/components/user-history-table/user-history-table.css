@@ -13,6 +13,18 @@
   margin-left: 0.25rem;
   opacity: 0.6;
 }
+.fav-cell {
+  width: 40px;
+  text-align: center;
+}
+
+.fav-cell .bi {
+  font-size: 1.05rem;
+}
+
+.fav-cell .bi {
+  cursor: pointer;
+}
 
 .sortable:hover .sort-icon {
   opacity: 1;
