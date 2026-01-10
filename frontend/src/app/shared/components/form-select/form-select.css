@@ -1,11 +1,20 @@
-.select {
+.form-select {
   border-radius: 8px;
-  border: 1px solid #000; 
+  border: 1px solid rgba(0,0,0,0.12);
   padding-left: 11px;
-  height: 35px;
+  height: 36px;
   width: 100%;
   box-sizing: border-box;
-  background: white;
+  background: transparent;
+  color: inherit;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.form-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.06);
 }
 
 

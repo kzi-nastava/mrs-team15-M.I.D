@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,7 +13,6 @@ export class FormSelect {
   @Input() options: any[] = [];
   @Input() value: any;
 
-  // Ako su opcije objekti → koristi ova polja
   @Input() labelKey: string = 'label';
   @Input() valueKey: string = 'value';
 
@@ -27,5 +26,13 @@ export class FormSelect {
     return typeof option === 'object'
       ? option[this.valueKey]
       : option;
+  }
+
+  @Output() valueChange = new EventEmitter<any>();
+
+  onChange(ev: Event) {
+    const val = (ev.target as HTMLSelectElement).value;
+    this.value = val;
+    this.valueChange.emit(val);
   }
 }
