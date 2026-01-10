@@ -19,7 +19,7 @@
         @for (ride of rides; track ride.id) {
           <tr class="clickable-row" (click)="viewRideDetails(ride)">
             <td class="fav-cell">
-              <i class="bi" [ngClass]="ride.favorite ? 'bi-star-fill text-warning' : 'bi-star'" aria-hidden="true" (click)="$event.stopPropagation(); toggleFavorite(ride)"></i>
+               <i class="bi" [ngClass]="ride.favorite ? 'bi-star-fill text-warning' : 'bi-star'" (click)="$event.stopPropagation(); requestToggleFavorite(ride)"></i>
             </td>
             <td>{{ ride.route }}</td>
             <td>{{ ride.startTime }}</td>
@@ -28,5 +28,9 @@
         }
       </tbody>
     </table>
+
+  <!-- favorite modals -->
+  <app-add-favorite-modal #addFav (confirm)="onAddFavoriteConfirmed()" ></app-add-favorite-modal>
+  <app-remove-favorite-modal #removeFav (confirm)="onRemoveFavoriteConfirmed()" ></app-remove-favorite-modal>
   </div>
 </div>
