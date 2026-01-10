@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @Entity
@@ -25,13 +28,35 @@ public class Passenger {
     @JoinColumn(name = "user_id", nullable = false)
     private RegisteredUser user;
 
+    @OneToMany(mappedBy = "passenger", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Inconsistency> inconsistencies = new ArrayList<>();
+
     public Passenger(Ride ride, RegisteredUser user, PassengerRole role) {
-        this.ride = ride;
-        this.user = user;
+        this.assignRide(ride);
+        this.assignUser(user);
         this.role = role;
     }
 
     public Passenger() {
 
+    }
+
+    public void assignUser(RegisteredUser user) {
+        if(user != null && !user.getRideParticipation().contains(this)){
+            user.addParticipation(this);
+        }
+    }
+
+    public void assignRide(Ride ride) {
+        if(ride != null && !ride.getPassengers().contains(this)){
+            ride.addPassenger(this);
+        }
+    }
+
+    public void addInconsistency(Inconsistency inconsistency){
+        if(inconsistency != null && !inconsistencies.contains(inconsistency)){
+            inconsistencies.add(inconsistency);
+            inconsistency.setPassenger(this);
+        }
     }
 }

@@ -50,10 +50,6 @@ public class User {
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Message> messages = new ArrayList<>();
 
-    public User(){
-        super();
-    }
-
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                 String profileImage, boolean active, boolean blocked) {
         this.email = email;
@@ -65,5 +61,23 @@ public class User {
         this.profileImage = profileImage;
         this.active = active;
         this.blocked = blocked;
+    }
+
+    public User(){
+        super();
+    }
+
+    public void addNotification(Notification notification){
+        if(notification != null && !notifications.contains(notification)){
+            notifications.add(notification);
+            notification.assignUser(this);
+        }
+    }
+
+    public void addMessage(Message message) {
+        if(message != null && !messages.contains(message)) {
+            messages.add(message);
+            message.setSender(this);
+        }
     }
 }

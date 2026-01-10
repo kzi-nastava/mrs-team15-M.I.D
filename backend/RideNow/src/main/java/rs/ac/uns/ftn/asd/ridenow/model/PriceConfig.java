@@ -14,7 +14,7 @@ public class PriceConfig {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @Enumerated(EnumType.STRING)
     private VehicleType vehicleType;
 

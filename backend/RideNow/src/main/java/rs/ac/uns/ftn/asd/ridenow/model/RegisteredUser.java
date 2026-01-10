@@ -28,4 +28,18 @@ public class RegisteredUser extends User {
     public RegisteredUser() {
         super();
     }
+
+    public void addParticipation(Passenger passenger) {
+        if(passenger!= null && !this.rideParticipation.contains(passenger)){
+            rideParticipation.add(passenger);
+            passenger.assignUser(this);
+        }
+    }
+
+    public void removeParticipation(Passenger passenger) {
+        if(passenger!= null && this.rideParticipation.contains(passenger)){
+            rideParticipation.remove(passenger);
+            passenger.setUser(null);
+        }
+    }
 }

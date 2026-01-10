@@ -43,4 +43,17 @@ public class Route {
 
     public Route() {
     }
+
+    public void addStopLocation(Location location) {
+        // todo : change condition if it's allowed to have same the stop location multiple time
+        if (location != null && !stopLocations.contains(location)) {
+            stopLocations.add(location);
+        }
+    }
+
+    public void removeStopLocation(Location location) {
+        if (location != null) {
+            stopLocations.remove(location);
+        }
+    }
 }

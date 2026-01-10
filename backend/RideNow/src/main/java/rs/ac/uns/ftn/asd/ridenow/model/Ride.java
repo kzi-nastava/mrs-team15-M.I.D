@@ -53,6 +53,8 @@ public class Ride {
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
+    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Inconsistency> inconsistencies = new ArrayList<>();
 
     public Ride(String cancelReason, LocalDateTime endTime, LocalDateTime startTime, LocalDateTime scheduledTime,
                 RideStatus status, double distanceKm, double price) {
@@ -71,5 +73,34 @@ public class Ride {
     }
 
     public Ride() {
+
+    }
+
+    public void setRating(Rating rating){
+        if(rating != null){
+            this.rating = rating;
+            rating.assignRide(this);
+        }
+    }
+
+    public void addPanicAlert(PanicAlert panicAlert) {
+        if(panicAlert != null && !panicAlerts.contains(panicAlert)){
+            panicAlerts.add(panicAlert);
+            panicAlert.assignRide(this);
+        }
+    }
+
+    public void addPassenger(Passenger passenger) {
+        if(passenger != null && !passengers.contains(passenger)){
+            passengers.add(passenger);
+            passenger.assignRide(this);
+        }
+    }
+
+    public void addInconsistency(Inconsistency inconsistency){
+        if(inconsistency != null && !inconsistencies.contains(inconsistency)){
+            inconsistencies.add(inconsistency);
+            inconsistency.setRide(this);
+        }
     }
 }

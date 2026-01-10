@@ -60,4 +60,11 @@ public class Vehicle {
     public Vehicle() {
 
     }
+
+    public void assignDriver(Driver driver) {
+        this.driver = driver;
+        if (driver != null && driver.getVehicle() != this) {
+            driver.setVehicle(this);
+        }
+    }
 }

@@ -25,4 +25,11 @@ public class FavoriteRoute {
     }
 
     public FavoriteRoute() {}
+
+    public void assignUser(RegisteredUser user){
+        this.user = user;
+        if(!user.getFavoriteRoutes().contains(this)){
+            user.getFavoriteRoutes().add(this);
+        }
+    }
 }

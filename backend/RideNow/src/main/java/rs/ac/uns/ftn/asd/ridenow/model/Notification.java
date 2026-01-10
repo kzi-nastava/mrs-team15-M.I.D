@@ -38,10 +38,25 @@ public class Notification {
     public Notification(String message, NotificationType type, User user) {
         this.message = message;
         this.type = type;
-        this.seen = false;
-        this.user = user;
+        this.assignUser(user);
     }
 
     public Notification() {
+
+    }
+
+    public void markSeen(){
+        this.seen = true;
+    }
+
+    public void markUnseen(){
+        this.seen = false;
+    }
+
+    public void assignUser(User user) {
+        this.user = user;
+        if(user != null &&  !user.getNotifications().contains(this)){
+            user.addNotification(this);
+        }
     }
 }

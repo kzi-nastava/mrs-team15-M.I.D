@@ -31,15 +31,48 @@ public class Driver extends User {
 
     public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                   String profileImage, boolean active, boolean blocked, DriverStatus status, boolean available,
-                  double workingHoursLast24, double rating) {
+                  double workingHoursLast24, double rating, Vehicle vehicle) {
         super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked);
         this.status = status;
         this.available = available;
         this.workingHoursLast24 = workingHoursLast24;
         this.rating = rating;
+        this.assignVehicle(vehicle);
+    }
+
+    public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,
+                  DriverStatus status, Vehicle vehicle) {
+        super(email, password, firstName, lastName, phoneNumber, address, null, true, false);
+        this.status = status;
+        this.rideHistory = new ArrayList<>();
+        this.assignVehicle(vehicle);
+        this.rating = 0.0;
+        this.workingHoursLast24 = 0;
+        this.available = true;
     }
 
     public Driver() {
         super();
+    }
+
+    public void addRide(Ride ride){
+        if (!rideHistory.contains(ride)) {
+            rideHistory.add(ride);
+            ride.setDriver(this);
+        }
+    }
+
+    public void removeRide(Ride ride){
+        if (rideHistory.contains(ride)) {
+            rideHistory.remove(ride);
+            ride.setDriver(null);
+        }
+    }
+
+    public void assignVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
+        if (vehicle.getDriver() != this) {
+            vehicle.setDriver(this);
+        }
     }
 }

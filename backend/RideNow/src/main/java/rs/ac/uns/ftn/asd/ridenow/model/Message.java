@@ -32,11 +32,17 @@ public class Message {
     User sender;
 
     public Message(String content, Chat chat, User sender) {
-        this.chat = chat;
         this.content = content;
         this.sender = sender;
+        this.assignChat(chat);
     }
 
-    public Message() {
+    public Message() {}
+
+    public  void assignChat(Chat chat) {
+        this.chat = chat;
+        if(chat != null && !chat.getMessages().contains(this)){
+            chat.addMessage(this);
+        }
     }
 }
