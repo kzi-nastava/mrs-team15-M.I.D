@@ -28,7 +28,10 @@ public class Rating {
     private  int vehicleRating;
 
     @Column(length = 300)
-    private String comment;
+    private String driverComment;
+
+    @Column(length = 300)
+    private String vehicleComment;
 
     @Column(nullable = false)
     @CreationTimestamp
@@ -38,8 +41,9 @@ public class Rating {
     @JoinColumn(name = "ride_id", nullable = false, unique = true)
     private Ride ride;
 
-    public Rating(Ride ride, String comment, int vehicleRating, int driverRating) {
-        this.comment = comment;
+    public Rating(Ride ride, String driverComment, String vehicleComment, int vehicleRating, int driverRating) {
+        this.driverComment = driverComment;
+        this.vehicleComment = vehicleComment;
         this.vehicleRating = vehicleRating;
         this.driverRating = driverRating;
         this.assignRide(ride);

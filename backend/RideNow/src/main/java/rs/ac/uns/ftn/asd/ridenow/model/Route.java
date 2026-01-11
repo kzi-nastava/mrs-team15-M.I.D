@@ -24,17 +24,30 @@ public class Route {
     @Min(0)
     private double estimatedTimeMin;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "start_location_id", nullable = false)
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "start_latitude", nullable = false)),
+            @AttributeOverride(name = "longitude", column = @Column(name = "start_longitude", nullable = false)),
+            @AttributeOverride(name = "address", column = @Column(name = "start_address"))
+    })
     private Location startLocation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "end_location_id", nullable = false)
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "end_latitude", nullable = false)),
+            @AttributeOverride(name = "longitude", column = @Column(name = "end_longitude", nullable = false)),
+            @AttributeOverride(name = "address", column = @Column(name = "end_address"))
+    })
     private Location endLocation;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "route_stop_locations",
-               joinColumns = @JoinColumn(name = "route_id"),inverseJoinColumns = @JoinColumn(name = "location_id"))
+    @ElementCollection
+    @CollectionTable(name = "route_stop_locations",
+            joinColumns = @JoinColumn(name = "route_id"))
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "stop_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "stop_longitude")),
+            @AttributeOverride(name = "address", column = @Column(name = "stop_address"))
+    })
     private List<Location> stopLocations = new ArrayList<>();
 
     public Route(double distanceKm, double estimatedTimeMin, Location startLocation, Location endLocation) {
