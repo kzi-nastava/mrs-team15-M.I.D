@@ -1,0 +1,15 @@
+.dr-table { padding: 8px }
+.dr-table .table { margin-bottom: 0 }
+.dr-table button { min-width: 72px }
+
+.status { display:inline-block; padding:4px 10px; border-radius:999px; font-weight:600; font-size:12px; text-transform:capitalize }
+.status.pending { background:#fff3cd; color:#856404; border:1px solid #ffeeba }
+.status.approved { background:#d4edda; color:#155724; border:1px solid #c3e6cb }
+.status.rejected { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb }
+
+.clickable { cursor: pointer }
+.clickable:hover { text-decoration: underline }
+
+.avatar-cell { display:flex; align-items:center }
+.small-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid #e9ecef }
+.avatar-fallback { width:36px; height:36px; border-radius:50%; background:#dee2e6; display:flex; align-items:center; justify-content:center; font-weight:600 }
