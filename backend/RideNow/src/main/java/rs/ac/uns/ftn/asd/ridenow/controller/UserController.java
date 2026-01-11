@@ -44,6 +44,4 @@ public class UserController {
         userService.updateUser(id, dto);
         return ResponseEntity.status(203).build();
     }
-
-
 }
