@@ -15,14 +15,6 @@ public class RideDetailsFragment extends Fragment {
     private static final String ARG_RIDE_DATA = "ride_data";
     private String[] rideData;
 
-    public static RideDetailsFragment newInstance(String[] rideData) {
-        RideDetailsFragment fragment = new RideDetailsFragment();
-        Bundle args = new Bundle();
-        args.putStringArray(ARG_RIDE_DATA, rideData);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +56,6 @@ public class RideDetailsFragment extends Fragment {
         tvCost.setText("Cost: " + rideData[7]);
         tvPanicButton.setText("Panic Button: " + (rideData[8] == null ? "N/A" : rideData[8]));
 
-        // Mock data for rating and inconsistencies
         tvRating.setText("Rating: " + rideData[10]);
         tvInconsistencies.setText("Inconsistencies: " + (rideData[11] == null ? "N/A" : rideData[11]));
     }

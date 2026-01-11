@@ -1,35 +1,82 @@
 package rs.ac.uns.ftn.asd.ridenow.model;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 
-@Getter @Setter
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
 @Entity
-@DiscriminatorValue("DRIVER")
 public class Driver extends User {
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private DriverStatus status;
+
     @Column(nullable = false)
     private boolean available;
-    private double workingHoursLast24;
-    private double rating;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "vehicle_id")
+
+    @Column(nullable = false)
+    @Min(0)
+    private double workingHoursLast24 = 0;
+
+    @Column(nullable = true)
+    @Min(0)
+    private double rating = 0.0;
+
+    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Vehicle vehicle;
 
-    public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,Long id,
+    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    List<Ride> rideHistory = new ArrayList<>();
+
+    public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                   String profileImage, boolean active, boolean blocked, DriverStatus status, boolean available,
                   double workingHoursLast24, double rating, Vehicle vehicle) {
-        super(email, password, firstName, lastName, phoneNumber, address,id, profileImage, active, blocked);
+        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked);
         this.status = status;
         this.available = available;
         this.workingHoursLast24 = workingHoursLast24;
         this.rating = rating;
-        this.vehicle = vehicle;
+        this.assignVehicle(vehicle);
+    }
+
+    public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,
+                  DriverStatus status, Vehicle vehicle) {
+        super(email, password, firstName, lastName, phoneNumber, address, null, true, false);
+        this.status = status;
+        this.rideHistory = new ArrayList<>();
+        this.assignVehicle(vehicle);
+        this.rating = 0.0;
+        this.workingHoursLast24 = 0;
+        this.available = true;
     }
 
     public Driver() {
+        super();
+    }
 
+    public void addRide(Ride ride){
+        if (!rideHistory.contains(ride)) {
+            rideHistory.add(ride);
+            ride.setDriver(this);
+        }
+    }
+
+    public void removeRide(Ride ride){
+        if (rideHistory.contains(ride)) {
+            rideHistory.remove(ride);
+            ride.setDriver(null);
+        }
+    }
+
+    public void assignVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
+        if (vehicle.getDriver() != this) {
+            vehicle.setDriver(this);
+        }
     }
 }

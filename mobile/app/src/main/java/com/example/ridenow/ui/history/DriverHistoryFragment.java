@@ -136,7 +136,6 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         View rootView = getView();
         if (rootView == null) return;
 
-        // Assuming your headers have these IDs in the layout
         rootView.findViewById(R.id.headerRoute).setOnClickListener(v -> sortTable(0));
         rootView.findViewById(R.id.headerPassengers).setOnClickListener(v -> sortTable(1));
         rootView.findViewById(R.id.headerDate).setOnClickListener(v -> sortTable(2));
@@ -349,18 +348,6 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
     private void loadDriverHistory() {
         populateDriverHistoryTable(rideDataTest);
-    }
-
-    private void loadFilteredDriverHistory(Calendar filterDate) {
-        // For demonstration, we will filter the test data based on the date string
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String filterDateString = dateFormat.format(filterDate.getTime());
-
-        String[][] filteredData = java.util.Arrays.stream(rideDataTest)
-                .filter(ride -> ride[2].equals(filterDateString))
-                .toArray(String[][]::new);
-
-        populateDriverHistoryTable(filteredData);
     }
 
     private void populateDriverHistoryTable(String[][] rideData) {

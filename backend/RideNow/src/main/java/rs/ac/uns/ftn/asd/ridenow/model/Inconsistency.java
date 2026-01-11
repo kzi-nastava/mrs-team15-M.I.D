@@ -4,24 +4,26 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+@Setter
+@Getter
 @Entity
-@Table(name = "inconsistencies")
 public class Inconsistency {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ride_id", nullable = false)
     private Ride ride;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "passenger_id", nullable = false)
     private Passenger passenger;
-    @Column(length = 300, nullable = false)
+
+    @Column(nullable = false, length = 300)
     private String description;
 
-    public Inconsistency(Long id, Ride ride, Passenger passenger, String description) {
-        this.id = id;
+    public Inconsistency(Ride ride, Passenger passenger, String description) {
         this.ride = ride;
         this.passenger = passenger;
         this.description = description;
