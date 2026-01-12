@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Route } from '../../../services/ride-history.service';
 
 export interface Ride {
   id: number;
@@ -15,6 +16,7 @@ export interface Ride {
   panicBy: string | null;
   rating?: number | null;
   inconsistencies?: string[] | null;
+  routeData?: Route | null;
 }
 
 type SortColumn = 'route' | 'passengers' | 'date' | 'duration' | 'cancelled' | 'cost' | 'panicButton';

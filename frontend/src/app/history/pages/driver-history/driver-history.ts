@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { RideHistoryTableComponent, Ride } from '../../components/ride-history-table/ride-history-table';
+import { RideHistoryService, RideHistoryResponse } from '../../../services/ride-history.service';
 
 @Component({
   selector: 'app-driver-history',
@@ -9,76 +10,53 @@ import { RideHistoryTableComponent, Ride } from '../../components/ride-history-t
   templateUrl: './driver-history.html',
   styleUrl: './driver-history.css',
 })
-export class DriverHistory {
-  allRides: Ride[] = [
-    {
-      id: 1,
-      route: 'Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd',
-      passengers: 'Marko Marković, Ana Jovanović',
-      date: '2025-12-12',
-      duration: '25 min',
-      timeRange: '14:30 - 14:55',
-      cancelled: null,
-      cancelledBy: null,
-      cost: '1550 RSD',
-      panicButton: null,
-      panicBy: null
-    },
-    {
-      id: 2,
-      route: 'Trg slobode → Železnička stanica',
-      passengers: 'Petar Petrović',
-      date: '2025-12-11',
-      duration: '12 min',
-      timeRange: '09:15 - 09:27',
-      cancelled: 'Od strane putnika',
-      cancelledBy: 'Petar Petrović',
-      cost: '800 RSD',
-      panicButton: null,
-      panicBy: null
-    },
-    {
-      id: 3,
-      route: 'Liman 3 → Promenada Shopping',
-      passengers: 'Jovana Nikolić, Stefan Stojanović',
-      date: '2025-12-12',
-      duration: '18 min',
-      timeRange: '16:00 - 16:18',
-      cancelled: null,
-      cancelledBy: null,
-      cost: '1275 RSD',
-      panicButton: "Od strane putnika",
-      panicBy: 'Jovana Nikolić'
-    },
-    {
-      id: 4,
-      route: 'Hotel Park → Spens',
-      passengers: 'Milica Đorđević',
-      date: '2025-12-10',
-      duration: '30 min',
-      timeRange: '11:00 - 11:30',
-      cancelled: 'Od strane vozača',
-      cancelledBy: null,
-      cost: '1800 RSD',
-      panicButton: null,
-      panicBy: null
-    },
-    {
-      id: 5,
-      route: 'Centar → Štrand',
-      passengers: 'Nikola Ilić, Jelena Pavlović, Dušan Stanković',
-      date: '2025-12-12',
-      duration: '22 min',
-      timeRange: '13:45 - 14:07',
-      cancelled: null,
-      cancelledBy: null,
-      cost: '2050 RSD',
-      panicButton: null,
-      panicBy: null
-    }
-  ];
+export class DriverHistory implements OnInit {
+  private rideHistoryService = inject(RideHistoryService);
+  private cdr = inject(ChangeDetectorRef);
 
-  filteredRides: Ride[] = [...this.allRides];
+  allRides: Ride[] = [];
+  filteredRides: Ride[] = [];
+
+  ngOnInit(): void {
+    this.loadRideHistory();
+  }
+
+  private loadRideHistory(): void {
+    // TODO: Get actual driver ID from auth service
+    const driverId = 1;
+
+    this.rideHistoryService.getDriverRideHistory(driverId).subscribe({
+      next: (data: RideHistoryResponse[]) => {
+        this.allRides = this.transformRideData(data);
+        this.filteredRides = [...this.allRides];
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading ride history:', error);
+      }
+    });
+  }
+
+  private transformRideData(apiData: RideHistoryResponse[]): Ride[] {
+    return apiData.map((ride, index) => ({
+      id: index + 1,
+      route: ride.route
+        ? `${ride.route.startLocation.address} → ${ride.route.endLocation.address}`
+        : 'N/A',
+      passengers: ride.passengers.join(', '),
+      date: ride.date,
+      duration: ride.durationMinutes > 0 ? `${ride.durationMinutes} min` : 'N/A',
+      timeRange: 'N/A', // Not provided by API
+      cancelled: ride.cancelled ? (ride.cancelledBy ? `Od strane putnika` : 'Od strane vozača') : null,
+      cancelledBy: ride.cancelledBy,
+      cost: `${ride.cost.toFixed(0)} RSD`,
+      panicButton: ride.panic ? (ride.panicBy ? `Od strane ${ride.panicBy}` : 'Da') : null,
+      panicBy: ride.panicBy,
+      rating: ride.rating,
+      inconsistencies: ride.inconsistencies,
+      routeData: ride.route
+    }));
+  }
 
   onFilter(filterDate: string): void {
     if (filterDate) {
