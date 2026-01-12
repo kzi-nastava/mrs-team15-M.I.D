@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterRequestDTO;
@@ -19,6 +20,8 @@ import java.util.UUID;
 public class AuthService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     String profileImageURL = "/uploads/default.png";
 
@@ -27,8 +30,8 @@ public class AuthService {
             throw new Exception("User with this email already exists");
         }
         String profileImageURL = generateProfileImageUrl(profileImage);
-        // add hashed value maybe here
-        User user = new User(requestDTO.getEmail(), requestDTO.getPassword(), requestDTO.getFirstName(),
+        String hashedPassword = passwordEncoder.encode(requestDTO.getPassword());
+        User user = new User(requestDTO.getEmail(), hashedPassword, requestDTO.getFirstName(),
                 requestDTO.getLastName(), requestDTO.getPhoneNumber(), requestDTO.getAddress(),
                 profileImageURL, false, false);
         User savedUser = userRepository.save(user);
