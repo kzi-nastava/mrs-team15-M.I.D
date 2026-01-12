@@ -1,0 +1,42 @@
+<div class="dr-table">
+  <div class="filter-row mb-2">
+    <label for="statusFilter" class="me-2">Filter:</label>
+    <select #statusFilter id="statusFilter" class="form-select form-select-sm w-auto d-inline-block" [value]="selectedStatus" (change)="onFilterChange(statusFilter.value)">
+      <option value="all">All</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Driver</th>
+        <th>Name</th>
+        <th>Request</th>
+        <th class="clickable" (click)="sortBy('submittedAt')">Submitted</th>
+        <th class="clickable" (click)="sortBy('status')">Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let r of filteredRequests">
+        <td>
+          <div class="avatar-cell">
+            <img *ngIf="r.changedDriver.avatarUrl || r.originalDriver.avatarUrl" [src]="r.changedDriver.avatarUrl || r.originalDriver.avatarUrl" alt="avatar" class="small-avatar" />
+            <div *ngIf="!(r.changedDriver.avatarUrl || r.originalDriver.avatarUrl)" class="avatar-fallback">{{ ((r.changedDriver.firstName || r.originalDriver.firstName) && (r.changedDriver.firstName || r.originalDriver.firstName).charAt(0)) || '?' }}</div>
+          </div>
+        </td>
+        <td>{{ r.changedDriver.firstName }} {{ r.changedDriver.lastName }}</td>
+        <td>{{ r.id }}</td>
+        <td>{{ r.submittedAt | date:'short' }}</td>
+        <td>
+          <span class="status {{ r.status }}">{{ r.status | titlecase }}</span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-primary" (click)="onView(r)">Review</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

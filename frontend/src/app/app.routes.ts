@@ -7,6 +7,8 @@ import { ForgotPassword } from './auth/pages/forgot-password/forgot-password';
 import { ResetPassword } from './auth/pages/reset-password/reset-password';
 import { Registration } from './auth/pages/registration/registration';
 import { ChangePasswordPage } from './pages/change-password/change-password';
+import { ChangeRequest} from './driver/pages/change-request/change-request';
+import { DriverRequestsPage } from './driver/pages/driver-requests/driver-requests';
 import { DriverHistory } from './history/pages/driver-history/driver-history';
 import { DriverAppointedRides } from './ride/pages/driver-appointed-rides/driver-appointed-rides';
 import { RideDetails } from './history/pages/ride-details/ride-details';
@@ -29,6 +31,8 @@ export const routes: Routes = [
     { path: 'reset-password', component: ResetPassword},
     { path: 'registration', component: Registration},
     { path: 'profile', component: ProfileInfo },
+    { path: 'change-request', component: ChangeRequest },
+    { path: 'driver-requests', component: DriverRequestsPage },
     { path: 'driver-registration', component: DriverRegistration },
     { path: 'change-password', component: ChangePasswordPage },
     { path: 'driver-history', component: DriverHistory },
