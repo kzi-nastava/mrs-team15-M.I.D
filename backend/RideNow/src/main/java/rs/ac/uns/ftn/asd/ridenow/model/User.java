@@ -38,7 +38,6 @@ public class User {
     @Column(nullable = false)
     private String address;
 
-    @URL
     private String profileImage;
 
     @Column(nullable = false)
