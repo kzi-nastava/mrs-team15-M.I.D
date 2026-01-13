@@ -39,7 +39,7 @@ public class DriverService {
 
         Driver driver = driverRepository.getReferenceById(driverId);
 
-        List<Ride> driverRides = rideRepository.findByDriver(driver);
+        List<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver);
         for (Ride ride : driverRides) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(mapRouteToDTO(ride.getRoute()));
@@ -56,11 +56,11 @@ public class DriverService {
             }
             dto.setPassengers(passengerNames);
 
-            List<PanicAlert> alerts = panicAlertRepository.findByRide(ride);
-
-            if (!alerts.isEmpty()) {
+            if (ride.getPanicAlert() != null) {
                 dto.setPanic(true);
-                dto.setPanicBy("Test Whatever");
+                if (ride.getPanicAlert().getPanicBy() != null) {
+                    dto.setPanicBy(ride.getPanicAlert().getPanicBy());
+                }
             }
 
             dto.setCancelled(ride.getCancelled());
