@@ -73,7 +73,7 @@ public class RideService {
         } else {
             // create a mock driver + vehicle and persist it
             Driver mock = new Driver();
-            mock.setEmail("mock.driver@example.com");
+            mock.setEmail("mock1.driver@example.com");
             mock.setPassword("password");
             mock.setFirstName("Mock");
             mock.setLastName("Driver");
