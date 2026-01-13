@@ -52,6 +52,10 @@ public class User {
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Message> messages = new ArrayList<>();
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "activation_token_id")
+    private ActivationToken activationToken;
+
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                 String profileImage, boolean active, boolean blocked) {
         this.email = email;
