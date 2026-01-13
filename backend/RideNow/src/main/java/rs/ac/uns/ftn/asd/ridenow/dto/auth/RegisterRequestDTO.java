@@ -8,11 +8,11 @@ import lombok.Setter;
 public class RegisterRequestDTO {
     private String email;
     private String password;
-    private  String confirmPassword;
+    private String confirmPassword;
     private String firstName;
     private String lastName;
     private String phoneNumber;
-    private String profileImage;
+    private String address;
 
     public RegisterRequestDTO() {
         super();
