@@ -1,0 +1,42 @@
+.finding-section {
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  background: #ffffff; /* keep page background light */
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    padding: 0 20px;
+  }
+
+  .form-section{
+    margin-bottom: 20px;
+  }
+  
+}
+
+/* Map container: keep light background so map tiles appear normally */
+.map-container { background: #ffffff; }
+
+/* Card: apply dark theme only to the card */
+.card {
+  background: #0f1720;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  color: #e6eef8;
+}
+
+.form-section .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  min-height: 520px; /* keep card height stable between searching/found/notfound */
+}
+
+@media (max-width: 768px) {
+  .form-section .card { min-height: 420px; }
+}

@@ -22,6 +22,7 @@ import { HistoryRideDetails } from './history/pages/history-ride-details/history
 import { CurrentRide } from './ride/pages/current-ride/current-ride';
 import { StartRide } from './ride/pages/start-ride/start-ride';
 import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
+import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
@@ -47,5 +48,6 @@ export const routes: Routes = [
     {path: 'history-ride-details/:id', component: HistoryRideDetails},
     {path: 'current-ride', component: CurrentRide},
     {path: 'start-ride', component: StartRide},
+    {path: 'finding-driver', component: FindingDriver},
     {path: 'ride-ordering', component: RideOrdering}
 ];
