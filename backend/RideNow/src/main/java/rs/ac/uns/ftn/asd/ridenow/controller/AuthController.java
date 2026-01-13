@@ -95,9 +95,8 @@ public class AuthController {
 
         User user = activationToken.getUser();
         user.setActive(true);
+        user.setActivationToken(null);
         userRepository.save(user);
-        activationTokenRepository.delete(activationToken);
-
         return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
     }
 }
