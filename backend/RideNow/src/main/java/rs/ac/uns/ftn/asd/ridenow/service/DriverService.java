@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
@@ -13,14 +14,12 @@ import java.util.List;
 @Service
 public class DriverService {
     private final RideRepository rideRepository;
-    private final PanicAlertRepository panicAlertRepository;
     private final RatingRepository ratingRepository;
     private final DriverRepository driverRepository;
 
-    public DriverService(RideRepository rideRepository, PanicAlertRepository panicAlertRepository,
+    public DriverService(RideRepository rideRepository,
                          RatingRepository ratingRepository, DriverRepository driverRepository) {
         this.rideRepository = rideRepository;
-        this.panicAlertRepository = panicAlertRepository;
         this.ratingRepository = ratingRepository;
         this.driverRepository = driverRepository;
     }
@@ -30,7 +29,17 @@ public class DriverService {
                 route.getId(),
                 route.getDistanceKm(),
                 route.getStartLocation(),
-                route.getEndLocation()
+                route.getEndLocation(),
+                route.getStopLocations()
+        );
+    }
+
+    private RatingDTO mapRatingToDTO(Rating rating) {
+        return new RatingDTO(
+                rating.getDriverRating(),
+                rating.getVehicleRating(),
+                rating.getDriverComment(),
+                rating.getVehicleComment()
         );
     }
 
@@ -50,6 +59,7 @@ public class DriverService {
                 dto.setDurationMinutes(0.0);
             }
             dto.setCost(ride.getPrice());
+
             List<String> passengerNames = new ArrayList<>();
             for (Passenger p : ride.getPassengers()) {
                 passengerNames.add(p == null ? null : p.getUser().getFirstName() + " " + p.getUser().getLastName());
@@ -68,11 +78,8 @@ public class DriverService {
                 dto.setCancelledBy(ride.getCancelledBy());
             }
 
-            Rating rating = ratingRepository.findByRide(ride);
-
-            if (rating != null) {
-                Double rate = (double) (rating.getDriverRating() + rating.getVehicleRating()) / 2;
-                dto.setRating(rate);
+            if (ratingRepository.findByRide(ride)!= null) {
+                dto.setRating(mapRatingToDTO(ratingRepository.findByRide(ride)));
             }
 
             List<Inconsistency> inconsistencies = ride.getInconsistencies();

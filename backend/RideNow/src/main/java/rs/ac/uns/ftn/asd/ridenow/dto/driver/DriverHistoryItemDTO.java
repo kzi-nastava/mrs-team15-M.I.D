@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 
 import java.time.LocalDate;
@@ -27,8 +28,7 @@ public class DriverHistoryItemDTO {
     @NotNull
     private Boolean panic;
     private String panicBy;
-    @NotNull
-    private Double rating;
+    private RatingDTO rating;
     @NotNull @NotEmpty
     private List<String> inconsistencies;
 

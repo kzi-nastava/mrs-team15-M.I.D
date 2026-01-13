@@ -13,12 +13,13 @@ public class RouteDTO {
     private double estimatedTimeMin;
     private Location startLocation;
     private Location endLocation;
-    private List<Location> stopLocations = new ArrayList<>();
+    private List<Location> stopLocations;
 
-    public RouteDTO(double distanceKm, double estimatedTimeMin, Location startLocation, Location endLocation) {
+    public RouteDTO(double distanceKm, double estimatedTimeMin, Location startLocation, Location endLocation, List<Location> stopLocations) {
         this.distanceKm = distanceKm;
         this.estimatedTimeMin = estimatedTimeMin;
         this.startLocation = startLocation;
         this.endLocation = endLocation;
+        this.stopLocations = stopLocations;
     }
 }
