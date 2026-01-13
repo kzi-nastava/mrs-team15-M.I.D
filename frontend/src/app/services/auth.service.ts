@@ -1,18 +1,26 @@
 import { Observable } from "rxjs";
 import { Injectable } from "@angular/core";
-import { HttpClient} from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 
-@Injectable({ providedIn: 'root'})
-export class AuthService{
-    private apiURL = "http://localhost:8080/api/auth";
+interface ActivateResponse {
+  message: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private apiURL = "http://localhost:8080/api/auth";
 
     constructor(private http : HttpClient){}
     
     register(data : FormData) : Observable<any> {
-        return  this.http.post(`${this.apiURL}/register`, data);
+      return this.http.post(`${this.apiURL}/register`, data);
     } 
-    
+
     login(payload: { email: string; password: string; }) : Observable<any> {
-        return this.http.post(`${this.apiURL}/login`, payload);
+      return this.http.post(`${this.apiURL}/login`, payload);
+    }
+
+    activate(token: string): Observable<ActivateResponse> {
+      return this.http.put<ActivateResponse>(`${this.apiURL}/activate?token=${token}`, null);
     }
 }
