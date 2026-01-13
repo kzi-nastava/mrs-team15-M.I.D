@@ -6,6 +6,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +44,11 @@ public class DriverService {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(mapRouteToDTO(ride.getRoute()));
             dto.setDate(ride.getScheduledTime().toLocalDate());
-            dto.setDurationMinutes(ride.getRoute().getEstimatedTimeMin());
+            if (ride.getStartTime() != null &&  ride.getEndTime() != null) {
+                dto.setDurationMinutes((double) Duration.between(ride.getStartTime(), ride.getEndTime()).toSeconds() / 60);
+            } else {
+                dto.setDurationMinutes(0.0);
+            }
             dto.setCost(ride.getPrice());
             List<String> passengerNames = new ArrayList<>();
             for (Passenger p : ride.getPassengers()) {
