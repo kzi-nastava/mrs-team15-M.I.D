@@ -4,11 +4,23 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
+
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public void changePassword(Long userId, ChangePasswordRequestDTO dto) {
         // mock: password changed
@@ -41,6 +53,29 @@ public class UserService {
 
 
     public void updateUser(Long userId, UpdateProfileRequestDTO dto) {
-        // mock: profile updated
+        Optional<User> opt = userRepository.findById(userId);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+
+        User user = opt.get();
+
+        // check email uniqueness (if changed)
+        if (dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+            Optional<User> existing = userRepository.findByEmail(dto.getEmail());
+            if (existing.isPresent() && !existing.get().getId().equals(userId)) {
+                throw new IllegalArgumentException("Email already in use: " + dto.getEmail());
+            }
+        }
+
+        // update user fields
+        user.setEmail(dto.getEmail());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setAddress(dto.getAddress());
+        user.setProfileImage(dto.getProfileImage());
+
+        userRepository.save(user);
     }
 }
