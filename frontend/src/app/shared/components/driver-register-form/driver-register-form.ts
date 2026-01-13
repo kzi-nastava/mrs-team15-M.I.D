@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef, ChangeDetectorRef, OnInit } from '@an
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Button } from '../button/button';
+import { AdminService } from '../../../services/admin.service';
 
 @Component({
   selector: 'app-driver-register-form',
@@ -37,7 +38,7 @@ export class DriverRegisterForm implements OnInit {
     babyFriendly: false,
   };
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef, private adminService: AdminService) {}
 
   ngOnInit(): void {}
 
@@ -118,9 +119,9 @@ export class DriverRegisterForm implements OnInit {
     }
   }
 
-  private showToastMessage(message: string): void {
+  private showToastMessage(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastMessage = message;
-    this.toastType = 'success';
+    this.toastType = type;
     this.showToast = true;
     this.cdr.detectChanges();
 
@@ -128,6 +129,67 @@ export class DriverRegisterForm implements OnInit {
       this.showToast = false;
       this.cdr.detectChanges();
     }, 3000);
+  }
+
+  private mapVehicleType(type: string): string {
+    if (!type) return 'STANDARD';
+    const t = type.toLowerCase();
+    if (t.includes('lux') || t === 'luksuz' || t === 'luxury') return 'LUXURY';
+    if (t.includes('van') || t === 'kombi') return 'VAN';
+    return 'STANDARD';
+  }
+
+  onSubmit(): void {
+    console.log('DriverRegisterForm.onSubmit called', { user: this.user, vehicle: this.vehicle });
+    // basic validation
+    if (this.isFieldEmpty(this.user.firstName) || this.isFieldEmpty(this.user.lastName) || !this.isEmailValid(this.user.email) || !this.isPhoneValid(this.user.phone)) {
+      this.showToastMessage('Please fill in required personal fields correctly', 'error');
+      return;
+    }
+    if (this.isVehicleFieldEmpty(this.vehicle.licensePlate) || !this.isLicensePlateValid(this.vehicle.licensePlate) || this.isVehicleFieldEmpty(this.vehicle.model) || !this.vehicle.seats) {
+      this.showToastMessage('Please fill in required vehicle fields correctly', 'error');
+      return;
+    }
+
+    let adminId = 1;
+    try {
+      const userJson = localStorage.getItem('user');
+      if (userJson) {
+        const parsed = JSON.parse(userJson);
+        if (parsed && parsed.id && parsed.role && parsed.role.toLowerCase() === 'admin') {
+          adminId = parsed.id;
+        }
+      }
+    } catch (e) {
+      // ignore, fallback to 1
+    }
+
+    const payload: any = {
+      email: this.user.email,
+      firstName: this.user.firstName,
+      lastName: this.user.lastName,
+      phoneNumber: this.user.phone,
+      address: this.user.address,
+      profileImage: this.userAvatar || null,
+      licensePlate: this.vehicle.licensePlate,
+      vehicleModel: this.vehicle.model,
+      vehicleType: this.mapVehicleType(this.vehicle.type),
+      numberOfSeats: Number(this.vehicle.seats) || 1,
+      babyFriendly: !!this.vehicle.babyFriendly,
+      petFriendly: !!this.vehicle.petFriendly,
+    };
+
+    console.log('Posting driver registration payload', payload, 'adminId', adminId);
+    this.adminService.registerDriver(adminId, payload).subscribe({
+      next: (res) => {
+        console.log('Driver registration response', res);
+        this.showToastMessage('Driver registration submitted', 'success');
+      },
+      error: (err) => {
+        console.error('Driver registration failed', err);
+        this.showToastMessage('Driver registration failed', 'error');
+      }
+    });
   }
 }
 
