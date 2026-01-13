@@ -71,7 +71,7 @@ public class AdminService {
         Driver driver = new Driver();
         driver.setEmail(request.getEmail());
         // password is required in User - set a random placeholder or empty; application should handle password set later
-        driver.setPassword("");
+        driver.setPassword("1234567");
         driver.setFirstName(request.getFirstName());
         driver.setLastName(request.getLastName());
         driver.setPhoneNumber(request.getPhoneNumber());
