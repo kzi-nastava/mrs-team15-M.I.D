@@ -76,22 +76,7 @@ public class AdminController {
             @PathVariable Long id,
             @Valid @RequestBody RegisterDriverRequestDTO request) {
 
-        RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
-        response.setId(1L);
-        response.setActive(false);
-        response.setEmail(request.getEmail());
-        response.setFirstName(request.getFirstName());
-        response.setLastName(request.getLastName());
-        response.setAddress(request.getAddress());
-        response.setPhoneNumber(request.getPhoneNumber());
-        response.setLicensePlate(request.getLicensePlate());
-        response.setVehicleModel(request.getVehicleModel());
-        response.setVehicleType(request.getVehicleType());
-        response.setNumberOfSeats(request.getNumberOfSeats());
-        response.setBabyFriendly(request.isBabyFriendly());
-        response.setPetFriendly(request.isPetFriendly());
-
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(201).body(adminService.register(request));
     }
 
     @GetMapping("{id}/driver-requests")
