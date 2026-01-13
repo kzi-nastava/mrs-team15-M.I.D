@@ -64,6 +64,9 @@ public class DriverService {
             }
 
             dto.setCancelled(ride.getCancelled());
+            if(ride.getCancelled()) {
+                dto.setCancelledBy(ride.getCancelledBy());
+            }
 
             Rating rating = ratingRepository.findByRide(ride);
 

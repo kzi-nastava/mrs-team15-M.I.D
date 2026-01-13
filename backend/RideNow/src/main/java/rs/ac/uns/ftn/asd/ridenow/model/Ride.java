@@ -41,6 +41,8 @@ public class Ride {
 
     private Boolean cancelled = false;
 
+    private String cancelledBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id", nullable = false)
     Driver driver;
