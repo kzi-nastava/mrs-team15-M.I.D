@@ -77,3 +77,11 @@
   margin-top: 2px;
   margin-left: 12px;
 }
+
+.toast {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.toast.show {
+  opacity: 1;
+}
