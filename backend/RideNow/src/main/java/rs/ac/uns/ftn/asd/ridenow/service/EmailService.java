@@ -17,7 +17,13 @@ public class EmailService {
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(to);
         mail.setSubject("Activate your RideNow account");
-        mail.setText("Click to activate:" + activationRoute + token.getToken());
+        mail.setText(
+                "Welcome to RideNow!\n\n" +
+                        "Your account is almost ready.\n" +
+                        "Click the link below to activate it:\n\n" +
+                        activationRoute + token.getToken() +
+                        "\n\nSee you on the road,\nRideNow Team"
+        );
         mailSender.send(mail);
     }
 }

@@ -68,7 +68,9 @@ public class AuthService {
     private ActivationToken generateActivationToken(User user) {
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
-        return new ActivationToken(token, expiresAt, user);
+        ActivationToken activationToken = new ActivationToken(token, expiresAt, user);
+        user.setActivationToken(activationToken);
+        return activationToken;
     }
 
     private String generateProfileImageUrl(MultipartFile profileImage) throws IOException {
