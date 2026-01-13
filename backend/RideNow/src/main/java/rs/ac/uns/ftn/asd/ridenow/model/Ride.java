@@ -39,7 +39,7 @@ public class Ride {
     @Column(length = 200)
     private String cancelReason;
 
-    private  boolean cancelled = false;
+    private Boolean cancelled = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id", nullable = false)

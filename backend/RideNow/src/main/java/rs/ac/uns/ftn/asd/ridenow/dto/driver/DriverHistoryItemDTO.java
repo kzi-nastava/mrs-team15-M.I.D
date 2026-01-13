@@ -4,21 +4,21 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import rs.ac.uns.ftn.asd.ridenow.model.Route;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter @Setter
 public class DriverHistoryItemDTO {
     @NotNull @NotEmpty
-    private Route route;
+    private RouteDTO route;
     @NotNull @NotEmpty
     private List<String> passengers;
     @NotNull
-    private Date date;
+    private LocalDate date;
     @NotNull
-    private Integer durationMinutes;
+    private Double durationMinutes;
     @NotNull
     private Double cost;
     @NotNull

@@ -20,12 +20,12 @@ public class Rating {
     @Column(nullable = false)
     @Min(1)
     @Max(5)
-    private  int driverRating;
+    private int driverRating;
 
     @Column(nullable = false)
     @Min(1)
     @Max(5)
-    private  int vehicleRating;
+    private int vehicleRating;
 
     @Column(length = 300)
     private String driverComment;
