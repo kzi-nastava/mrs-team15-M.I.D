@@ -90,7 +90,8 @@ public class AuthController {
 
         ActivationToken activationToken = optionalToken.get();
         if(activationToken.getExpiresAt().isBefore(LocalDateTime.now())){
-            return ResponseEntity.badRequest().body(Map.of("message", "Token expired"));
+            authService.handleExpiredActivationToken(activationToken);
+            return ResponseEntity.badRequest().body(Map.of("message", "Token expired. New activation link sent to your email."));
         }
 
         User user = activationToken.getUser();

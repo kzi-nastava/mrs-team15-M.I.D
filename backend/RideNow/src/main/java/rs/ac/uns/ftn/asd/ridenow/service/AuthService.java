@@ -60,6 +60,12 @@ public class AuthService {
     }
 
     private void sendActivationEmail(User user) {
+        ActivationToken oldToken = user.getActivationToken();
+        if (oldToken != null) {
+            user.setActivationToken(null);
+            activationTokenRepository.delete(oldToken);
+            userRepository.save(user);
+        }
         ActivationToken token = generateActivationToken(user);
         activationTokenRepository.save(token);
         emailService.sendActivationMail(user.getEmail(), token);
@@ -85,5 +91,12 @@ public class AuthService {
             imageURL = "/uploads/" + fileName;
         }
         return imageURL;
+    }
+
+    public void handleExpiredActivationToken(ActivationToken activationToken) {
+        User user = activationToken.getUser();
+        user.setActivationToken(null);
+        activationTokenRepository.delete(activationToken);
+        sendActivationEmail(user);
     }
 }
