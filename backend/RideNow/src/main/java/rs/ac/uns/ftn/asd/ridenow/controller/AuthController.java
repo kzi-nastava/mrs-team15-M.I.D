@@ -6,7 +6,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
+import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.service.AuthService;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -14,6 +22,10 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+    @Autowired
+    private ActivationTokenRepository activationTokenRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login (@RequestBody LoginRequestDTO request){
@@ -67,5 +79,25 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PutMapping("/activate")
+    public ResponseEntity<?> activate(@RequestParam String token){
+        Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
+        if(optionalToken.isEmpty()){
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
+        }
+
+        ActivationToken activationToken = optionalToken.get();
+        if(activationToken.getExpiresAt().isBefore(LocalDateTime.now())){
+            return ResponseEntity.badRequest().body(Map.of("message", "Token expired"));
+        }
+
+        User user = activationToken.getUser();
+        user.setActive(true);
+        userRepository.save(user);
+        activationTokenRepository.delete(activationToken);
+
+        return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
     }
 }
