@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Route } from '../../../services/ride-history.service';
+import { Rating, Route } from '../../../services/ride-history.service';
 
 export interface Ride {
   id: number;
@@ -14,7 +14,7 @@ export interface Ride {
   cost: string;
   panicButton: string | null;
   panicBy: string | null;
-  rating?: number | null;
+  rating?: Rating | null;
   inconsistencies?: string[] | null;
   routeData?: Route | null;
 }

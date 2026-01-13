@@ -17,6 +17,13 @@ export interface Route {
   stopLocations: Location[];
 }
 
+export interface Rating {
+  driverRating: number;
+  vehicleRating: number;
+  driverComment: string;
+  vehicleComment: string;
+}
+
 export interface RideHistoryResponse {
   route: Route | null;
   passengers: string[];
@@ -27,7 +34,7 @@ export interface RideHistoryResponse {
   cancelledBy: string | null;
   panic: boolean;
   panicBy: string | null;
-  rating: number | null;
+  rating: Rating | null;
   inconsistencies: string[];
 }
 

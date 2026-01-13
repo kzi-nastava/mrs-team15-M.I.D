@@ -50,7 +50,7 @@ export class DriverHistory implements OnInit {
       cancelled: ride.cancelled ? (ride.cancelledBy ? `Od strane putnika` : 'Od strane vozača') : null,
       cancelledBy: ride.cancelledBy,
       cost: `${ride.cost.toFixed(0)} RSD`,
-      panicButton: ride.panic ? (ride.panicBy ? `Od strane ${ride.panicBy}` : 'Da') : null,
+      panicButton: ride.panic ? (ride.panicBy ? `Od strane Putnika` : 'Od strane vozača') : null,
       panicBy: ride.panicBy,
       rating: ride.rating,
       inconsistencies: ride.inconsistencies,
