@@ -11,4 +11,8 @@ export class AuthService{
     register(data : FormData) : Observable<any> {
         return  this.http.post(`${this.apiURL}/register`, data);
     } 
+    
+    login(payload: { email: string; password: string; }) : Observable<any> {
+        return this.http.post(`${this.apiURL}/login`, payload);
+    }
 }
