@@ -1,0 +1,178 @@
+.car-scene {
+  position: relative;
+  height: 120px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.road {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  height: 8px;
+  background: #f9f7f7;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.road-lines {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2px;
+  height: 4px;
+  background-image: linear-gradient(to right, transparent 0 20%, #0e0e0e 20% 30%, transparent 30% 50%);
+  background-size: 60px 4px;
+  animation: roadMove 0.8s linear infinite;
+  opacity: 0.9;
+}
+
+.car {
+  width: 220px; 
+  display: block;
+  margin: 0 auto;
+  transform-origin: center bottom;
+  animation: bobAndDrive 1s ease-in-out infinite;
+  
+  filter: invert(100%) brightness(200%);
+}
+
+.car-scene > .road,
+.car-scene > .car {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes bobAndDrive {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); }
+  25% { transform: translateY(-4px) translateX(2px) rotate(-1deg); }
+  50% { transform: translateY(0) translateX(4px) rotate(0deg); }
+  75% { transform: translateY(-4px) translateX(2px) rotate(1deg); }
+  100% { transform: translateY(0) translateX(0) rotate(0deg); }
+}
+
+.cancel-btn {
+  margin-top: 16px;
+  background: #b71c1c;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@keyframes roadMove {
+  to { background-position: 60px 0; }
+}
+
+.ride-details {
+  text-align: left;
+  margin: 12px 0 0 0;
+  padding: 8px 12px;
+  background: #0f1720;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.detail-row.small {
+  font-size: 13px;
+  color: #555;
+}
+
+.detail-row .label {
+  color: #9aa4b2;
+  margin-right: 8px;
+}
+
+.detail-row .value {
+  font-weight: 600;
+  color: #e6eef8;
+}
+
+.dev-controls {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.dev-btn {
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px dashed rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #e6eef8;
+  cursor: pointer;
+}
+
+.driver-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 8px 0 12px 0;
+  gap: 8px;
+  text-align: center;
+  background: linear-gradient(180deg,#0b1220,#071018);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.driver-name {
+  font-weight: 700;
+  font-size: 16px;
+  color: #e6eef8;
+}
+
+.driver-meta {
+  color: #9aa4b2;
+  font-size: 13px;
+}
+
+.driver-right {
+  text-align: right;
+}
+
+.driver-photo {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.04);
+}
+
+.driver-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.driver-actions .cancel-btn {
+  background: #b71c1c;
+}
+
+.back-btn {
+  border: none;
+  padding: 12px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 15px;
+}
+
+.eta {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+

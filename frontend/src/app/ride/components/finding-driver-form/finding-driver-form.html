@@ -1,0 +1,53 @@
+<div class="finding-inner">
+    
+  <div class="dev-controls">
+    <button class="dev-btn" (click)="simulateFound()">Simulate: Driver Found</button>
+    <button class="dev-btn" (click)="simulateNotFound()">Simulate: No Driver</button>
+    <button class="dev-btn" (click)="resetSearch()">Reset</button>
+  </div>
+
+  <!-- Searching state -->
+  <ng-container *ngIf="state === 'searching'">
+    <h2>Looking for available vehicles</h2>
+    <p>Please wait while we find the best driver for your ride.</p>
+    <div class="car-scene">
+      
+      <img src="/assets/icons/car.png" alt="auto" class="car" />
+      <div class="road">
+        <div class="road-lines"></div>
+      </div>
+    </div>
+
+    <div class="ride-details">
+      <div class="detail-row"><span class="label">Pickup:</span> <span class="value">{{ ride.from }}</span></div>
+      <div class="detail-row"><span class="label">Destination:</span> <span class="value">{{ ride.to }}</span></div>
+      <div class="detail-row small"><span class="label">Distance:</span> <span class="value">{{ formatDistance() }}</span></div>
+      <div class="detail-row small"><span class="label">Price:</span> <span class="value">{{ formatPrice() }}</span></div>
+      <div class="detail-row small"><span class="label">Passengers:</span> <span class="value">{{ ride.passengers }}</span></div>
+      <div class="detail-row small"><span class="label">Vehicle Type:</span> <span class="value">{{ ride.vehicleType }}</span></div>
+    </div>
+    <button class="cancel-btn" (click)="onCancel()">Cancel</button>
+  </ng-container>
+
+  <!-- Found state -->
+  <ng-container *ngIf="state === 'found'">
+    <h2>We found a driver for you!</h2>
+    <div class="driver-card">
+        <img class="driver-photo" [src]="foundDriver?.photo || '/assets/pfp/default-avatar-icon.jpg'" alt="driver photo" />
+        <div class="driver-name">{{ foundDriver?.name }}</div>
+        <div class="driver-meta">{{ foundDriver?.vehicle }} • {{ foundDriver?.plate }}</div>
+        <div class="eta">ETA: {{ foundDriver?.etaMinutes }} min</div>
+        <div class="driver-actions">
+          <button class="back-btn" uppercase="true" (click)="accept()">Back to ride details</button>
+        </div>
+    </div>
+  </ng-container>
+
+  <!-- Not found state -->
+  <ng-container *ngIf="state === 'notfound'">
+    <h2>No drivers available</h2>
+    <p>There are currently no drivers available. Please try again in a few moments.</p>
+    <button class="back-btn" uppercase="true" (click)="goToOrdering()">Back</button>
+  </ng-container>
+
+</div>
