@@ -1,12 +1,19 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
+import rs.ac.uns.ftn.asd.ridenow.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    @Autowired
+    private AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login (@RequestBody LoginRequestDTO request){
@@ -50,24 +57,15 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO request){
-        if (request.getEmail() == null || request.getPassword() == null || request.getConfirmPassword() == null ||
-            request.getEmail().isEmpty() || request.getPassword().isEmpty() || request.getConfirmPassword().isEmpty()){
-            return ResponseEntity.status(400).build();
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> register(
+            @ModelAttribute RegisterRequestDTO request,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage){
+        try{
+            RegisterResponseDTO responseDTO = authService.register(request, profileImage);
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        if(!request.getPassword().equals(request.getConfirmPassword())){
-            return ResponseEntity.status(400).build();
-        }
-        if(!request.getEmail().contains("@")){
-            return ResponseEntity.status(400).build();
-        }
-        RegisterResponseDTO response = new RegisterResponseDTO();
-        response.setId(1L);
-        response.setActive(false);
-        response.setEmail(request.getEmail());
-        response.setFirstName(request.getFirstName());
-        response.setLastName(request.getLastName());
-        return ResponseEntity.status(201).body(response);
     }
 }

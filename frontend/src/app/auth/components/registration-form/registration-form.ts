@@ -4,6 +4,9 @@ import { Button } from '../../../shared/components/button/button';
 import { RouterLink } from '@angular/router';
 import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
+import { Router } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-registration-form',
@@ -13,6 +16,9 @@ import { CommonModule } from '@angular/common';
 })
 
 export class RegistrationForm {
+
+  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router){}
+
   passwordVisible = false;
   confirmPasswordVisible = false;
   togglePassword(type: string) {
@@ -62,7 +68,46 @@ export class RegistrationForm {
       return;
     }
     this.selectedFile = input.files[0];
-    console.log(this.selectedFile);
+  }
+
+  signUp(){
+    if(this.hasErrors()) { return ;}
+
+    const data : FormData  = new FormData();
+    data.append('firstName', this.firstName);
+    data.append('lastName', this.lastName);
+    data.append('phoneNumber', this.phoneNumber);
+    data.append('address', this.address);
+    data.append('email', this.email);
+    data.append('password', this.password);
+    data.append('confirmPassword', this.confirmedPassword);
+
+    if(this.selectedFile) {
+      data.append('profileImage', this.selectedFile);
+    }
+
+    this.authService.register(data).subscribe({
+      next: (response) => {
+        this.showErrorToast("Registration successful! Please check your email and activate your account using the link sent to you.");
+        setTimeout(() => { this.router.navigate(['/login']); }, 4000);
+      },
+      error: (err) => {
+        if (typeof err.error === 'string') {
+          this.showErrorToast(err.error);
+        } else {
+          this.showErrorToast('Registration failed. Please try again.');
+        }
+      }
+    });
+  }
+
+  showMessage = false;
+  message = '';
+
+  showErrorToast(message: string): void {
+    this.message = message;
+    this.showMessage = true;
+    this.cdr.detectChanges();  
+    setTimeout(() => { this.showMessage = false;}, 3000);
   }
 }
-

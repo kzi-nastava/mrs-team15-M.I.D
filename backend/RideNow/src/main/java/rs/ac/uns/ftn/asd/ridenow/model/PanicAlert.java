@@ -22,9 +22,11 @@ public class PanicAlert {
     @Column(nullable = false)
     private boolean resolved = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ride_id", nullable = false)
-    Ride ride;
+    private Ride ride;
+
+    private String panicBy;
 
     public PanicAlert(Ride ride) {
         this.assignRide(ride);
@@ -43,8 +45,8 @@ public class PanicAlert {
 
     public void assignRide(Ride ride) {
         this.ride = ride;
-        if(ride != null && !this.ride.getPanicAlerts().contains(this)){
-            ride.addPanicAlert(this);
+        if(ride != null && !this.ride.getPanicAlert().equals(this)) {
+            ride.setPanicAlert(this);
         }
     }
 }

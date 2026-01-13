@@ -39,7 +39,9 @@ public class Ride {
     @Column(length = 200)
     private String cancelReason;
 
-    private  boolean cancelled = false;
+    private Boolean cancelled = false;
+
+    private String cancelledBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id", nullable = false)
@@ -48,8 +50,8 @@ public class Ride {
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
     private Rating rating;
 
-    @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    List<PanicAlert> panicAlerts = new ArrayList<>();
+    @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private PanicAlert panicAlert;
 
     @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Passenger> passengers = new ArrayList<>();
@@ -88,9 +90,9 @@ public class Ride {
         }
     }
 
-    public void addPanicAlert(PanicAlert panicAlert) {
-        if(panicAlert != null && !panicAlerts.contains(panicAlert)){
-            panicAlerts.add(panicAlert);
+    public void setPanicAlert(PanicAlert panicAlert) {
+        if(panicAlert != null){
+            this.panicAlert = panicAlert;
             panicAlert.assignRide(this);
         }
     }
