@@ -21,60 +21,11 @@ export class ChangeRequestForm implements OnInit {
   actionTaken: 'approved' | 'rejected' | null = null;
   resultMessage = '';
 
-  private readonly MOCK_DRIVER = {
-    firstName: 'Ana',
-    lastName: 'Marković',
-    phone: '0601234567',
-    email: 'ana.markovic@example.com',
-    address: 'Bulevar oslobođenja 10, Novi Sad',
-    avatarUrl: 'assets/pfp/ana-avatar.jpg',
-    role: 'driver',
-    activeHours: 5,
-    vehicle: {
-      licensePlate: 'NS123AB',
-      model: 'VW Golf',
-      seats: 4,
-      type: 'Comfort',
-      petFriendly: true,
-      babyFriendly: false,
-    },
-  };
+  
 
-  private readonly ORIGINAL_DRIVER = {
-    firstName: 'Ana',
-    lastName: 'Marković',
-    phone: '0609876543',
-    email: 'ana.old@example.com',
-    address: 'Jovana Cvijića 5, Novi Sad',
-    avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
-    role: 'driver',
-    activeHours: 3,
-    vehicle: {
-      licensePlate: 'NS999ZZ',
-      model: 'Opel Astra',
-      seats: 4,
-      type: 'Standard',
-      petFriendly: false,
-      babyFriendly: true,
-    },
-  };
+  
 
   ngOnInit(): void {
-    if (!this.changedDriver) {
-      this.changedDriver = this.MOCK_DRIVER;
-      this.isMock = true;
-    }
-    if (!this.originalDriver) {
-      this.originalDriver = this.ORIGINAL_DRIVER;
-    }
-    if (!this.requestMeta) {
-      this.requestMeta = {
-        id: 'REQ-2026-001',
-        requestedBy: `${this.changedDriver.firstName} ${this.changedDriver.lastName}`,
-        submittedAt: new Date().toISOString(),
-        reason: 'Updated vehicle details and contact info',
-      };
-    }
   }
 
   private getValue(obj: any, path: string) {

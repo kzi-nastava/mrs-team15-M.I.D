@@ -1,13 +1,17 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
+import java.sql.Date;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +21,15 @@ public class DriverService {
     private final RideRepository rideRepository;
     private final RatingRepository ratingRepository;
     private final DriverRepository driverRepository;
+    private final DriverRequestRepository driverRequestRepository;
 
     public DriverService(RideRepository rideRepository,
-                         RatingRepository ratingRepository, DriverRepository driverRepository) {
+                         RatingRepository ratingRepository, DriverRepository driverRepository,
+                         DriverRequestRepository driverRequestRepository) {
         this.rideRepository = rideRepository;
         this.ratingRepository = ratingRepository;
         this.driverRepository = driverRepository;
+        this.driverRequestRepository = driverRequestRepository;
     }
 
     private RouteDTO mapRouteToDTO(Route route) {
@@ -95,5 +102,58 @@ public class DriverService {
             driverHistory.add(dto);
         }
         return driverHistory;
+    }
+
+    public DriverChangeResponseDTO requestDriverChanges(@NotNull Long driverId, @NotNull DriverChangeRequestDTO request) {
+        // map DTO -> entity
+        DriverChangeResponseDTO response = new DriverChangeResponseDTO();
+        DriverRequest entity = new DriverRequest();
+        entity.setSubmissionDate(new Date(System.currentTimeMillis()));
+        entity.setRequestStatus(rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus.PENDING);
+        entity.setDriverId(driverId);
+
+        entity.setEmail(request.getEmail());
+        entity.setFirstName(request.getFirstName());
+        entity.setLastName(request.getLastName());
+        entity.setPhoneNumber(request.getPhoneNumber());
+        entity.setAddress(request.getAddress());
+        entity.setProfileImage(request.getProfileImage());
+        entity.setLicensePlate(request.getLicensePlate());
+        entity.setVehicleModel(request.getVehicleModel());
+        entity.setNumberOfSeats(request.getNumberOfSeats());
+        entity.setVehicleType(request.getVehicleType());
+        entity.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
+        entity.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
+
+        response.setEmail(request.getEmail());
+        response.setFirstName(request.getFirstName());
+        response.setLastName(request.getLastName());
+        response.setPhoneNumber(request.getPhoneNumber());
+        response.setAddress(request.getAddress());
+        response.setProfileImage(request.getProfileImage());
+        response.setLicensePlate(request.getLicensePlate());
+        response.setVehicleModel(request.getVehicleModel());
+        response.setNumberOfSeats(request.getNumberOfSeats());
+        response.setVehicleType(request.getVehicleType());
+        response.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
+        response.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
+
+        // vehicleId is required by entity; try to set to driver's current vehicle if present
+        try {
+            Driver driver = driverRepository.getReferenceById(driverId);
+            if (driver != null && driver.getVehicle() != null) {
+                entity.setVehicleId(driver.getVehicle().getId());
+            } else {
+                entity.setVehicleId(0L);
+            }
+        } catch (Exception ex) {
+            entity.setVehicleId(0L);
+        }
+
+        System.out.println(entity.getLicensePlate());
+        // save
+        DriverRequest saved = driverRequestRepository.save(entity);
+
+        return response;
     }
 }
