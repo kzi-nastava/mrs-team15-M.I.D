@@ -1,4 +1,4 @@
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
   <div class="toast align-items-center text-white bg-black border-0"
        [class.show]="showMessage"
        role="alert"
@@ -32,7 +32,7 @@
   <a routerLink="/forgot-password" class="forgot-password">Forgot password?</a>
   
   <div class="form-footer">
-    <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log in" [disabled]="hasErrors()"></app-button>
+    <app-button width="450px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log in" [disabled]="hasErrors()" (clicked)="login()"></app-button>
     <p class="signup-link"> Don’t have an account? <a routerLink="/registration">Sign up</a></p>
   </div>
 </form>

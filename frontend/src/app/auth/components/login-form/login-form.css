@@ -76,3 +76,32 @@
   margin-top: 2px;
   margin-left: 12px;
 }
+
+.text-header{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40%;
+}
+
+.form-text h2{
+  font-size: 32px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-text p{
+  font-size: 20px; 
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .text-header p{
+    font-size: 24px;
+  }
+}
+
+#message{
+  margin-top:2%;
+}
