@@ -14,6 +14,9 @@ import { Router } from '@angular/router';
   styleUrl: './login-form.css',
 })
 export class LoginForm {
+
+  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router){}
+
   passwordVisible = false;
   
   togglePassword() {
@@ -31,28 +34,33 @@ export class LoginForm {
   message = '';
   showMessage = false;
 
-  constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {}
+  
+  login(){
+    if(this.hasErrors()) { return ;}
+    
+    const data = {email: this.email, password: this.password};
 
-  private showToast(message: string) {
-    this.message = message;
-    this.showMessage = true;
-    this.cdr.detectChanges();
-    setTimeout(() => { this.showMessage = false; }, 3000);
-  }
-
-  onSubmit(): void {
-    if (this.hasErrors()) return;
-    this.authService.login({ email: this.email, password: this.password }).subscribe({
-      next: (res) => {
-        try { localStorage.setItem('user', JSON.stringify(res)); } catch (e) {}
-        this.showToast('Login successful');
-        setTimeout(() => this.router.navigate(['/profile']), 500);
+    this.authService.login(data).subscribe({
+      next: (response) => {
+        localStorage.setItem('jwtToken', response.token);
+        this.showMessageToast("Login successful. Good to see you again. Where to next?");
+        setTimeout(() => { this.router.navigate(['/home']); }, 4000);
       },
       error: (err) => {
-        console.error('Login failed', err);
-        this.showToast('Login failed');
+        if (typeof err.error === 'string') {
+          this.showMessageToast(err.error);
+        } else {
+          this.showMessageToast('Login failed. Please try again.');
+        }
       }
     });
+  }
+
+  showMessageToast(message: string): void {
+    this.message = message;
+    this.showMessage = true;
+    this.cdr.detectChanges();  
+    setTimeout(() => { this.showMessage = false;}, 3000);
   }
 
   hasErrors() : boolean{
