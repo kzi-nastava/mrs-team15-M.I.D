@@ -1,8 +1,8 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.VehicleResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.exception.VehicleNotFoundException;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
@@ -31,7 +31,7 @@ public class VehicleService {
     public VehicleResponseDTO updateVehicleLocation(String licencePlate, Double lat, Double lon) {
         Vehicle vehicle = vehicleRepository.findByLicencePlate(licencePlate);
         if (vehicle == null) {
-            throw new VehicleNotFoundException("Vehicle with licence plate " + licencePlate + " not found.");
+            throw new EntityNotFoundException("Vehicle with licence plate " + licencePlate + " not found.");
         }
 
         vehicle.setLat(lat);

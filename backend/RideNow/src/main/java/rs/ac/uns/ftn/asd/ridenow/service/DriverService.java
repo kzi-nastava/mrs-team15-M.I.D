@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
@@ -46,7 +47,7 @@ public class DriverService {
     public List<DriverHistoryItemDTO> getDriverHistory(Long driverId) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
-        Driver driver = driverRepository.getReferenceById(driverId);
+        Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
 
         List<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver);
         for (Ride ride : driverRides) {
