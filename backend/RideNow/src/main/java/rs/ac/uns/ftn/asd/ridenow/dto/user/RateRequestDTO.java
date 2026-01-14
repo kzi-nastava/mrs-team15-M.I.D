@@ -1,18 +1,21 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.user;
 
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
 public class RateRequestDTO {
     @NotNull
-    @DecimalMax("5.0")
-    @DecimalMin("1.0")
-    private Double rating;
+    @Max(5)
+    @Min(1)
+    private Integer driverRating;
+    @NotNull
+    @Max(5)
+    @Min(1)
+    private Integer vehicleRating;
     @NotNull
     private Long rideId;
-    private String comment;
+    private String driverComment;
+    private String vehicleComment;
 }
