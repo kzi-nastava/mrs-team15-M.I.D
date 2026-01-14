@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.exception.RideNotFoundException;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
@@ -140,7 +141,7 @@ public class RideService {
 
     public RateResponseDTO makeRating(RateRequestDTO req, Long rideId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new EntityNotFoundException("Ride not found"));
+                .orElseThrow(() -> new RideNotFoundException("Ride with id " + rideId + " not found"));
 
         // Create and populate the rating entity
         Rating rating = new Rating();

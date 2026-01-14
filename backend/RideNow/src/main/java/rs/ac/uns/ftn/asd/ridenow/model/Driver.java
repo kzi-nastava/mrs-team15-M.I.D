@@ -17,15 +17,14 @@ public class Driver extends User {
     private DriverStatus status;
 
     @Column(nullable = false)
-    private boolean available;
+    private Boolean available;
 
     @Column(nullable = false)
     @Min(0)
-    private double workingHoursLast24 = 0;
+    private Double workingHoursLast24 = 0.0;
 
-    @Column(nullable = true)
     @Min(0)
-    private double rating = 0.0;
+    private Double rating = 0.0;
 
     @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Vehicle vehicle;
@@ -51,7 +50,7 @@ public class Driver extends User {
         this.rideHistory = new ArrayList<>();
         this.assignVehicle(vehicle);
         this.rating = 0.0;
-        this.workingHoursLast24 = 0;
+        this.workingHoursLast24 = 0.0;
         this.available = true;
     }
 
