@@ -113,6 +113,9 @@ public class AuthService {
             throw new Exception("User with this email does not exists");
         }
         User existingUser = user.get();
+        if(!existingUser.isActive()){
+            throw  new Exception("Account is not active. Please activate your account via email.");
+        }
         if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
             throw new Exception("Invalid credentials");
         }
