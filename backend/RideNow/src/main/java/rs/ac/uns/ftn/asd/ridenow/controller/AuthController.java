@@ -28,12 +28,13 @@ public class AuthController {
     private UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login (@RequestBody LoginRequestDTO request){
-        if(!request.getEmail().contains("@")){
-            return ResponseEntity.status(401).build();
+    public ResponseEntity<?> login (@RequestBody LoginRequestDTO request){
+        try{
+            LoginResponseDTO responseDTO = authService.login(request);
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        LoginResponseDTO response = new LoginResponseDTO();
-        return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/logout")
