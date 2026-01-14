@@ -31,6 +31,9 @@ public class DriverChangeRequestDTO {
     private String profileImage;
 
     @NotBlank
+    private String licensePlate;
+
+    @NotBlank
     private String vehicleModel;
 
     @Min(1)

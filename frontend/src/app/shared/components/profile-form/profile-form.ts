@@ -184,6 +184,7 @@ export class ProfileForm implements OnInit {
 
     if (this.user.role === 'driver') {
       const driverPayload = {
+        licensePlate: this.user.vehicle.licensePlate ? String(this.user.vehicle.licensePlate).toUpperCase().trim() : null,
         email: this.user.email,
         firstName: this.user.firstName,
         lastName: this.user.lastName,

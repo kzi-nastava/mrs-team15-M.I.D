@@ -2,7 +2,6 @@
   <header class="cr-header">
     <div>
       <h1>Admin — Change Request Review</h1>
-      <p class="muted small">Request: {{ requestMeta?.id }} • Submitted by: {{ requestMeta?.requestedBy }} • {{ requestMeta?.submittedAt | date:'short' }}</p>
     </div>
     <div class="cr-actions">
       <button class="btn btn-outline-secondary" (click)="onBack()">Back</button>
@@ -30,7 +29,7 @@
     </aside>
 
     <main class="cr-card cr-details">
-      <h3>Proposed vs Current</h3>
+      <h3>Current vs Proposed</h3>
 
       <div class="diff-grid">
         <div class="diff-row header">

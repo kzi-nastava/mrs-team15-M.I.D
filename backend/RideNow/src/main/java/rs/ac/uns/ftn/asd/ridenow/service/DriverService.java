@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
@@ -102,8 +103,9 @@ public class DriverService {
         return driverHistory;
     }
 
-    public DriverChangeResponseDTO requestDriverChanges(@NotNull Long driverId, @NotNull DriverChangeResponseDTO request) {
+    public DriverChangeResponseDTO requestDriverChanges(@NotNull Long driverId, @NotNull DriverChangeRequestDTO request) {
         // map DTO -> entity
+        DriverChangeResponseDTO response = new DriverChangeResponseDTO();
         DriverRequest entity = new DriverRequest();
         entity.setSubmissionDate(new Date(System.currentTimeMillis()));
         entity.setRequestStatus(rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus.PENDING);
@@ -115,11 +117,25 @@ public class DriverService {
         entity.setPhoneNumber(request.getPhoneNumber());
         entity.setAddress(request.getAddress());
         entity.setProfileImage(request.getProfileImage());
+        entity.setLicensePlate(request.getLicensePlate());
         entity.setVehicleModel(request.getVehicleModel());
         entity.setNumberOfSeats(request.getNumberOfSeats());
         entity.setVehicleType(request.getVehicleType());
         entity.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
         entity.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
+
+        response.setEmail(request.getEmail());
+        response.setFirstName(request.getFirstName());
+        response.setLastName(request.getLastName());
+        response.setPhoneNumber(request.getPhoneNumber());
+        response.setAddress(request.getAddress());
+        response.setProfileImage(request.getProfileImage());
+        response.setLicensePlate(request.getLicensePlate());
+        response.setVehicleModel(request.getVehicleModel());
+        response.setNumberOfSeats(request.getNumberOfSeats());
+        response.setVehicleType(request.getVehicleType());
+        response.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
+        response.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
 
         // vehicleId is required by entity; try to set to driver's current vehicle if present
         try {
@@ -133,10 +149,10 @@ public class DriverService {
             entity.setVehicleId(0L);
         }
 
+        System.out.println(entity.getLicensePlate());
         // save
         DriverRequest saved = driverRequestRepository.save(entity);
 
-        // return the original DTO (could be adapted to include saved id/status)
-        return request;
+        return response;
     }
 }

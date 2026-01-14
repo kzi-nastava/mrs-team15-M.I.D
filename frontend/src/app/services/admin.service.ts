@@ -15,4 +15,8 @@ export class AdminService {
   getDriverRequests(adminId: number): Observable<any> {
     return this.http.get(`${this.apiURL}/${adminId}/driver-requests`);
   }
+
+  reviewDriverRequest(adminId: number, requestId: number | string, dto: any): Observable<any> {
+    return this.http.put(`${this.apiURL}/${adminId}/driver-requests/${requestId}`, dto);
+  }
 }

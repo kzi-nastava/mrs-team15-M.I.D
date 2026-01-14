@@ -41,7 +41,7 @@ export class DriverRequestsPage {
     }
 
     this.router.navigate(['/change-request'], {
-      state: { changedDriver: req.changedDriver, originalDriver: original },
+      state: { changedDriver: req.changedDriver, originalDriver: original, requestMeta: req.requestMeta || { id: req.id, requestedBy: req.requestedBy, submittedAt: req.submittedAt, reason: req.reason } },
     });
   }
 }

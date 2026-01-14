@@ -16,20 +16,25 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRequestRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService {
 
     private final DriverRepository driverRepository;
     private final DriverRequestRepository driverRequestRepository;
+    private final VehicleRepository vehicleRepository;
 
-    public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository) {
+    public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
+                        VehicleRepository vehicleRepository) {
         this.driverRepository = driverRepository;
         this.driverRequestRepository = driverRequestRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     public List<DriverChangeRequestDTO> getDriverRequests() {
@@ -55,12 +60,15 @@ public class AdminService {
             request.setSubmitDate(entity.getSubmissionDate());
             request.setId(entity.getId());
             request.setDriverId(entity.getDriverId());
+            request.setId(entity.getId());
+            System.out.println("Id " + entity.getId());
             requests.add(request);
         }
 
         return requests;
     }
 
+    @Transactional
     public void reviewDriverRequest(
             Long adminId,
             Long requestId,
@@ -105,17 +113,43 @@ public class AdminService {
                 driver.setAddress(req.getAddress());
             }
 
-            // create/update vehicle from request
-            Vehicle vehicle = new Vehicle();
-            vehicle.setLicencePlate(req.getLicensePlate());
-            vehicle.setModel(req.getVehicleModel());
-            vehicle.setType(req.getVehicleType());
-            vehicle.setSeatCount(req.getNumberOfSeats());
-            vehicle.setChildFriendly(req.isBabyFriendly());
-            vehicle.setPetFriendly(req.isPetFriendly());
+            // find existing vehicle by licence plate to avoid unique constraint violation
+            Optional<Vehicle> existingVehicle = Optional.empty();
+            if (req.getLicensePlate() != null && !req.getLicensePlate().isEmpty()) {
+                existingVehicle = vehicleRepository.findByLicencePlate(req.getLicensePlate());
+            }
 
+            Vehicle vehicle;
+            if (existingVehicle.isPresent()) {
+                vehicle = existingVehicle.get();
+                // If vehicle is attached to a different driver, detach from that driver first
+                if (vehicle.getDriver() != null && (driver.getId() == null || !vehicle.getDriver().getId().equals(driver.getId()))) {
+                    Driver previousDriver = vehicle.getDriver();
+                    previousDriver.setVehicle(null);
+                    // persist previous driver to remove the association
+                    driverRepository.save(previousDriver);
+                }
+                // update vehicle fields if necessary
+                vehicle.setModel(req.getVehicleModel());
+                vehicle.setType(req.getVehicleType());
+                vehicle.setSeatCount(req.getNumberOfSeats());
+                vehicle.setChildFriendly(req.isBabyFriendly());
+                vehicle.setPetFriendly(req.isPetFriendly());
+            } else {
+                vehicle = new Vehicle();
+                vehicle.setLicencePlate(req.getLicensePlate());
+                vehicle.setModel(req.getVehicleModel());
+                vehicle.setType(req.getVehicleType());
+                vehicle.setSeatCount(req.getNumberOfSeats());
+                vehicle.setChildFriendly(req.isBabyFriendly());
+                vehicle.setPetFriendly(req.isPetFriendly());
+            }
+
+            // link vehicle and driver
             driver.assignVehicle(vehicle);
 
+            // Save driver (cascade will save vehicle). If vehicle was existing and detached from previous driver above,
+            // this will update driver_id on vehicle rather than inserting a duplicate.
             Driver saved = driverRepository.save(driver);
             // update driverId in request in case it was a new driver
             req.setDriverId(saved.getId());

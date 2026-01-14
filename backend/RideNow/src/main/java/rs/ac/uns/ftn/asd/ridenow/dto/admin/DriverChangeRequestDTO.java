@@ -13,6 +13,8 @@ import java.sql.Date;
 @Setter
 @Getter
 public class DriverChangeRequestDTO {
+
+    private long requestId;
     @NotBlank
     @Email
     private String email;

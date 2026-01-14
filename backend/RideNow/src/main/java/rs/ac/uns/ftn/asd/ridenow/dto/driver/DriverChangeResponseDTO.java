@@ -20,7 +20,7 @@ public class DriverChangeResponseDTO {
     private String vehicleModel;
     private int numberOfSeats;
     private VehicleType vehicleType;
-
+    private String licensePlate;
     private Boolean babyFriendly;
     private Boolean petFriendly;
 

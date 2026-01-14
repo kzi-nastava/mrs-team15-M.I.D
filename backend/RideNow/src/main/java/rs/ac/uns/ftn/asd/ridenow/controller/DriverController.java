@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
@@ -149,7 +150,7 @@ public class DriverController {
 
     @PostMapping("/{id}/change-request")
     public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@PathVariable @NotNull @Min(1) Long id,
-                                                                       @RequestBody @NotNull DriverChangeResponseDTO request) {
+                                                                       @RequestBody @NotNull DriverChangeRequestDTO request) {
         return ResponseEntity.ok(driverService.requestDriverChanges(id, request));
     }
 }

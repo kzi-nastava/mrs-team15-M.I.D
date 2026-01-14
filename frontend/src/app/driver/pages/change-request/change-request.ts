@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ChangeRequestForm } from '../../components/change-request-form/change-request-form';
+import { AdminService } from '../../../services/admin.service';
 
 @Component({
   selector: 'app-change-request',
@@ -52,12 +53,13 @@ export class ChangeRequest implements OnInit {
   requestMeta: any = null;
   resultMessage = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private adminService: AdminService) {}
 
   ngOnInit(): void {
     const navigation = this.router.getCurrentNavigation();
     this.changedDriver = navigation?.extras?.state?.['changedDriver'] || history.state?.['changedDriver'] || null;
     this.originalDriver = navigation?.extras?.state?.['originalDriver'] || history.state?.['originalDriver'] || null;
+    this.requestMeta = navigation?.extras?.state?.['requestMeta'] || history.state?.['requestMeta'] || null;
 
     // normalize incoming objects so template comparisons work (phone vs phoneNumber, profileImage vs avatarUrl, vehicle fields)
     this.originalDriver = this.normalizeDriver(this.originalDriver) || this.ORIGINAL_DRIVER;
@@ -65,14 +67,8 @@ export class ChangeRequest implements OnInit {
     if (this.changedDriver === this.MOCK_DRIVER) {
       this.isMock = true;
     }
-    if (!this.requestMeta) {
-      this.requestMeta = {
-        id: 'REQ-2026-001',
-        requestedBy: `${this.changedDriver.firstName} ${this.changedDriver.lastName}`,
-        submittedAt: new Date().toISOString(),
-        reason: 'Updated vehicle details and contact info',
-      };
-    }
+    // `requestMeta` must be provided by the caller (table/navigation).
+    // Do not create a mock request id here — the real request id comes from the requests table.
   }
 
   private normalizeDriver(d: any): any {
@@ -115,11 +111,68 @@ export class ChangeRequest implements OnInit {
   }
 
   onApprove(event: any): void {
-    this.resultMessage = `Approved ${event?.requestId || this.requestMeta?.id}`;
+    const rawId = event?.requestId || this.requestMeta?.id;
+    const requestId = this.parseRequestId(rawId);
+    if (requestId == null) {
+      this.resultMessage = 'Invalid request id; cannot approve.';
+      return;
+    }
+    const admin = this.getCurrentUser();
+    const adminId = admin?.id || 1;
+    const dto = { approved: true, message: event?.notes || '' };
+    this.resultMessage = 'Approving...';
+    this.adminService.reviewDriverRequest(adminId, requestId, dto).subscribe({
+      next: () => {
+        this.resultMessage = `Approved ${requestId || this.requestMeta?.id}`;
+      },
+      error: (err) => {
+        console.error('Approve failed', err);
+        this.resultMessage = 'Approve failed';
+      },
+    });
   }
 
   onReject(event: any): void {
-    this.resultMessage = `Rejected ${event?.requestId || this.requestMeta?.id}`;
+    const rawId = event?.requestId || this.requestMeta?.id;
+    const requestId = this.parseRequestId(rawId);
+    if (requestId == null) {
+      this.resultMessage = 'Invalid request id; cannot reject.';
+      return;
+    }
+    const admin = this.getCurrentUser();
+    const adminId = admin?.id || 1;
+    const dto = { approved: false, message: event?.notes || '' };
+    this.resultMessage = 'Rejecting...';
+    this.adminService.reviewDriverRequest(adminId, requestId, dto).subscribe({
+      next: () => {
+        this.resultMessage = `Rejected ${requestId || this.requestMeta?.id}`;
+      },
+      error: (err) => {
+        console.error('Reject failed', err);
+        this.resultMessage = 'Reject failed';
+      },
+    });
+  }
+
+  private getCurrentUser(): any {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private parseRequestId(raw: any): number {
+    if (raw == null) return null as any;
+    if (typeof raw === 'number') return raw;
+    if (typeof raw === 'string') {
+      const digits = raw.replace(/\D+/g, '');
+      if (!digits) return null as any;
+      const n = parseInt(digits, 10);
+      return Number.isFinite(n) && n > 0 ? n : null as any;
+    }
+    return null as any;
   }
 
   submitRequest(): void {
