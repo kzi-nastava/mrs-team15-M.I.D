@@ -182,6 +182,33 @@ export class ProfileForm implements OnInit {
       return;
     }
 
+    if (this.user.role === 'driver') {
+      const driverPayload = {
+        email: this.user.email,
+        firstName: this.user.firstName,
+        lastName: this.user.lastName,
+        phoneNumber: this.user.phone,
+        address: this.user.address,
+        profileImage: this.userAvatar || null,
+        vehicleModel: this.user.vehicle.model || null,
+        numberOfSeats: this.user.vehicle.seats || 0,
+        vehicleType: this.user.vehicle.type || null,
+        babyFriendly: this.user.vehicle.babyFriendly || false,
+        petFriendly: this.user.vehicle.petFriendly || false
+      };
+
+      this.userService.requestDriverChange(this.DEV_USER_ID, driverPayload).subscribe({
+        next: () => {
+          this.showToastMessage('Change request sent for admin approval.');
+        },
+        error: (err) => {
+          console.error('Driver change request failed', err);
+          this.showToastMessage('Profile update failed', 'error');
+        }
+      });
+      return;
+    }
+
     const payload = {
       email: this.user.email,
       firstName: this.user.firstName,
@@ -193,11 +220,7 @@ export class ProfileForm implements OnInit {
 
     this.userService.updateUser(this.DEV_USER_ID, payload).subscribe({
       next: () => {
-        this.showToastMessage(
-          this.user.role === 'driver'
-            ? 'Change request sent for admin approval.'
-            : 'Profile updated successfully.'
-        );
+        this.showToastMessage('Profile updated successfully.');
       },
       error: (err) => {
         console.error('Profile update failed', err);

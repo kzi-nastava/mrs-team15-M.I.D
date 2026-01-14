@@ -11,4 +11,8 @@ export class AdminService {
   registerDriver(adminId: number, data: any): Observable<any> {
     return this.http.post(`${this.apiURL}/${adminId}/driver-register`, data);
   }
+
+  getDriverRequests(adminId: number): Observable<any> {
+    return this.http.get(`${this.apiURL}/${adminId}/driver-requests`);
+  }
 }

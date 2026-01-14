@@ -98,6 +98,12 @@
         </div>
 
         <div class="diff-row">
+          <div class="label">Vehicle Type</div>
+          <div class="current">{{ originalDriver?.missing ? 'No current data' : (originalDriver.vehicle?.type || '-') }}</div>
+          <div class="proposed" [class.changed]="isFieldChanged('vehicle.type')">{{ changedDriver.vehicle?.type || '-' }}</div>
+        </div>
+
+        <div class="diff-row">
           <div class="label">Pet friendly</div>
           <div class="current">{{ originalDriver.vehicle?.petFriendly ? 'Yes' : 'No' }}</div>
           <div class="proposed" [class.changed]="isFieldChanged('vehicle.petFriendly')">{{ changedDriver.vehicle?.petFriendly ? 'Yes' : 'No' }}</div>

@@ -52,7 +52,9 @@ public class AdminService {
             request.setBabyFriendly(entity.isBabyFriendly());
             request.setPetFriendly(entity.isPetFriendly());
             request.setStatus(entity.getRequestStatus());
-
+            request.setSubmitDate(entity.getSubmissionDate());
+            request.setId(entity.getId());
+            request.setDriverId(entity.getDriverId());
             requests.add(request);
         }
 

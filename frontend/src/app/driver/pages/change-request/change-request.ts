@@ -58,12 +58,12 @@ export class ChangeRequest implements OnInit {
     const navigation = this.router.getCurrentNavigation();
     this.changedDriver = navigation?.extras?.state?.['changedDriver'] || history.state?.['changedDriver'] || null;
     this.originalDriver = navigation?.extras?.state?.['originalDriver'] || history.state?.['originalDriver'] || null;
-    if (!this.changedDriver) {
-      this.changedDriver = this.MOCK_DRIVER;
+
+    // normalize incoming objects so template comparisons work (phone vs phoneNumber, profileImage vs avatarUrl, vehicle fields)
+    this.originalDriver = this.normalizeDriver(this.originalDriver) || this.ORIGINAL_DRIVER;
+    this.changedDriver = this.normalizeDriver(this.changedDriver) || this.MOCK_DRIVER;
+    if (this.changedDriver === this.MOCK_DRIVER) {
       this.isMock = true;
-    }
-    if (!this.originalDriver) {
-      this.originalDriver = this.ORIGINAL_DRIVER;
     }
     if (!this.requestMeta) {
       this.requestMeta = {
@@ -73,6 +73,31 @@ export class ChangeRequest implements OnInit {
         reason: 'Updated vehicle details and contact info',
       };
     }
+  }
+
+  private normalizeDriver(d: any): any {
+    if (!d) return null;
+    const vehicleSource = d.vehicle || {};
+    const vehicle = {
+      licensePlate: d.licensePlate || vehicleSource.licensePlate || null,
+      model: d.vehicleModel || vehicleSource.model || null,
+      seats: d.numberOfSeats ?? vehicleSource.seats ?? null,
+      type: d.vehicleType || vehicleSource.type || null,
+      petFriendly: d.petFriendly ?? vehicleSource.petFriendly ?? false,
+      babyFriendly: d.babyFriendly ?? vehicleSource.babyFriendly ?? false,
+    };
+
+    return {
+      firstName: d.firstName || d.changedFirstName || null,
+      lastName: d.lastName || d.changedLastName || null,
+      phone: d.phone || d.phoneNumber || null,
+      email: d.email || null,
+      address: d.address || null,
+      avatarUrl: d.avatarUrl || d.profileImage || null,
+      role: (d.role || 'driver'),
+      activeHours: d.activeHours ?? d.hoursWorkedLast24 ?? 0,
+      vehicle,
+    };
   }
 
   private getValue(obj: any, path: string) {

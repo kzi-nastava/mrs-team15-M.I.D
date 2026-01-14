@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 
+import java.sql.Date;
+
 @Setter
 @Getter
 public class DriverChangeRequestDTO {
@@ -45,6 +47,12 @@ public class DriverChangeRequestDTO {
     private boolean petFriendly;
 
     private DriverChangesStatus status;
+
+    private Date submitDate;
+    
+    private Long driverId;
+
+    private long id;
 
     public DriverChangeRequestDTO() {
         super();

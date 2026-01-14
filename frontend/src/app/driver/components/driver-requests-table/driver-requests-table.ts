@@ -1,5 +1,9 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AdminService } from '../../../services/admin.service';
+import { UserService } from '../../../services/user.service';
+import { ChangeDetectorRef } from '@angular/core';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-driver-requests-table',
@@ -8,100 +12,159 @@ import { CommonModule } from '@angular/common';
   templateUrl: './driver-requests-table.html',
   styleUrl: './driver-requests-table.css',
 })
-export class DriverRequestsTable {
+export class DriverRequestsTable implements OnInit {
   @Output() viewRequest = new EventEmitter<any>();
-
-  requests = [
-    {
-      id: 'REQ-2026-101',
-      submittedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-      status: 'pending',
-      requestedBy: 'Ana Marković',
-      reason: 'Change contact and vehicle info',
-      originalDriver: {
-        firstName: 'Ana',
-        lastName: 'Marković',
-        phone: '0609876543',
-        role: 'driver',
-        email: 'ana.old@example.com',
-        address: 'Jovana Cvijića 5, Novi Sad',
-        avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
-        activeHours: 3,
-        vehicle: { licensePlate: 'NS999ZZ', model: 'Opel Astra', seats: 4, petFriendly: false, babyFriendly: true },
-      },
-      changedDriver: {
-        firstName: 'Ana',
-        lastName: 'Marković',
-        phone: '0601234567',
-        role: 'driver',
-        email: 'ana.markovic@example.com',
-        address: 'Bulevar oslobođenja 10, Novi Sad',
-        avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
-        
-        vehicle: { licensePlate: 'NS123AB', model: 'VW Golf', seats: 4, petFriendly: true, babyFriendly: false },
-      },
-    },
-    {
-      id: 'REQ-2026-102',
-      submittedAt: new Date(Date.now() - 86400000).toISOString(),
-      status: 'pending',
-      requestedBy: 'Marko Petrović',
-      reason: 'Enable pet friendly option',
-      originalDriver: {
-        firstName: 'Marko',
-        lastName: 'Petrović',
-        phone: '0615551234',
-        role: 'driver',
-        email: 'marko.petrovic@example.com',
-        address: 'Bulevar kralja Petra 3, Novi Sad',
-        avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
-        activeHours: 3,
-        vehicle: { licensePlate: 'NS321BC', model: 'Fiat Tipo', seats: 4, petFriendly: false, babyFriendly: true },
-      },
-      changedDriver: {
-        firstName: 'Marko',
-        lastName: 'Petrović',
-        phone: '0615559999',
-        role: 'driver',
-        email: 'marko.new@example.com',
-        address: 'Bulevar kralja Petra 3, Novi Sad',
-        avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
-        vehicle: { licensePlate: 'NS321BC', model: 'Fiat Tipo', seats: 4, petFriendly: true, babyFriendly: true },
-      },
-    },
-    {
-      id: 'REQ-2026-050',
-      submittedAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-      status: 'approved',
-      requestedBy: 'Jelena Ilić',
-      reason: 'Update email and legal name',
-      originalDriver: {
-        firstName: 'Jelena',
-        lastName: 'Ilić',
-        phone: '062111222',
-        role: 'driver',
-        email: 'jelena.old@example.com',
-        address: 'Svetozara Miletića 12, Novi Sad',
-        avatarUrl:'assets/pfp/default-avatar-icon.jpg',
-        activeHours: 3,
-        vehicle: { licensePlate: 'NS555AA', model: 'Toyota Corolla', seats: 4, petFriendly: false, babyFriendly: false },
-      },
-      changedDriver: {
-        firstName: 'Jelena',
-        lastName: 'Ilić',
-        phone: '062111222',
-        role: 'driver',
-        email: 'jelena.ilic@example.com',
-        address: 'Svetozara Miletića 12, Novi Sad',
-        avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
-        vehicle: { licensePlate: 'NS555AA', model: 'Toyota Corolla', seats: 4, petFriendly: false, babyFriendly: false },
-      },
-    },
-  ];
-  
+  requests: any[] = [];
+  currentAdminId: number | null = null;
+  private DEV_ADMIN_ID = 1;
   selectedStatus: string = 'all';
   sortField: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
+  constructor(private adminService: AdminService, private userService: UserService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    let adminId = this.DEV_ADMIN_ID;
+    try {
+      const userJson = localStorage.getItem('user');
+      if (userJson) {
+        const parsed = JSON.parse(userJson);
+        if (parsed && parsed.id && parsed.role && parsed.role.toLowerCase() === 'admin') {
+          adminId = parsed.id;
+        }
+      }
+    } catch (e) {
+      // ignore and use default
+    }
+
+    this.currentAdminId = adminId;
+    this.fetchRequests(adminId);
+  }
+
+  private normalizeUser(u: any, dtoFallback?: any): any {
+    const vehicle = {
+      licensePlate: u.licensePlate || dtoFallback?.licensePlate || null,
+      model: u.vehicleModel || dtoFallback?.vehicleModel || null,
+      seats: u.numberOfSeats ?? dtoFallback?.numberOfSeats ?? null,
+      type: u.vehicleType || dtoFallback?.vehicleType || null,
+      petFriendly: u.petFriendly ?? dtoFallback?.petFriendly ?? false,
+      babyFriendly: u.babyFriendly ?? dtoFallback?.babyFriendly ?? false,
+    };
+
+    return {
+      driverId: u.id || dtoFallback?.driverId || null,
+      _full: u,
+      _loaded: false,
+      firstName: u.firstName || dtoFallback?.firstName || null,
+      lastName: u.lastName || dtoFallback?.lastName || null,
+      phone: u.phoneNumber || dtoFallback?.phoneNumber || null,
+      role: (u.role || 'driver').toLowerCase(),
+      email: u.email || dtoFallback?.email || null,
+      address: u.address || dtoFallback?.address || null,
+      avatarUrl: u.profileImage || dtoFallback?.profileImage || 'assets/pfp/default-avatar-icon.jpg',
+      activeHours: u.hoursWorkedLast24 ?? dtoFallback?.activeHours ?? 0,
+      vehicle,
+    };
+  }
+
+  fetchRequests(adminId: number) {
+    this.adminService.getDriverRequests(adminId).subscribe({
+      next: (res: any[]) => {
+        console.debug('getDriverRequests response', res);
+        // map backend DTOs into UI request objects
+        const list = (res || []).map((dto, idx) => ({
+          _backendDto: dto,
+          id: dto.id,
+          submittedAt: dto.submitDate,
+          status: (dto.status || '').toLowerCase(),
+          requestedBy: `${dto.firstName} ${dto.lastName}`,
+          reason: 'Driver change request',
+          // originalDriver will be fetched from UserService.getUser(driverId)
+          originalDriver: {
+            driverId: dto.driverId ?? null,
+            _loaded: false,
+            firstName: null,
+            lastName: null,
+            phone: null,
+            role: 'driver',
+            email: null,
+            address: null,
+            avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
+            activeHours: 0,
+            vehicle: { licensePlate: null, model: null, seats: null, petFriendly: false, babyFriendly: false },
+          },
+              changedDriver: this.normalizeDto(dto)
+        }));
+        // For entries with driverId, fetch stored user profiles in parallel so originalDriver is populated
+        const driverIds = (res || []).map(dto => dto?.driverId ?? null);
+        console.log('DriverRequestsTable: driverIds extracted from DTOs', driverIds);
+        const userFetchObservables = (res || []).map((dto, idx) => {
+          const driverId = dto?.driverId ?? null;
+          if (driverId) console.log(`DriverRequestsTable: will fetch user for request idx=${idx} driverId=${driverId}`);
+          return driverId ? this.userService.getUser(driverId) : of(null);
+        });
+
+        if (userFetchObservables.length === 0) {
+          this.requests = list;
+          try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+          return;
+        }
+
+        forkJoin(userFetchObservables).subscribe({
+          next: (users: any[]) => {
+            console.log('DriverRequestsTable: forkJoin returned users array', users);
+            // merge fetched users into list.originalDriver and then publish
+            users.forEach((u, i) => {
+              const dto = res[i];
+              console.log('DriverRequestsTable: fetched user for request', i, u);
+              if (u) {
+                list[i].originalDriver = this.normalizeUser(u, dto);
+                list[i].originalDriver._loaded = true;
+              } else {
+                // fallback: use admin DTO to populate originalDriver so UI shows current-like values
+                console.log('DriverRequestsTable: no stored user, falling back to DTO for request', i, dto);
+                list[i].originalDriver = this.normalizeDto(dto) || list[i].originalDriver;
+                if (list[i].originalDriver) list[i].originalDriver._loaded = true;
+              }
+            });
+            this.requests = list;
+            try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+          },
+          error: (err) => {
+            console.error('Failed to fetch users for driver requests', err);
+            // fallback: expose requests without stored-user enrichment
+            this.requests = list;
+            try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Failed to load driver requests', err);
+        // keep requests empty on error
+      }
+    });
+  }
+
+  private normalizeDto(dto: any): any {
+    if (!dto) return null;
+    return {
+      firstName: dto.firstName || null,
+      lastName: dto.lastName || null,
+      phone: dto.phoneNumber || null,
+      role: 'driver',
+      email: dto.email || null,
+      address: dto.address || null,
+      avatarUrl: dto.profileImage || 'assets/pfp/default-avatar-icon.jpg',
+      vehicle: {
+        licensePlate: dto.licensePlate || null,
+        model: dto.vehicleModel || null,
+        seats: dto.numberOfSeats ?? null,
+        type: dto.vehicleType || null,
+        petFriendly: dto.petFriendly ?? false,
+        babyFriendly: dto.babyFriendly ?? false,
+      }
+    };
+  }
+  
   
   get filteredRequests() {
     let list = this.requests;
@@ -136,7 +199,33 @@ export class DriverRequestsTable {
     }
   }
 
-  onView(req: any) {
-    this.viewRequest.emit(req);
-  }
+  onView(req: any) {    
+    const emit = (original: any) => {
+      this.viewRequest.emit({
+        originalDriver: original,
+        changedDriver: req.changedDriver,
+        requestMeta: {
+          id: req.id,
+          requestedBy: req.requestedBy,
+          submittedAt: req.submittedAt,
+          reason: req.reason
+        }
+      });
+    };
+
+    // if originalDriver not yet loaded and we have driverId, fetch before emitting
+    if (req.originalDriver && req.originalDriver._loaded === false && req.originalDriver.driverId) {
+      this.userService.getUser(req.originalDriver.driverId).subscribe({
+        next: (u: any) => {
+          const original = this.normalizeUser(u, req._backendDto);
+          original._loaded = true;
+          emit(original);
+        },
+        error: () => emit(req.originalDriver)
+      });
+      return;
+    }
+
+    emit(req.originalDriver);
+ }
 }

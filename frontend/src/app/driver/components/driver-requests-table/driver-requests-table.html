@@ -8,6 +8,7 @@
       <option value="rejected">Rejected</option>
     </select>
   </div>
+  
   <table class="table table-striped">
     <thead>
       <tr>
@@ -23,11 +24,11 @@
       <tr *ngFor="let r of filteredRequests">
         <td>
           <div class="avatar-cell">
-            <img *ngIf="r.changedDriver.avatarUrl || r.originalDriver.avatarUrl" [src]="r.changedDriver.avatarUrl || r.originalDriver.avatarUrl" alt="avatar" class="small-avatar" />
-            <div *ngIf="!(r.changedDriver.avatarUrl || r.originalDriver.avatarUrl)" class="avatar-fallback">{{ ((r.changedDriver.firstName || r.originalDriver.firstName) && (r.changedDriver.firstName || r.originalDriver.firstName).charAt(0)) || '?' }}</div>
+            <img *ngIf="(r.originalDriver._full?.profileImage) || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl" [src]="r.originalDriver._full?.profileImage || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl" alt="avatar" class="small-avatar" />
+            <div *ngIf="!((r.originalDriver._full?.profileImage) || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl)" class="avatar-fallback">{{ ((r.originalDriver._full?.firstName || r.changedDriver.firstName || r.originalDriver.firstName) && (r.originalDriver._full?.firstName || r.changedDriver.firstName || r.originalDriver.firstName).charAt(0)) || '?' }}</div>
           </div>
         </td>
-        <td>{{ r.changedDriver.firstName }} {{ r.changedDriver.lastName }}</td>
+        <td>{{ r.originalDriver._full?.firstName || r.changedDriver.firstName }} {{ r.originalDriver._full?.lastName || r.changedDriver.lastName }}</td>
         <td>{{ r.id }}</td>
         <td>{{ r.submittedAt | date:'short' }}</td>
         <td>
