@@ -1,17 +1,17 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
-import rs.ac.uns.ftn.asd.ridenow.model.Ride;
-import rs.ac.uns.ftn.asd.ridenow.model.Driver;
-import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
-import rs.ac.uns.ftn.asd.ridenow.model.Location;
-import rs.ac.uns.ftn.asd.ridenow.model.Route;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.RatingRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
 
@@ -24,11 +24,13 @@ public class RideService {
     private final RouteRepository routeRepository;
     private final RideRepository rideRepository;
     private final DriverRepository driverRepository;
+    private final RatingRepository ratingRepository;
 
-    public RideService(RouteRepository routeRepository, RideRepository rideRepository, DriverRepository driverRepository) {
+    public RideService(RouteRepository routeRepository, RideRepository rideRepository, DriverRepository driverRepository, RatingRepository ratingRepository) {
         this.routeRepository = routeRepository;
         this.rideRepository = rideRepository;
         this.driverRepository = driverRepository;
+        this.ratingRepository = ratingRepository;
     }
 
     public RouteResponseDTO estimateRoute(EstimateRouteRequestDTO dto) {
@@ -134,6 +136,24 @@ public class RideService {
         response.setPriceEstimate(ride.getPrice());
 
         return response;
+    }
+
+    public RateResponseDTO makeRating(RateRequestDTO req, Long rideId) {
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new EntityNotFoundException("Ride not found"));
+
+        // Create and populate the rating entity
+        Rating rating = new Rating();
+        rating.setRide(ride);
+        rating.setVehicleRating(req.getVehicleRating());
+        rating.setDriverRating(req.getDriverRating());
+        rating.setDriverComment(req.getDriverComment());
+        rating.setVehicleComment(req.getVehicleComment());
+        rating.setCreatedAt(LocalDateTime.now());
+
+        // Save to database
+        Rating savedRating = ratingRepository.save(rating);
+        return(new RateResponseDTO(savedRating));
     }
 
     public void startRide(Long rideId) {

@@ -11,6 +11,8 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.StopRideResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.TrackVehicleDTO;
 
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 
@@ -86,5 +88,11 @@ public class RideController {
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
         return ResponseEntity.status(201).body(rideService.orderRide(request));
+    }
+
+    @PostMapping("/{rideId}/rate")
+    public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long rideId, @Valid @RequestBody RateRequestDTO req) {
+        RateResponseDTO res = rideService.makeRating(req, rideId);
+        return ResponseEntity.status(201).body(res);
     }
 }
