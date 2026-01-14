@@ -14,8 +14,6 @@ public class RateRequestDTO {
     @Max(5)
     @Min(1)
     private Integer vehicleRating;
-    @NotNull
-    private Long rideId;
     private String driverComment;
     private String vehicleComment;
 }

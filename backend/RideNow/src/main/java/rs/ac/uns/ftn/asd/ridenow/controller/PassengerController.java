@@ -1,15 +1,9 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
 
 import java.util.ArrayList;
@@ -24,13 +18,6 @@ public class PassengerController {
     @Autowired
     public PassengerController(PassengerService passengerService) {
         this.passengerService = passengerService;
-    }
-
-
-    @PostMapping("{userId}/rate")
-    public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long userId, @Valid @RequestBody RateRequestDTO req) {
-        RateResponseDTO res = passengerService.makeRating(req, userId);
-        return ResponseEntity.status(201).body(res);
     }
 
     @PutMapping("/{id}/routes/{routeId}")
