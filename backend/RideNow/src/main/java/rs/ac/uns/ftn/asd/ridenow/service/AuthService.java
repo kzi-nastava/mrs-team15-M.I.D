@@ -114,7 +114,7 @@ public class AuthService {
         }
         User existingUser = user.get();
         if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
-            throw new Exception("False credentials");
+            throw new Exception("Invalid credentials");
         }
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
         LoginResponseDTO responseDTO = new LoginResponseDTO();

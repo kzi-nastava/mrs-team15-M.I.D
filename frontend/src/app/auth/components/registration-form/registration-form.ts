@@ -88,14 +88,14 @@ export class RegistrationForm {
 
     this.authService.register(data).subscribe({
       next: (response) => {
-        this.showErrorToast("Registration successful! Please check your email and activate your account using the link sent to you.");
+        this.showMessageToast("Registration successful! Please check your email and activate your account using the link sent to you.");
         setTimeout(() => { this.router.navigate(['/login']); }, 4000);
       },
       error: (err) => {
         if (typeof err.error === 'string') {
-          this.showErrorToast(err.error);
+          this.showMessageToast(err.error);
         } else {
-          this.showErrorToast('Registration failed. Please try again.');
+          this.showMessageToast('Registration failed. Please try again.');
         }
       }
     });
@@ -104,7 +104,7 @@ export class RegistrationForm {
   showMessage = false;
   message = '';
 
-  showErrorToast(message: string): void {
+  showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;
     this.cdr.detectChanges();  

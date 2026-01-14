@@ -16,8 +16,8 @@ export class AuthService {
       return this.http.post(`${this.apiURL}/register`, data);
     } 
 
-    login(payload: { email: string; password: string; }) : Observable<any> {
-      return this.http.post(`${this.apiURL}/login`, payload);
+    login(data: { email: string; password: string; }) : Observable<any> {
+      return this.http.post<{ token: string }>('/api/auth/login', data);
     }
 
     activate(token: string): Observable<ActivateResponse> {
