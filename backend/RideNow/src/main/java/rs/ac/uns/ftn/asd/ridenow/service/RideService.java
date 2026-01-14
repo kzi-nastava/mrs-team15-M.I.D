@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.exception.RideNotFoundException;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
@@ -141,7 +140,7 @@ public class RideService {
 
     public RateResponseDTO makeRating(RateRequestDTO req, Long rideId) {
         Ride ride = rideRepository.findById(rideId)
-                .orElseThrow(() -> new RideNotFoundException("Ride with id " + rideId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
 
         // Create and populate the rating entity
         Rating rating = new Rating();
@@ -155,6 +154,20 @@ public class RideService {
         // Save to database
         Rating savedRating = ratingRepository.save(rating);
         return(new RateResponseDTO(savedRating));
+    }
+
+    public TrackVehicleDTO trackRide(Long rideId) {
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
+
+        Driver driver = ride.getDriver();
+        if (driver == null) {
+            throw new EntityNotFoundException("No driver assigned to ride with id " + rideId);
+        }
+
+        // TODO: implement real time estimation
+        Vehicle vehicle = driver.getVehicle();
+        return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), 10);
     }
 
     public void startRide(Long rideId) {
