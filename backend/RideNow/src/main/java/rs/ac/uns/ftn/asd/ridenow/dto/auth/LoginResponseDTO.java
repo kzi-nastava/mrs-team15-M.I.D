@@ -6,11 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class LoginResponseDTO {
-    private Long id;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private boolean active;
+    private String token;
 
     public LoginResponseDTO() {
         super();
