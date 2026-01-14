@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.VehicleResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.exception.VehicleNotFoundException;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
@@ -25,6 +26,19 @@ public class VehicleService {
         return vehicles.stream()
                 .map(this::convertToDTO)
                 .toList();
+    }
+
+    public VehicleResponseDTO updateVehicleLocation(String licencePlate, Double lat, Double lon) {
+        Vehicle vehicle = vehicleRepository.findByLicencePlate(licencePlate);
+        if (vehicle == null) {
+            throw new VehicleNotFoundException("Vehicle with licence plate " + licencePlate + " not found.");
+        }
+
+        vehicle.setLat(lat);
+        vehicle.setLon(lon);
+        vehicleRepository.save(vehicle);
+
+        return convertToDTO(vehicle);
     }
 
     private VehicleResponseDTO convertToDTO(Vehicle vehicle) {

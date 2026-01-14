@@ -19,4 +19,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             @Param("minLng") Double minLongitude,
             @Param("maxLng") Double maxLongitude
     );
+
+    Vehicle findByLicencePlate(String licencePlate);
 }

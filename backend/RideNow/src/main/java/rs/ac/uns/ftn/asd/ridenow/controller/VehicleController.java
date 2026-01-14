@@ -32,11 +32,7 @@ public class VehicleController {
 
     @PostMapping("/update-location/{licencePlate}")
     public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable @NotNull @NotEmpty String licencePlate, @Valid @RequestBody UpdateVehicleRequest req) {
-        VehicleResponseDTO vehicle = new VehicleResponseDTO();
-        vehicle.setLicencePlate(licencePlate);
-        vehicle.setLocation(new Location(req.getLat(), req.getLon(), ""));
-        //vehicle.setLocation(new Location(14L, req.getLat(), req.getLon(), ""));
-        vehicle.setAvailable(true);
-        return ResponseEntity.ok(vehicle);
+        VehicleResponseDTO res = vehicleService.updateVehicleLocation(licencePlate, req.getLat(), req.getLon());
+        return ResponseEntity.ok(res);
     }
 }
