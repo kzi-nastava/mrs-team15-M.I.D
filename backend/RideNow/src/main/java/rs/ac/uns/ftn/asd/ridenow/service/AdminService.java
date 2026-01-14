@@ -3,57 +3,162 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.AdminChangesReviewRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.DriverRequest;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.DriverRequestRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService {
 
     private final DriverRepository driverRepository;
+    private final DriverRequestRepository driverRequestRepository;
+    private final VehicleRepository vehicleRepository;
 
-    public AdminService(DriverRepository driverRepository) {
+    public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
+                        VehicleRepository vehicleRepository) {
         this.driverRepository = driverRepository;
+        this.driverRequestRepository = driverRequestRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     public List<DriverChangeRequestDTO> getDriverRequests() {
         List<DriverChangeRequestDTO> requests = new ArrayList<>();
 
-        DriverChangeRequestDTO request = new DriverChangeRequestDTO();
-        request.setEmail("driver@mail.com");
-        request.setFirstName("John");
-        request.setLastName("Doe");
-        request.setPhoneNumber("123-456-7890");
-        request.setProfileImage("profile_image_url");
-        request.setAddress("123 Main St, Cityville");
-        request.setLicensePlate("NS123AB");
-        request.setVehicleModel("Toyota Prius");
-        request.setVehicleType(VehicleType.STANDARD);
-        request.setNumberOfSeats(4);
-        request.setBabyFriendly(true);
-        request.setPetFriendly(false);
-        request.setStatus(DriverChangesStatus.PENDING);
-
-        requests.add(request);
+        // load all driver requests ordered by submissionDate (newest first)
+        List<DriverRequest> entities = driverRequestRepository.findAll(Sort.by(Sort.Direction.DESC, "submissionDate"));
+        for (DriverRequest entity : entities) {
+            DriverChangeRequestDTO request = new DriverChangeRequestDTO();
+            request.setEmail(entity.getEmail());
+            request.setFirstName(entity.getFirstName());
+            request.setLastName(entity.getLastName());
+            request.setPhoneNumber(entity.getPhoneNumber());
+            request.setProfileImage(entity.getProfileImage());
+            request.setAddress(entity.getAddress());
+            request.setLicensePlate(entity.getLicensePlate());
+            request.setVehicleModel(entity.getVehicleModel());
+            request.setVehicleType(entity.getVehicleType() != null ? entity.getVehicleType() : null);
+            request.setNumberOfSeats(entity.getNumberOfSeats());
+            request.setBabyFriendly(entity.isBabyFriendly());
+            request.setPetFriendly(entity.isPetFriendly());
+            request.setStatus(entity.getRequestStatus());
+            request.setSubmitDate(entity.getSubmissionDate());
+            request.setId(entity.getId());
+            request.setDriverId(entity.getDriverId());
+            request.setId(entity.getId());
+            System.out.println("Id " + entity.getId());
+            requests.add(request);
+        }
 
         return requests;
     }
 
+    @Transactional
     public void reviewDriverRequest(
             Long adminId,
             Long requestId,
             AdminChangesReviewRequestDTO dto) {
-        // mock: request reviewed
+
+        DriverRequest req = driverRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("DriverRequest not found: " + requestId));
+
+        // set admin response date
+        req.setAdminResponseDate(new Date(System.currentTimeMillis()));
+
+        if (dto.isApproved()) {
+            req.setRequestStatus(DriverChangesStatus.APPROVED);
+
+            // apply changes: update existing driver or create new one
+            Driver driver = null;
+            Long driverId = req.getDriverId();
+            if (driverId != null && driverId > 0) {
+                driver = driverRepository.findById(driverId).orElse(null);
+            }
+
+            if (driver == null) {
+                driver = new Driver();
+                driver.setEmail(req.getEmail());
+                driver.setPassword("1234567");
+                driver.setFirstName(req.getFirstName());
+                driver.setLastName(req.getLastName());
+                driver.setPhoneNumber(req.getPhoneNumber());
+                driver.setProfileImage(req.getProfileImage() != null ? req.getProfileImage() : "default_profile_image_url");
+                driver.setAddress(req.getAddress());
+                driver.setActive(true);
+                driver.setBlocked(false);
+                driver.setStatus(DriverStatus.ACTIVE);
+                driver.setAvailable(true);
+            } else {
+                // update fields
+                driver.setEmail(req.getEmail());
+                driver.setFirstName(req.getFirstName());
+                driver.setLastName(req.getLastName());
+                driver.setPhoneNumber(req.getPhoneNumber());
+                driver.setProfileImage(req.getProfileImage() != null ? req.getProfileImage() : driver.getProfileImage());
+                driver.setAddress(req.getAddress());
+            }
+
+            // find existing vehicle by licence plate to avoid unique constraint violation
+            Optional<Vehicle> existingVehicle = Optional.empty();
+            if (req.getLicensePlate() != null && !req.getLicensePlate().isEmpty()) {
+                existingVehicle = vehicleRepository.findByLicencePlate(req.getLicensePlate());
+            }
+
+            Vehicle vehicle;
+            if (existingVehicle.isPresent()) {
+                vehicle = existingVehicle.get();
+                // If vehicle is attached to a different driver, detach from that driver first
+                if (vehicle.getDriver() != null && (driver.getId() == null || !vehicle.getDriver().getId().equals(driver.getId()))) {
+                    Driver previousDriver = vehicle.getDriver();
+                    previousDriver.setVehicle(null);
+                    // persist previous driver to remove the association
+                    driverRepository.save(previousDriver);
+                }
+                // update vehicle fields if necessary
+                vehicle.setModel(req.getVehicleModel());
+                vehicle.setType(req.getVehicleType());
+                vehicle.setSeatCount(req.getNumberOfSeats());
+                vehicle.setChildFriendly(req.isBabyFriendly());
+                vehicle.setPetFriendly(req.isPetFriendly());
+            } else {
+                vehicle = new Vehicle();
+                vehicle.setLicencePlate(req.getLicensePlate());
+                vehicle.setModel(req.getVehicleModel());
+                vehicle.setType(req.getVehicleType());
+                vehicle.setSeatCount(req.getNumberOfSeats());
+                vehicle.setChildFriendly(req.isBabyFriendly());
+                vehicle.setPetFriendly(req.isPetFriendly());
+            }
+
+            // link vehicle and driver
+            driver.assignVehicle(vehicle);
+
+            // Save driver (cascade will save vehicle). If vehicle was existing and detached from previous driver above,
+            // this will update driver_id on vehicle rather than inserting a duplicate.
+            Driver saved = driverRepository.save(driver);
+            // update driverId in request in case it was a new driver
+            req.setDriverId(saved.getId());
+
+        } else {
+            req.setRequestStatus(DriverChangesStatus.REJECTED);
+        }
+
+        driverRequestRepository.save(req);
     }
 
     @Transactional

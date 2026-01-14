@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
@@ -138,11 +140,17 @@ public class DriverController {
         // Evrope 22, Novi Sad");
         // Location stopLocation3 = new Location(43L, 41.423424, 42.42342, "Janka
         // Cmelika 32, Novi Sad");
-        // ride2.setRoute(new Route(13L, startLocation2, endLocation2,
+        // //ride2.setRoute(new Route(13L, startLocation2, endLocation2,
         // List.of(stopLocation2, stopLocation3), 5, 15));
         ride2.setPassengerEmails(List.of("radovan.radinic@gmail.com", "galja.miric@gmail.com"));
         ride2.setStartTime("2024-05-11T09:15:00");
         List<RideResponseDTO> rides = List.of(ride1, ride2);
         return ResponseEntity.ok(rides);
+    }
+
+    @PostMapping("/{id}/change-request")
+    public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@PathVariable @NotNull @Min(1) Long id,
+                                                                       @RequestBody @NotNull DriverChangeRequestDTO request) {
+        return ResponseEntity.ok(driverService.requestDriverChanges(id, request));
     }
 }
