@@ -114,14 +114,12 @@ public class AdminService {
             }
 
             // find existing vehicle by licence plate to avoid unique constraint violation
-            Optional<Vehicle> existingVehicle = Optional.empty();
+            Vehicle vehicle = null;
             if (req.getLicensePlate() != null && !req.getLicensePlate().isEmpty()) {
-                existingVehicle = vehicleRepository.findByLicencePlate(req.getLicensePlate());
+                vehicle = vehicleRepository.findByLicencePlate(req.getLicensePlate());
             }
 
-            Vehicle vehicle;
-            if (existingVehicle.isPresent()) {
-                vehicle = existingVehicle.get();
+            if (vehicle != null) {
                 // If vehicle is attached to a different driver, detach from that driver first
                 if (vehicle.getDriver() != null && (driver.getId() == null || !vehicle.getDriver().getId().equals(driver.getId()))) {
                     Driver previousDriver = vehicle.getDriver();

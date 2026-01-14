@@ -12,8 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
-    Optional<Vehicle> findByLicencePlate(String licencePlate);
-  
     @Query(value = """
         SELECT * FROM vehicle v
         WHERE v.lat BETWEEN :minLat AND :maxLat
