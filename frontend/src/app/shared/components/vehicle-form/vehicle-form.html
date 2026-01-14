@@ -41,9 +41,9 @@
       <select class="form-select input-focus"
               [(ngModel)]="vehicle.type"
               [class.is-invalid]="isFieldEmpty(vehicle.type)">
-        <option value="Standard">Standard</option>
-        <option value="Luksuz">Luksuz</option>
-        <option value="Kombi">Kombi</option>
+        <option value="STANDARD">Standard</option>
+        <option value="LUXURY">Luksuz</option>
+        <option value="VAN">Kombi</option>
       </select>
       <div class="invalid-feedback d-block" *ngIf="isFieldEmpty(vehicle.type)">
         {{ getTypeErrorMessage() }}
