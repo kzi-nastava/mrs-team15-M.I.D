@@ -17,6 +17,8 @@ public class PassengerService {
         return dto;
     }
 
+
+
     public void removeFromFavorites(Long userId, Long routeId) {
         // mock: route removed from favorites
     }
