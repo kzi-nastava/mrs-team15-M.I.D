@@ -4,12 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
+import rs.ac.uns.ftn.asd.ridenow.security.JwtUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,6 +36,9 @@ public class AuthService {
 
     @Autowired
     private  EmailService emailService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     String profileImageURL = "/uploads/default.png";
 
@@ -98,5 +105,20 @@ public class AuthService {
         user.setActivationToken(null);
         activationTokenRepository.delete(activationToken);
         sendActivationEmail(user);
+    }
+
+    public LoginResponseDTO login(LoginRequestDTO requestDTO) throws Exception {
+        Optional<User> user = userRepository.findByEmail(requestDTO.getEmail());
+        if(user.isEmpty()) {
+            throw new Exception("User with this email does not exists");
+        }
+        User existingUser = user.get();
+        if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
+            throw new Exception("False credentials");
+        }
+        String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
+        LoginResponseDTO responseDTO = new LoginResponseDTO();
+        responseDTO.setToken(token);
+        return responseDTO;
     }
 }

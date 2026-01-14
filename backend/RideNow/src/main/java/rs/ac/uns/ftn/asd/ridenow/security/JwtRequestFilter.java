@@ -36,14 +36,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 email = jwtUtil.extractEmail(token);
             }
         }
-
         if (email != null) {
             Optional<User> optionalUser = userRepository.findByEmail(email);
             if(optionalUser.isEmpty()){
+                filterChain.doFilter(request, response);
                 return;
             }
-            User user = optionalUser.get();
-            request.setAttribute("loggedInUser", user);
+            request.setAttribute("loggedInUser", optionalUser.get());
         }
         filterChain.doFilter(request, response);
     }
