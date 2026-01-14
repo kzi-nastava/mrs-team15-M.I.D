@@ -23,6 +23,7 @@ import { CurrentRide } from './ride/pages/current-ride/current-ride';
 import { StartRide } from './ride/pages/start-ride/start-ride';
 import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
+import { ActivationPage } from './auth/pages/activation-page/activation-page';
 
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
@@ -49,5 +50,6 @@ export const routes: Routes = [
     {path: 'current-ride', component: CurrentRide},
     {path: 'start-ride', component: StartRide},
     {path: 'finding-driver', component: FindingDriver},
-    {path: 'ride-ordering', component: RideOrdering}
+    {path: 'ride-ordering', component: RideOrdering},
+    {path: 'activate/:token', component: ActivationPage}
 ];
