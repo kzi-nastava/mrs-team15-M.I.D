@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
+import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.ForgotPasswordTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.service.AuthService;
 
@@ -24,6 +26,8 @@ public class AuthController {
     private AuthService authService;
     @Autowired
     private ActivationTokenRepository activationTokenRepository;
+    @Autowired
+    private  ForgotPasswordTokenRepository forgotPasswordTokenRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -54,15 +58,23 @@ public class AuthController {
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDTO request) {
-        if (request.getNewPassword() == null || request.getConfirmNewPassword() == null
-                || request.getNewPassword().isEmpty() || request.getConfirmNewPassword().isEmpty()) {
-            return ResponseEntity.status(400).build();
+    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestBody ResetPasswordRequestDTO request) {
+        Optional<ForgotPasswordToken> optionalToken = forgotPasswordTokenRepository.findByToken(token);
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
         }
-        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
-            return ResponseEntity.status(400).build();
+
+        ForgotPasswordToken forgotPasswordToken = optionalToken.get();
+        if (forgotPasswordToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            authService.handleExpiredForgotPasswordToken(forgotPasswordToken);
+            return ResponseEntity.badRequest().body(Map.of("message", "Token expired. New activation link sent to your email."));
         }
-        return ResponseEntity.ok().build();
+
+        User user = forgotPasswordToken.getUser();
+        user.setForgotPasswordToken(null);
+        userRepository.save(user);
+        authService.resetPassword(user, request);
+        return ResponseEntity.ok(Map.of("message", "Your password has been successfully updated."));
     }
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

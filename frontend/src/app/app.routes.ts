@@ -30,7 +30,7 @@ export const routes: Routes = [
     { path: 'landing', component: Landing },  // /landing route
     { path: 'login', component: Login},
     { path: 'forgot-password', component: ForgotPassword},
-    { path: 'reset-password', component: ResetPassword},
+    { path: 'reset-password/:token', component: ResetPassword},
     { path: 'registration', component: Registration},
     { path: 'profile', component: ProfileInfo },
     { path: 'change-request', component: ChangeRequest },

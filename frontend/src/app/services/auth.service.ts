@@ -27,4 +27,8 @@ export class AuthService {
     forgotPassword(data: { email: string; }) {
       return this.http.post<ActivateResponse>(`${this.apiURL}/forgot-password`, data);
     }
+
+    resetPassword(token: string, data: { newPassword: string; confirmNewPassword: string; }) {
+      return this.http.put<ActivateResponse>(`${this.apiURL}/reset-password?token=${token}`, data);
+    }
 }

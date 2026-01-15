@@ -161,10 +161,16 @@ public class AuthService {
         emailService.sendForgotPasswordMail(user.getEmail(), token);
     }
 
-    public void handleForgotPasswordToken(ForgotPasswordToken forgotPasswordToken) {
+    public void handleExpiredForgotPasswordToken(ForgotPasswordToken forgotPasswordToken) {
         User user = forgotPasswordToken.getUser();
         user.setForgotPasswordToken(null);
         forgotPasswordTokenRepository.delete(forgotPasswordToken);
         sendForgotPasswordEmail(user);
+    }
+
+    public void resetPassword(User user, ResetPasswordRequestDTO request){
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
     }
 }
