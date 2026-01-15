@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.URL;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,10 @@ public class User {
     @Column(nullable = false)
     private boolean blocked = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRoles role = UserRoles.USER;;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Notification> notifications = new ArrayList<>();
 
@@ -57,7 +62,7 @@ public class User {
     private ActivationToken activationToken;
 
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
-                String profileImage, boolean active, boolean blocked) {
+                String profileImage, boolean active, boolean blocked, UserRoles role) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
@@ -67,6 +72,7 @@ public class User {
         this.profileImage = profileImage;
         this.active = active;
         this.blocked = blocked;
+        this.role = role;
     }
 
     public User(){

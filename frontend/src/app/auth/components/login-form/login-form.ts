@@ -43,6 +43,7 @@ export class LoginForm {
     this.authService.login(data).subscribe({
       next: (response) => {
         localStorage.setItem('jwtToken', response.token);
+        localStorage.setItem('role', response.role);
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
         setTimeout(() => { this.router.navigate(['/home']); }, 4000);
       },

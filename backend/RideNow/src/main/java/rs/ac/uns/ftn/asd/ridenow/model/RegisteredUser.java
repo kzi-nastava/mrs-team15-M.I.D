@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ public class RegisteredUser extends User {
 
     public RegisteredUser(String email, String password, String firstName, String lastName, String phoneNumber,
                           String address, String profileImage, boolean active, boolean blocked) {
-        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked);
+        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked, UserRoles.USER);
     }
 
     public RegisteredUser() {

@@ -10,6 +10,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.security.JwtUtil;
@@ -52,7 +53,7 @@ public class AuthService {
 
         User user = new User(requestDTO.getEmail(), hashedPassword, requestDTO.getFirstName(),
                 requestDTO.getLastName(), requestDTO.getPhoneNumber(), requestDTO.getAddress(),
-                profileImageURL, false, false);
+                profileImageURL, false, false, UserRoles.USER);
         User savedUser = userRepository.save(user);
 
         sendActivationEmail(savedUser);
@@ -122,6 +123,7 @@ public class AuthService {
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
         LoginResponseDTO responseDTO = new LoginResponseDTO();
         responseDTO.setToken(token);
+        responseDTO.setRole(existingUser.getRole().name());
         return responseDTO;
     }
 }

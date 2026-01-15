@@ -7,9 +7,9 @@ import lombok.Setter;
 @Getter
 public class LoginResponseDTO {
     private String token;
+    private String role;
 
     public LoginResponseDTO() {
         super();
     }
-
 }
