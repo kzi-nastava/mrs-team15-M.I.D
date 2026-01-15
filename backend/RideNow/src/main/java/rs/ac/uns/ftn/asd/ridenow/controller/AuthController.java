@@ -43,14 +43,14 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
-        if (request.getEmail() == null || request.getEmail().isEmpty()) {
-            return ResponseEntity.status(400).build();
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
+        try {
+            authService.forgotPassword(request);
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        if (!request.getEmail().contains("@")) {
-            return ResponseEntity.status(400).build();
-        }
-        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/reset-password")

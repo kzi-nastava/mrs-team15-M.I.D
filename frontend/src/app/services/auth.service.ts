@@ -23,4 +23,8 @@ export class AuthService {
     activate(token: string): Observable<ActivateResponse> {
       return this.http.put<ActivateResponse>(`${this.apiURL}/activate?token=${token}`, null);
     }
+
+    forgotPassword(data: { email: string; }) {
+      return this.http.post<ActivateResponse>(`${this.apiURL}/forgot-password`, data);
+    }
 }

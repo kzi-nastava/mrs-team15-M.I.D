@@ -61,6 +61,10 @@ public class User {
     @JoinColumn(name = "activation_token_id")
     private ActivationToken activationToken;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "forgot_password_token_id")
+    private ForgotPasswordToken forgotPasswordToken;
+
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                 String profileImage, boolean active, boolean blocked, UserRoles role) {
         this.email = email;
