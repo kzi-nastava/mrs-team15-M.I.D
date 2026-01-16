@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { VehicleService } from '../../../services/vehicle.service';
 import { Subscription } from 'rxjs';
 import { Vehicle } from '../../../model/vehicle.model';
+import { MapRouteService } from '../../../services/map-route.service';
 
 @Component({
   selector: 'app-map',
@@ -23,13 +24,17 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private vehicleService: VehicleService
+    private vehicleService: VehicleService,
+    private mapRouteService: MapRouteService
   ) {}
 
   async ngAfterViewInit(): Promise<void> {
     if (isPlatformBrowser(this.platformId)) {
       await this.initMap();
     }
+    this.mapRouteService.route$.subscribe(route => {
+      this.drawRoute(route);
+    });
   }
 
   ngOnDestroy(): void {
@@ -131,4 +136,48 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString);
   }
+
+  private routeLayer?: any;
+
+  private startMarker?: any;
+  private endMarker?: any;
+
+  private async drawRoute(route: any[]) {
+    if (!this.map || !route || route.length === 0) return;
+
+    const L = await import('leaflet');
+
+    const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
+
+    if (this.routeLayer) this.map.removeLayer(this.routeLayer);
+    if (this.startMarker) this.map.removeLayer(this.startMarker);
+    if (this.endMarker) this.map.removeLayer(this.endMarker);
+
+    this.routeLayer = L.polyline(latLngs, {
+      weight: 5,
+      color: "#111",
+      opacity: 0.8,
+      lineCap: "round",
+    lineJoin: "round"
+    }).addTo(this.map);
+
+    this.startMarker = L.circleMarker(latLngs[0], {
+    radius: 8,
+    color: "#22c55e",
+    fillColor: "#22c55e",
+    fillOpacity: 0.4
+  }).addTo(this.map);
+
+  this.endMarker = L.circleMarker(latLngs[latLngs.length - 1], {
+    radius: 8,
+    color: "#ef4444",
+    fillColor: "#ef4444",
+    fillOpacity: 0.4
+  }).addTo(this.map);
+
+    this.map.fitBounds(this.routeLayer.getBounds(), {
+      padding: [30, 30]
+    });
+  }
+
 }

@@ -1,15 +1,36 @@
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
+    </div>
+  </div>
+</div>
 <div class="ride-estimation-section row m-0">
     <div class="col-12 bg-black text-white rounded-4 custom-form-container">
         <div class="ride-estimation-container p-4">
             <form class="ride-estimation-form">
                 <h2 class="form-title mb-4">Estimate your ride</h2>
                 <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter pickup address" [value]="pickupAddress" (valueChange)="pickupAddress = $event"></app-input-component>
-                <div class="error" *ngIf="this.validator.addressError(this.pickupAddress)"> {{ this.validator.addressError(this.pickupAddress) }}</div>
+                <div class="error" *ngIf="validator.addressError(pickupAddress)"> {{ this.validator.addressError(this.pickupAddress) }}</div>
                 <div class="mt-2">
                     <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter destination address" [value]="destinationAddress" (valueChange)="destinationAddress = $event"></app-input-component>
                 </div>
-                <div class="error" *ngIf="this.validator.addressError(this.destinationAddress)"> {{ this.validator.addressError(this.destinationAddress) }}</div>
-                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Show route" [disabled]="hasErrors()"></app-button>
+                <div class="error" *ngIf="validator.addressError(destinationAddress)"> {{ this.validator.addressError(this.destinationAddress) }}</div>
+                <div class="estimation-info" *ngIf="showEstimationInfo">
+                    <p> Distance: <strong>{{ estimatedDistanceKm | number:'1.1-2' }} km</strong></p>
+                    <p> Estimated duration: <strong>{{ estimatedDurationMin }} min</strong> </p>
+                </div>
+                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Show route" [disabled]="hasErrors()" (clicked)="estimateRide()"></app-button>
             </form>
         </div>
     </div>
