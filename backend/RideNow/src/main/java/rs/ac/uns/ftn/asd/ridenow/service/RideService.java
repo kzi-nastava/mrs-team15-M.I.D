@@ -238,4 +238,23 @@ public class RideService {
         }
         return upcomingRides;
     }
+
+    public void userRideCancellation(Long id, CancelRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(id);
+        if(optionalRide.isEmpty()){
+            throw new Exception("Ride does not exists");
+        }
+        Ride ride = optionalRide.get();
+        if (LocalDateTime.now().plusMinutes(10).isBefore(ride.getScheduledTime())) {
+            ride.setCancelled(true);
+            ride.setCancelledBy("USER");
+            ride.setCancelReason(request.getReason());
+            ride.setStatus(RideStatus.CANCELLED);
+            rideRepository.save(ride);
+        }
+        else{
+            System.out.println("You can cancel a ride up to 10 minutes before it starts.");
+            throw  new Exception("You can cancel a ride up to 10 minutes before it starts.");
+        }
+    }
 }

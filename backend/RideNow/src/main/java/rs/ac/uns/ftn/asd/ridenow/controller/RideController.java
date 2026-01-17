@@ -16,6 +16,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
@@ -39,17 +40,11 @@ public class RideController {
         try{
             double[] startCoordinate = routingService.getGeocode(startAddress);
             double latStart = startCoordinate[0];
-            System.out.println(latStart);
             double lonStart = startCoordinate[1];
-            System.out.println(lonStart);
-
 
             double[] endCoordinate = routingService.getGeocode(destinationAddress);
             double latEnd = endCoordinate[0];
-            System.out.println(latEnd);
             double lonEnd = endCoordinate[1];
-            System.out.println(lonEnd);
-
 
             RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
             return ResponseEntity.ok(response);
@@ -67,11 +62,16 @@ public class RideController {
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request){
-        if(request.getReason() == null || request.getReason().isEmpty()){
-            return ResponseEntity.status(400).build();
+    public ResponseEntity<?> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request) {
+        try {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if(user.getRole() == UserRoles.USER){
+                rideService.userRideCancellation(id, request);
+            }
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return ResponseEntity.status(204).build();
     }
 
     @GetMapping("/{id}/track")
