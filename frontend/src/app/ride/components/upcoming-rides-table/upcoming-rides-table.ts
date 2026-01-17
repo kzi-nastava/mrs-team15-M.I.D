@@ -123,6 +123,9 @@ private applySorting(): void {
         this.cdr.detectChanges();
         this.applySorting();
         this.showCancelModal = false;
+        if(this._upcomingRides.length == 0){
+          this.rideCanceled.emit("You don’t have any scheduled rides at the moment.")
+        }
       },
       error: (err) => {
         this.showCancelModal = false;

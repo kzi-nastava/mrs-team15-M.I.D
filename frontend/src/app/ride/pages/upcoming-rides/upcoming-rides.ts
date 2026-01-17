@@ -20,19 +20,26 @@ export class UpcomingRides {
   allUpcomingRides: UpcomingRide[] = [];
   filteredUpcomingRides: UpcomingRide[] = [...this.allUpcomingRides]
    
-  ngOnInit(): void {
-    const role = localStorage.getItem('role');
-    if (role !== 'USER') {
-      this.showMessageToast('Access denied');
-      return;
-    }
-    this.rideService.getMyUpcomingRides().subscribe(rides => {
-      this.allUpcomingRides = rides;
-      this.filteredUpcomingRides = [...rides];
-      this.cdr.detectChanges();  
-    });
+ngOnInit(): void {
+  const role = localStorage.getItem('role');
+  if (role !== 'USER') {
+    this.showMessageToast('Access denied');
+    return;
   }
-  
+
+  this.rideService.getMyUpcomingRides().subscribe(rides => {
+    this.allUpcomingRides = rides;
+    this.filteredUpcomingRides = [...rides];
+
+    if (rides.length === 0) {
+      this.showMessageToast(
+        "You don’t have any scheduled rides at the moment."
+      );
+    }
+
+    this.cdr.detectChanges();
+  });
+  }
   onFilter(filterDate: string): void {
     if(filterDate){
       filterDate = formatFilterDate(filterDate)
