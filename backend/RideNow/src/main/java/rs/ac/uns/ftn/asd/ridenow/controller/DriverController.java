@@ -4,12 +4,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
 
 import java.util.List;
@@ -25,61 +27,10 @@ public class DriverController {
         this.driverService = driverService;
     }
 
-    @GetMapping("/{id}/ride-history")
-    public ResponseEntity<List<DriverHistoryItemDTO>> getRideHistory(@PathVariable @NotNull @Min(1) Long id) {
-        // DriverHistoryItemDTO ride1 = new DriverHistoryItemDTO();
-        // Location startLocation = new Location(45.2671, 19.8335, "Bulevar Oslobodjenja
-        // 45, Novi Sad");
-        // Location endLocation = new Location(45.2550, 19.8450, "Narodnog fronta 12,
-        // Novi Sad");
-        // Location stopLocation1 = new Location(21.54534, 23.5435345, "Bulevar Evrope
-        // 22, Novi Sad");
-        // //Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar
-        // Oslobodjenja 45, Novi Sad");
-        // //Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta
-        // 12, Novi Sad");
-        // //Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar
-        // Evrope 22, Novi Sad");
-        // //ride1.setRoute(new Route(13L, startLocation, endLocation,
-        // List.of(stopLocation1), 5, 15));
-        // ride1.setDate(java.sql.Date.valueOf("2024-01-15"));
-        // ride1.setCost(1500.0);
-        // ride1.setCancelled(false);
-        // ride1.setInconsistencies(List.of("Late arrival"));
-        // ride1.setRating(3.5);
-        // ride1.setPanic(false);
-        // ride1.setDurationMinutes(20);
-        // ride1.setPassengers(List.of("Marko Markovic", "Jovana Jovanovic"));
-        //
-        // DriverHistoryItemDTO ride2 = new DriverHistoryItemDTO();
-        // Location startLocation2 = new Location(45.2671, 19.8335, "Bulevar
-        // Oslobodjenja 45, Novi Sad");
-        // Location endLocation2 = new Location(45.2550, 19.8450, "Narodnog fronta 12,
-        // Novi Sad");
-        // Location stopLocation2 = new Location(21.54534, 23.5435345, "Bulevar Evrope
-        // 22, Novi Sad");
-        // Location stopLocation3 = new Location(41.423424, 42.42342, "Janka Cmelika 32,
-        // Novi Sad");
-        // //Location startLocation2 = new Location(12L, 45.2671, 19.8335, "Bulevar
-        // Oslobodjenja 45, Novi Sad");
-        // //Location endLocation2 = new Location(15L, 45.2550, 19.8450, "Narodnog
-        // fronta 12, Novi Sad");
-        // //Location stopLocation2 = new Location(82L, 21.54534, 23.5435345, "Bulevar
-        // Evrope 22, Novi Sad");
-        // //Location stopLocation3 = new Location(43L, 41.423424, 42.42342, "Janka
-        // Cmelika 32, Novi Sad");
-        // //ride2.setRoute(new Route(13L, startLocation2, endLocation2,
-        // List.of(stopLocation2, stopLocation3), 5, 15));
-        // ride2.setDate(java.sql.Date.valueOf("2024-02-20"));
-        // ride2.setCost(800.0);
-        // ride2.setCancelled(true);
-        // ride2.setInconsistencies(List.of("No show"));
-        // ride2.setRating(null);
-        // ride2.setPanic(false);
-        // ride2.setDurationMinutes(0);
-        // ride2.setPassengers(List.of("Ana Anic"));
-
-        // List<DriverHistoryItemDTO> history = List.of(ride1, ride2);
+    @GetMapping("/ride-history")
+    public ResponseEntity<List<DriverHistoryItemDTO>> getRideHistory() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
 
         List<DriverHistoryItemDTO> history = driverService.getDriverHistory(id);
 

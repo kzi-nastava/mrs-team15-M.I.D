@@ -14,7 +14,6 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.TrackVehicleDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
@@ -73,11 +72,7 @@ public class RideController {
 
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
-        TrackVehicleDTO vehicle = new TrackVehicleDTO();
-        vehicle.setLocation(new Location(12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
-        //vehicle.setLocation(new Location(0L, 12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
-        vehicle.setRemainingTimeInMinutes(12);
-
+        TrackVehicleDTO vehicle = rideService.trackRide(id);
         return ResponseEntity.ok(vehicle);
     }
 
