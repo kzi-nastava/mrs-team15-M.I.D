@@ -40,7 +40,13 @@ export class DriverRegisterForm implements OnInit {
 
   constructor(private cdr: ChangeDetectorRef, private adminService: AdminService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  const role = localStorage.getItem('role');
+  if (role !== 'ADMIN') {
+    this.showToastMessage('Access denied', 'error');
+    return;
+  }
+}
 
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
@@ -180,7 +186,7 @@ export class DriverRegisterForm implements OnInit {
     };
 
     console.log('Posting driver registration payload', payload, 'adminId', adminId);
-    this.adminService.registerDriver(adminId, payload).subscribe({
+    this.adminService.registerDriver(payload).subscribe({
       next: (res) => {
         console.log('Driver registration response', res);
         this.showToastMessage('Driver registration submitted', 'success');

@@ -28,42 +28,38 @@ public class AuthController {
     private UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login (@RequestBody LoginRequestDTO request){
-        if(!request.getEmail().contains("@")){
-            return ResponseEntity.status(401).build();
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO request) {
+        try {
+            LoginResponseDTO responseDTO = authService.login(request);
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        LoginResponseDTO response = new LoginResponseDTO();
-        response.setId(1L);
-        response.setActive(true);
-        response.setEmail(request.getEmail());
-        response.setFirstName("Jane");
-        response.setLastName("Doe");
-        return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestParam Long id){
+    public ResponseEntity<Void> logout(@RequestParam Long id) {
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequestDTO request){
-        if(request.getEmail() == null || request.getEmail().isEmpty()){
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
             return ResponseEntity.status(400).build();
         }
-        if(!request.getEmail().contains("@")){
+        if (!request.getEmail().contains("@")) {
             return ResponseEntity.status(400).build();
         }
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDTO request){
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDTO request) {
         if (request.getNewPassword() == null || request.getConfirmNewPassword() == null
-                || request.getNewPassword().isEmpty() || request.getConfirmNewPassword().isEmpty()){
+                || request.getNewPassword().isEmpty() || request.getConfirmNewPassword().isEmpty()) {
             return ResponseEntity.status(400).build();
         }
-        if(!request.getNewPassword().equals(request.getConfirmNewPassword())){
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             return ResponseEntity.status(400).build();
         }
         return ResponseEntity.ok().build();
@@ -72,8 +68,8 @@ public class AuthController {
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> register(
             @ModelAttribute RegisterRequestDTO request,
-            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage){
-        try{
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+        try {
             RegisterResponseDTO responseDTO = authService.register(request, profileImage);
             return ResponseEntity.ok().body(responseDTO);
         } catch (Exception e) {
@@ -82,14 +78,14 @@ public class AuthController {
     }
 
     @PutMapping("/activate")
-    public ResponseEntity<?> activate(@RequestParam String token){
+    public ResponseEntity<?> activate(@RequestParam String token) {
         Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
-        if(optionalToken.isEmpty()){
+        if (optionalToken.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
         }
 
         ActivationToken activationToken = optionalToken.get();
-        if(activationToken.getExpiresAt().isBefore(LocalDateTime.now())){
+        if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             authService.handleExpiredActivationToken(activationToken);
             return ResponseEntity.badRequest().body(Map.of("message", "Token expired. New activation link sent to your email."));
         }

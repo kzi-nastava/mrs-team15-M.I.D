@@ -4,12 +4,12 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private apiURL = 'http://localhost:8081/api/admins';
+  private apiURL = 'http://localhost:8080/api/admins';
 
   constructor(private http: HttpClient) {}
 
-  registerDriver(adminId: number, data: any): Observable<any> {
-    return this.http.post(`${this.apiURL}/${adminId}/driver-register`, data);
+  registerDriver(data: any): Observable<any> {
+    return this.http.post(`${this.apiURL}/driver-register`, data);
   }
 
   getDriverRequests(adminId: number): Observable<any> {

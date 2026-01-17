@@ -71,11 +71,9 @@ public class AdminController {
         return ResponseEntity.ok().body(details);
     }
 
-    @PostMapping("{id}/driver-register")
+    @PostMapping("/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
-            @PathVariable Long id,
             @Valid @RequestBody RegisterDriverRequestDTO request) {
-
         return ResponseEntity.status(201).body(adminService.register(request));
     }
 
