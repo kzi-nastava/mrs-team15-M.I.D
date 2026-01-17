@@ -16,6 +16,7 @@ import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -168,6 +169,41 @@ public class RideService {
         // TODO: implement real time estimation
         Vehicle vehicle = driver.getVehicle();
         return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), 10);
+    }
+
+    public RideResponseDTO finishRide(Long rideId, Long driverId) {
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
+
+        ride.setStatus(RideStatus.FINISHED);
+        ride = rideRepository.save(ride);
+
+        // mark driver as available again
+        Driver driver = ride.getDriver();
+        if (driver != null) {
+            driver.setAvailable(true);
+            driverRepository.save(driver);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextHour = now.plusHours(1);
+
+        List<Ride> scheduledRides = rideRepository.findScheduledRidesForDriverInNextHour(
+                driverId, now, nextHour);
+
+        if (scheduledRides.isEmpty()) {
+            return null;
+        }
+
+        Ride nextRide = scheduledRides.get(0);
+        RideResponseDTO response = new RideResponseDTO();
+        response.setRideId(nextRide.getId());
+        response.setStartTime(nextRide.getScheduledTime());
+        response.setPassengerEmails(nextRide.getPassengers().stream()
+                .map(p -> p.getUser().getEmail())
+                .toList());
+
+        return response;
     }
 
     public void startRide(Long rideId) {

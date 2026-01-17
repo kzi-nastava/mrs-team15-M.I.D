@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.dto.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.Rating;
 
 @Getter
 @Setter
@@ -11,10 +12,10 @@ public class RatingDTO {
     private String driverComment;
     private String vehicleComment;
 
-    public RatingDTO(Integer driverRating, Integer vehicleRating, String driverComment, String vehicleComment) {
-        this.driverRating = driverRating;
-        this.vehicleRating = vehicleRating;
-        this.driverComment = driverComment;
-        this.vehicleComment = vehicleComment;
+    public RatingDTO(Rating rating) {
+        this.driverRating = rating.getDriverRating();
+        this.vehicleRating = rating.getVehicleRating();
+        this.driverComment = rating.getDriverComment();
+        this.vehicleComment = rating.getVehicleComment();
     }
 }
