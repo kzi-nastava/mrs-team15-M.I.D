@@ -15,8 +15,8 @@ import { PanicModal } from '../panic-modal/panic-modal';
 export class CurrentRideForm {
   @ViewChild(ReportInconsistencyModal) reportModal!: ReportInconsistencyModal;
 
-  isDriver: boolean = true;
-  isPassenger: boolean = false;
+  isDriver: boolean = false;
+  isPassenger: boolean = true;
 
   showStopModal: boolean = false;
   showPanicModal: boolean = false;
