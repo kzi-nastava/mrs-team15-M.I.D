@@ -1,18 +1,18 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.ride;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.Inconsistency;
 
 @Getter @Setter
 public class InconsistencyResponseDTO {
-    @NotNull
+    private Long id;
     private Long rideId;
-    @NotNull @NotEmpty
     private String description;
-    @NotNull
-    private Long passengerId;
-    @NotNull
-    private Long driverId;
+
+    public InconsistencyResponseDTO(Inconsistency inconsistency) {
+        this.id = inconsistency.getId();
+        this.rideId = inconsistency.getRide().getId();
+        this.description = inconsistency.getDescription();
+    }
 }

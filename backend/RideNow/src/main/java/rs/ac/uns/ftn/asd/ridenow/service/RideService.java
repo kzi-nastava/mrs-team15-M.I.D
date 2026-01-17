@@ -10,10 +10,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
-import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
-import rs.ac.uns.ftn.asd.ridenow.repository.RatingRepository;
-import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
-import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,12 +23,18 @@ public class RideService {
     private final RideRepository rideRepository;
     private final DriverRepository driverRepository;
     private final RatingRepository ratingRepository;
+    private final InconsistencyRepository inconsistencyRepository;
+    private final PassengerRepository passengerRepository;
+    private final RegisteredUserRepository registeredUserRepository;
 
-    public RideService(RouteRepository routeRepository, RideRepository rideRepository, DriverRepository driverRepository, RatingRepository ratingRepository) {
+    public RideService(RouteRepository routeRepository, RideRepository rideRepository, DriverRepository driverRepository, RatingRepository ratingRepository, InconsistencyRepository inconsistencyRepository, PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository) {
         this.routeRepository = routeRepository;
         this.rideRepository = rideRepository;
         this.driverRepository = driverRepository;
         this.ratingRepository = ratingRepository;
+        this.inconsistencyRepository = inconsistencyRepository;
+        this.passengerRepository = passengerRepository;
+        this.registeredUserRepository = registeredUserRepository;
     }
 
     public RouteResponseDTO estimateRoute(EstimateRouteRequestDTO dto) {
@@ -204,6 +207,16 @@ public class RideService {
                 .toList());
 
         return response;
+    }
+  
+    public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
+        RegisteredUser regUser = registeredUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
+        Passenger passenger = (Passenger) passengerRepository.findByUser(regUser).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
+        Ride ride = rideRepository.findById(req.getRideId()).orElseThrow(() -> new EntityNotFoundException("Ride with id " + req.getRideId() + " not found"));
+
+        Inconsistency inconsistency = new Inconsistency(ride, passenger, req.getDescription());
+        Inconsistency savedInconsistency = inconsistencyRepository.save(inconsistency);
+        return new InconsistencyResponseDTO(savedInconsistency);
     }
 
     public void startRide(Long rideId) {

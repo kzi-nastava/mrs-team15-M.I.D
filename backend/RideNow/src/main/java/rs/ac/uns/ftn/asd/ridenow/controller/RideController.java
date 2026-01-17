@@ -81,13 +81,11 @@ public class RideController {
         return ResponseEntity.ok(vehicle);
     }
 
-    @PostMapping("/{id}/inconsistency")
-    public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@PathVariable @NotNull @Min(1) Long id, @RequestBody @Valid InconsistencyRequestDTO req){
-        InconsistencyResponseDTO res = new InconsistencyResponseDTO();
-        res.setRideId(id);
-        res.setDescription(req.getDescription());
-        res.setDriverId(req.getDriverId());
-        res.setPassengerId(req.getPassengerId());
+    @PostMapping("/inconsistency")
+    public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@RequestBody @Valid InconsistencyRequestDTO req){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        InconsistencyResponseDTO res = rideService.reportInconsistency(req, user.getId());
 
         return ResponseEntity.status(201).body(res);
     }
