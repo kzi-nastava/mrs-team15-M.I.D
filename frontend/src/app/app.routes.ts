@@ -28,10 +28,10 @@ import { ActivationPage } from './auth/pages/activation-page/activation-page';
 export const routes: Routes = [
     { path: '', component: Landing },         // Default route (home page)
     { path: 'landing', component: Landing },  // /landing route
-    { path: 'login', component: Login },
-    { path: 'forgot-password', component: ForgotPassword },
-    { path: 'reset-password', component: ResetPassword },
-    { path: 'registration', component: Registration },
+    { path: 'login', component: Login},
+    { path: 'forgot-password', component: ForgotPassword},
+    { path: 'reset-password/:token', component: ResetPassword},
+    { path: 'registration', component: Registration},
     { path: 'profile', component: ProfileInfo },
     { path: 'change-request', component: ChangeRequest },
     { path: 'driver-requests', component: DriverRequestsPage },

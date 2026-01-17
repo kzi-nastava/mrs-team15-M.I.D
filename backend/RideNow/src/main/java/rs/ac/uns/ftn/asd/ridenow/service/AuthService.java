@@ -4,14 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.LoginResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
+import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.ForgotPasswordTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.security.JwtUtil;
 
@@ -31,6 +30,9 @@ public class AuthService {
 
     @Autowired
     private ActivationTokenRepository activationTokenRepository;
+
+    @Autowired
+    private ForgotPasswordTokenRepository forgotPasswordTokenRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -125,5 +127,50 @@ public class AuthService {
         responseDTO.setToken(token);
         responseDTO.setRole(existingUser.getRole().name());
         return responseDTO;
+    }
+
+    public void forgotPassword(ForgotPasswordRequestDTO request) throws  Exception{
+        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        if(user.isEmpty()){
+            throw  new Exception("User with this email does not exists");
+        }
+        User existingUser = user.get();
+        if(!existingUser.isActive()){
+            throw  new Exception("Account is not active. Please activate your account via email first.");
+        }
+        sendForgotPasswordEmail(existingUser);
+    }
+
+    private ForgotPasswordToken generateForgotPasswordToken(User user) {
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(token, expiresAt, user);
+        user.setForgotPasswordToken(forgotPasswordToken);
+        return forgotPasswordToken;
+    }
+
+    private void sendForgotPasswordEmail(User user) {
+        ForgotPasswordToken oldToken = user.getForgotPasswordToken();
+        if (oldToken != null) {
+            user.setForgotPasswordToken(null);
+            forgotPasswordTokenRepository.delete(oldToken);
+            userRepository.save(user);
+        }
+        ForgotPasswordToken token = generateForgotPasswordToken(user);
+        forgotPasswordTokenRepository.save(token);
+        emailService.sendForgotPasswordMail(user.getEmail(), token);
+    }
+
+    public void handleExpiredForgotPasswordToken(ForgotPasswordToken forgotPasswordToken) {
+        User user = forgotPasswordToken.getUser();
+        user.setForgotPasswordToken(null);
+        forgotPasswordTokenRepository.delete(forgotPasswordToken);
+        sendForgotPasswordEmail(user);
+    }
+
+    public void resetPassword(User user, ResetPasswordRequestDTO request){
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
     }
 }
