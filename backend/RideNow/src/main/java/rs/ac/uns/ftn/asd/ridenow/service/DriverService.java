@@ -8,6 +8,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
@@ -32,25 +33,6 @@ public class DriverService {
         this.driverRequestRepository = driverRequestRepository;
     }
 
-    private RouteDTO mapRouteToDTO(Route route) {
-        return new RouteDTO(
-                route.getId(),
-                route.getDistanceKm(),
-                route.getStartLocation(),
-                route.getEndLocation(),
-                route.getStopLocations()
-        );
-    }
-
-    private RatingDTO mapRatingToDTO(Rating rating) {
-        return new RatingDTO(
-                rating.getDriverRating(),
-                rating.getVehicleRating(),
-                rating.getDriverComment(),
-                rating.getVehicleComment()
-        );
-    }
-
     public List<DriverHistoryItemDTO> getDriverHistory(Long driverId) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
@@ -59,7 +41,7 @@ public class DriverService {
         List<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver);
         for (Ride ride : driverRides) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
-            dto.setRoute(mapRouteToDTO(ride.getRoute()));
+            dto.setRoute(new RouteDTO(ride.getRoute()));
             dto.setDate(ride.getScheduledTime().toLocalDate());
             if (ride.getStartTime() != null &&  ride.getEndTime() != null) {
                 dto.setDurationMinutes((double) Duration.between(ride.getStartTime(), ride.getEndTime()).toSeconds() / 60);
@@ -87,7 +69,7 @@ public class DriverService {
             }
 
             if (ratingRepository.findByRide(ride)!= null) {
-                dto.setRating(mapRatingToDTO(ratingRepository.findByRide(ride)));
+                dto.setRating(new RatingDTO(ratingRepository.findByRide(ride)));
             }
 
             List<Inconsistency> inconsistencies = ride.getInconsistencies();
@@ -155,5 +137,25 @@ public class DriverService {
         DriverRequest saved = driverRequestRepository.save(entity);
 
         return response;
+    }
+
+    public List<RideResponseDTO> findScheduledRides(Long driverId) {
+        Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
+        List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
+        List<RideResponseDTO> rideDTOs = new ArrayList<>();
+
+        for (Ride ride : rides) {
+            RideResponseDTO dto = new RideResponseDTO();
+            dto.setRideId(ride.getId());
+            dto.setStartTime(ride.getScheduledTime());
+            dto.setPassengerEmails(new ArrayList<>());
+            for (Passenger p : ride.getPassengers()) {
+                dto.getPassengerEmails().add(p.getUser().getEmail());
+            }
+            dto.setRoute(new RouteDTO(ride.getRoute()));
+            rideDTOs.add(dto);
+        }
+
+        return rideDTOs;
     }
 }

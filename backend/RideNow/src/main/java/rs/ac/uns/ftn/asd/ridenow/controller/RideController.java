@@ -20,6 +20,8 @@ import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/rides")
 public class RideController {
@@ -86,6 +88,15 @@ public class RideController {
         InconsistencyResponseDTO res = rideService.reportInconsistency(req, user.getId());
 
         return ResponseEntity.status(201).body(res);
+    }
+
+    @PostMapping("/{id}/finish")
+    public ResponseEntity<RideResponseDTO> finish(@PathVariable @NotNull @Min(1) Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long driverId = user.getId();
+
+        RideResponseDTO res = rideService.finishRide(id, driverId);
+        return ResponseEntity.ok(res);
     }
 
     @PutMapping("/{id}/start")
