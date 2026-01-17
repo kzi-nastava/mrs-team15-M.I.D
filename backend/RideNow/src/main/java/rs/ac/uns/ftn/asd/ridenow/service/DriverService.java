@@ -2,6 +2,9 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
@@ -51,13 +54,13 @@ public class DriverService {
         );
     }
 
-    public List<DriverHistoryItemDTO> getDriverHistory(Long driverId) {
+    public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
 
-        List<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver);
-        for (Ride ride : driverRides) {
+        Page<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver, pageable);
+        for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(mapRouteToDTO(ride.getRoute()));
             dto.setDate(ride.getScheduledTime().toLocalDate());
@@ -101,7 +104,7 @@ public class DriverService {
 
             driverHistory.add(dto);
         }
-        return driverHistory;
+        return new PageImpl(driverHistory, pageable, driverRides.getTotalElements());
     }
 
     public DriverChangeResponseDTO requestDriverChanges(@NotNull Long driverId, @NotNull DriverChangeRequestDTO request) {
@@ -140,8 +143,8 @@ public class DriverService {
 
         // vehicleId is required by entity; try to set to driver's current vehicle if present
         try {
-            Driver driver = driverRepository.getReferenceById(driverId);
-            if (driver != null && driver.getVehicle() != null) {
+            Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
+            if (driver.getVehicle() != null) {
                 entity.setVehicleId(driver.getVehicle().getId());
             } else {
                 entity.setVehicleId(0L);
