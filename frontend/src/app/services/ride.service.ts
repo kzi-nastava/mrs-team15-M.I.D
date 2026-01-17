@@ -1,5 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { UpcomingRide } from '../ride/components/upcoming-rides-table/upcoming-rides-table';
+
+interface ActivateResponse {
+  message: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class RideService {
@@ -39,5 +45,13 @@ export class RideService {
         destinationAddress: data.destinationAddress
       }
     });
+  }
+
+  getMyUpcomingRides(): Observable<UpcomingRide[]> {
+    return this.http.get<UpcomingRide[]>(`${this.apiURL}/my-upcoming-rides`);
+  }
+
+  cancelRide(id : number,  data: { reason: string; }) {
+    return this.http.put<ActivateResponse>(`${this.apiURL}/${id}/cancel`, data);
   }
 }

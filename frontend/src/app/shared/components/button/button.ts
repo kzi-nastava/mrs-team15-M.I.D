@@ -14,7 +14,8 @@ export class Button {
   @Input() height: string = '100%';
   @Input() fontWeight: string = '100';
   @Input() textTransform: string = 'none';
-  @Input() variant: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' = 'primary';
+  @Input() variant: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'black-outline' = 'primary';
+  
   @Input() routerLink?: string;
   @Input() disabled: boolean = false;
 

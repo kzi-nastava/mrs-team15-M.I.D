@@ -14,6 +14,7 @@ import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -208,7 +209,7 @@ public class RideService {
 
         return response;
     }
-  
+
     public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
         RegisteredUser regUser = registeredUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
         Passenger passenger = (Passenger) passengerRepository.findByUser(regUser).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
@@ -221,5 +222,39 @@ public class RideService {
 
     public void startRide(Long rideId) {
         // mock – no logic
+    }
+
+    public List<UpcomingRideDTO> getUpcomingRidesByUser(Long user_id) {
+        List<Object[]> results = rideRepository.findUpcomingRidesByUser(user_id);
+        List<UpcomingRideDTO> upcomingRides = new ArrayList<>();
+        for (Object[] row : results) {
+            UpcomingRideDTO upcomingRide = new UpcomingRideDTO();
+            upcomingRide.setId((Long) row[0]);
+            upcomingRide.setRoute((String) row[2]);
+            upcomingRide.setStartTime((String) row[3]);
+            upcomingRide.setPassengers((String) row[4]);
+            upcomingRide.setCanCancel(row[1] == user_id);
+            upcomingRides.add(upcomingRide);
+        }
+        return upcomingRides;
+    }
+
+    public void userRideCancellation(Long id, CancelRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(id);
+        if(optionalRide.isEmpty()){
+            throw new Exception("Ride does not exists");
+        }
+        Ride ride = optionalRide.get();
+        if (LocalDateTime.now().plusMinutes(10).isBefore(ride.getScheduledTime())) {
+            ride.setCancelled(true);
+            ride.setCancelledBy("USER");
+            ride.setCancelReason(request.getReason());
+            ride.setStatus(RideStatus.CANCELLED);
+            rideRepository.save(ride);
+        }
+        else{
+            System.out.println("You can cancel a ride up to 10 minutes before it starts.");
+            throw  new Exception("You can cancel a ride up to 10 minutes before it starts.");
+        }
     }
 }
