@@ -15,7 +15,6 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.TrackVehicleDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
@@ -123,5 +122,12 @@ public class RideController {
     public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long rideId, @Valid @RequestBody RateRequestDTO req) {
         RateResponseDTO res = rideService.makeRating(req, rideId);
         return ResponseEntity.status(201).body(res);
+    }
+
+    @GetMapping("/my-upcoming-rides")
+    public List<UpcomingRideDTO> getUpcomingRides() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = user.getId();
+        return rideService.getUpcomingRidesByUser(userId);
     }
 }

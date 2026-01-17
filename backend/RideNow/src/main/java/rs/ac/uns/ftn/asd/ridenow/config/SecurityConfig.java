@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .requestMatchers("/api/rides/track").hasRole("USER")
+                        .requestMatchers("/api/rides/my-upcoming-rides").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

@@ -18,7 +18,7 @@
       <div class="error" *ngIf="validator.reasonError(reason)"> {{validator.reasonError(reason)}}</div>
     </div>
     <div class="modal-footer">
-      <app-button width="150px" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
+      <app-button width="150px" height="35px" variant="black-outline" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
       <app-button width="150px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase"(clicked)="onConfirm()" text="Cancel Ride" [disabled]="hasErrors()"></app-button>
     </div>
   </div>

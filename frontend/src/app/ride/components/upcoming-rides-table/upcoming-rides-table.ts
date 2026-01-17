@@ -8,6 +8,7 @@ export interface UpcomingRide{
   route: string;
   startTime: string;
   passengers: string;
+  canCancel : boolean;
 }
 
 type SortColumn = 'route' | 'startTime' | 'passengers' ;
@@ -29,6 +30,7 @@ export class UpcomingRidesTable implements OnInit {
     if (this._upcomingRides.length > 0) {
       this.applySorting();
     }
+    console.log(this.upcomingRides);
   }
   get upcomingRides(): UpcomingRide[] {
     return this._upcomingRides;
