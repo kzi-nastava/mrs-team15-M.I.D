@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideEstimateResponseDTO;
@@ -14,6 +15,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 
 @RestController
@@ -59,13 +61,11 @@ public class RideController {
         return ResponseEntity.ok(vehicle);
     }
 
-    @PostMapping("/{id}/inconsistency")
-    public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@PathVariable @NotNull @Min(1) Long id, @RequestBody @Valid InconsistencyRequestDTO req){
-        InconsistencyResponseDTO res = new InconsistencyResponseDTO();
-        res.setRideId(id);
-        res.setDescription(req.getDescription());
-        res.setDriverId(req.getDriverId());
-        res.setPassengerId(req.getPassengerId());
+    @PostMapping("/inconsistency")
+    public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@RequestBody @Valid InconsistencyRequestDTO req){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        InconsistencyResponseDTO res = rideService.reportInconsistency(req, user.getId());
 
         return ResponseEntity.status(201).body(res);
     }
