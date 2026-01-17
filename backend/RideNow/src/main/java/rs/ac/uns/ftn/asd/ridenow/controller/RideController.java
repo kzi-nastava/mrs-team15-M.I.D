@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +18,14 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
+import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
 @RestController
 @RequestMapping("/api/rides")
 public class RideController {
+
+    @Autowired
+    private RoutingService routingService;
 
     private final RideService rideService;
 
@@ -29,10 +34,27 @@ public class RideController {
     }
 
     @GetMapping("/estimate")
-    public ResponseEntity<RideEstimateResponseDTO> estimate(@RequestParam String startAddress, @RequestParam String destinationAddress){
-        RideEstimateResponseDTO response = new RideEstimateResponseDTO();
-        response.setEstimatedDurationMin(24);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<?> estimate(@RequestParam String startAddress, @RequestParam String destinationAddress){
+        try{
+            double[] startCoordinate = routingService.getGeocode(startAddress);
+            double latStart = startCoordinate[0];
+            System.out.println(latStart);
+            double lonStart = startCoordinate[1];
+            System.out.println(lonStart);
+
+
+            double[] endCoordinate = routingService.getGeocode(destinationAddress);
+            double latEnd = endCoordinate[0];
+            System.out.println(latEnd);
+            double lonEnd = endCoordinate[1];
+            System.out.println(lonEnd);
+
+
+            RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}/stop")
@@ -53,11 +75,7 @@ public class RideController {
 
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
-        TrackVehicleDTO vehicle = new TrackVehicleDTO();
-        vehicle.setLocation(new Location(12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
-        //vehicle.setLocation(new Location(0L, 12.223, 45.334, "Bulevar Oslobodjenja 20, Novi Sad"));
-        vehicle.setRemainingTimeInMinutes(12);
-
+        TrackVehicleDTO vehicle = rideService.trackRide(id);
         return ResponseEntity.ok(vehicle);
     }
 

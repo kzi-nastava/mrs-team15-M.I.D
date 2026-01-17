@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class RideService {
-  private apiURL = 'http://localhost:8081/api/rides';
+  private apiURL = 'http://localhost:8080/api/rides';
 
   constructor(private http: HttpClient) {}
 
@@ -30,5 +30,14 @@ export class RideService {
 
   orderRide(dto: any) {
     return this.http.post<any>(`${this.apiURL}`, dto).toPromise();
+  }
+
+  estimate(data: { startAddress: string; destinationAddress: string }) {
+    return this.http.get<any>(`${this.apiURL}/estimate`, {
+      params: {
+        startAddress: data.startAddress,
+        destinationAddress: data.destinationAddress
+      }
+    });
   }
 }
