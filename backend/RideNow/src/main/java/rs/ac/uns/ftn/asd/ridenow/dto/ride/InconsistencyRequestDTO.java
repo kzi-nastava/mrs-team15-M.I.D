@@ -9,10 +9,6 @@ import lombok.Setter;
 public class InconsistencyRequestDTO {
     @NotNull
     private Long rideId;
-    @NotNull
-    private Long passengerId;
     @NotNull @NotEmpty
     private String description;
-    @NotNull
-    private Long driverId;
 }

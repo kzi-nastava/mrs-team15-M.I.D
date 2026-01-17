@@ -28,6 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/rides/estimate").permitAll()
                         .requestMatchers("/api/admins/**").hasRole("ADMIN")
+                        .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .requestMatchers("/api/rides/track").hasRole("USER")
                         .anyRequest().authenticated()
