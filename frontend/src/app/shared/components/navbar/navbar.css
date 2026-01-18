@@ -2,6 +2,10 @@
   box-shadow: none;
 }
 
+.navbar-toggler-icon{
+  margin-left: 3vh;
+}
+
 .navbar-collapse {
   visibility: hidden;
   opacity: 0;

@@ -1,14 +1,20 @@
 import { Component, signal } from '@angular/core';
 import { RouterLinkWithHref } from '@angular/router';
-
+import { Router } from '@angular/router';
+import { Button } from '../button/button';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLinkWithHref],
+  imports: [RouterLinkWithHref, Button, CommonModule],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
 export class NavbarComponent {
+
+  constructor(private router : Router, private authService : AuthService) {}
+
   protected menuOpen = signal(false);
 
   protected toggleMenu(): void {
@@ -17,5 +23,24 @@ export class NavbarComponent {
 
   protected closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  // ngOnInit(): void {
+  //   const role = localStorage.getItem('role');
+  //   const jwtToken = localStorage.getItem('jwtToken');
+  //   if (role != null && jwtToken != null){
+  //     this.showLogoutButton=true;
+  //   }
+  // }
+
+  get showLogoutButton(): boolean {
+    const role = localStorage.getItem('role');
+    const jwtToken = localStorage.getItem('jwtToken');
+    return !!role && !!jwtToken;
+  }
+
+  logout(){
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

@@ -31,4 +31,9 @@ export class AuthService {
     resetPassword(token: string, data: { newPassword: string; confirmNewPassword: string; }) {
       return this.http.put<ActivateResponse>(`${this.apiURL}/reset-password?token=${token}`, data);
     }
+
+    logout() {
+      localStorage.removeItem('role');
+      localStorage.removeItem('jwtToken');
+    }
 }
