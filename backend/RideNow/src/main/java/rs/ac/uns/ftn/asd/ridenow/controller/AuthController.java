@@ -43,10 +43,14 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(){
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        authService.logout(user);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> logout(){
+        try{
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            authService.logout(user);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/forgot-password")

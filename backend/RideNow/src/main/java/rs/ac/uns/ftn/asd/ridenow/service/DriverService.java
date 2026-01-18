@@ -16,6 +16,7 @@ import java.sql.Date;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DriverService {
@@ -157,5 +158,10 @@ public class DriverService {
         }
 
         return rideDTOs;
+    }
+
+    public boolean hasRideInProgress(Driver driver) {
+        Optional<Ride> optionalRide = driverRepository.findRideInProgress(driver.getId());
+        return optionalRide.isPresent();
     }
 }

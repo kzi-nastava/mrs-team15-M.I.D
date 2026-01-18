@@ -5,10 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
-import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
-import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
-import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
-import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.ForgotPasswordTokenRepository;
@@ -39,7 +36,10 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private  EmailService emailService;
+    private EmailService emailService;
+
+    @Autowired
+    private  DriverService driverService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -123,6 +123,9 @@ public class AuthService {
         if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
             throw new Exception("Invalid credentials");
         }
+        if (existingUser instanceof Driver driver) {
+            driver.setAvailable(true);
+        }
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
         LoginResponseDTO responseDTO = new LoginResponseDTO();
         responseDTO.setToken(token);
@@ -177,7 +180,14 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public void logout(User user) {
+    public void logout(User user) throws  Exception{
+        if (user instanceof Driver driver) {
+            if (driverService.hasRideInProgress(driver)) {
+                throw new Exception("You can’t log out while a ride is in progress. " +
+                        "Please finish the ride first.");
+            }
+            driver.setAvailable(false);
+        }
         user.setJwtTokenValid(false);
         userRepository.save(user);
     }
