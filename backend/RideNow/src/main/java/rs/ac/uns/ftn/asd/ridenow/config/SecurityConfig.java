@@ -25,12 +25,15 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/rides/estimate").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login", "/api/auth/register",
+                                "/api/auth/activate", "/api/auth/forgot-password",
+                                "/api/auth/reset-password", "/api/rides/estimate").permitAll()
                         .requestMatchers("/api/admins/**").hasRole("ADMIN")
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .requestMatchers("/api/rides/track").hasRole("USER")
+                        .requestMatchers("/api/auth/logout").hasAnyRole("ADMIN", "USER", "DRIVER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

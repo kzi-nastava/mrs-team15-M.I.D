@@ -34,9 +34,9 @@ public class Driver extends User {
     List<Ride> rideHistory = new ArrayList<>();
 
     public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,
-                  String profileImage, boolean active, boolean blocked, DriverStatus status, boolean available,
+                  String profileImage, boolean active, boolean blocked, boolean jwtTokenValid, DriverStatus status, boolean available,
                   double workingHoursLast24, double rating, Vehicle vehicle) {
-        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked, UserRoles.DRIVER);
+        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked, UserRoles.DRIVER, jwtTokenValid);
         this.status = status;
         this.available = available;
         this.workingHoursLast24 = workingHoursLast24;
@@ -46,7 +46,7 @@ public class Driver extends User {
 
     public Driver(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                   DriverStatus status, Vehicle vehicle) {
-        super(email, password, firstName, lastName, phoneNumber, address, null, true, false, UserRoles.DRIVER);
+        super(email, password, firstName, lastName, phoneNumber, address, null, false, false, UserRoles.DRIVER, false);
         this.status = status;
         this.rideHistory = new ArrayList<>();
         this.assignVehicle(vehicle);

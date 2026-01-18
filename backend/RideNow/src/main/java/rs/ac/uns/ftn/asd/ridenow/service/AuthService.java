@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
+import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
@@ -53,9 +54,9 @@ public class AuthService {
         String profileImageURL = generateProfileImageUrl(profileImage);
         String hashedPassword = passwordEncoder.encode(requestDTO.getPassword());
 
-        User user = new User(requestDTO.getEmail(), hashedPassword, requestDTO.getFirstName(),
+        User user = new RegisteredUser(requestDTO.getEmail(), hashedPassword, requestDTO.getFirstName(),
                 requestDTO.getLastName(), requestDTO.getPhoneNumber(), requestDTO.getAddress(),
-                profileImageURL, false, false, UserRoles.USER);
+                profileImageURL, false, false, false);
         User savedUser = userRepository.save(user);
 
         sendActivationEmail(savedUser);
@@ -126,6 +127,8 @@ public class AuthService {
         LoginResponseDTO responseDTO = new LoginResponseDTO();
         responseDTO.setToken(token);
         responseDTO.setRole(existingUser.getRole().name());
+        existingUser.setJwtTokenValid(true);
+        userRepository.save(existingUser);
         return responseDTO;
     }
 
@@ -171,6 +174,11 @@ public class AuthService {
     public void resetPassword(User user, ResetPasswordRequestDTO request){
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedPassword);
+        userRepository.save(user);
+    }
+
+    public void logout(User user) {
+        user.setJwtTokenValid(false);
         userRepository.save(user);
     }
 }

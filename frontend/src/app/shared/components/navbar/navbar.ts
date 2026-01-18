@@ -25,22 +25,22 @@ export class NavbarComponent {
     this.menuOpen.set(false);
   }
 
-  // ngOnInit(): void {
-  //   const role = localStorage.getItem('role');
-  //   const jwtToken = localStorage.getItem('jwtToken');
-  //   if (role != null && jwtToken != null){
-  //     this.showLogoutButton=true;
-  //   }
-  // }
-
   get showLogoutButton(): boolean {
     const role = localStorage.getItem('role');
     const jwtToken = localStorage.getItem('jwtToken');
     return !!role && !!jwtToken;
   }
 
-  logout(){
-    this.authService.logout();
-    this.router.navigate(['/login']);
+  logout() {
+    this.authService.logout().subscribe({
+      next: () => {
+        localStorage.removeItem('role');
+        localStorage.removeItem('jwtToken');
+        this.router.navigate(['/login']);
+      },
+      error: err => {
+        console.error('Logout failed', err);
+      }
+    });
   }
 }

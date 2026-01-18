@@ -32,8 +32,7 @@ export class AuthService {
       return this.http.put<ActivateResponse>(`${this.apiURL}/reset-password?token=${token}`, data);
     }
 
-    logout() {
-      localStorage.removeItem('role');
-      localStorage.removeItem('jwtToken');
+    logout(): Observable<any> {
+      return this.http.post(`${this.apiURL}/logout`, null);
     }
 }
