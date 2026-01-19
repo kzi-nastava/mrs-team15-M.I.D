@@ -15,6 +15,8 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.TrackVehicleDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
@@ -65,8 +67,11 @@ public class RideController {
     public ResponseEntity<?> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request) {
         try {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if(user.getRole() == UserRoles.USER){
-                rideService.userRideCancellation(id, request);
+            if(user instanceof RegisteredUser registeredUser){
+                rideService.userRideCancellation(registeredUser, id, request);
+            }
+            else if(user instanceof Driver){
+                rideService.driverRideCancellation(id, request);
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {

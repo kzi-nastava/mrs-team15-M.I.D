@@ -8,6 +8,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
@@ -239,12 +240,23 @@ public class RideService {
         return upcomingRides;
     }
 
-    public void userRideCancellation(Long id, CancelRideRequestDTO request) throws Exception {
+    public void userRideCancellation(RegisteredUser registeredUser, Long id, CancelRideRequestDTO request) throws Exception {
         Optional<Ride> optionalRide = rideRepository.findById(id);
         if(optionalRide.isEmpty()){
             throw new Exception("Ride does not exists");
         }
         Ride ride = optionalRide.get();
+
+        Optional<Passenger> optionalPassenger = passengerRepository.findByUserAndRide(registeredUser, ride);
+        if (optionalPassenger.isEmpty()) {
+            throw new Exception("You are not a passenger on this ride");
+        }
+
+        Passenger passenger = optionalPassenger.get();
+        if(passenger.getRole() != PassengerRole.CREATOR){
+            throw new Exception("Only the creator can cancel the ride");
+        }
+
         if (LocalDateTime.now().plusMinutes(10).isBefore(ride.getScheduledTime())) {
             ride.setCancelled(true);
             ride.setCancelledBy("USER");
@@ -253,8 +265,10 @@ public class RideService {
             rideRepository.save(ride);
         }
         else{
-            System.out.println("You can cancel a ride up to 10 minutes before it starts.");
             throw  new Exception("You can cancel a ride up to 10 minutes before it starts.");
         }
+    }
+
+    public void driverRideCancellation(Long id, CancelRideRequestDTO request) {
     }
 }

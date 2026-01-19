@@ -33,7 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
                         .requestMatchers("/api/rides/track").hasRole("USER")
                         .requestMatchers("/api/rides/my-upcoming-rides").hasRole("USER")
-                        .requestMatchers("/api/rides/my-upcoming-rides/*/cancel").hasRole("USER")
+                        .requestMatchers("/api/rides/*/cancel").hasAnyRole("USER", "DRIVER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
