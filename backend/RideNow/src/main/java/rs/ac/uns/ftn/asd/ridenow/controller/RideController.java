@@ -135,4 +135,14 @@ public class RideController {
         Long userId = user.getId();
         return rideService.getUpcomingRidesByUser(userId);
     }
+
+    @GetMapping("/my-current-ride")
+    public CurrentRideDTO getCurrentRide(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            return rideService.getCurrentRide(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

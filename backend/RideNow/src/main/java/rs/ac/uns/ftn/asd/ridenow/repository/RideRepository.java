@@ -10,6 +10,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.Ride;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface RideRepository extends JpaRepository<Ride, Long> {
     List<Ride> findByDriver(Driver driver);
@@ -81,4 +82,19 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             ORDER BY r.scheduled_time ASC;
        \s""", nativeQuery = true)
     List<Object[]> findUpcomingRidesByUser(@Param("userId") Long userId);
+
+    @Query(value = "SELECT r.* " +
+            "FROM public.ride r " +
+            "JOIN public.passenger p ON r.id = p.ride_id " +
+            "WHERE r.status = 'IN_PROGRESS' AND p.user_id = :userId",
+            nativeQuery = true)
+    Optional<Ride> findCurrentRideByUser(@Param("userId") Long userId);
+
+    @Query(value = "SELECT * FROM public.ride " +
+            "WHERE driver_id = :driverId AND status = 'IN_PROGRESS'",
+            nativeQuery = true)
+    Optional<Ride> findCurrentRideByDriver(@Param("driverId") Long driverId);
+
+
+
 }
