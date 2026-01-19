@@ -13,19 +13,58 @@ import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, DriverRepository driverRepository) {
+    public UserService(UserRepository userRepository, DriverRepository driverRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void changePassword(Long userId, ChangePasswordRequestDTO dto) {
-        // mock: password changed
+        Optional<User> opt = userRepository.findById(userId);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+
+        User user = opt.get();
+
+        // verify current password
+        String stored = user.getPassword();
+        boolean matches;
+        // Detect whether stored password looks like a BCrypt hash. If not, allow a legacy/plaintext match
+        // This avoids the "Encoded password does not look like BCrypt" warning and supports migrating old hashes.
+        if (stored != null && (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$"))) {
+            matches = passwordEncoder.matches(dto.getCurrentPassword(), stored);
+        } else {
+            // legacy password (not BCrypt) - compare raw values
+            matches = dto.getCurrentPassword() != null && dto.getCurrentPassword().equals(stored);
+        }
+        System.out.println(passwordEncoder.encode(stored));
+        if (!matches) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // validate new password confirmation
+        if (!dto.getNewPassword().equals(dto.getConfirmNewPassword())) {
+            throw new IllegalArgumentException("New password and confirmation do not match");
+        }
+
+        // optional: basic length check (model enforces @Size(min = 6) on User.password)
+        if (dto.getNewPassword().length() < 6) {
+            throw new IllegalArgumentException("New password must be at least 6 characters long");
+        }
+
+        String hashed = passwordEncoder.encode(dto.getNewPassword());
+        user.setPassword(hashed);
+        userRepository.save(user);
     }
 
     public UserResponseDTO getUser(Long userId) {

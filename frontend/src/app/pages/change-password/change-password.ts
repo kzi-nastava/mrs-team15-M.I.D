@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { Button } from '../../shared/components/button/button';
 import { CommonModule } from '@angular/common';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-change-password',
@@ -16,8 +16,10 @@ export class ChangePasswordPage {
   showCurrent = false;
   showNew = false;
   showConfirm = false;
+  // DEV fallback id
+  private readonly DEV_USER_ID = 9;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private userService: UserService) {}
 
   goBack() {
     this.router.navigate(['/profile']);
@@ -41,9 +43,35 @@ export class ChangePasswordPage {
       return;
     }
 
-    this.router.navigate(['/profile'], {
-      state: {
-        toastMessage: 'Your password has been changed successfully.',
+    // determine user id (try localStorage, fallback to DEV id)
+    let userId = this.DEV_USER_ID;
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        const parsed = JSON.parse(raw as string);
+        if (parsed && parsed.id) userId = Number(parsed.id);
+      }
+    } catch (e) {
+      // ignore and use DEV id
+    }
+
+    const payload = {
+      currentPassword: current,
+      newPassword: next,
+      confirmNewPassword: confirm,
+    };
+
+    this.userService.changePassword(Number(userId), payload).subscribe({
+      next: () => {
+        this.router.navigate(['/profile'], {
+          state: {
+            toastMessage: 'Your password has been changed successfully.',
+          },
+        });
+      },
+      error: (err) => {
+        console.error('Change password failed', err);
+        this.passwordError = err?.error?.message || 'Failed to change password.';
       },
     });
   }
