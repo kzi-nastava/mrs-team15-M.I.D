@@ -32,10 +32,39 @@ export interface RideHistoryResponse {
   cost: number;
   cancelled: boolean;
   cancelledBy: string | null;
-  panic: boolean;
+  panic: boolean | null;
   panicBy: string | null;
   rating: Rating | null;
   inconsistencies: string[];
+}
+
+export interface PaginatedRideHistoryResponse {
+  content: RideHistoryResponse[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  last: boolean;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  numberOfElements: number;
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  empty: boolean;
 }
 
 @Injectable({
@@ -45,7 +74,11 @@ export class RideHistoryService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api';
 
-  getDriverRideHistory(driverId: number): Observable<RideHistoryResponse[]> {
-    return this.http.get<RideHistoryResponse[]>(`${this.apiUrl}/driver/${driverId}/ride-history`);
+  getDriverRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string): Observable<PaginatedRideHistoryResponse> {
+    let url = `${this.apiUrl}/driver/ride-history?page=${page}&size=${size}`;
+    if (sortBy && sortDir) {
+      url += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+    }
+    return this.http.get<PaginatedRideHistoryResponse>(url);
   }
 }
