@@ -54,12 +54,28 @@ public class DriverService {
         );
     }
 
-    public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable) {
+    private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir) {
+        Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
+        if (sortBy.equals("passengers")){
+            if (sortDir.equals("asc")){
+                return rideRepository.findRidesSortedByFirstPassengerNameAsc(driverId, pageable);
+            } else {
+                return rideRepository.findRidesSortedByFirstPassengerNameDesc(driverId, pageable);
+            }
+        } else if (sortBy.equals("duration")){
+            if (sortDir.equals("asc")){
+                return rideRepository.findRidesSortedByDurationAsc(driverId, pageable);
+            } else {
+                return rideRepository.findRidesSortedByDurationDesc(driverId, pageable);
+            }
+        }
+        return rideRepository.findByDriverWithAllRelations(driver, pageable);
+    }
+
+    public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable, String sortBy, String sortDir) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
-        Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
-
-        Page<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver, pageable);
+        Page<Ride> driverRides = getRides(driverId, pageable, sortBy, sortDir);
         for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(mapRouteToDTO(ride.getRoute()));

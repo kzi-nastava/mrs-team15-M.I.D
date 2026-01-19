@@ -37,26 +37,34 @@ public class DriverController {
                                                                      @RequestParam(defaultValue = "date") String sortBy,
                                                                      @RequestParam(defaultValue = "desc") String sortDir) {
 
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
-        Pageable pageable = PageRequest.of(page, size, sort);
-
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long id = user.getId();
 
-        Page<DriverHistoryItemDTO> history = driverService.getDriverHistory(id, pageable);
+        Page<DriverHistoryItemDTO> history;
+
+        if ("passengers".equals(sortBy)) {
+            history = driverService.getDriverHistory(id,PageRequest.of(page, size), "passengers",  sortDir);
+        } else if ("duration".equals(sortBy)) {
+            history = driverService.getDriverHistory(id, PageRequest.of(page, size), "duration",  sortDir);
+        } else {
+            // Use standard sorting for other fields
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
+            Pageable pageable = PageRequest.of(page, size, sort);
+            history = driverService.getDriverHistory(id, pageable, "", "");
+        }
 
         return ResponseEntity.ok(history);
     }
 
     private String mapSortField(String sortBy) {
         return switch (sortBy) {
-            case "route" -> "route.startLocation";
+            case "route" -> "route.startLocation.address";
             case "passengers" -> "passengers.user.firstName";
             case "date" -> "scheduledTime";
             case "cancelled" -> "cancelled";
-            case "duration" -> "endTime"; // or create a calculated field
+            case "duration" -> "endTime";
             case "cost" -> "price";
-            case "panic" -> "panicAlert.id";
+            case "panic" -> "panicAlert";
             default -> "scheduledTime";
         };
     }
