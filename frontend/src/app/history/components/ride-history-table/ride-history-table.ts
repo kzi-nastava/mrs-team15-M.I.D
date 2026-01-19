@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Rating, Route } from '../../../services/ride-history.service';
 
@@ -37,21 +37,17 @@ export class RideHistoryTableComponent implements OnInit {
   @Input()
   set rides(value: Ride[]) {
     this._rides = value;
-    if (this._rides.length > 0) {
-      this.applySorting();
-    }
   }
   get rides(): Ride[] {
     return this._rides;
   }
 
-  sortColumn: SortColumn | '' = 'date';
-  sortDirection: SortDirection = 'desc';
+  @Output() sortChange = new EventEmitter<{ column: string, direction: string }>();
+
+  sortColumn: SortColumn | '' = '';
+  sortDirection: SortDirection = '';
 
   ngOnInit(): void {
-    if (this._rides.length > 0) {
-      this.applySorting();
-    }
   }
 
   formatDate(date: string): string {
@@ -67,6 +63,7 @@ export class RideHistoryTableComponent implements OnInit {
       } else if (this.sortDirection === 'desc') {
         this.sortDirection = '';
         this.sortColumn = '';
+        this.sortChange.emit({ column: '', direction: '' });
         return;
       }
     } else {
@@ -74,47 +71,8 @@ export class RideHistoryTableComponent implements OnInit {
       this.sortDirection = 'asc';
     }
 
-    this.applySorting();
-  }
-
-  private applySorting(): void {
-    if (!this.sortColumn) return;
-
-    const column = this.sortColumn as SortColumn;
-    this._rides.sort((a, b) => {
-      let aValue: any = a[column];
-      let bValue: any = b[column];
-
-      // Handle date sorting
-      if (column === 'date') {
-        aValue = new Date(a.date).getTime();
-        bValue = new Date(b.date).getTime();
-      }
-      // Handle cost sorting (remove currency symbols)
-      else if (column === 'cost') {
-        aValue = parseFloat(a.cost.replace(/[^0-9.-]/g, '')) || 0;
-        bValue = parseFloat(b.cost.replace(/[^0-9.-]/g, '')) || 0;
-      }
-      // Handle null values
-      else if (aValue === null || aValue === undefined) {
-        return this.sortDirection === 'asc' ? 1 : -1;
-      } else if (bValue === null || bValue === undefined) {
-        return this.sortDirection === 'asc' ? -1 : 1;
-      }
-      // String comparison
-      else if (typeof aValue === 'string' && typeof bValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (aValue < bValue) {
-        return this.sortDirection === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return this.sortDirection === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
+    // Emit sort event to parent for server-side sorting
+    this.sortChange.emit({ column: column.toLowerCase(), direction: this.sortDirection });
   }
 
   getSortIcon(column: SortColumn): string {
