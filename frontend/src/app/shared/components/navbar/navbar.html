@@ -1,34 +1,58 @@
-<header class="navbar navbar-light">
-  <div class="container-fluid px-5">
-    <a class="navbar-brand fw-bold fs-4" routerLink="/" (click)="closeMenu()">Ride Now</a>
-
-    <div class="ms-auto">
-      <button class="navbar-toggler border-0" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="navbar-collapse position-absolute end-0 mt-2" [class.show]="menuOpen()" style="width: 200px;">
-        <ul class="navbar-nav bg-white border rounded p-2">
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/" (click)="closeMenu()">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/driver-history" (click)="closeMenu()">Ride History</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/login" (click)="closeMenu()">Log in</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/reset-password" (click)="closeMenu()">Reset Password</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/driver-registration" (click)="closeMenu()">Driver Registration</a>
-          </li>
-        </ul>
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
       </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
     </div>
   </div>
+</div>
+<header class="navbar navbar-light mb-1">
+      <div class="container-fluid px-5">
+        <a class="navbar-brand fw-bold fs-4" routerLink="/" (click)="closeMenu()">Ride Now</a>
+        <div class="ms-auto">
+          <div class="d-flex align-items-center">
+             <div *ngIf="showActivityToggle" class="form-check form-switch mt-1 me-4">
+               <input type="checkbox" class="form-check-input black-switch" [checked]="isActive" [disabled]="isUpdatingStatus" (click)="onToggleChange($event)"/>
+               <label class="form-check-label"> {{ isActive ? 'ACTIVE' : 'INACTIVE' }}</label>
+             </div>
+             <div class="mb-3 me-1">
+                <app-button *ngIf="showLogoutButton" width="100px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log out" (clicked)="logout()"></app-button>
+             </div>
+            <button class="navbar-toggler border-0" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+          </div>
+            <div class="navbar-collapse position-absolute end-0 mt-2" [class.show]="menuOpen()" style="width: 200px;">
+              <ul class="navbar-nav bg-white border rounded p-2">
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/" (click)="closeMenu()">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/driver-history" (click)="closeMenu()">Ride History</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/login" (click)="closeMenu()">Log in</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/reset-password" (click)="closeMenu()">Reset Password</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/driver-registration" (click)="closeMenu()">Driver Registration</a>
+                </li>
+              </ul>
+            </div>
+        </div>
+    </div>
 </header>

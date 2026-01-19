@@ -1,12 +1,13 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-button',
   standalone: true,
   templateUrl: './button.html',
   styleUrl: './button.css',
-  imports: [RouterLink]
+  imports: [RouterLink, CommonModule]
 })
 export class Button {
   @Input() text: string = '';

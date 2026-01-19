@@ -31,4 +31,8 @@ export class AuthService {
     resetPassword(token: string, data: { newPassword: string; confirmNewPassword: string; }) {
       return this.http.put<ActivateResponse>(`${this.apiURL}/reset-password?token=${token}`, data);
     }
+
+    logout(): Observable<any> {
+      return this.http.post(`${this.apiURL}/logout`, null);
+    }
 }

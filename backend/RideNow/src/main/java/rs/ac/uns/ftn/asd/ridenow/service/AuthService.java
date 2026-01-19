@@ -5,6 +5,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
@@ -39,7 +41,10 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private  EmailService emailService;
+    private EmailService emailService;
+
+    @Autowired
+    private  DriverService driverService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -54,9 +59,9 @@ public class AuthService {
         String profileImageURL = generateProfileImageUrl(profileImage);
         String hashedPassword = passwordEncoder.encode(requestDTO.getPassword());
 
-        RegisteredUser user = new RegisteredUser(requestDTO.getEmail(), hashedPassword, requestDTO.getFirstName(),
+        User user = new RegisteredUser(requestDTO.getEmail(), hashedPassword, requestDTO.getFirstName(),
                 requestDTO.getLastName(), requestDTO.getPhoneNumber(), requestDTO.getAddress(),
-                profileImageURL, false, false);
+                profileImageURL, false, false, false);
         User savedUser = userRepository.save(user);
 
         sendActivationEmail(savedUser);
@@ -123,10 +128,15 @@ public class AuthService {
         if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
             throw new Exception("Invalid credentials");
         }
+        if (existingUser instanceof Driver driver) {
+            driver.setAvailable(true);
+        }
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
         LoginResponseDTO responseDTO = new LoginResponseDTO();
         responseDTO.setToken(token);
         responseDTO.setRole(existingUser.getRole().name());
+        existingUser.setJwtTokenValid(true);
+        userRepository.save(existingUser);
         return responseDTO;
     }
 
@@ -172,6 +182,23 @@ public class AuthService {
     public void resetPassword(User user, ResetPasswordRequestDTO request){
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedPassword);
+        userRepository.save(user);
+    }
+
+    public void logout(User user) throws  Exception{
+        if (user instanceof Driver driver) {
+            if (driverService.hasRideInProgress(driver)) {
+                throw new Exception("You can’t log out while a ride is in progress. " +
+                        "Please finish the ride first.");
+            }
+            if(driver.getStatus() == DriverStatus.ACTIVE){
+                throw new Exception("You can’t log out while you are active. " +
+                        "Please change your status first.");
+            }
+            driver.setAvailable(false);
+            driver.setStatus(DriverStatus.INACTIVE);
+        }
+        user.setJwtTokenValid(false);
         userRepository.save(user);
     }
 }
