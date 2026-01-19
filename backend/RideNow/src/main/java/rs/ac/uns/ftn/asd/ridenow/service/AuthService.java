@@ -187,6 +187,10 @@ public class AuthService {
                 throw new Exception("You can’t log out while a ride is in progress. " +
                         "Please finish the ride first.");
             }
+            if(driver.getStatus() == DriverStatus.ACTIVE){
+                throw new Exception("You can’t log out while you are active. " +
+                        "Please change your status first.");
+            }
             driver.setAvailable(false);
             driver.setStatus(DriverStatus.INACTIVE);
         }
