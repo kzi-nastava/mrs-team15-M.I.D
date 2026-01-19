@@ -1,13 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { CancelRideModal } from '../cancel-ride-modal/cancel-ride-modal';
 import { CommonModule } from '@angular/common';
+import { RideService } from '../../../services/ride.service';
 
 export interface UpcomingRide{
   id: number;
   route: string;
   startTime: string;
   passengers: string;
+  canCancel : boolean;
 }
 
 type SortColumn = 'route' | 'startTime' | 'passengers' ;
@@ -21,6 +23,10 @@ type SortDirection = 'asc' | 'desc' | '';
   styleUrl: './upcoming-rides-table.css',
 })
 export class UpcomingRidesTable implements OnInit {
+  @Output() rideCanceled = new EventEmitter<string>();
+
+  constructor(private cdr: ChangeDetectorRef, private rideService: RideService){}
+
   private _upcomingRides : UpcomingRide[] = []
 
   @Input()
@@ -29,6 +35,7 @@ export class UpcomingRidesTable implements OnInit {
     if (this._upcomingRides.length > 0) {
       this.applySorting();
     }
+    console.log(this.upcomingRides);
   }
   get upcomingRides(): UpcomingRide[] {
     return this._upcomingRides;
@@ -109,7 +116,28 @@ private applySorting(): void {
   }
 
   onCancelConfirmed(data: { id: number; reason: string }) {
-    alert(`Ride ${data.id} cancelled for reason: ${data.reason}`);
-    this.showCancelModal = false;
+    this.rideService.cancelRide(data.id, {reason: data.reason}).subscribe({
+      next: () => {
+        this.rideCanceled.emit('Ride canceled successfully. Plans change — no worries!');
+        this._upcomingRides = this._upcomingRides.filter(ride => ride.id !== data.id);
+        this.cdr.detectChanges();
+        this.applySorting();
+        this.showCancelModal = false;
+        if(this._upcomingRides.length == 0){
+          this.rideCanceled.emit("You don’t have any scheduled rides at the moment.")
+        }
+      },
+      error: (err) => {
+        this.showCancelModal = false;
+        let message = 'Ride cancellation failed. Please try again.';
+        if (typeof err.error === 'string') {
+          message = err.error;
+        } else if (err.error?.message) {
+          message = err.error.message;
+        }
+        this.rideCanceled.emit(message);
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

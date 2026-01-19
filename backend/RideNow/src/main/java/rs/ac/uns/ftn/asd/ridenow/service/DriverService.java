@@ -2,6 +2,9 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
@@ -35,13 +38,29 @@ public class DriverService {
         this.driverRequestRepository = driverRequestRepository;
     }
 
-    public List<DriverHistoryItemDTO> getDriverHistory(Long driverId) {
+  private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir) {
+        Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
+        if (sortBy.equals("passengers")){
+            if (sortDir.equals("asc")){
+                return rideRepository.findRidesSortedByFirstPassengerNameAsc(driverId, pageable);
+            } else {
+                return rideRepository.findRidesSortedByFirstPassengerNameDesc(driverId, pageable);
+            }
+        } else if (sortBy.equals("duration")){
+            if (sortDir.equals("asc")){
+                return rideRepository.findRidesSortedByDurationAsc(driverId, pageable);
+            } else {
+                return rideRepository.findRidesSortedByDurationDesc(driverId, pageable);
+            }
+        }
+        return rideRepository.findByDriverWithAllRelations(driver, pageable);
+    }
+
+    public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable, String sortBy, String sortDir) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
-        Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
-
-        List<Ride> driverRides = rideRepository.findByDriverWithAllRelations(driver);
-        for (Ride ride : driverRides) {
+        Page<Ride> driverRides = getRides(driverId, pageable, sortBy, sortDir);
+        for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(new RouteDTO(ride.getRoute()));
             dto.setDate(ride.getScheduledTime().toLocalDate());
@@ -85,7 +104,7 @@ public class DriverService {
 
             driverHistory.add(dto);
         }
-        return driverHistory;
+        return new PageImpl(driverHistory, pageable, driverRides.getTotalElements());
     }
 
     public DriverChangeResponseDTO requestDriverChanges(@NotNull Long driverId, @NotNull DriverChangeRequestDTO request) {
@@ -124,8 +143,8 @@ public class DriverService {
 
         // vehicleId is required by entity; try to set to driver's current vehicle if present
         try {
-            Driver driver = driverRepository.getReferenceById(driverId);
-            if (driver != null && driver.getVehicle() != null) {
+            Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
+            if (driver.getVehicle() != null) {
                 entity.setVehicleId(driver.getVehicle().getId());
             } else {
                 entity.setVehicleId(0L);

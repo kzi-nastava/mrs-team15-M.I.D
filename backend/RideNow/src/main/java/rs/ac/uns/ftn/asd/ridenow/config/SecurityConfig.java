@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,14 +31,17 @@ public class SecurityConfig {
                                 "/api/auth/activate", "/api/auth/forgot-password",
                                 "/api/auth/reset-password", "/api/rides/estimate").permitAll()
                         .requestMatchers("/api/admins/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admins/driver-register").hasRole("ADMIN")
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").hasRole("DRIVER")
+                        .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/rides/track").hasRole("USER")
                         .requestMatchers("/api/auth/logout").hasAnyRole("ADMIN", "USER", "DRIVER")
+                        .requestMatchers("/api/rides/my-upcoming-rides").hasRole("USER")
+                        .requestMatchers("/api/rides/*/cancel").hasAnyRole("USER", "DRIVER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 

@@ -8,12 +8,14 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -211,7 +213,7 @@ public class RideService {
 
         return response;
     }
-  
+
     public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
         RegisteredUser regUser = registeredUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
         Passenger passenger = (Passenger) passengerRepository.findByUser(regUser).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
@@ -224,5 +226,69 @@ public class RideService {
 
     public void startRide(Long rideId) {
         // mock – no logic
+    }
+
+    public List<UpcomingRideDTO> getUpcomingRidesByUser(Long user_id) {
+        List<Object[]> results = rideRepository.findUpcomingRidesByUser(user_id);
+        List<UpcomingRideDTO> upcomingRides = new ArrayList<>();
+        for (Object[] row : results) {
+            UpcomingRideDTO upcomingRide = new UpcomingRideDTO();
+            upcomingRide.setId((Long) row[0]);
+            upcomingRide.setRoute((String) row[2]);
+            upcomingRide.setStartTime((String) row[3]);
+            upcomingRide.setPassengers((String) row[4]);
+            upcomingRide.setCanCancel(row[1] == user_id);
+            upcomingRides.add(upcomingRide);
+        }
+        return upcomingRides;
+    }
+
+    public void userRideCancellation(RegisteredUser registeredUser, Long rideId, CancelRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(rideId);
+        if(optionalRide.isEmpty()){
+            throw new Exception("Ride does not exists");
+        }
+        Ride ride = optionalRide.get();
+
+        Optional<Passenger> optionalPassenger = passengerRepository.findByUserAndRide(registeredUser, ride);
+        if (optionalPassenger.isEmpty()) {
+            throw new Exception("You are not a passenger on this ride");
+        }
+
+        Passenger passenger = optionalPassenger.get();
+        if(passenger.getRole() != PassengerRole.CREATOR){
+            throw new Exception("Only the creator can cancel the ride");
+        }
+
+        if (LocalDateTime.now().plusMinutes(10).isBefore(ride.getScheduledTime())) {
+            ride.setCancelled(true);
+            ride.setCancelledBy("USER");
+            ride.setCancelReason(request.getReason());
+            ride.setStatus(RideStatus.CANCELLED);
+            rideRepository.save(ride);
+        }
+        else{
+            throw  new Exception("You can cancel a ride up to 10 minutes before it starts.");
+        }
+    }
+
+    public void driverRideCancellation(Driver driver, Long rideId, CancelRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(rideId);
+        if(optionalRide.isEmpty()){
+            throw new Exception("Ride does not exists");
+        }
+        Ride ride = optionalRide.get();
+        if (ride.getDriver().getId().equals(driver.getId())){
+            throw new Exception("You are not a driver on this ride");
+        }
+        String reason = request.getReason().trim();
+        if (reason.isEmpty()) {
+            throw new Exception("You must provide a reason for cancellation.");
+        }
+        ride.setCancelled(true);
+        ride.setCancelledBy("DRIVER");
+        ride.setCancelReason(reason);
+        ride.setStatus(RideStatus.CANCELLED);
+        rideRepository.save(ride);
     }
 }

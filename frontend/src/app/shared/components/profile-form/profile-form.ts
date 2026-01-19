@@ -21,7 +21,7 @@ export class ProfileForm implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   // ---------------- DEV ----------------
-  private readonly DEV_USER_ID = 5;
+  private readonly DEV_USER_ID = 9;
 
   // ---------------- UI STATE ----------------
   userAvatar: string = '';
