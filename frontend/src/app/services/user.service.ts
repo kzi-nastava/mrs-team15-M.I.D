@@ -20,4 +20,9 @@ export class UserService {
   getUser(id: number): Observable<any> {
     return this.http.get(`${this.apiURL}/${id}`);
   }
+
+  changePassword(id: number, data: { currentPassword: string; newPassword: string; confirmNewPassword: string; }): Observable<any> {
+    return this.http.put(`${this.apiURL}/${id}/change-password`, data, { observe: 'response' });
+  }
+
 }

@@ -37,7 +37,18 @@ public class UserService {
         User user = opt.get();
 
         // verify current password
-        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+        String stored = user.getPassword();
+        boolean matches;
+        // Detect whether stored password looks like a BCrypt hash. If not, allow a legacy/plaintext match
+        // This avoids the "Encoded password does not look like BCrypt" warning and supports migrating old hashes.
+        if (stored != null && (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$"))) {
+            matches = passwordEncoder.matches(dto.getCurrentPassword(), stored);
+        } else {
+            // legacy password (not BCrypt) - compare raw values
+            matches = dto.getCurrentPassword() != null && dto.getCurrentPassword().equals(stored);
+        }
+        System.out.println(passwordEncoder.encode(stored));
+        if (!matches) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
 
