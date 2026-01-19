@@ -23,8 +23,8 @@ public class RegisteredUser extends User {
     private List<FavoriteRoute> favoriteRoutes = new ArrayList<>();
 
     public RegisteredUser(String email, String password, String firstName, String lastName, String phoneNumber,
-                          String address, String profileImage, boolean active, boolean blocked) {
-        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked, UserRoles.USER);
+                          String address, String profileImage, boolean active, boolean blocked, boolean jwtTokenValid) {
+        super(email, password, firstName, lastName, phoneNumber, address, profileImage, active, blocked, UserRoles.USER, jwtTokenValid);
     }
 
     public RegisteredUser() {

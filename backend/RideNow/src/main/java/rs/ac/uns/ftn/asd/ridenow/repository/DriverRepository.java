@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.Ride;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 
 import java.util.Optional;
@@ -21,4 +22,11 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
                                        @Param("seats") int seats,
                                        @Param("babyFriendly") boolean babyFriendly,
                                        @Param("petFriendly") boolean petFriendly);
+
+    @Query(value = """
+    SELECT * FROM public.ride r
+    WHERE r.status = 'IN_PROGRESS' AND r.driver_id = :driverId
+    LIMIT 1
+    """, nativeQuery = true)
+    Optional<Ride> findRideInProgress(@Param("driverId") Long driverId);
 }

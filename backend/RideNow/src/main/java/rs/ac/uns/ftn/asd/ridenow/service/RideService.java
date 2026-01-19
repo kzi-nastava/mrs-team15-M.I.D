@@ -194,9 +194,12 @@ public class RideService {
         Driver driver = ride.getDriver();
         if (driver != null) {
             driver.setAvailable(true);
+            if(driver.getPendingStatus() != null){
+                driver.setStatus(driver.getPendingStatus());
+                driver.setPendingStatus(null);
+            }
             driverRepository.save(driver);
         }
-
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextHour = now.plusHours(1);
 

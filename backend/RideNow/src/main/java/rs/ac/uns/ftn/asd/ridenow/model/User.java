@@ -65,8 +65,11 @@ public class User {
     @JoinColumn(name = "forgot_password_token_id")
     private ForgotPasswordToken forgotPasswordToken;
 
+    @Column(nullable = false)
+    boolean jwtTokenValid;
+
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
-                String profileImage, boolean active, boolean blocked, UserRoles role) {
+                String profileImage, boolean active, boolean blocked, UserRoles role, boolean jwtTokenValid) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
@@ -77,6 +80,7 @@ public class User {
         this.active = active;
         this.blocked = blocked;
         this.role = role;
+        this.jwtTokenValid = jwtTokenValid;
     }
 
     public User(){
