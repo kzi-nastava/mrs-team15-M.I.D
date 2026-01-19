@@ -240,8 +240,8 @@ public class RideService {
         return upcomingRides;
     }
 
-    public void userRideCancellation(RegisteredUser registeredUser, Long id, CancelRideRequestDTO request) throws Exception {
-        Optional<Ride> optionalRide = rideRepository.findById(id);
+    public void userRideCancellation(RegisteredUser registeredUser, Long rideId, CancelRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(rideId);
         if(optionalRide.isEmpty()){
             throw new Exception("Ride does not exists");
         }
@@ -269,6 +269,23 @@ public class RideService {
         }
     }
 
-    public void driverRideCancellation(Long id, CancelRideRequestDTO request) {
+    public void driverRideCancellation(Driver driver, Long rideId, CancelRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(rideId);
+        if(optionalRide.isEmpty()){
+            throw new Exception("Ride does not exists");
+        }
+        Ride ride = optionalRide.get();
+        if (ride.getDriver().getId().equals(driver.getId())){
+            throw new Exception("You are not a driver on this ride");
+        }
+        String reason = request.getReason().trim();
+        if (reason.isEmpty()) {
+            throw new Exception("You must provide a reason for cancellation.");
+        }
+        ride.setCancelled(true);
+        ride.setCancelledBy("DRIVER");
+        ride.setCancelReason(reason);
+        ride.setStatus(RideStatus.CANCELLED);
+        rideRepository.save(ride);
     }
 }

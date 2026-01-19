@@ -70,8 +70,8 @@ public class RideController {
             if(user instanceof RegisteredUser registeredUser){
                 rideService.userRideCancellation(registeredUser, id, request);
             }
-            else if(user instanceof Driver){
-                rideService.driverRideCancellation(id, request);
+            else if(user instanceof Driver driver){
+                rideService.driverRideCancellation(driver, id, request);
             }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
