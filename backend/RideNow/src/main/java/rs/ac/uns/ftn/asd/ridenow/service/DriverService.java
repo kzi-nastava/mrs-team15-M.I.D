@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
@@ -163,5 +164,15 @@ public class DriverService {
     public boolean hasRideInProgress(Driver driver) {
         Optional<Ride> optionalRide = driverRepository.findRideInProgress(driver.getId());
         return optionalRide.isPresent();
+    }
+
+    public void changeDriverStatus(Driver driver, DriverStatusRequestDTO request){
+        if(hasRideInProgress(driver)){
+            driver.setPendingStatus(request.getStatus());
+        }else{
+            driver.setStatus(request.getStatus());
+            driver.setPendingStatus(null);
+        }
+        driverRepository.save(driver);
     }
 }

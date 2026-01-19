@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.ForgotPasswordTokenRepository;
@@ -187,6 +188,7 @@ public class AuthService {
                         "Please finish the ride first.");
             }
             driver.setAvailable(false);
+            driver.setStatus(DriverStatus.INACTIVE);
         }
         user.setJwtTokenValid(false);
         userRepository.save(user);

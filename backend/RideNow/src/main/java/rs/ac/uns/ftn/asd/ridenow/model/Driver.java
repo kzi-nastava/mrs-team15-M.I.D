@@ -17,6 +17,9 @@ public class Driver extends User {
     @Enumerated(EnumType.STRING)
     private DriverStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private DriverStatus pendingStatus;
+
     @Column(nullable = false)
     private Boolean available;
 
