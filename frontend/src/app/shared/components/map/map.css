@@ -14,3 +14,16 @@
 .map-col-height, .form-col-height {
   height: 100%;
 }
+
+.alert-route {
+  animation: pulse-route 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-route {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}

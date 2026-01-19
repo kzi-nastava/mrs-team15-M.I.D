@@ -61,4 +61,8 @@ export class RideService {
   getMyCurrentRide(): Observable<CurrentRideDTO> {
     return this.http.get<CurrentRideDTO>(`${this.apiURL}/my-current-ride`);
   }
+
+  triggerPanicAlert() {
+    return this.http.post(`${this.apiURL}/panic-alert`, null);
+  }
 }

@@ -23,6 +23,7 @@ import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rides")
@@ -143,6 +144,17 @@ public class RideController {
             return rideService.getCurrentRide(user);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/panic-alert")
+    public ResponseEntity<?> triggerPanicAlert(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            rideService.triggerPanicAlert(user);
+            return ResponseEntity.ok(Map.of("message", "Panic alert triggered successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
