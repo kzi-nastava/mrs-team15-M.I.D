@@ -15,10 +15,14 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.TrackVehicleDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.Location;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/rides")
@@ -38,17 +42,11 @@ public class RideController {
         try{
             double[] startCoordinate = routingService.getGeocode(startAddress);
             double latStart = startCoordinate[0];
-            System.out.println(latStart);
             double lonStart = startCoordinate[1];
-            System.out.println(lonStart);
-
 
             double[] endCoordinate = routingService.getGeocode(destinationAddress);
             double latEnd = endCoordinate[0];
-            System.out.println(latEnd);
             double lonEnd = endCoordinate[1];
-            System.out.println(lonEnd);
-
 
             RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
             return ResponseEntity.ok(response);
@@ -66,11 +64,19 @@ public class RideController {
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request){
-        if(request.getReason() == null || request.getReason().isEmpty()){
-            return ResponseEntity.status(400).build();
+    public ResponseEntity<?> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request) {
+        try {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if(user instanceof RegisteredUser registeredUser){
+                rideService.userRideCancellation(registeredUser, id, request);
+            }
+            else if(user instanceof Driver driver){
+                rideService.driverRideCancellation(driver, id, request);
+            }
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-        return ResponseEntity.status(204).build();
     }
 
     @GetMapping("/{id}/track")
@@ -86,6 +92,15 @@ public class RideController {
         InconsistencyResponseDTO res = rideService.reportInconsistency(req, user.getId());
 
         return ResponseEntity.status(201).body(res);
+    }
+
+    @PostMapping("/{id}/finish")
+    public ResponseEntity<RideResponseDTO> finish(@PathVariable @NotNull @Min(1) Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long driverId = user.getId();
+
+        RideResponseDTO res = rideService.finishRide(id, driverId);
+        return ResponseEntity.ok(res);
     }
 
     @PutMapping("/{id}/start")
@@ -112,5 +127,12 @@ public class RideController {
     public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long rideId, @Valid @RequestBody RateRequestDTO req) {
         RateResponseDTO res = rideService.makeRating(req, rideId);
         return ResponseEntity.status(201).body(res);
+    }
+
+    @GetMapping("/my-upcoming-rides")
+    public List<UpcomingRideDTO> getUpcomingRides() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long userId = user.getId();
+        return rideService.getUpcomingRidesByUser(userId);
     }
 }
