@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { CurrentRide } from '../ride/pages/current-ride/current-ride';
 import { CurrentRideDTO } from '../ride/components/current-ride-form/current-ride-form';
 import { Observable } from 'rxjs';
-import { Observable } from 'rxjs';
 import { UpcomingRide } from '../ride/components/upcoming-rides-table/upcoming-rides-table';
 
 interface ActivateResponse {
