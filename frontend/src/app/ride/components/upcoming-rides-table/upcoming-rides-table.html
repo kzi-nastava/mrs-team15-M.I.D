@@ -23,7 +23,7 @@
             <td>{{ upcomingRide.passengers }}</td>
             <td>{{ upcomingRide.startTime }}</td>
             <td>
-               <app-button width="100px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase" text="cancel" (clicked)="openCancelModal(upcomingRide)"></app-button>
+               <app-button class="button" width="100px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase" text="cancel" (clicked)="openCancelModal(upcomingRide)" *ngIf="upcomingRide.canCancel"></app-button>
             </td> 
           </tr>
         }

@@ -32,4 +32,21 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             @Param("now") LocalDateTime now,
             @Param("nextHour") LocalDateTime nextHour
     );
+
+    @Query(value = """
+            SELECT r.id, cp.user_id AS creator_id, route.start_address || ' → ' || route.end_address AS route,
+                   to_char(r.scheduled_time, 'DD-MM-YYYY, HH24:MI') AS "startTime",
+                   STRING_AGG(u.first_name || ' ' || u.last_name, ', ') AS passengers
+            FROM public.ride r
+            JOIN public.passenger cp
+            ON cp.ride_id = r.id AND cp.role = 'CREATOR'
+            JOIN public.passenger mp ON mp.ride_id = r.id
+            JOIN public.passenger p  ON p.ride_id = r.id
+            JOIN public."user" u ON u.id = p.user_id
+            JOIN public.route route ON route.id = r.route_id
+            WHERE mp.user_id = :userId  AND r.status = 'ACCEPTED' AND r.scheduled_time >= now()
+            GROUP BY r.id, route.start_address, route.end_address, r.scheduled_time, cp.user_id
+            ORDER BY r.scheduled_time ASC;
+       \s""", nativeQuery = true)
+    List<Object[]> findUpcomingRidesByUser(@Param("userId") Long userId);
 }
