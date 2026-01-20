@@ -156,11 +156,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private startMarker?: any;
   private endMarker?: any;
 
-  private async drawRoute(route: any[], isAlert: boolean = false) {
-    if (!this.map || !route || route.length === 0) {
-      console.warn('drawRoute called with no route');
-      return;
-    }
+   private async drawRoute(route: any[], isAlert: boolean = false) {
+  if (!this.map || !route || route.length === 0) {
+    console.warn('drawRoute called with no route');
+    return;
+  }
+
+  this.clearRoute();
+
+  await new Promise(resolve => setTimeout(resolve, 50));
 
   this.currentRoute = route;
   this.isAlertMode = isAlert;
@@ -168,13 +172,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   const L = await import('leaflet');
   const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
 
-  if (this.routeLayer) this.map.removeLayer(this.routeLayer);
-  if (this.startMarker) this.map.removeLayer(this.startMarker);
-  if (this.endMarker) this.map.removeLayer(this.endMarker);
-
-  const routeColor = isAlert ? "#ef4444" : "#111";
-  const routeWeight = isAlert ? 6 : 5;
-
+  const routeColor = isAlert ? "#ef4444" : "#111";  
+  const routeWeight = isAlert ? 6 : 5;  
+  
   this.routeLayer = L.polyline(latLngs, {
     weight: routeWeight,
     color: routeColor,
@@ -198,58 +198,30 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     fillOpacity: isAlert ? 0.6 : 0.4
   }).addTo(this.map);
 
-  if (isAlert) {
-    const center = this.map.getCenter();
-  }
-
   this.map.fitBounds(this.routeLayer.getBounds(), {
     padding: [30, 30]
   });
 }
 
-  private async drawRoutee(route: any[], isAlert: boolean = false) {
-    if (!this.map || !route || route.length === 0) return;
+private clearRoute(): void {
+  if (!this.map) return;
 
-    const L = await import('leaflet');
-
-    const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
-
-    if (this.routeLayer) this.map.removeLayer(this.routeLayer);
-    if (this.startMarker) this.map.removeLayer(this.startMarker);
-    if (this.endMarker) this.map.removeLayer(this.endMarker);
-
-    const routeColor = isAlert ? "#ef4444" : "#111";
-    const routeWeight = isAlert ? 6 : 5;
-
-    this.routeLayer = L.polyline(latLngs, {
-      weight: routeWeight,
-      color: routeColor,
-      opacity: isAlert ? 0.9 : 0.8,
-      lineCap: "round",
-      lineJoin: "round",
-      className: isAlert ? 'alert-route' : ''
-    }).addTo(this.map);
-
-    this.startMarker = L.circleMarker(latLngs[0], {
-      radius: isAlert ? 10 : 8,
-      color: "#22c55e",
-      fillColor: "#22c55e",
-      fillOpacity: 0.4
-    }).addTo(this.map);
-
-    this.endMarker = L.circleMarker(latLngs[latLngs.length - 1], {
-      radius: isAlert ? 10 : 8,
-      color: isAlert ? "#dc2626" : "#ef4444",
-      fillColor: isAlert ? "#dc2626" : "#ef4444",
-      fillOpacity: isAlert ? 0.6 : 0.4
-    }).addTo(this.map);
-
-    if (isAlert) {
-      const center = this.map.getCenter();
-    }
-
-    this.map.fitBounds(this.routeLayer.getBounds(), {
-      padding: [30, 30]
-    });
+  if (this.routeLayer) {
+    this.map.removeLayer(this.routeLayer);
+    this.routeLayer = undefined;
   }
+
+  if (this.startMarker) {
+    this.map.removeLayer(this.startMarker);
+    this.startMarker = undefined;
+  }
+
+  if (this.endMarker) {
+    this.map.removeLayer(this.endMarker);
+    this.endMarker = undefined;
+  }
+
+  this.currentRoute = [];
+  this.isAlertMode = false;
+}
 }

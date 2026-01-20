@@ -6,7 +6,6 @@ import { StopRideModal } from '../stop-ride-modal/stop-ride-modal';
 import { PanicModal } from '../panic-modal/panic-modal';
 import { RideService } from '../../../services/ride.service';
 import { MapRouteService } from '../../../services/map-route.service';
-import { response } from 'express';
 
 
 export interface CurrentRideDTO {
@@ -111,9 +110,16 @@ export class CurrentRideForm {
     this.showStopModal = true;
   }
 
-  onStopConfirmed() {
-    alert("The ride is stopped");
+  finalPrice?: number; 
+  onStopConfirmed(response: any) {
+    this.estimatedDistanceKm = response.distanceKm;
+    this.estimatedDurationMin = response.estimatedDurationMin;
+    this.destinationAddress = response.endAddress;  
+    this.finalPrice = response.price;
+    this.mapRouteService.drawRoute(response.route);
+    this.showMessageToast(`Ride completed!`);
     this.showStopModal = false;
+    this.cdr.detectChanges();
   }
 
   openPanicModal(): void {

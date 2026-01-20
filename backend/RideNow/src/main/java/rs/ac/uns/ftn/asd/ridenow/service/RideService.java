@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
@@ -27,6 +28,9 @@ public class RideService {
 
     @Autowired
     private  PanicAlertRepository panicAlertRepository;
+
+    @Autowired
+    private  PriceService priceService;
 
     private final RouteRepository routeRepository;
     private final RideRepository rideRepository;
@@ -360,5 +364,98 @@ public class RideService {
         ride.setCancelReason(reason);
         ride.setStatus(RideStatus.CANCELLED);
         rideRepository.save(ride);
+    }
+
+    public StopRideResponseDTO stopRide(User user) throws Exception {
+        if (!(user instanceof Driver driver)) {
+            throw new Exception("You are not a driver.");
+        }
+        Optional<Ride> optionalRide = rideRepository.findCurrentRideByDriver(driver.getId());
+        if (optionalRide.isEmpty()) {
+            throw new Exception("You don't have a ride in progress.");
+        }
+
+        Ride ride = optionalRide.get();
+        Vehicle vehicle = driver.getVehicle();
+        StopRideResponseDTO response = completeRide(ride, vehicle);
+        updateRideOnCompletion(ride, response);
+        rideRepository.save(ride);
+        return response;
+    }
+
+    private StopRideResponseDTO completeRide(Ride ride, Vehicle vehicle) throws Exception {
+        String startAddress = ride.getRoute().getStartLocation().getAddress();
+        double[] startCoordinate = routingService.getGeocode(startAddress);
+        double latStart = startCoordinate[0];
+        double lonStart = startCoordinate[1];
+
+        double latEnd = vehicle.getLat();
+        double lonEnd = vehicle.getLon();
+
+        RideEstimateResponseDTO estimation = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+
+        double price = priceService.calculatePrice(vehicle.getType(),estimation.getDistanceKm());
+
+        String endAddress = routingService.getReverseGeocode(vehicle.getLat(), vehicle.getLon());
+
+        StopRideResponseDTO responseDTO = new StopRideResponseDTO();
+        responseDTO.setDistanceKm(estimation.getDistanceKm());
+        responseDTO.setEstimatedDurationMin(estimation.getEstimatedDurationMin());
+        responseDTO.setPrice(price);
+        responseDTO.setEndAddress(endAddress);
+        responseDTO.setRoute(estimation.getRoute());
+        return responseDTO;
+    }
+
+    private void updateRideOnCompletion(Ride ride, StopRideResponseDTO response) throws Exception {
+        ride.setStatus(RideStatus.FINISHED);
+        ride.setEndTime(LocalDateTime.now());
+        ride.setDistanceKm(response.getDistanceKm());
+        ride.setPrice(response.getPrice());
+
+        String startAddress = ride.getRoute().getStartLocation().getAddress();
+        String endAddress = response.getEndAddress();
+        Optional<Route> optionalRoute = routeRepository.findByStartAndEndAddress(startAddress, endAddress);
+        if(optionalRoute.isEmpty()){
+            updateRideRoute(startAddress, endAddress, ride);
+            return;
+        }
+        Route route = optionalRoute.get();
+        ride.setRoute(route);
+    }
+
+    private void updateRideRoute(String startAddress, String endAddress,
+                                 Ride ride) throws Exception {
+
+        double[] startCoordinate = routingService.getGeocode(startAddress);
+        double latStart = startCoordinate[0];
+        double lonStart = startCoordinate[1];
+
+        double[] endCoordinate = routingService.getGeocode(endAddress);
+        double latEnd = endCoordinate[0];
+        double lonEnd = endCoordinate[1];
+
+        RideEstimateResponseDTO estimation = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+
+        Route route = new Route();
+
+        Location startLocation = new Location();
+        startLocation.setAddress(startAddress);
+        startLocation.setLatitude(latStart);
+        startLocation.setLongitude(lonStart);
+
+        Location endLocation = new Location();
+        endLocation.setAddress(endAddress);
+        endLocation.setLatitude(latEnd);
+        endLocation.setLongitude(lonEnd);
+
+        route.setStartLocation(startLocation);
+        route.setEndLocation(endLocation);
+        route.setDistanceKm(estimation.getDistanceKm());
+        route.setEstimatedTimeMin(estimation.getEstimatedDurationMin());
+
+        routeRepository.save(route);
+
+        ride.setRoute(route);
     }
 }
