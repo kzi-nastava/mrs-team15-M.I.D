@@ -1,5 +1,6 @@
 export interface Vehicle {
-  id: number;
+  id?: number;
+  licencePlate: string;
   lat: number;
   lng: number;
   available: boolean;

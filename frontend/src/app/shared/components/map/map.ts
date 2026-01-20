@@ -19,12 +19,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @Input() showVehicles: boolean = true;
 
   private map: any;
-  private vehicleMarkers: Map<number, any> = new Map();
+  private vehicleMarkers: Map<string, any> = new Map();
   private vehiclesSubscription?: Subscription;
   private routeSubscription?: Subscription;
   private alertSubscription?: Subscription;
 
-  private currentRoute: any[] = [];  
+  private currentRoute: any[] = [];
   private isAlertMode: boolean = false;
 
   constructor(
@@ -64,7 +64,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (this.alertSubscription) {
       this.alertSubscription.unsubscribe();
     }
-    this.vehicleService.stopVehicleMovement();
   }
 
   private async initMap(): Promise<void> {
@@ -87,27 +86,27 @@ export class MapComponent implements AfterViewInit, OnDestroy {
             const lng = position.coords.longitude;
 
             this.map.setView([lat, lng], this.zoom);
-            this.vehicleService.initializeVehicles(lat, lng, 10);
+            this.vehicleService.initializeVehicles(lat, lng);
           },
           (error) => {
             console.error('Error getting location:', error);
-            this.vehicleService.initializeVehicles(this.centerLat, this.centerLng, 10);
+            this.vehicleService.initializeVehicles(this.centerLat, this.centerLng);
           }
         );
       } else {
         console.warn('Geolocation not supported');
-        this.vehicleService.initializeVehicles(this.centerLat, this.centerLng, 10);
+        this.vehicleService.initializeVehicles(this.centerLat, this.centerLng);
       }
     }
   }
 
   private updateVehicleMarkers(vehicles: Vehicle[], L: any): void {
     vehicles.forEach(vehicle => {
-      let marker = this.vehicleMarkers.get(vehicle.id);
+      let marker = this.vehicleMarkers.get(vehicle.licencePlate);
 
       if (!marker) {
         marker = this.createVehicleMarker(vehicle, L);
-        this.vehicleMarkers.set(vehicle.id, marker);
+        this.vehicleMarkers.set(vehicle.licencePlate, marker);
       } else {
         marker.setLatLng([vehicle.lat, vehicle.lng]);
 
@@ -134,7 +133,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     return L.marker([vehicle.lat, vehicle.lng], { icon })
       .addTo(this.map)
-      .bindPopup(`Car #${vehicle.id}<br>${vehicle.available ? 'Available' : 'In use'}`);
+      .bindPopup(`${vehicle.licencePlate}<br>${vehicle.available ? 'Available' : 'In use'}`);
   }
 
   private getVehicleIcon(available: boolean): string {
@@ -173,16 +172,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   if (this.startMarker) this.map.removeLayer(this.startMarker);
   if (this.endMarker) this.map.removeLayer(this.endMarker);
 
-  const routeColor = isAlert ? "#ef4444" : "#111";  
-  const routeWeight = isAlert ? 6 : 5;  
-  
+  const routeColor = isAlert ? "#ef4444" : "#111";
+  const routeWeight = isAlert ? 6 : 5;
+
   this.routeLayer = L.polyline(latLngs, {
     weight: routeWeight,
     color: routeColor,
     opacity: isAlert ? 0.9 : 0.8,
     lineCap: "round",
     lineJoin: "round",
-    className: isAlert ? 'alert-route' : ''  
+    className: isAlert ? 'alert-route' : ''
   }).addTo(this.map);
 
   this.startMarker = L.circleMarker(latLngs[0], {
@@ -219,16 +218,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (this.startMarker) this.map.removeLayer(this.startMarker);
     if (this.endMarker) this.map.removeLayer(this.endMarker);
 
-    const routeColor = isAlert ? "#ef4444" : "#111";  
-    const routeWeight = isAlert ? 6 : 5;  
-    
+    const routeColor = isAlert ? "#ef4444" : "#111";
+    const routeWeight = isAlert ? 6 : 5;
+
     this.routeLayer = L.polyline(latLngs, {
       weight: routeWeight,
       color: routeColor,
       opacity: isAlert ? 0.9 : 0.8,
       lineCap: "round",
       lineJoin: "round",
-      className: isAlert ? 'alert-route' : ''  
+      className: isAlert ? 'alert-route' : ''
     }).addTo(this.map);
 
     this.startMarker = L.circleMarker(latLngs[0], {
