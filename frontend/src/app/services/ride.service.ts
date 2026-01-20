@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { CurrentRide } from '../ride/pages/current-ride/current-ride';
+import { CurrentRideDTO } from '../ride/components/current-ride-form/current-ride-form';
 import { Observable } from 'rxjs';
 import { UpcomingRide } from '../ride/components/upcoming-rides-table/upcoming-rides-table';
 
@@ -53,5 +55,13 @@ export class RideService {
 
   cancelRide(id : number,  data: { reason: string; }) {
     return this.http.put<ActivateResponse>(`${this.apiURL}/${id}/cancel`, data);
+  }
+  
+  getMyCurrentRide(): Observable<CurrentRideDTO> {
+    return this.http.get<CurrentRideDTO>(`${this.apiURL}/my-current-ride`);
+  }
+
+  triggerPanicAlert() {
+    return this.http.post(`${this.apiURL}/panic-alert`, null);
   }
 }

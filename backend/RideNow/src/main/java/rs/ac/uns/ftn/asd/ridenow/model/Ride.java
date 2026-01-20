@@ -80,20 +80,12 @@ public class Ride {
     }
 
     public Ride() {
-
     }
 
     public void setRating(Rating rating){
         if(rating != null){
             this.rating = rating;
             rating.assignRide(this);
-        }
-    }
-
-    public void setPanicAlert(PanicAlert panicAlert) {
-        if(panicAlert != null){
-            this.panicAlert = panicAlert;
-            panicAlert.assignRide(this);
         }
     }
 

@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
@@ -20,6 +21,12 @@ import java.util.Optional;
 
 @Service
 public class RideService {
+
+    @Autowired
+    private  RoutingService routingService;
+
+    @Autowired
+    private  PanicAlertRepository panicAlertRepository;
 
     private final RouteRepository routeRepository;
     private final RideRepository rideRepository;
@@ -241,6 +248,68 @@ public class RideService {
             upcomingRides.add(upcomingRide);
         }
         return upcomingRides;
+    }
+
+    public CurrentRideDTO getCurrentRide(User user) throws Exception {
+        try{
+            Optional<Ride> optionalRide = Optional.empty();
+            if(user instanceof RegisteredUser registeredUser){
+                optionalRide = rideRepository.findCurrentRideByUser(registeredUser.getId());
+            }
+            else if(user instanceof  Driver driver){
+                optionalRide = rideRepository.findCurrentRideByDriver(driver.getId());
+            }
+            if(optionalRide.isEmpty()){
+                throw new Exception("You don't have ride in progress");
+            }
+            Ride ride = optionalRide.get();
+            String startAddress = ride.getRoute().getStartLocation().getAddress();
+            String endAddress = ride.getRoute().getEndLocation().getAddress();
+
+            double[] startCoordinate = routingService.getGeocode(startAddress);
+            double latStart = startCoordinate[0];
+            double lonStart = startCoordinate[1];
+
+            double[] endCoordinate = routingService.getGeocode(endAddress);
+            double latEnd = endCoordinate[0];
+            double lonEnd = endCoordinate[1];
+
+            RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+
+            CurrentRideDTO currentRideDTO = new CurrentRideDTO();
+            currentRideDTO.setStartAddress(startAddress);
+            currentRideDTO.setEndAddress(endAddress);
+            currentRideDTO.setEstimatedDurationMin(response.getEstimatedDurationMin());
+            currentRideDTO.setRoute(response.getRoute());
+            currentRideDTO.setDistanceKm(response.getDistanceKm());
+            return currentRideDTO;
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+    }
+
+    public void triggerPanicAlert(User user) throws Exception {
+        Optional<Ride> optionalRide = Optional.empty();
+        if(user instanceof RegisteredUser registeredUser){
+            optionalRide = rideRepository.findCurrentRideByUser(registeredUser.getId());
+        }
+        else if(user instanceof  Driver driver){
+            optionalRide = rideRepository.findCurrentRideByDriver(driver.getId());
+        }
+        if(optionalRide.isEmpty()){
+            throw new Exception("You don't have ride in progress");
+        }
+        Ride ride = optionalRide.get();
+        if(ride.getPanicAlert() != null){
+            throw new Exception("Panic mode already active. Help is on the way!");
+        }
+        PanicAlert panicAlert = new PanicAlert();
+        panicAlert.setRide(ride);
+        panicAlert.setResolved(false);
+        panicAlert.setPanicBy(user.getRole().name());
+        panicAlertRepository.save(panicAlert);
+        ride.setPanicAlert(panicAlert);
+        rideRepository.save(ride);
     }
 
     public void userRideCancellation(RegisteredUser registeredUser, Long rideId, CancelRideRequestDTO request) throws Exception {

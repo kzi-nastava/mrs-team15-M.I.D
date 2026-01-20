@@ -28,13 +28,7 @@ public class PanicAlert {
 
     private String panicBy;
 
-    public PanicAlert(Ride ride) {
-        this.assignRide(ride);
-        this.resolved = false;
-    }
-
     public PanicAlert() {
-
     }
 
     public void markResolved(){ this.resolved = true; }
@@ -43,10 +37,4 @@ public class PanicAlert {
         this.resolved = false;
     }
 
-    public void assignRide(Ride ride) {
-        this.ride = ride;
-        if(ride != null && !this.ride.getPanicAlert().equals(this)) {
-            ride.setPanicAlert(this);
-        }
-    }
 }
