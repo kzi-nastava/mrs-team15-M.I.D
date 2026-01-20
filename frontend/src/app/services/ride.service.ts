@@ -78,4 +78,8 @@ export class RideService {
   reportInconsistency(data: { rideId: number; description: string; }) {
     return this.http.post<any>(`${this.apiURL}/inconsistency`, data);
   }
+
+  stopRide() {
+    return this.http.put(`${this.apiURL}/stop`, null);
+  }
 }
