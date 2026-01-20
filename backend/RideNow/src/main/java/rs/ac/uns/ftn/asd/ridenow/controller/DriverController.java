@@ -18,6 +18,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -79,15 +80,15 @@ public class DriverController {
         return ResponseEntity.ok(rides);
     }
 
-    @PostMapping(path = "/{id}/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@PathVariable @NotNull @Min(1) Long id,
-                                                                       @RequestBody @NotNull DriverChangeRequestDTO request,
-                                                                       @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
-        try {
-            return ResponseEntity.ok(driverService.requestDriverChanges(id, request, profileImage));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+    @PostMapping(path = "/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@ModelAttribute DriverChangeRequestDTO request,
+                                                                       @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof  Driver driver){
+            return ResponseEntity.ok(driverService.requestDriverChanges(driver, request, profileImage));
         }
+        return ResponseEntity.badRequest().build();
+
     }
 
     @PutMapping("/change-status")

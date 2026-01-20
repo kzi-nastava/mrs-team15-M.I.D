@@ -28,7 +28,6 @@ public class DriverChangeRequestDTO {
     @NotBlank
     private String address;
 
-    private String profileImage;
 
     @NotBlank
     private String licensePlate;

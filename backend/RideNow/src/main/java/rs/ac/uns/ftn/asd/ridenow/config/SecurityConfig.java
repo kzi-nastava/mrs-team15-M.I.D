@@ -29,10 +29,11 @@ public class SecurityConfig {
                                 "/api/auth/login", "/api/auth/register",
                                 "/api/auth/activate", "/api/auth/forgot-password",
                                 "/api/auth/reset-password", "/api/rides/estimate").permitAll()
-                        .requestMatchers("/api/admins/**").hasRole("ADMIN")
-                        .requestMatchers("/api/admins/driver-register").hasRole("ADMIN")
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/admins/**").permitAll()
+                        .requestMatchers("/api/admins/driver-register").permitAll()
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
-                        .requestMatchers("/api/driver/**").hasRole("DRIVER")
+                        .requestMatchers("/api/driver/**").permitAll()
                         .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/rides/track").hasRole("USER")
                         .requestMatchers("/api/rides/my-current-ride").hasAnyRole("USER", "DRIVER")

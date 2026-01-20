@@ -2,12 +2,20 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.service.AdminService;
+import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
+import rs.ac.uns.ftn.asd.ridenow.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,9 +26,11 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserService userService;
 
     @Autowired
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, UserService userService) {
+        this.userService = userService;
         this.adminService = adminService;
     }
 
@@ -77,23 +87,39 @@ public class AdminController {
         return ResponseEntity.status(201).body(adminService.register(request));
     }
 
-    @GetMapping("{id}/driver-requests")
-    public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests(
-            @PathVariable Long id) {
-
-
-        return ResponseEntity.ok(adminService.getDriverRequests());
+    @GetMapping("/driver-requests")
+    public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests() {
+        System.out.println("User is an administrator.");
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof Administrator)) {
+            return ResponseEntity.ok(adminService.getDriverRequests());
+        }
+        System.out.println("User is not an administrator.");
+        return ResponseEntity.badRequest().build();
     }
 
-    @PutMapping("{id}/driver-requests/{requestId}")
+    @PutMapping("driver-requests/{requestId}")
     public ResponseEntity<Void> reviewDriverRequest(
-            @PathVariable Long id,
             @PathVariable Long requestId,
             @Valid @RequestBody AdminChangesReviewRequestDTO dto) {
 
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof Administrator)) {
+            Long id = user.getId();
+            adminService.reviewDriverRequest(id, requestId, dto);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
 
-        adminService.reviewDriverRequest(id, requestId, dto);
-        return ResponseEntity.ok().build();
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof  Administrator)){
+            return ResponseEntity.ok(userService.getUserById(id));
+        }
+        return ResponseEntity.badRequest().build();
+
     }
 
 }

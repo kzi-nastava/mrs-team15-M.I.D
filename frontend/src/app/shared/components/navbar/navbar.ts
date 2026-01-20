@@ -56,6 +56,11 @@ export class NavbarComponent {
     return role === "DRIVER";
   }
 
+  get isAdmin(): boolean {
+    const role = localStorage.getItem('role');
+    return role === 'ADMIN';
+  }
+
   message = '';
   showMessage = false;
 

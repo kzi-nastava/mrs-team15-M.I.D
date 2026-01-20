@@ -68,9 +68,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public UserResponseDTO getUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+    public UserResponseDTO getUser(User user) {
 
         UserResponseDTO dto = new UserResponseDTO();
 
@@ -85,7 +83,7 @@ public class UserService {
         dto.setActive(user.isActive());
 
         if (user instanceof Driver driver) {
-            System.out.println("Fetching driver details for user ID: " + userId);
+            System.out.println("Fetching driver details for user ID: " + user.getId());
             Vehicle vehicle = driver.getVehicle();
 
             if (vehicle != null) {
@@ -130,5 +128,14 @@ public class UserService {
         user.setProfileImage(profileImageURL);
 
         userRepository.save(user);
+    }
+
+    public UserResponseDTO getUserById(Long id) {
+        Optional<User> opt = userRepository.findById(id);
+        if (opt.isEmpty()) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        User user = opt.get();
+        return getUser(user);
     }
 }

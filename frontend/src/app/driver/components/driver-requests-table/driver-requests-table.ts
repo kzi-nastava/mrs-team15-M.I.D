@@ -67,7 +67,7 @@ export class DriverRequestsTable implements OnInit {
   }
 
   fetchRequests(adminId: number) {
-    this.adminService.getDriverRequests(adminId).subscribe({
+    this.adminService.getDriverRequests().subscribe({
       next: (res: any[]) => {
         console.debug('getDriverRequests response', res);
         // map backend DTOs into UI request objects
@@ -100,7 +100,7 @@ export class DriverRequestsTable implements OnInit {
         const userFetchObservables = (res || []).map((dto, idx) => {
           const driverId = dto?.driverId ?? null;
           if (driverId) console.log(`DriverRequestsTable: will fetch user for request idx=${idx} driverId=${driverId}`);
-          return driverId ? this.userService.getUser(driverId) : of(null);
+          return driverId ? this.adminService.getUserById(driverId) : of(null);
         });
 
         if (userFetchObservables.length === 0) {
@@ -215,7 +215,7 @@ export class DriverRequestsTable implements OnInit {
 
     // if originalDriver not yet loaded and we have driverId, fetch before emitting
     if (req.originalDriver && req.originalDriver._loaded === false && req.originalDriver.driverId) {
-      this.userService.getUser(req.originalDriver.driverId).subscribe({
+      this.adminService.getUserById(req.originalDriver.driverId).subscribe({
         next: (u: any) => {
           const original = this.normalizeUser(u, req._backendDto);
           original._loaded = true;

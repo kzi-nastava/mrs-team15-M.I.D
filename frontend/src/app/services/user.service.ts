@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Form } from '@angular/forms';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -9,16 +10,16 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  updateUser(id: number, data: any): Observable<any> {
-    return this.http.put(`${this.apiURL}/${id}`, data, { observe: 'response' });
+  updateUser(data: FormData): Observable<any> {
+    return this.http.put(`${this.apiURL}`, data, { observe: 'response' });
   }
 
-  requestDriverChange(id: number, request: any): Observable<any> {
-    return this.http.post(`${this.driverApiURL}/${id}/change-request`, request, { observe: 'response' });
+  requestDriverChange(request: any): Observable<any> {
+    return this.http.post(`${this.driverApiURL}/change-request`, request, { observe: 'response' });
   }
 
-  getUser(id: number): Observable<any> {
-    return this.http.get(`${this.apiURL}/${id}`);
+  getUser(): Observable<any> {
+    return this.http.get(`${this.apiURL}`);
   }
 
   changePassword(id: number, data: { currentPassword: string; newPassword: string; confirmNewPassword: string; }): Observable<any> {

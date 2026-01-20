@@ -123,13 +123,13 @@ public class DriverService {
         return new PageImpl(driverHistory, pageable, driverRides.getTotalElements());
     }
 
-    public DriverChangeResponseDTO requestDriverChanges(Long driverId, DriverChangeRequestDTO request, MultipartFile profileImage) throws IOException {
+    public DriverChangeResponseDTO requestDriverChanges(Driver driver, DriverChangeRequestDTO request, MultipartFile profileImage) throws IOException {
         // map DTO -> entity
         DriverChangeResponseDTO response = new DriverChangeResponseDTO();
         DriverRequest entity = new DriverRequest();
         entity.setSubmissionDate(new Date(System.currentTimeMillis()));
         entity.setRequestStatus(rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus.PENDING);
-        entity.setDriverId(driverId);
+        entity.setDriverId(driver.getId());
 
         entity.setEmail(request.getEmail());
         entity.setFirstName(request.getFirstName());
@@ -150,7 +150,7 @@ public class DriverService {
         response.setLastName(request.getLastName());
         response.setPhoneNumber(request.getPhoneNumber());
         response.setAddress(request.getAddress());
-        response.setProfileImage(request.getProfileImage());
+        response.setProfileImage(profileImageURL);
         response.setLicensePlate(request.getLicensePlate());
         response.setVehicleModel(request.getVehicleModel());
         response.setNumberOfSeats(request.getNumberOfSeats());
@@ -159,18 +159,13 @@ public class DriverService {
         response.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
 
         // vehicleId is required by entity; try to set to driver's current vehicle if present
-        try {
-            Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
-            if (driver.getVehicle() != null) {
-                entity.setVehicleId(driver.getVehicle().getId());
-            } else {
-                entity.setVehicleId(0L);
-            }
-        } catch (Exception ex) {
+
+        if (driver.getVehicle() != null) {
+            entity.setVehicleId(driver.getVehicle().getId());
+        } else {
             entity.setVehicleId(0L);
         }
 
-        System.out.println(entity.getLicensePlate());
         // save
         driverRequestRepository.save(entity);
 
