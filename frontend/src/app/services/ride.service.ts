@@ -74,4 +74,8 @@ export class RideService {
   }) {
     return this.http.post<any>(`${this.apiURL}/${id}/rate`, rating);
   }
+
+  reportInconsistency(data: { rideId: number; description: string; }) {
+    return this.http.post<any>(`${this.apiURL}/inconsistency`, data);
+  }
 }
