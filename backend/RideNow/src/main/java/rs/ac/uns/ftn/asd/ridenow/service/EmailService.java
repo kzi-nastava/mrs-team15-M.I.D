@@ -13,6 +13,7 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     private String activationRoute = "http://localhost:4200/activate/";
+    private String driverActivationRoute = "http://localhost:4200/driver-activation/";
     private String resetPasswordRoute = "http://localhost:4200/reset-password/";
 
     public void sendActivationMail(String to, ActivationToken token) {
@@ -28,6 +29,22 @@ public class EmailService {
         );
         mailSender.send(mail);
     }
+
+    public void sendDriverActivationMail(String to, ActivationToken token) {
+        SimpleMailMessage mail = new SimpleMailMessage();
+        mail.setTo(to);
+        mail.setSubject("Activate your RideNow account");
+        mail.setText(
+                "Welcome to RideNow!\n\n" +
+                        "Your account is almost ready.\n" +
+                        "Click the link below to activate it:\n\n" +
+                        driverActivationRoute + token.getToken() +
+                        "\n\nSee you on the road,\nRideNow Team"
+        );
+        mailSender.send(mail);
+    }
+
+
 
     public void sendForgotPasswordMail(String to, ForgotPasswordToken token) {
         SimpleMailMessage mail = new SimpleMailMessage();

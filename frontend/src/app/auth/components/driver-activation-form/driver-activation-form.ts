@@ -1,14 +1,14 @@
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component'
-import { ActivatedRoute, Router, RouterLink } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { AuthService } from '../../../services/auth.service';
+import { DriverService } from '../../../services/driver.service';
 
 @Component({
   selector: 'app-driver-activation-form',
-  imports: [Button, InputComponent, RouterLink, CommonModule],
+  imports: [Button, InputComponent, CommonModule],
   standalone: true, 
   templateUrl: './driver-activation-form.html',
   styleUrl: './driver-activation-form.css',
@@ -16,7 +16,7 @@ import { AuthService } from '../../../services/auth.service';
 
 export class DriverActivationForm implements OnInit {
 
-  constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService, private cdr: ChangeDetectorRef) {}
+  constructor(private route: ActivatedRoute, private router: Router, private driverService: DriverService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.token = this.route.snapshot.paramMap.get('token');
@@ -52,15 +52,18 @@ export class DriverActivationForm implements OnInit {
   validator : FromValidator = new FromValidator();
 
   activateDriver(): void {
-    const data = {newPassword: this.newPassword, confirmNewPassword: this.newConfirmedPassword}
-    this.authService.resetPassword(this.token!, data).subscribe({
-      next: (res) => {
+      console.log('DriverActivationForm.activateDriver token=', this.token, 'payload=', { password: this.newPassword.trim(), passwordConfirmation: this.newConfirmedPassword.trim(), token: this.token });
+      this.driverService.driverActivate(this.token!, { password: this.newPassword.trim(), passwordConfirmation: this.newConfirmedPassword.trim(), token: this.token! }).subscribe({
+      next: (res: any) => {
         this.showMessageToast(res.message);
         setTimeout(() => { this.router.navigate(['/login']);}, 4000);
       },
-      error: (err) => {
-        const msg = err.error?.message ?? 'Activation failed. Please try again.';
-        this.showMessageToast(msg);
+      error: (err: any) => {
+        console.error('Driver activation error', err);
+        const status = err?.status;
+        const serverMsg = err?.error?.message ?? err?.error ?? err?.message;
+        const msg = serverMsg ?? 'Activation failed. Please try again.';
+        this.showMessageToast(`(${status}) ${msg}`);
       }
     });
   }

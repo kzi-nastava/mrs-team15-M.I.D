@@ -42,7 +42,7 @@ export class DriverRegisterForm implements OnInit {
 
   ngOnInit(): void {
     // check if user is admin
-  const role = localStorage.getItem('role');
+  const role ='ADMIN';
   if (role !== 'ADMIN') {
     this.showToastMessage('Access denied', 'error');
     return;

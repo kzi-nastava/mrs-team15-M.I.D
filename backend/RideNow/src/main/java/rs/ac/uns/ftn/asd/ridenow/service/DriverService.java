@@ -263,6 +263,6 @@ public class DriverService {
         activationTokenRepository.save(newToken);
         userRepository.save(user);
         // send email
-        emailService.sendActivationMail(user.getEmail(), newToken);
+        emailService.sendDriverActivationMail(user.getEmail(), newToken);
     }
 }

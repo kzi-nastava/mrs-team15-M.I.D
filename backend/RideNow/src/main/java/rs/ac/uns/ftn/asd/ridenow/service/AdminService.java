@@ -203,7 +203,7 @@ public class AdminService {
 
         // send activation email (don't fail the request if email sending fails)
         try {
-            emailService.sendActivationMail(saved.getEmail(), saved.getActivationToken());
+            emailService.sendDriverActivationMail(saved.getEmail(), saved.getActivationToken());
         } catch (Exception e) {
             System.err.println("Failed to send activation email: " + e.getMessage());
         }

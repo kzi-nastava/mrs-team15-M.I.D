@@ -10,7 +10,7 @@ interface ActivateResponse {
 @Injectable({ providedIn: 'root' })
 export class DriverService {
 
-  private apiURL = "http://localhost:8080/api/driver";
+  private apiURL = "http://localhost:8081/api/driver";
   constructor(private http: HttpClient, private driverState: DriverStatusStore) {}
 
   changeDriverStatus(data: { status: string }) {
@@ -23,5 +23,9 @@ export class DriverService {
     return this.http
       .get<{ status: string; pendingStatus: string }>(`${this.apiURL}/status`)
       .pipe(tap(res => this.driverState.setStatus(res.status)));
+  }
+
+  driverActivate(token: string, data: { password: string; passwordConfirmation: string; token: string }): Observable<ActivateResponse> {
+    return this.http.put<ActivateResponse>(`${this.apiURL}/activate-account`, data);
   }
 }
