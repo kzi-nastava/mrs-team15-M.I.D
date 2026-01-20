@@ -282,6 +282,7 @@ public class RideService {
             currentRideDTO.setEstimatedDurationMin(response.getEstimatedDurationMin());
             currentRideDTO.setRoute(response.getRoute());
             currentRideDTO.setDistanceKm(response.getDistanceKm());
+            currentRideDTO.setRideId(ride.getId());
             return currentRideDTO;
         } catch (Exception e) {
             throw new Exception(e);

@@ -10,6 +10,7 @@ import { response } from 'express';
 
 
 export interface CurrentRideDTO {
+  rideId?: number;
   estimatedDurationMin: number;
   distanceKm: number;
   route: any;
@@ -36,6 +37,7 @@ export class CurrentRideForm {
   showMessage = false;
   estimatedDistanceKm?: number;
   estimatedDurationMin?: number;
+  rideId?: number;
 
   isDriver: boolean = false;
   isPassenger: boolean = true;
@@ -63,6 +65,7 @@ export class CurrentRideForm {
       this.pickupAddress = response.startAddress;
       this.estimatedDistanceKm = response.distanceKm;  
       this.estimatedDurationMin = response.estimatedDurationMin;
+      this.rideId = response.rideId;
       this.cdr.detectChanges();
       this.mapRouteService.drawRoute(response.route);
     },
@@ -79,8 +82,29 @@ export class CurrentRideForm {
     this.reportModal.openModal();
   }
 
-  handleReportSubmitted(message: string) {
-    console.log('Report submitted:', message);
+  handleReportSubmitted(description: string) {
+    if (!this.rideId) {
+      this.showMessageToast('Ride ID not available. Please try again.');
+      return;
+    }
+
+    const reportData = {
+      rideId: this.rideId,
+      description: description
+    };
+
+    this.rideService.reportInconsistency(reportData).subscribe({
+      next: (response) => {
+        this.showMessageToast('Inconsistency reported successfully.');
+      },
+      error: (err) => {
+        if (typeof err.error === 'string') {
+          this.showMessageToast(err.error);
+        } else {
+          this.showMessageToast('Failed to report inconsistency. Please try again.');
+        }
+      }
+    });
   }
 
   openStopModal(): void {
