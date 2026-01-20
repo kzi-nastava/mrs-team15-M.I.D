@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
@@ -11,6 +12,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,11 +23,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final DriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public UserService(UserRepository userRepository, DriverRepository driverRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, DriverRepository driverRepository, PasswordEncoder passwordEncoder, AuthService authService) {
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authService = authService;
     }
 
     public void changePassword(Long userId, ChangePasswordRequestDTO dto) {
@@ -39,12 +43,9 @@ public class UserService {
         // verify current password
         String stored = user.getPassword();
         boolean matches;
-        // Detect whether stored password looks like a BCrypt hash. If not, allow a legacy/plaintext match
-        // This avoids the "Encoded password does not look like BCrypt" warning and supports migrating old hashes.
         if (stored != null && (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$"))) {
             matches = passwordEncoder.matches(dto.getCurrentPassword(), stored);
         } else {
-            // legacy password (not BCrypt) - compare raw values
             matches = dto.getCurrentPassword() != null && dto.getCurrentPassword().equals(stored);
         }
         System.out.println(passwordEncoder.encode(stored));
@@ -103,9 +104,7 @@ public class UserService {
         return dto;
     }
 
-
-
-    public void updateUser(Long userId, UpdateProfileRequestDTO dto) {
+    public void updateUser(Long userId, UpdateProfileRequestDTO dto, MultipartFile profileImage) throws IOException {
         Optional<User> opt = userRepository.findById(userId);
         if (opt.isEmpty()) {
             throw new IllegalArgumentException("User not found with id: " + userId);
@@ -127,7 +126,8 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setAddress(dto.getAddress());
-        user.setProfileImage(dto.getProfileImage());
+        String profileImageURL = authService.generateProfileImageUrl(profileImage);
+        user.setProfileImage(profileImageURL);
 
         userRepository.save(user);
     }
