@@ -5,6 +5,7 @@ import { DriverRegistration } from './pages/driver-registration/driver-registrat
 import { Login } from './auth/pages/login/login'
 import { ForgotPassword } from './auth/pages/forgot-password/forgot-password';
 import { ResetPassword } from './auth/pages/reset-password/reset-password';
+import { DriverActivation } from './auth/pages/driver-activation/driver-activation';
 import { Registration } from './auth/pages/registration/registration';
 import { ChangePasswordPage } from './pages/change-password/change-password';
 import { ChangeRequest } from './driver/pages/change-request/change-request';
@@ -31,6 +32,7 @@ export const routes: Routes = [
     { path: 'login', component: Login},
     { path: 'forgot-password', component: ForgotPassword},
     { path: 'reset-password/:token', component: ResetPassword},
+    { path: 'driver-activation/:token', component: DriverActivation},
     { path: 'registration', component: Registration},
     { path: 'profile', component: ProfileInfo },
     { path: 'change-request', component: ChangeRequest },
