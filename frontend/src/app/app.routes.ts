@@ -43,7 +43,7 @@ export const routes: Routes = [
     { path: 'user-history', component: UserHistory },
     { path: 'home', component: Home },
     { path: 'ride-estimation', component: RideEstimation },
-    { path: 'rating', component: Rating },
+    { path: 'rating/:id', component: Rating },
     { path: 'upcoming-rides', component: UpcomingRides },
     { path: 'admin-history', component: AdminHistory },
     { path: 'history-ride-details/:id', component: HistoryRideDetails },

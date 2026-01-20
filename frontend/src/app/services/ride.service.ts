@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CurrentRide } from '../ride/pages/current-ride/current-ride';
 import { CurrentRideDTO } from '../ride/components/current-ride-form/current-ride-form';
+import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { UpcomingRide } from '../ride/components/upcoming-rides-table/upcoming-rides-table';
 
@@ -11,7 +12,7 @@ interface ActivateResponse {
 
 @Injectable({ providedIn: 'root' })
 export class RideService {
-  private apiURL = 'http://localhost:8080/api/rides';
+  private apiURL = environment.apiUrl + '/rides';
 
   constructor(private http: HttpClient) {}
 
@@ -56,12 +57,21 @@ export class RideService {
   cancelRide(id : number,  data: { reason: string; }) {
     return this.http.put<ActivateResponse>(`${this.apiURL}/${id}/cancel`, data);
   }
-  
-  getMyCurrentRide(): Observable<CurrentRideDTO> {
+
+    getMyCurrentRide(): Observable<CurrentRideDTO> {
     return this.http.get<CurrentRideDTO>(`${this.apiURL}/my-current-ride`);
   }
 
   triggerPanicAlert() {
     return this.http.post(`${this.apiURL}/panic-alert`, null);
+  }
+
+  rateRide(id: number, rating: {
+    driverRating: number;
+    vehicleRating: number;
+    driverComment: string;
+    vehicleComment: string;
+  }) {
+    return this.http.post<any>(`${this.apiURL}/${id}/rate`, rating);
   }
 }
