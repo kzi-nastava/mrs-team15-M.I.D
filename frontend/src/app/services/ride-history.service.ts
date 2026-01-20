@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Location {
   latitude: number;
@@ -72,7 +73,7 @@ export interface PaginatedRideHistoryResponse {
 })
 export class RideHistoryService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api';
+  private apiUrl = environment.apiUrl;
 
   getDriverRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string): Observable<PaginatedRideHistoryResponse> {
     let url = `${this.apiUrl}/driver/ride-history?page=${page}&size=${size}`;

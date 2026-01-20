@@ -1,20 +1,21 @@
 import { Observable } from "rxjs";
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
+import { environment } from "../../environments/environment";
 
 interface ActivateResponse {
   message: string;
 }
 
-@Injectable({ providedIn: 'root' })
-export class AuthService {
-  private apiURL = "http://localhost:8080/api/auth";
+@Injectable({ providedIn: 'root'})
+export class AuthService{
+    private apiURL = environment.apiUrl + '/auth';
 
     constructor(private http : HttpClient){}
-    
+
     register(data : FormData) : Observable<any> {
       return this.http.post(`${this.apiURL}/register`, data);
-    } 
+    }
 
     login(data: { email: string; password: string; }) : Observable<any> {
       return this.http.post<{ token: string }>(`${this.apiURL}/login`, data);

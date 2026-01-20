@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { StarRating } from '../../../shared/components/star-rating/star-rating';
 import { Button } from '../../../shared/components/button/button';
+import { RideService } from '../../../services/ride.service';
 
 @Component({
   selector: 'app-rating',
@@ -11,13 +12,24 @@ import { Button } from '../../../shared/components/button/button';
   templateUrl: './rating.html',
   styleUrl: './rating.css',
 })
-export class Rating {
+export class Rating implements OnInit {
   driverRating: number = 0;
   vehicleRating: number = 0;
   driverComment: string = '';
   vehicleComment: string = '';
+  rideId: number = 0;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private rideService: RideService
+  ) {}
+
+  ngOnInit() {
+    this.route.params.subscribe(params => {
+      this.rideId = +params['id']; // Convert string to number
+    });
+  }
 
   onDriverRatingChange(rating: number) {
     this.driverRating = rating;
@@ -37,12 +49,23 @@ export class Rating {
       return;
     }
 
-    console.log('Driver Rating:', this.driverRating);
-    console.log('Driver Comment:', this.driverComment);
-    console.log('Vehicle Rating:', this.vehicleRating);
-    console.log('Vehicle Comment:', this.vehicleComment);
-    // TODO: Implement API call to submit ratings
-    this.router.navigate(['/home']);
+    const ratingData = {
+      driverRating: this.driverRating,
+      vehicleRating: this.vehicleRating,
+      driverComment: this.driverComment,
+      vehicleComment: this.vehicleComment
+    };
+
+    this.rideService.rateRide(this.rideId, ratingData).subscribe({
+      next: (response) => {
+        console.log('Rating submitted successfully', response);
+        this.router.navigate(['/home']);
+      },
+      error: (error) => {
+        console.error('Error submitting rating', error);
+        alert('Failed to submit rating. Please try again.');
+      }
+    });
   }
 
   skipRating() {
