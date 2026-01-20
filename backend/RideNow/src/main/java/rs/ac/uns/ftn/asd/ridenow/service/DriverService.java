@@ -6,21 +6,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.sql.Date;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class DriverService {
@@ -28,14 +29,26 @@ public class DriverService {
     private final RatingRepository ratingRepository;
     private final DriverRepository driverRepository;
     private final DriverRequestRepository driverRequestRepository;
+    private final ActivationTokenRepository activationTokenRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     public DriverService(RideRepository rideRepository,
                          RatingRepository ratingRepository, DriverRepository driverRepository,
-                         DriverRequestRepository driverRequestRepository) {
+                         DriverRequestRepository driverRequestRepository,
+                         ActivationTokenRepository activationTokenRepository,
+                         UserRepository userRepository,
+                         EmailService emailService,
+                         PasswordEncoder passwordEncoder) {
         this.rideRepository = rideRepository;
         this.ratingRepository = ratingRepository;
         this.driverRepository = driverRepository;
         this.driverRequestRepository = driverRequestRepository;
+        this.activationTokenRepository = activationTokenRepository;
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
   private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir) {
@@ -155,7 +168,7 @@ public class DriverService {
 
         System.out.println(entity.getLicensePlate());
         // save
-        DriverRequest saved = driverRequestRepository.save(entity);
+        driverRequestRepository.save(entity);
 
         return response;
     }
@@ -193,5 +206,63 @@ public class DriverService {
             driver.setPendingStatus(null);
         }
         driverRepository.save(driver);
+    }
+
+    public void activateDriverAccountByToken(DriverAccountActivationRequestDTO request) {
+        if (request.getToken() == null || request.getToken().isBlank()) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(request.getToken());
+        if (optionalToken.isEmpty()) {
+            throw new IllegalArgumentException("Invalid token");
+        }
+
+        ActivationToken activationToken = optionalToken.get();
+        if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            // handle expiry: delete old token, attach new token and resend activation email
+            handleExpiredActivationToken(activationToken);
+            throw new IllegalArgumentException("Token expired. New activation link sent to your email.");
+        }
+
+        User user = activationToken.getUser();
+        if (!(user instanceof Driver)) {
+            throw new IllegalArgumentException("Token does not belong to a driver");
+        }
+
+        // validate passwords
+        if (request.getPassword() == null || request.getPasswordConfirmation() == null || !request.getPassword().equals(request.getPasswordConfirmation())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        if (request.getPassword().length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+
+        // encode and set password
+        String hashed = passwordEncoder.encode(request.getPassword());
+        user.setPassword(hashed);
+        user.setActive(true);
+        user.setActivationToken(null);
+        userRepository.save(user);
+
+        // delete token record
+        activationTokenRepository.delete(activationToken);
+    }
+
+    private void handleExpiredActivationToken(ActivationToken activationToken) {
+        User user = activationToken.getUser();
+        user.setActivationToken(null);
+        activationTokenRepository.delete(activationToken);
+        userRepository.save(user);
+
+        // generate new token and send
+        String tokenStr = UUID.randomUUID().toString();
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+        ActivationToken newToken = new ActivationToken(tokenStr, expiresAt, user);
+        user.setActivationToken(newToken);
+        activationTokenRepository.save(newToken);
+        userRepository.save(user);
+        // send email
+        emailService.sendDriverActivationMail(user.getEmail(), newToken);
     }
 }

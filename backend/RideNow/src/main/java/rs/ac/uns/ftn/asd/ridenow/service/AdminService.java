@@ -11,17 +11,19 @@ import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.DriverRequest;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
+import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRequestRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AdminService {
@@ -29,12 +31,14 @@ public class AdminService {
     private final DriverRepository driverRepository;
     private final DriverRequestRepository driverRequestRepository;
     private final VehicleRepository vehicleRepository;
+    private final EmailService emailService;
 
     public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
-                        VehicleRepository vehicleRepository) {
+                        VehicleRepository vehicleRepository, EmailService emailService) {
         this.driverRepository = driverRepository;
         this.driverRequestRepository = driverRequestRepository;
         this.vehicleRepository = vehicleRepository;
+        this.emailService = emailService;
     }
 
     public List<DriverChangeRequestDTO> getDriverRequests() {
@@ -180,16 +184,29 @@ public class AdminService {
         driver.setPhoneNumber(request.getPhoneNumber());
         driver.setProfileImage(request.getProfileImage() != null ? request.getProfileImage() : "default_profile_image_url");
         driver.setAddress(request.getAddress());
-        driver.setActive(true);
+        // mark admin-created drivers as inactive until they set their password
+        driver.setActive(false);
         driver.setBlocked(false);
-        driver.setStatus(DriverStatus.ACTIVE);
-        driver.setAvailable(true);
+        driver.setStatus(DriverStatus.INACTIVE);
+        driver.setAvailable(false);
+        driver.setRole(UserRoles.DRIVER);
+
+        // attach activation token so frontend can show activation link for initial password set
+        ActivationToken token = new ActivationToken(UUID.randomUUID().toString(), LocalDateTime.now().plusHours(24), driver);
+        driver.setActivationToken(token);
 
         // associate
         driver.assignVehicle(vehicle);
 
-        // save (cascade will save vehicle)
+        // save (cascade will save vehicle and activation token)
         Driver saved = driverRepository.save(driver);
+
+        // send activation email (don't fail the request if email sending fails)
+        try {
+            emailService.sendDriverActivationMail(saved.getEmail(), saved.getActivationToken());
+        } catch (Exception e) {
+            System.err.println("Failed to send activation email: " + e.getMessage());
+        }
 
         RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
         response.setId(saved.getId());
