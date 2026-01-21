@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { Button } from '../../../shared/components/button/button';
 import { CommonModule } from '@angular/common';
 import { ReportInconsistencyModal } from '../report-inconsistency-modal/report-inconsistency-modal';
@@ -28,7 +29,12 @@ export interface CurrentRideDTO {
 export class CurrentRideForm {
   @ViewChild(ReportInconsistencyModal) reportModal!: ReportInconsistencyModal;
 
-  constructor(private cdr: ChangeDetectorRef, private rideService : RideService, private mapRouteService : MapRouteService){}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private rideService: RideService,
+    private mapRouteService: MapRouteService,
+    private router: Router
+  ){}
 
   pickupAddress : string = '';
   destinationAddress : string = '';
@@ -56,13 +62,13 @@ export class CurrentRideForm {
     }
     this.fetchCurrentRide();
   }
-  
+
  fetchCurrentRide(): void {
   this.rideService.getMyCurrentRide().subscribe({
     next: (response) => {
-      this.destinationAddress = response.endAddress;  
+      this.destinationAddress = response.endAddress;
       this.pickupAddress = response.startAddress;
-      this.estimatedDistanceKm = response.distanceKm;  
+      this.estimatedDistanceKm = response.distanceKm;
       this.estimatedDurationMin = response.estimatedDurationMin;
       this.rideId = response.rideId;
       this.cdr.detectChanges();
@@ -110,11 +116,11 @@ export class CurrentRideForm {
     this.showStopModal = true;
   }
 
-  finalPrice?: number; 
+  finalPrice?: number;
   onStopConfirmed(response: any) {
     this.estimatedDistanceKm = response.distanceKm;
     this.estimatedDurationMin = response.estimatedDurationMin;
-    this.destinationAddress = response.endAddress;  
+    this.destinationAddress = response.endAddress;
     this.finalPrice = response.price;
     this.mapRouteService.drawRoute(response.route);
     this.showMessageToast(`Ride completed!`);
@@ -131,10 +137,38 @@ export class CurrentRideForm {
     this.showPanicModal = false;
   }
 
+  markCompleted(): void {
+    if (!this.rideId) {
+      this.showMessageToast('Ride ID not available.');
+      return;
+    }
+
+    this.rideService.finishRide(this.rideId).subscribe({
+      next: (hasNextRide) => {
+        if (hasNextRide) {
+          this.showMessageToast('Ride marked as completed. Loading next ride...');
+          this.fetchCurrentRide();
+        } else {
+          this.showMessageToast('Ride marked as completed.');
+          this.router.navigate(['/upcoming-rides']);
+        }
+      },
+      error: (err) => {
+        let message = 'Failed to mark ride as completed. Please try again.';
+        if (typeof err.error === 'string') {
+          message = err.error;
+        } else if (err.error?.message) {
+          message = err.error.message;
+        }
+        this.showMessageToast(message);
+      }
+    });
+  }
+
   showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
     setTimeout(() => { this.showMessage = false;}, 3000);
   }
 }

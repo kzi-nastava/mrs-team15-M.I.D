@@ -79,6 +79,10 @@ export class RideService {
     return this.http.post<any>(`${this.apiURL}/inconsistency`, data);
   }
 
+  finishRide(rideId: number): Observable<boolean> {
+    return this.http.post<boolean>(`${this.apiURL}/${rideId}/finish`, {});
+  }
+
   stopRide() {
     return this.http.put(`${this.apiURL}/stop`, null);
   }
