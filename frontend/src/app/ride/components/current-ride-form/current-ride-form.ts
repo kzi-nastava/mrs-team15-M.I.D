@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, OnDestroy } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { CommonModule } from '@angular/common';
 import { ReportInconsistencyModal } from '../report-inconsistency-modal/report-inconsistency-modal';
@@ -6,6 +6,7 @@ import { StopRideModal } from '../stop-ride-modal/stop-ride-modal';
 import { PanicModal } from '../panic-modal/panic-modal';
 import { RideService } from '../../../services/ride.service';
 import { MapRouteService } from '../../../services/map-route.service';
+import { Subscription, interval } from 'rxjs';
 
 
 export interface CurrentRideDTO {
@@ -25,7 +26,7 @@ export interface CurrentRideDTO {
   styleUrl: './current-ride-form.css',
 })
 
-export class CurrentRideForm {
+export class CurrentRideForm implements OnDestroy {
   @ViewChild(ReportInconsistencyModal) reportModal!: ReportInconsistencyModal;
 
   constructor(private cdr: ChangeDetectorRef, private rideService : RideService, private mapRouteService : MapRouteService){}
@@ -36,7 +37,9 @@ export class CurrentRideForm {
   showMessage = false;
   estimatedDistanceKm?: number;
   estimatedDurationMin?: number;
+  remainingTimeMin?: number;
   rideId?: number;
+  private trackingSubscription?: Subscription;
 
   isDriver: boolean = false;
   isPassenger: boolean = true;
@@ -56,17 +59,21 @@ export class CurrentRideForm {
     }
     this.fetchCurrentRide();
   }
-  
+
  fetchCurrentRide(): void {
   this.rideService.getMyCurrentRide().subscribe({
     next: (response) => {
-      this.destinationAddress = response.endAddress;  
+      this.destinationAddress = response.endAddress;
       this.pickupAddress = response.startAddress;
-      this.estimatedDistanceKm = response.distanceKm;  
+      this.estimatedDistanceKm = response.distanceKm;
       this.estimatedDurationMin = response.estimatedDurationMin;
       this.rideId = response.rideId;
       this.cdr.detectChanges();
       this.mapRouteService.drawRoute(response.route);
+
+      if (this.rideId) {
+        this.startTracking(this.rideId);
+      }
     },
     error: (err) => {
       if (typeof err.error === 'string') {
@@ -110,11 +117,11 @@ export class CurrentRideForm {
     this.showStopModal = true;
   }
 
-  finalPrice?: number; 
+  finalPrice?: number;
   onStopConfirmed(response: any) {
     this.estimatedDistanceKm = response.distanceKm;
     this.estimatedDurationMin = response.estimatedDurationMin;
-    this.destinationAddress = response.endAddress;  
+    this.destinationAddress = response.endAddress;
     this.finalPrice = response.price;
     this.mapRouteService.drawRoute(response.route);
     this.showMessageToast(`Ride completed!`);
@@ -134,7 +141,52 @@ export class CurrentRideForm {
   showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
     setTimeout(() => { this.showMessage = false;}, 3000);
+  }
+
+  private startTracking(rideId: number): void {
+    if (this.trackingSubscription) {
+      this.trackingSubscription.unsubscribe();
+    }
+
+    // Fetch immediately
+    this.rideService.trackRide(rideId).subscribe({
+      next: (trackData) => {
+        this.remainingTimeMin = trackData.remainingTimeInMinutes;
+        this.mapRouteService.updateVehicleLocation(
+          trackData.location.latitude,
+          trackData.location.longitude
+        );
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error tracking ride:', err);
+      }
+    });
+
+    // Then continue fetching every 10 seconds
+    this.trackingSubscription = interval(10000).subscribe(() => {
+      this.rideService.trackRide(rideId).subscribe({
+        next: (trackData) => {
+          this.remainingTimeMin = trackData.remainingTimeInMinutes;
+          this.mapRouteService.updateVehicleLocation(
+            trackData.location.latitude,
+            trackData.location.longitude
+          );
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error tracking ride:', err);
+        }
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.trackingSubscription) {
+      this.trackingSubscription.unsubscribe();
+    }
+    this.mapRouteService.clearVehicleLocation();
   }
 }

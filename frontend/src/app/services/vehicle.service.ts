@@ -21,8 +21,24 @@ export class VehicleService {
       this.updateSubscription.unsubscribe();
     }
 
-    this.updateSubscription = interval(1000).subscribe(() => {
-      console.log('Fetching vehicles around', centerLat, centerLng);
+    // Fetch immediately
+    this.http.get<any[]>(`${this.apiURL}/?lat=${centerLat}&lon=${centerLng}`).subscribe({
+      next: (response) => {
+        const vehicles = response.map(v => ({
+          licencePlate: v.licencePlate,
+          lat: v.location.latitude,
+          lng: v.location.longitude,
+          available: v.available
+        }));
+        this.vehiclesSubject.next(vehicles);
+      },
+      error: (err) => {
+        console.error('Error fetching vehicles:', err);
+      }
+    });
+
+    // Then continue fetching every 5 seconds
+    this.updateSubscription = interval(5000).subscribe(() => {
       this.http.get<any[]>(`${this.apiURL}/?lat=${centerLat}&lon=${centerLng}`).subscribe({
         next: (response) => {
           const vehicles = response.map(v => ({
@@ -38,5 +54,12 @@ export class VehicleService {
         }
       });
     });
+  }
+
+  stopFetchingVehicles(): void {
+    if (this.updateSubscription) {
+      this.updateSubscription.unsubscribe();
+      this.updateSubscription = undefined;
+    }
   }
 }
