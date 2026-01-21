@@ -79,6 +79,13 @@ export class RideService {
     return this.http.post<any>(`${this.apiURL}/inconsistency`, data);
   }
 
+  trackRide(rideId: number): Observable<{
+    location: { latitude: number; longitude: number; address: string | null };
+    remainingTimeInMinutes: number;
+  }> {
+    return this.http.get<any>(`${this.apiURL}/${rideId}/track`);
+  }
+
   stopRide() {
     return this.http.put(`${this.apiURL}/stop`, null);
   }
