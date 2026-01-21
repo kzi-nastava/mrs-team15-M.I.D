@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 import { FormsModule } from '@angular/forms';
@@ -209,10 +210,24 @@ export class RideOrderingForm {
           };
 
           const resp = await this.rideService.estimateRoute(estimateReq).catch(e => { console.warn('routing call failed', e); return null; });
-          const roadRoute = resp?.route ?? resp;
+          const roadRoute = resp?.route ?? resp?.routePoints ?? resp;
           if (Array.isArray(roadRoute) && roadRoute.length > 0) {
-            this.mapRouteService.drawRoute(roadRoute);
+            const normalized = roadRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
+            this.mapRouteService.drawRoute(normalized);
             return;
+          }
+
+          // fallback: if POST /estimate-route did not include geometry, try GET /estimate which returns route points
+          try {
+            const getResp = await lastValueFrom(this.rideService.estimate({ startAddress: this.pickupAddress || '', destinationAddress: this.destinationAddress || '' }).pipe());
+            const getRoute = getResp?.route ?? getResp;
+            if (Array.isArray(getRoute) && getRoute.length > 0) {
+              const normalized2 = getRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
+              this.mapRouteService.drawRoute(normalized2);
+              return;
+            }
+          } catch (ge) {
+            console.warn('fallback GET /estimate failed', ge);
           }
         } catch (e) {
           console.warn('estimateRoute failed', e);
@@ -360,6 +375,7 @@ export class RideOrderingForm {
       };
 
       // Call backend to get distance/time/price estimates
+      let routeDrawn = false;
       try {
         console.log('estimateReq ->', estimateReq);
         const estimateResp = await this.rideService.estimateRoute(estimateReq);
@@ -372,6 +388,32 @@ export class RideOrderingForm {
         this.lastEstimate = estimateResp;
         console.log('Route estimate from backend', estimateResp);
         try { this.cdr.detectChanges(); } catch(e) {}
+
+        // Try to draw route geometry returned by estimate-route (POST). If absent, fallback to GET /estimate, then to markers.
+        let routeDrawn = false;
+        try {
+          const roadRoute = estimateResp?.route ?? estimateResp?.routePoints ?? null;
+          if (Array.isArray(roadRoute) && roadRoute.length > 0) {
+            const normalized = roadRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
+            this.mapRouteService.drawRoute(normalized);
+            routeDrawn = true;
+          } else {
+            // fallback: request geometry via GET /estimate
+            try {
+              const getResp = await lastValueFrom(this.rideService.estimate({ startAddress: estimateReq.startAddress, destinationAddress: estimateReq.endAddress }).pipe());
+              const getRoute = getResp?.route ?? getResp;
+              if (Array.isArray(getRoute) && getRoute.length > 0) {
+                const normalized2 = getRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
+                this.mapRouteService.drawRoute(normalized2);
+                routeDrawn = true;
+              }
+            } catch (ge) {
+              console.warn('fallback GET /estimate failed', ge);
+            }
+          }
+        } catch (e) {
+          console.warn('Drawing route from estimate response failed', e);
+        }
       } catch (e: any) {
         // Log detailed HTTP error info when available
         console.warn('estimateRoute call failed', e && e.status ? { status: e.status, error: e.error || e.message } : e);
@@ -388,15 +430,17 @@ export class RideOrderingForm {
         }
       }
 
-      // Show only markers for start/stops/end (no connecting polyline)
-      const points: { lat: number; lng: number; display?: string }[] = [];
-      if (startGeo) points.push({ lat: startGeo.lat, lng: startGeo.lon, display: this.pickupAddress });
-      for (const s of stopLatitudes.map((lat, i) => ({ lat, lng: stopLongitudes[i], display: stopAddresses[i] }))) {
-        points.push(s as any);
-      }
-      if (endGeo) points.push({ lat: endGeo.lat, lng: endGeo.lon, display: this.destinationAddress });
+      // Show only markers for start/stops/end (no connecting polyline) if no route was drawn
+      if (!routeDrawn) {
+        const points: { lat: number; lng: number; display?: string }[] = [];
+        if (startGeo) points.push({ lat: startGeo.lat, lng: startGeo.lon, display: this.pickupAddress });
+        for (const s of stopLatitudes.map((lat, i) => ({ lat, lng: stopLongitudes[i], display: stopAddresses[i] }))) {
+          points.push(s as any);
+        }
+        if (endGeo) points.push({ lat: endGeo.lat, lng: endGeo.lon, display: this.destinationAddress });
 
-      this.mapRouteService.drawMarkers(points);
+        this.mapRouteService.drawMarkers(points);
+      }
     } catch (err) {
       console.error('Show route failed', err);
     }

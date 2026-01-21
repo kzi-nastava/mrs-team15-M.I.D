@@ -194,21 +194,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       lineJoin: "round",
       className: isAlert ? 'alert-route' : ''
     }).addTo(this.map);
-
-    this.startMarker = L.circleMarker(latLngs[0], {
-      radius: isAlert ? 10 : 8,
-      color: "#22c55e",
-      fillColor: "#22c55e",
-      fillOpacity: 0.4
-    }).addTo(this.map);
-
-    this.endMarker = L.circleMarker(latLngs[latLngs.length - 1], {
-      radius: isAlert ? 10 : 8,
-      color: isAlert ? "#dc2626" : "#ef4444",
-      fillColor: isAlert ? "#dc2626" : "#ef4444",
-      fillOpacity: isAlert ? 0.6 : 0.4
-    }).addTo(this.map);
-
     this.map.fitBounds(this.routeLayer.getBounds(), {
       padding: [30, 30]
     });
@@ -221,25 +206,39 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     this.clearRoute();
     this.clearMarkers();
 
-    this.markersLayerGroup = L.layerGroup();
+    // Only show start (green) and end (red) markers; hide intermediate blue markers
+    this.markersLayerGroup = undefined;
 
-    for (let i = 0; i < route.length; i++) {
-      const p = route[i];
-      // Use circle markers (SVG) to avoid external image asset requests
-      const marker = L.circleMarker([p.lat, p.lng], {
-        radius: 7,
-        color: this.isAlertMode ? '#dc2626' : '#111',
-        fillColor: this.isAlertMode ? '#dc2626' : '#111',
-        fillOpacity: 0.9
-      }).bindPopup(p.display || p.name || `Point ${i + 1}`);
-      this.markersLayerGroup.addLayer(marker);
+    // start marker
+    if (route.length > 0) {
+      const start = route[0];
+      this.startMarker = L.circleMarker([start.lat, start.lng], {
+        radius: 8,
+        color: '#22c55e',
+        fillColor: '#22c55e',
+        fillOpacity: 0.6
+      }).bindPopup(start.display || start.name || 'Start').addTo(this.map);
     }
-    this.markersLayerGroup.addTo(this.map);
 
-    // fit to markers
+    // end marker
+    if (route.length > 1) {
+      const end = route[route.length - 1];
+      this.endMarker = L.circleMarker([end.lat, end.lng], {
+        radius: 8,
+        color: this.isAlertMode ? '#dc2626' : '#ef4444',
+        fillColor: this.isAlertMode ? '#dc2626' : '#ef4444',
+        fillOpacity: 0.6
+      }).bindPopup(end.display || end.name || 'End').addTo(this.map);
+    }
+
+    // fit to available markers
     try {
-      const bounds = this.markersLayerGroup.getBounds();
-      this.map.fitBounds(bounds, { padding: [30, 30] });
+      if (this.startMarker && this.endMarker) {
+        const group = L.featureGroup([this.startMarker, this.endMarker]);
+        this.map.fitBounds(group.getBounds(), { padding: [30, 30] });
+      } else if (this.startMarker) {
+        this.map.setView(this.startMarker.getLatLng(), this.zoom);
+      }
     } catch (e) {
       console.warn('fitBounds markers failed', e);
     }

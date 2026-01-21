@@ -81,6 +81,7 @@ public class RideService {
 
             response.setDistanceKm(estimate.getDistanceKm());
             response.setEstimatedTimeMinutes(estimate.getEstimatedDurationMin());
+            response.setRoute(estimate.getRoute()); 
 
             // calculate a price estimate using default vehicle type (STANDARD)
             double price = priceService.calculatePrice(VehicleType.STANDARD, estimate.getDistanceKm());

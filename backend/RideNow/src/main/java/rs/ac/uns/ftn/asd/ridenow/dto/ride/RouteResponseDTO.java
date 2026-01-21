@@ -23,6 +23,7 @@ public class RouteResponseDTO {
     private double distanceKm;
     private int estimatedTimeMinutes;
     private double priceEstimate;
+    private List<RoutePointDTO> route;
 
     public RouteResponseDTO() { super(); }
 
