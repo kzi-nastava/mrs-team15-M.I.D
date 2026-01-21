@@ -360,7 +360,7 @@ public class RideService {
             throw new Exception("Ride does not exists");
         }
         Ride ride = optionalRide.get();
-        if (ride.getDriver().getId().equals(driver.getId())){
+        if (!ride.getDriver().getId().equals(driver.getId())){
             throw new Exception("You are not a driver on this ride");
         }
         String reason = request.getReason().trim();
