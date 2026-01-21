@@ -12,7 +12,7 @@ public class PassengerService {
         dto.setRouteId(routeId);
         dto.setDistanceKm(14.0);
         dto.setEstimatedTimeMinutes(25);
-        dto.setPriceEstimate(1800);
+        dto.setPriceEstimateStandard(1800);
 
         return dto;
     }

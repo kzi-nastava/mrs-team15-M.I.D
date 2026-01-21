@@ -19,11 +19,20 @@
     </div>
 
     <div class="ride-details">
-      <div class="detail-row"><span class="label">Pickup:</span> <span class="value">{{ ride.from }}</span></div>
-      <div class="detail-row"><span class="label">Destination:</span> <span class="value">{{ ride.to }}</span></div>
+      <div class="detail-row">
+        <span class="label">Pickup:</span>
+        <span class="value">
+          <div class="addr-primary">{{ getAddressLines(ride.startAddress).primary }}</div>
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Destination:</span>
+        <span class="value">
+          <div class="addr-primary">{{ getAddressLines(ride.endAddress).primary }}</div>
+        </span>
+      </div>
       <div class="detail-row small"><span class="label">Distance:</span> <span class="value">{{ formatDistance() }}</span></div>
       <div class="detail-row small"><span class="label">Price:</span> <span class="value">{{ formatPrice() }}</span></div>
-      <div class="detail-row small"><span class="label">Passengers:</span> <span class="value">{{ ride.passengers }}</span></div>
       <div class="detail-row small"><span class="label">Vehicle Type:</span> <span class="value">{{ ride.vehicleType }}</span></div>
     </div>
     <button class="cancel-btn" (click)="onCancel()">Cancel</button>

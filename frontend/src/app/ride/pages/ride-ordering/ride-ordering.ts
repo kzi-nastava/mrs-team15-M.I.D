@@ -24,14 +24,17 @@ export class RideOrdering {
 
   // Handle order attempt event payload: navigate to finding-driver and pass order response
   handleOrderAttempt(eventPayload: any) {
+    // RideOrderingForm now navigates immediately before calling backend.
+    // This handler receives server response updates (if any) and can react accordingly.
     try {
-      console.debug('Order attempt received, navigating to finding-driver with payload', eventPayload);
-      // Navigate to finding-driver and include the backend response in navigation state
-      this.router.navigate(['/finding-driver'], { state: { order: eventPayload } });
+      console.debug('Order attempt event received (server response or update):', eventPayload);
+      // If backend reported an error, show the active ride warning modal
+      if (eventPayload && eventPayload.error) {
+        console.warn('Order failed:', eventPayload.error);
+        this.openActiveRideWarning();
+      }
     } catch (e) {
-      console.warn('Navigation to finding-driver failed', e);
-      // fallback: open active ride warning modal if navigation fails
-      this.openActiveRideWarning();
+      console.warn('handleOrderAttempt processing error', e);
     }
   }
 

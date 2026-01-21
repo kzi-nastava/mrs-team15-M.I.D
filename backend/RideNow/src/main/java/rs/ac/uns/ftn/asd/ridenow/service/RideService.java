@@ -86,7 +86,13 @@ public class RideService {
 
             // calculate a price estimate using default vehicle type (STANDARD)
             double price = priceService.calculatePrice(VehicleType.STANDARD, estimate.getDistanceKm());
-            response.setPriceEstimate(price);
+            response.setPriceEstimateStandard(price);
+
+            price = priceService.calculatePrice(VehicleType.LUXURY, estimate.getDistanceKm());
+            response.setPriceEstimateLuxury(price);
+
+            price = priceService.calculatePrice(VehicleType.VAN, estimate.getDistanceKm());
+            response.setPriceEstimateVan(price);
 
             // routeId is not persisted for estimates
             response.setRouteId(null);

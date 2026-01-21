@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
@@ -40,6 +41,9 @@ export class RideOrderingForm {
   validator: FromValidator = new FromValidator();
   // Last estimate response from backend (distance, time, price)
   lastEstimate: any = null;
+  // Selected vehicle type for pricing and ordering (default STANDARD)
+  selectedVehicleType: 'STANDARD' | 'LUXURY' | 'VAN' = 'STANDARD';
+  // Last estimate response from backend (distance, time, price)
 
   // Compute simple fallback estimate (Haversine distance, naive time and price) when backend is unavailable
   private computeFallbackEstimate(start: {lat:number, lon:number}, end: {lat:number, lon:number}) {
@@ -97,10 +101,14 @@ export class RideOrderingForm {
       this.applyFavorite();
     }
     this.favoriteOpen = false;
+    // applying a favorite changes addresses/stops so clear estimate
+    this.lastEstimate = null;
   }
 
   addStop() {
     this.stops.push('');
+    // modifying stops invalidates previous estimate
+    this.lastEstimate = null;
   }
 
   onDragStart(event: DragEvent, index: number) {
@@ -134,15 +142,21 @@ export class RideOrderingForm {
     this.stops.splice(insertIndex, 0, item);
     this.dragOverIndex = null;
     this.draggedIndex = null;
+    // reordering stops invalidates previous estimate
+    this.lastEstimate = null;
   }
 
   onDragEnd(_event: DragEvent) {
     this.dragOverIndex = null;
     this.draggedIndex = null;
+    // ensure estimate is cleared if drag changed order
+    this.lastEstimate = null;
   }
 
   removeStop(index: number) {
     this.stops.splice(index, 1);
+    // removing a stop invalidates previous estimate
+    this.lastEstimate = null;
   }
 
   // -- Address change handlers & map update --
@@ -158,19 +172,29 @@ export class RideOrderingForm {
   onPickupChange(val: string) {
     this.pickupAddress = val;
     this.fetchSuggestionsDebounced(val, 'pickup');
+    // Clear any previous estimate when inputs change
+    this.lastEstimate = null;
     console.debug('onPickupChange', val);
   }
 
   onDestinationChange(val: string) {
     this.destinationAddress = val;
     this.fetchSuggestionsDebounced(val, 'destination');
+    // Clear any previous estimate when inputs change
+    this.lastEstimate = null;
     console.debug('onDestinationChange', val);
   }
 
   onStopChange(val: string, index: number) {
     this.stops[index] = val;
     this.fetchSuggestionsDebounced(val, 'stop', index);
+    // Clear any previous estimate when inputs change
+    this.lastEstimate = null;
     console.debug('onStopChange', index, val);
+  }
+
+  selectVehicleType(type: 'STANDARD' | 'LUXURY' | 'VAN') {
+    this.selectedVehicleType = type;
   }
 
   private updateMapMarkersDebounced(delay = 400) {
@@ -445,14 +469,18 @@ export class RideOrderingForm {
       console.error('Show route failed', err);
     }
   }
+  
 
   showPreferences: boolean = false;
+  // Whether the user clicked "Choose route" (enables showing Calculate Price)
+  routeChosen: boolean = false;
 
   chooseRoute() {
     this.showPreferences = true;
+    this.routeChosen = true;
   }
 
-  constructor(private rideService: RideService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef) {}
+  constructor(private rideService: RideService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
@@ -493,6 +521,16 @@ export class RideOrderingForm {
       let mainEmail = 'guest@example.com';
       try { if (userJson) mainEmail = JSON.parse(userJson).email || mainEmail; } catch(e) {}
 
+      const vehicleTypeChosen = (prefs.vehicleType ? (prefs.vehicleType as string).toUpperCase() : (this.selectedVehicleType || 'STANDARD')) as 'STANDARD' | 'LUXURY' | 'VAN';
+
+      // choose price field based on vehicle type (backend may return per-type fields)
+      let priceForType = route?.priceEstimate ?? 0;
+      try {
+        if (vehicleTypeChosen === 'STANDARD') priceForType = route?.priceEstimateStandard ?? route?.priceEstimate ?? 0;
+        else if (vehicleTypeChosen === 'LUXURY') priceForType = route?.priceEstimateLuxury ?? route?.priceEstimate ?? 0;
+        else if (vehicleTypeChosen === 'VAN') priceForType = route?.priceEstimateVan ?? route?.priceEstimate ?? 0;
+      } catch (e) { priceForType = route?.priceEstimate ?? 0; }
+
       const orderDto: any = {
         mainPassengerEmail: mainEmail,
         startAddress: estimateReq.startAddress,
@@ -504,22 +542,27 @@ export class RideOrderingForm {
         stopAddresses: estimateReq.stopAddresses,
         stopLatitudes: estimateReq.stopLatitudes,
         stopLongitudes: estimateReq.stopLongitudes,
-        vehicleType: prefs.vehicleType || 'STANDARD',
+        vehicleType: vehicleTypeChosen,
         babyFriendly: !!prefs.babySeat,
         petFriendly: !!prefs.petFriendly,
         linkedPassengers: prefs.guests && prefs.guests.length ? prefs.guests : [],
         scheduledTime: null,
         distanceKm: route?.distanceKm ?? 0,
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
-        priceEstimate: route?.priceEstimate ?? 0,
+        priceEstimate: priceForType,
       };
 
       console.log('Order DTO', orderDto);
-      const res = await this.rideService.orderRide(orderDto);
-      console.log('Order response', res);
+      // Navigate to finding-driver immediately with the order payload
+      try {
+        this.router.navigate(['/finding-driver'], { state: { order: orderDto } });
+      } catch (navErr) {
+        console.warn('Navigation to finding-driver failed', navErr);
+      }
 
-      // Notify parent that an order attempt was made (parent may show active-ride modal)
-      this.orderAttempt.emit(res);
+      // Do not call backend here; finding-driver page will call the backend after navigation
+      // Emit immediate navigation event so parent can react if needed
+      this.orderAttempt.emit({ navigated: true, order: orderDto });
 
     } catch (err) {
       console.error('Order failed', err);

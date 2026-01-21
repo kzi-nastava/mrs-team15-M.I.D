@@ -50,20 +50,20 @@
                     </div>
                 </div>
 
-                <div *ngIf="lastEstimate" class="estimate-box mt-2 p-2" style="border-radius:6px;">
-                    <div><strong>Distance:</strong> {{ lastEstimate.distanceKm ?? lastEstimate.distanceKmKm ?? lastEstimate.distanceKmValue ?? lastEstimate.distanceKm }} km</div>
-                    <div><strong>Estimated time:</strong> {{ lastEstimate.estimatedTimeMinutes ?? lastEstimate.estimatedDurationMin ?? lastEstimate.estimatedTime }} minutes</div>
-                </div>
+                                <div *ngIf="lastEstimate" class="estimate-box mt-2 p-2" style="border-radius:6px;">
+                                        <div><strong>Distance:</strong> {{ lastEstimate.distanceKm ?? lastEstimate.distanceKmKm ?? lastEstimate.distanceKmValue ?? lastEstimate.distanceKm }} km</div>
+                                        <div><strong>Estimated time:</strong> {{ lastEstimate.estimatedTimeMinutes ?? lastEstimate.estimatedDurationMin ?? lastEstimate.estimatedTime }} minutes</div>
+                                </div>
 
-                <div class="route-buttons d-flex gap-2 mt-3 mb-3">
-                    <app-button class="show-route-btn" width="120%" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Show route" (click)="showRoute()"></app-button>
-                </div>
+                                <div class="route-buttons d-flex gap-2 mt-3 mb-3">
+                                        <app-button class="show-route-btn" width="120%" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Show route" (click)="showRoute()"></app-button>
+                                 </div>
 
-                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors()" (click)="chooseRoute()"></app-button>
+                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors() || !lastEstimate" (click)="chooseRoute()"></app-button>
 
                 </ng-container>
                 <ng-container *ngIf="showPreferences">
-                    <app-ride-preference-form (confirm)="onPreferencesConfirm($event)" (cancel)="showPreferences=false"></app-ride-preference-form>
+                    <app-ride-preference-form [estimate]="lastEstimate" [selectedVehicleType]="selectedVehicleType" (confirm)="onPreferencesConfirm($event)" (cancel)="showPreferences=false"></app-ride-preference-form>
                 </ng-container>
             </form>
         </div>
