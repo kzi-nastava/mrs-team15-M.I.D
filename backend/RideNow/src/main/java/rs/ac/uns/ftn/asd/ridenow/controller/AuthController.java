@@ -86,7 +86,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> register(
+    public ResponseEntity<?> register(@Valid
             @ModelAttribute RegisterRequestDTO request,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
         try {
