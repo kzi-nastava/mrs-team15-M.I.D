@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { CurrentRide } from '../ride/pages/current-ride/current-ride';
 import { CurrentRideDTO } from '../ride/components/current-ride-form/current-ride-form';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, lastValueFrom } from 'rxjs';
+import { HttpParams } from '@angular/common/http';
 import { UpcomingRide } from '../ride/components/upcoming-rides-table/upcoming-rides-table';
 
 interface ActivateResponse {
@@ -33,12 +34,27 @@ export class RideService {
     return null;
   }
 
-  estimateRoute(dto: any) {
-    return this.http.post<any>(`${this.apiURL}/estimate-route`, dto).toPromise();
+  estimateRoute(dto: any): Promise<any> {
+    return lastValueFrom(this.http.post<any>(`${this.apiURL}/estimate-route`, dto));
+  }
+  
+  estimateRouteGet(data: { startAddress: string; destinationAddress: string; stopAddresses?: string[] }) {
+    let params = new HttpParams()
+      .set('startAddress', data.startAddress)
+      .set('destinationAddress', data.destinationAddress);
+
+    if (data.stopAddresses && data.stopAddresses.length) {
+      // append multiple stopAddresses params
+      for (const s of data.stopAddresses) {
+        params = params.append('stopAddresses', s);
+      }
+    }
+
+    return lastValueFrom(this.http.get<any>(`${this.apiURL}/estimate-route`, { params }));
   }
 
-  orderRide(dto: any) {
-    return this.http.post<any>(`${this.apiURL}`, dto).toPromise();
+  orderRide(dto: any): Promise<any> {
+    return lastValueFrom(this.http.post<any>(`${this.apiURL}`, dto));
   }
 
   estimate(data: { startAddress: string; destinationAddress: string }) {

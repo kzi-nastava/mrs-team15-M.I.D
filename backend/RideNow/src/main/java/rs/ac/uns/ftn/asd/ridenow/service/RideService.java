@@ -51,14 +51,48 @@ public class RideService {
     }
 
     public RouteResponseDTO estimateRoute(EstimateRouteRequestDTO dto) {
-        RouteResponseDTO response = new RouteResponseDTO();
+        try {
+            // use provided coordinates from the DTO
+            double latStart = dto.getStartLatitude();
+            double lonStart = dto.getStartLongitude();
+            double latEnd = dto.getEndLatitude();
+            double lonEnd = dto.getEndLongitude();
 
-        // test route data
-        response.setDistanceKm(15.5);
-        response.setEstimatedTimeMinutes(30);
-        response.setPriceEstimate(2000);
-        response.setRouteId(1L);
-        return response;
+            // choose routing method depending on presence of stop points
+            RideEstimateResponseDTO estimate;
+            if (dto.getStopLatitudes() != null && dto.getStopLongitudes() != null
+                    && !dto.getStopLatitudes().isEmpty() && dto.getStopLongitudes().size() == dto.getStopLatitudes().size()) {
+                estimate = routingService.getRouteWithStops(latStart, lonStart, latEnd, lonEnd,
+                        dto.getStopLatitudes(), dto.getStopLongitudes());
+            } else {
+                estimate = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+            }
+
+            RouteResponseDTO response = new RouteResponseDTO();
+            response.setStartAddress(dto.getStartAddress());
+            response.setStartLatitude(latStart);
+            response.setStartLongitude(lonStart);
+            response.setEndAddress(dto.getEndAddress());
+            response.setEndLatitude(latEnd);
+            response.setEndLongitude(lonEnd);
+            response.setStopAddresses(dto.getStopAddresses());
+            response.setStopLatitudes(dto.getStopLatitudes());
+            response.setStopLongitudes(dto.getStopLongitudes());
+
+            response.setDistanceKm(estimate.getDistanceKm());
+            response.setEstimatedTimeMinutes(estimate.getEstimatedDurationMin());
+
+            // calculate a price estimate using default vehicle type (STANDARD)
+            double price = priceService.calculatePrice(VehicleType.STANDARD, estimate.getDistanceKm());
+            response.setPriceEstimate(price);
+
+            // routeId is not persisted for estimates
+            response.setRouteId(null);
+
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to estimate route: " + e.getMessage(), e);
+        }
     }
 
     public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto) {

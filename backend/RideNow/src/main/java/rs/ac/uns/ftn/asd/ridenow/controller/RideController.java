@@ -113,13 +113,20 @@ public class RideController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/estimate-route")
+    @GetMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
+        try {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        RouteResponseDTO response = rideService.estimateRoute(dto);
-        return ResponseEntity.status(201).body(response);
+            RouteResponseDTO response = rideService.estimateRoute(dto);
+            return ResponseEntity.status(201).body(response);
+
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
     }
+
 
     @PostMapping
     public ResponseEntity<OrderRideResponseDTO> orderRide(

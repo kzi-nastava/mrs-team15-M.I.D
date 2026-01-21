@@ -16,11 +16,11 @@
                                     </ul>
                                 </div>
 
-                <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter pickup address" [value]="pickupAddress" (valueChange)="pickupAddress = $event"></app-input-component>
+                <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter pickup address" [value]="pickupAddress" (valueChange)="onPickupChange($event)" [suggestions]="pickupSuggestions" (suggestionSelect)="onPickupSuggestion($event)"></app-input-component>
                 <div class="error" *ngIf="validator.addressError(pickupAddress)"> {{ validator.addressError(pickupAddress) }}</div>
 
                 <div class="mt-2">
-                    <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter destination address" [value]="destinationAddress" (valueChange)="destinationAddress = $event"></app-input-component>
+                    <app-input-component class="form-input w-100" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter destination address" [value]="destinationAddress" (valueChange)="onDestinationChange($event)" [suggestions]="destinationSuggestions" (suggestionSelect)="onDestinationSuggestion($event)"></app-input-component>
                 </div>
                 <div class="error" *ngIf="validator.addressError(destinationAddress)"> {{ validator.addressError(destinationAddress) }}</div>
 
@@ -38,7 +38,7 @@
                          [class.dragging]="draggedIndex === i">
                         <div class="d-flex w-100 align-items-start">
                             <div class="flex-grow-1">
-                                <app-input-component class="form-input" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter stop address" [value]="stops[i]" (valueChange)="stops[i] = $event"></app-input-component>
+                                <app-input-component class="form-input" borderColor="white" variant="secondary" type="text" height="35px" placeholder="Enter stop address" [value]="stops[i]" (valueChange)="onStopChange($event, i)" [suggestions]="stopSuggestions[i] || null" (suggestionSelect)="onStopSuggestion($event, i)"></app-input-component>
                                 <div class="error" *ngIf="validator.addressError(stops[i])">{{ validator.addressError(stops[i]) }}</div>
                             </div>
                             <button type="button" class="trash-btn ms-2" (click)="removeStop(i)">🗑</button>

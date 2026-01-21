@@ -6,6 +6,7 @@ import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
 import { RidePreferenceForm } from '../ride-preference-form/ride-preference-form';
 import { RideService } from '../../../services/ride.service';
+import { MapRouteService } from '../../../services/map-route.service';
 
 interface FavoriteRoute {
   name: string;
@@ -120,8 +121,233 @@ export class RideOrderingForm {
     this.stops.splice(index, 1);
   }
 
-  showRoute() {
-    console.log('Show route for', { pickup: this.pickupAddress, destination: this.destinationAddress, stops: this.stops });
+  // -- Address change handlers & map update --
+  private updateTimer: any = null;
+  private suggestTimer: any = null;
+
+  pickupSuggestions: Array<any> = [];
+  destinationSuggestions: Array<any> = [];
+  stopSuggestions: Array<Array<any>> = [];
+  // If true, suggestions will be restricted/bias to Novi Sad, Serbia
+  restrictSuggestionsToNoviSad: boolean = true;
+
+  onPickupChange(val: string) {
+    this.pickupAddress = val;
+    this.fetchSuggestionsDebounced(val, 'pickup');
+    console.debug('onPickupChange', val);
+  }
+
+  onDestinationChange(val: string) {
+    this.destinationAddress = val;
+    this.fetchSuggestionsDebounced(val, 'destination');
+    console.debug('onDestinationChange', val);
+  }
+
+  onStopChange(val: string, index: number) {
+    this.stops[index] = val;
+    this.fetchSuggestionsDebounced(val, 'stop', index);
+    console.debug('onStopChange', index, val);
+  }
+
+  private updateMapMarkersDebounced(delay = 400) {
+    if (this.updateTimer) clearTimeout(this.updateTimer);
+    this.updateTimer = setTimeout(() => { this.geocodeAndShowMarkers(); }, delay);
+  }
+
+  private async geocodeAndShowMarkers() {
+    try {
+      const addresses: string[] = [];
+      if (this.pickupAddress && this.pickupAddress.trim()) addresses.push(this.pickupAddress);
+      for (const s of this.stops) if (s && s.trim()) addresses.push(s);
+      if (this.destinationAddress && this.destinationAddress.trim()) addresses.push(this.destinationAddress);
+      console.debug('geocodeAndShowMarkers addresses=', addresses);
+      if (addresses.length === 0) return this.mapRouteService.clearAlert();
+
+      const geos = await Promise.all(addresses.map(a => this.rideService.geocodeAddress(a)));
+      const points: { lat: number; lng: number }[] = [];
+      for (const g of geos) {
+        if (g) points.push({ lat: g.lat, lng: g.lon });
+      }
+      console.debug('geocodeAndShowMarkers points=', points.length);
+
+      if (points.length > 1) {
+        // Try backend routing to get road-following polyline
+        try {
+          const estimateReq = {
+            startAddress: this.pickupAddress || '',
+            startLatitude: points[0].lat,
+            startLongitude: points[0].lng,
+            endAddress: this.destinationAddress || '',
+            endLatitude: points[points.length - 1].lat,
+            endLongitude: points[points.length - 1].lng,
+            stopAddresses: this.stops.filter(s => s && s.trim()),
+            stopLatitudes: points.slice(1, points.length - 1).map(p => p.lat),
+            stopLongitudes: points.slice(1, points.length - 1).map(p => p.lng),
+          };
+
+          const resp = await this.rideService.estimateRoute(estimateReq).catch(e => { console.warn('routing call failed', e); return null; });
+          const roadRoute = resp?.route ?? resp;
+          if (Array.isArray(roadRoute) && roadRoute.length > 0) {
+            this.mapRouteService.drawRoute(roadRoute);
+            return;
+          }
+        } catch (e) {
+          console.warn('estimateRoute failed', e);
+        }
+      }
+
+      // fallback: draw straight-line connections between geocoded points
+      if (points.length > 0) {
+        this.mapRouteService.drawRoute(points.map(p => ({ lat: p.lat, lng: p.lng })));
+      }
+    } catch (e) {
+      console.warn('geocodeAndShowMarkers failed', e);
+    }
+  }
+
+  // --- Suggestions (Nominatim) ---
+  private fetchSuggestionsDebounced(query: string, target: 'pickup' | 'destination' | 'stop', index?: number, delay = 250) {
+    if (this.suggestTimer) clearTimeout(this.suggestTimer);
+    this.suggestTimer = setTimeout(() => { this.fetchSuggestions(query, target, index); }, delay);
+  }
+
+  private async fetchSuggestions(query: string, target: 'pickup' | 'destination' | 'stop', index?: number) {
+    try {
+      if (!query || query.trim().length < 2) {
+        if (target === 'pickup') this.pickupSuggestions = [];
+        else if (target === 'destination') this.destinationSuggestions = [];
+        else if (target === 'stop' && typeof index === 'number') this.stopSuggestions[index] = [];
+        return;
+      }
+
+      // bias results to Novi Sad (Serbia). If user typed a house number, use structured query
+      const hasNumber = /\d/.test(query);
+      let url: string;
+      if (this.restrictSuggestionsToNoviSad && hasNumber) {
+        // use structured param so house numbers are matched better
+        url = `https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(query)}&city=Novi%20Sad&countrycodes=rs&addressdetails=1&limit=10`;
+      } else {
+        let q = query;
+        if (this.restrictSuggestionsToNoviSad && !/novi\s*sad/i.test(query)) q = `${query} Novi Sad`;
+        url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=10&countrycodes=rs`;
+      }
+      console.debug('fetchSuggestions ->', url);
+      const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+      const data = await res.json();
+      console.debug('fetchSuggestions response length=', Array.isArray(data) ? data.length : 0);
+      const items = Array.isArray(data) ? data.map((d: any) => ({ display: d.display_name, raw: d })) : [];
+
+      if (target === 'pickup') this.pickupSuggestions = items;
+      else if (target === 'destination') this.destinationSuggestions = items;
+      else if (target === 'stop' && typeof index === 'number') {
+        this.stopSuggestions[index] = items;
+      }
+    } catch (e) {
+      console.warn('fetchSuggestions failed', e);
+    }
+  }
+
+  onPickupSuggestion(item: any) {
+    if (!item) return;
+    const d = item.raw || item;
+    const chosen = item.display || d.display_name || d.name || '';
+    const normalized = (chosen || '').replace(/\s+/g, ' ').trim();
+    this.pickupAddress = normalized;
+    this.pickupSuggestions = [];
+    // ensure change handlers run and validation updates
+    try { this.onPickupChange(this.pickupAddress); } catch (e) {}
+    console.debug('onPickupSuggestion chosen', { item, pickupAddress: this.pickupAddress, len: (this.pickupAddress || '').length, valid: this.validator.addressError(this.pickupAddress) });
+  }
+
+  onDestinationSuggestion(item: any) {
+    if (!item) return;
+    const d = item.raw || item;
+    const chosen = item.display || d.display_name || d.name || '';
+    const normalized = (chosen || '').replace(/\s+/g, ' ').trim();
+    this.destinationAddress = normalized;
+    this.destinationSuggestions = [];
+    try { this.onDestinationChange(this.destinationAddress); } catch (e) {}
+    console.debug('onDestinationSuggestion chosen', { item, destinationAddress: this.destinationAddress, len: (this.destinationAddress || '').length, valid: this.validator.addressError(this.destinationAddress) });
+  }
+
+  onStopSuggestion(item: any, index: number) {
+    if (!item) return;
+    const d = item.raw || item;
+    const chosen = item.display || d.display_name || d.name || '';
+    const normalized = (chosen || '').replace(/\s+/g, ' ').trim();
+    this.stops[index] = normalized;
+    this.stopSuggestions[index] = [];
+    try { this.onStopChange(normalized, index); } catch (e) {}
+    console.debug('onStopSuggestion chosen', { index, item, stopValue: this.stops[index], len: (this.stops[index] || '').length, valid: this.validator.addressError(this.stops[index]) });
+  }
+
+  async showRoute() {
+    const pickupErr = this.validator.addressError(this.pickupAddress);
+    const destErr = this.validator.addressError(this.destinationAddress);
+    for (let i = 0; i < this.stops.length; i++) {
+      if (this.validator.addressError(this.stops[i])) console.debug('stop validation', i, this.stops[i], this.validator.addressError(this.stops[i]));
+    }
+    console.log('showRoute validation', { pickup: { value: this.pickupAddress, err: pickupErr }, destination: { value: this.destinationAddress, err: destErr } });
+
+    if (this.hasErrors()) {
+      console.warn('showRoute detected validation errors, attempting geocode fallback');
+      try {
+        const gu = await Promise.all([
+          this.rideService.geocodeAddress(this.pickupAddress),
+          this.rideService.geocodeAddress(this.destinationAddress)
+        ]);
+        const ok = !!(gu[0] && gu[1]);
+        console.log('geocode fallback results', gu);
+        if (!ok) {
+          console.warn('showRoute aborted: validation failed and geocode fallback did not find both addresses');
+          return;
+        }
+        // continue despite validation errors because geocoding succeeded
+      } catch (e) {
+        console.warn('geocode fallback error', e);
+        return;
+      }
+    }
+
+    try {
+      const startGeo = await this.rideService.geocodeAddress(this.pickupAddress) || { lat: 0, lon: 0 };
+      const endGeo = await this.rideService.geocodeAddress(this.destinationAddress) || { lat: 0, lon: 0 };
+
+      const stopAddresses = this.stops.filter(s => s && s.trim().length > 0);
+      const stopLatitudes: number[] = [];
+      const stopLongitudes: number[] = [];
+      for (const s of stopAddresses) {
+        const g = await this.rideService.geocodeAddress(s);
+        if (g) {
+          stopLatitudes.push(g.lat);
+          stopLongitudes.push(g.lon);
+        }
+      }
+
+      const estimateReq = {
+        startAddress: this.pickupAddress,
+        startLatitude: startGeo.lat,
+        startLongitude: startGeo.lon,
+        endAddress: this.destinationAddress,
+        endLatitude: endGeo.lat,
+        endLongitude: endGeo.lon,
+        stopAddresses: stopAddresses,
+        stopLatitudes: stopLatitudes,
+        stopLongitudes: stopLongitudes,
+      };
+
+      // Show only markers for start/stops/end (no connecting polyline)
+      const points: { lat: number; lng: number; display?: string }[] = [];
+      if (startGeo) points.push({ lat: startGeo.lat, lng: startGeo.lon, display: this.pickupAddress });
+      for (const s of stopLatitudes.map((lat, i) => ({ lat, lng: stopLongitudes[i], display: stopAddresses[i] }))) {
+        points.push(s as any);
+      }
+      if (endGeo) points.push({ lat: endGeo.lat, lng: endGeo.lon, display: this.destinationAddress });
+
+      this.mapRouteService.drawMarkers(points);
+    } catch (err) {
+      console.error('Show route failed', err);
+    }
   }
 
   showPreferences: boolean = false;
@@ -130,7 +356,7 @@ export class RideOrderingForm {
     this.showPreferences = true;
   }
 
-  constructor(private rideService: RideService) {}
+  constructor(private rideService: RideService, private mapRouteService: MapRouteService) {}
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
