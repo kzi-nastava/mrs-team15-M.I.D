@@ -3,6 +3,8 @@ import { Button } from '../../../shared/components/button/button';
 import { CancelRideModal } from '../cancel-ride-modal/cancel-ride-modal';
 import { CommonModule } from '@angular/common';
 import { RideService } from '../../../services/ride.service';
+import { DriverService } from '../../../services/driver.service';
+import { Router } from '@angular/router';
 
 export interface UpcomingRide{
   id: number;
@@ -23,9 +25,16 @@ type SortDirection = 'asc' | 'desc' | '';
   styleUrl: './upcoming-rides-table.css',
 })
 export class UpcomingRidesTable implements OnInit {
+  @Input() isDriver: boolean = false;
   @Output() rideCanceled = new EventEmitter<string>();
+  @Output() rideStarted = new EventEmitter<number>();
 
-  constructor(private cdr: ChangeDetectorRef, private rideService: RideService){}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private rideService: RideService,
+    private driverService: DriverService,
+    private router: Router
+  ){}
 
   private _upcomingRides : UpcomingRide[] = []
 
@@ -130,6 +139,24 @@ private applySorting(): void {
       error: (err) => {
         this.showCancelModal = false;
         let message = 'Ride cancellation failed. Please try again.';
+        if (typeof err.error === 'string') {
+          message = err.error;
+        } else if (err.error?.message) {
+          message = err.error.message;
+        }
+        this.rideCanceled.emit(message);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  startRide(ride: UpcomingRide): void {
+    this.driverService.startRide(ride.id).subscribe({
+      next: () => {
+        this.router.navigate(['/current-ride']);
+      },
+      error: (err) => {
+        let message = 'Failed to start ride. Please try again.';
         if (typeof err.error === 'string') {
           message = err.error;
         } else if (err.error?.message) {

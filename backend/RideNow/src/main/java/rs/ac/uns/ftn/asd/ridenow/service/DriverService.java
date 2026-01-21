@@ -11,6 +11,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.driver.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.UpcomingRideDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -172,20 +173,24 @@ public class DriverService {
         return response;
     }
 
-    public List<RideResponseDTO> findScheduledRides(Long driverId) {
+    public List<UpcomingRideDTO> findScheduledRides(Long driverId) {
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
         List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
-        List<RideResponseDTO> rideDTOs = new ArrayList<>();
+        List<UpcomingRideDTO> rideDTOs = new ArrayList<>();
 
         for (Ride ride : rides) {
-            RideResponseDTO dto = new RideResponseDTO();
-            dto.setRideId(ride.getId());
-            dto.setStartTime(ride.getScheduledTime());
-            dto.setPassengerEmails(new ArrayList<>());
+            UpcomingRideDTO dto = new UpcomingRideDTO();
+            dto.setId(ride.getId());
+            dto.setStartTime(ride.getScheduledTime().toString());
+            dto.setPassengers("");
             for (Passenger p : ride.getPassengers()) {
-                dto.getPassengerEmails().add(p.getUser().getEmail());
+                dto.setPassengers(dto.getPassengers() + p.getUser().getFirstName() + " " + p.getUser().getLastName() + ", ");
             }
-            dto.setRoute(new RouteDTO(ride.getRoute()));
+            if (dto.getPassengers().length() > 2) {
+                dto.setPassengers(dto.getPassengers().substring(0, dto.getPassengers().length() - 2));
+            }
+            dto.setCanCancel(true);
+            dto.setRoute(ride.getRoute().getStartLocation().getAddress() + " → " + ride.getRoute().getEndLocation().getAddress());
             rideDTOs.add(dto);
         }
 
