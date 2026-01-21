@@ -56,12 +56,15 @@ public class RideController {
         }
     }
 
-    @PutMapping("/{id}/stop")
-    public ResponseEntity<StopRideResponseDTO> stop (@PathVariable Long id){
-        StopRideResponseDTO response = new StopRideResponseDTO();
-        response.setEndLocation("Bulevar Oslobodjenja 24, Novi Sad");
-        response.setPrice(570);
-        return  ResponseEntity.ok().body(response);
+    @PutMapping("/stop")
+    public ResponseEntity<?> stop (){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        try {
+            StopRideResponseDTO response =  rideService.stopRide(user);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}/cancel")

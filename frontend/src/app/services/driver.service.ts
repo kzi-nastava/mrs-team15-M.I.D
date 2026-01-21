@@ -35,4 +35,8 @@ export class DriverService {
   startRide(rideId: number) {
     return this.http.put<any>(`${this.apiURLShort}/rides/${rideId}/start`, {});
   }
+  
+  driverActivate(token: string, data: { password: string; passwordConfirmation: string; token: string }): Observable<ActivateResponse> {
+    return this.http.put<ActivateResponse>(`${this.apiURL}/activate-account`, data);
+  }
 }

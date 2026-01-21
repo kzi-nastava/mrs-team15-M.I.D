@@ -18,6 +18,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/driver")
@@ -107,4 +108,18 @@ public class DriverController {
         }
         return ResponseEntity.badRequest().body("Driver does not exists");
     }
+
+    @PutMapping("/activate-account")
+    public ResponseEntity<?> activateDriverAccount(@RequestBody DriverAccountActivationRequestDTO request) {
+        try {
+            driverService.activateDriverAccountByToken(request);
+            return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Failed to activate account"));
+        }
+
+    }
+
 }

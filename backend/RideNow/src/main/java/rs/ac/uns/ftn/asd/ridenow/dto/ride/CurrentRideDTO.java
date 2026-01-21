@@ -13,6 +13,7 @@ public class CurrentRideDTO {
     private List<RoutePointDTO> route;
     private String startAddress;
     private String endAddress;
+    private Long rideId;
 
     public  CurrentRideDTO(){ super(); }
 }
