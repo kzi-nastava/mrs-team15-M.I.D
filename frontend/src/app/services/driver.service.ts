@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { DriverStatusStore } from "../shared/states/driver-status.store";
 import { UpcomingRide } from "../ride/components/upcoming-rides-table/upcoming-rides-table";
+import { environment } from "../../environments/environment";
 
 interface ActivateResponse {
   message: string;
@@ -11,7 +12,8 @@ interface ActivateResponse {
 @Injectable({ providedIn: 'root' })
 export class DriverService {
 
-  private apiURL = "http://localhost:8080/api/driver";
+  private apiURL = environment.apiUrl + '/driver';
+  private apiURLShort = environment.apiUrl;
   constructor(private http: HttpClient, private driverState: DriverStatusStore) {}
 
   changeDriverStatus(data: { status: string }) {
@@ -31,6 +33,6 @@ export class DriverService {
   }
 
   startRide(rideId: number) {
-    return this.http.post<any>(`${this.apiURL}/rides/${rideId}/start`, {});
+    return this.http.put<any>(`${this.apiURLShort}/rides/${rideId}/start`, {});
   }
 }

@@ -153,7 +153,7 @@ private applySorting(): void {
   startRide(ride: UpcomingRide): void {
     this.driverService.startRide(ride.id).subscribe({
       next: () => {
-        this.router.navigate(['/myCurrentRide']);
+        this.router.navigate(['/current-ride']);
       },
       error: (err) => {
         let message = 'Failed to start ride. Please try again.';
