@@ -23,6 +23,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private vehiclesSubscription?: Subscription;
   private routeSubscription?: Subscription;
   private alertSubscription?: Subscription;
+  private markersSubscription?: Subscription;
   private vehicleLocationSubscription?: Subscription;
   private trackedVehicleMarker?: any;
 
@@ -44,6 +45,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.currentRoute = routeData.route;
       this.isAlertMode = routeData.isAlert || false;
       this.drawRoute(routeData.route, routeData.isAlert);
+    });
+
+    this.markersSubscription = this.mapRouteService.markers$.subscribe(routeData => {
+      // draw markers only
+      this.clearRoute();
+      this.clearMarkers();
+      this.isAlertMode = routeData.isAlert || false;
+      this.drawMarkers(routeData.route, routeData.isAlert);
     });
 
   this.alertSubscription = this.mapRouteService.isAlert$.subscribe(isAlert => {
@@ -77,6 +86,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
     if (this.alertSubscription) {
       this.alertSubscription.unsubscribe();
+    }
+    if (this.markersSubscription) {
+      this.markersSubscription.unsubscribe();
     }
     this.vehicleService.stopFetchingVehicles();
   }
@@ -170,11 +182,36 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private routeLayer?: any;
   private startMarker?: any;
   private endMarker?: any;
+  private markersLayerGroup?: any;
+  private async drawRoute(route: any[], isAlert: boolean = false) {
+    if (!this.map || !route || route.length === 0) {
+      console.warn('drawRoute called with no route');
+      return;
+    }
 
-   private async drawRoute(route: any[], isAlert: boolean = false) {
-  if (!this.map || !route || route.length === 0) {
-    console.warn('drawRoute called with no route');
-    return;
+    this.clearRoute();
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    this.currentRoute = route;
+    this.isAlertMode = isAlert;
+
+    const L = await import('leaflet');
+    const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
+
+    const routeColor = isAlert ? "#ef4444" : "#111";
+    const routeWeight = isAlert ? 6 : 5;
+
+    this.routeLayer = L.polyline(latLngs, {
+      weight: routeWeight,
+      color: routeColor,
+      opacity: isAlert ? 0.9 : 0.8,
+      lineCap: "round",
+      lineJoin: "round",
+      className: isAlert ? 'alert-route' : ''
+    }).addTo(this.map);
+    this.map.fitBounds(this.routeLayer.getBounds(), {
+      padding: [30, 30]
+    });
   }
 
   this.clearRoute();
@@ -218,23 +255,39 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   });
 }
 
-private clearRoute(): void {
-  if (!this.map) return;
+    // end marker
+    if (route.length > 1) {
+      const end = route[route.length - 1];
+      this.endMarker = L.circleMarker([end.lat, end.lng], {
+        radius: 8,
+        color: this.isAlertMode ? '#dc2626' : '#ef4444',
+        fillColor: this.isAlertMode ? '#dc2626' : '#ef4444',
+        fillOpacity: 0.6
+      }).bindPopup(end.display || end.name || 'End').addTo(this.map);
+    }
 
-  if (this.routeLayer) {
-    this.map.removeLayer(this.routeLayer);
-    this.routeLayer = undefined;
+    // fit to available markers
+    try {
+      if (this.startMarker && this.endMarker) {
+        const group = L.featureGroup([this.startMarker, this.endMarker]);
+        this.map.fitBounds(group.getBounds(), { padding: [30, 30] });
+      } else if (this.startMarker) {
+        this.map.setView(this.startMarker.getLatLng(), this.zoom);
+      }
+    } catch (e) {
+      console.warn('fitBounds markers failed', e);
+    }
   }
 
-  if (this.startMarker) {
-    this.map.removeLayer(this.startMarker);
-    this.startMarker = undefined;
+  private clearMarkers() {
+    if (this.markersLayerGroup && this.map) {
+      this.map.removeLayer(this.markersLayerGroup);
+      this.markersLayerGroup = undefined;
+    }
   }
 
-  if (this.endMarker) {
-    this.map.removeLayer(this.endMarker);
-    this.endMarker = undefined;
-  }
+  private clearRoute(): void {
+    if (!this.map) return;
 
   this.currentRoute = [];
   this.isAlertMode = false;

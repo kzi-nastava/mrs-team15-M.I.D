@@ -14,6 +14,9 @@ export class MapRouteService {
   private isAlertMode = new BehaviorSubject<boolean>(false);
   isAlert$ = this.isAlertMode.asObservable();
 
+  // Separate subject for marker-only displays
+  private markersSubject = new Subject<RouteData>();
+  markers$ = this.markersSubject.asObservable();
   private vehicleLocationSubject = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   vehicleLocation$ = this.vehicleLocationSubject.asObservable();
 
@@ -23,6 +26,12 @@ export class MapRouteService {
       return;
     }
     this.routeSubject.next({ route, isAlert });
+    this.isAlertMode.next(isAlert);
+  }
+
+  drawMarkers(points: any[], isAlert: boolean = false) {
+    if (!points || points.length === 0) return;
+    this.markersSubject.next({ route: points, isAlert });
     this.isAlertMode.next(isAlert);
   }
 

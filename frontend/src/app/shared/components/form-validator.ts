@@ -2,7 +2,8 @@ export class FromValidator {
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
   private namePattern = /^[A-ZČĆŠĐŽ][a-zčćšđž]+$/;
-  private addressPattern = /^[A-Za-zČĆŠĐŽčćšđž0-9\s.,\/-]{5,}$/;
+  // Allow any Unicode letter (Latin, Cyrillic, etc.), numbers and common address punctuation
+  private addressPattern = /^[\p{L}0-9\s.,\/\-]{5,}$/u;
 
   firstNameError(value: string): string | null {
     if (!value) return 'First name is required';

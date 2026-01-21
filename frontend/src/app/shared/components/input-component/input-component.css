@@ -19,3 +19,18 @@
     color: white;
     border-color: white;
 }
+
+.suggestions-dropdown{
+    position: absolute;
+    background: white;
+    color: black;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    z-index: 9999;
+    max-height: 220px;
+    overflow: auto;
+    width: 100%;
+}
+.suggestions-dropdown ul{ list-style:none; margin:0; padding:0; }
+.suggestions-dropdown li{ padding:8px 10px; cursor:pointer; border-bottom:1px solid #eee }
+.suggestions-dropdown li:hover{ background:#f2f2f2 }

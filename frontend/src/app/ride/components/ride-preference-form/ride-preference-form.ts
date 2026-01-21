@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
@@ -21,7 +20,7 @@ export interface RidePreferences {
   styleUrls: ['./ride-preference-form.css'],
 })
 export class RidePreferenceForm {
-  constructor(private router: Router) {}
+  constructor() {}
   vehicleType: string = '';
   babySeat: boolean = false;
   petFriendly: boolean = false;
@@ -47,8 +46,6 @@ export class RidePreferenceForm {
 
   onConfirm() {
     this.confirm.emit({ vehicleType: this.vehicleType, babySeat: this.babySeat, petFriendly: this.petFriendly, guests: [...this.guests] });
-    // navigate to finding-driver page after ordering
-    this.router.navigate(['/finding-driver']);
   }
 
   onCancel() {

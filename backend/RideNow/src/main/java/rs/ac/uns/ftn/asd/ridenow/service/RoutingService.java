@@ -83,6 +83,63 @@ public class RoutingService {
         return responseDTO;
     }
 
+    public RideEstimateResponseDTO getRouteWithStops(double latStart, double lonStart,
+                                                     double latEnd, double lonEnd,
+                                                     List<Double> stopLatitudes,
+                                                     List<Double> stopLongitudes) throws Exception {
+
+        // normalize stop lists
+        List<Double> lats = new ArrayList<>();
+        List<Double> lons = new ArrayList<>();
+        lats.add(latStart);
+        lons.add(lonStart);
+
+        if (stopLatitudes != null || stopLongitudes != null) {
+            if (stopLatitudes == null || stopLongitudes == null || stopLatitudes.size() != stopLongitudes.size()) {
+                throw new IllegalArgumentException("Stop latitude/longitude lists must be both provided and of equal length");
+            }
+            lats.addAll(stopLatitudes);
+            lons.addAll(stopLongitudes);
+        }
+
+        lats.add(latEnd);
+        lons.add(lonEnd);
+
+        double totalDistanceKm = 0.0;
+        int totalDurationMin = 0;
+        List<RoutePointDTO> combinedPoints = new ArrayList<>();
+
+        for (int i = 0; i < lats.size() - 1; i++) {
+            double aLat = lats.get(i);
+            double aLon = lons.get(i);
+            double bLat = lats.get(i + 1);
+            double bLon = lons.get(i + 1);
+
+            RideEstimateResponseDTO leg = getRoute(aLat, aLon, bLat, bLon);
+
+            totalDistanceKm += leg.getDistanceKm();
+            totalDurationMin += leg.getEstimatedDurationMin();
+
+            List<RoutePointDTO> pts = leg.getRoute();
+            if (pts != null && !pts.isEmpty()) {
+                if (combinedPoints.isEmpty()) {
+                    combinedPoints.addAll(pts);
+                } else {
+                    // avoid duplicate junction point: skip first point of the subsequent leg
+                    for (int j = 1; j < pts.size(); j++) {
+                        combinedPoints.add(pts.get(j));
+                    }
+                }
+            }
+        }
+
+        RideEstimateResponseDTO result = new RideEstimateResponseDTO();
+        result.setDistanceKm(totalDistanceKm);
+        result.setEstimatedDurationMin(totalDurationMin);
+        result.setRoute(combinedPoints);
+        return result;
+    }
+
     public String getReverseGeocode(double lat, double lon) throws Exception {
         String url = "https://nominatim.openstreetmap.org/reverse" +
                 "?format=json" + "&lat=" + lat +
