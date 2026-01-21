@@ -3,6 +3,7 @@ import { UpcomingRidesTable } from '../../components/upcoming-rides-table/upcomi
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
 import { UpcomingRide } from '../../components/upcoming-rides-table/upcoming-rides-table';
 import { RideService } from '../../../services/ride.service';
+import { DriverService } from '../../../services/driver.service';
 
 @Component({
   selector: 'app-upcoming-rides',
@@ -14,30 +15,47 @@ import { RideService } from '../../../services/ride.service';
 export class UpcomingRides {
   message: string = '';
   showMessage: boolean = false;
+  isDriver: boolean = false;
 
-  constructor(private cdr: ChangeDetectorRef, private rideService: RideService){}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private rideService: RideService,
+    private driverService: DriverService
+  ){}
 
   allUpcomingRides: UpcomingRide[] = [];
   filteredUpcomingRides: UpcomingRide[] = [...this.allUpcomingRides]
    
 ngOnInit(): void {
   const role = localStorage.getItem('role');
-  if (role !== 'USER') {
+  this.isDriver = role === 'DRIVER';
+  
+  if (role !== 'USER' && role !== 'DRIVER') {
     this.showMessageToast('Access denied');
     return;
   }
 
-  this.rideService.getMyUpcomingRides().subscribe(rides => {
-    this.allUpcomingRides = rides;
-    this.filteredUpcomingRides = [...rides];
+  const ridesObservable = this.isDriver 
+    ? this.driverService.getUpcomingRides()
+    : this.rideService.getMyUpcomingRides();
 
-    if (rides.length === 0) {
-      this.showMessageToast(
-        "You don’t have any scheduled rides at the moment."
-      );
+  ridesObservable.subscribe({
+    next: (rides) => {
+      this.allUpcomingRides = rides;
+      this.filteredUpcomingRides = [...rides];
+
+      if (rides.length === 0) {
+        this.showMessageToast(
+          "You don't have any scheduled rides at the moment."
+        );
+      }
+
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Error fetching upcoming rides:', err);
+      this.showMessageToast('Failed to load upcoming rides.');
     }
-
-    this.cdr.detectChanges();
   });
   }
   onFilter(filterDate: string): void {
