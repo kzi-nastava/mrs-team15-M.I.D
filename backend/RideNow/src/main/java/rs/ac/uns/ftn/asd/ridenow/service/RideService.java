@@ -2,14 +2,12 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
-import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
@@ -62,9 +60,11 @@ public class RideService {
             RideEstimateResponseDTO estimate;
             if (dto.getStopLatitudes() != null && dto.getStopLongitudes() != null
                     && !dto.getStopLatitudes().isEmpty() && dto.getStopLongitudes().size() == dto.getStopLatitudes().size()) {
+                System.out.println("Stop points provided.");
                 estimate = routingService.getRouteWithStops(latStart, lonStart, latEnd, lonEnd,
                         dto.getStopLatitudes(), dto.getStopLongitudes());
             } else {
+                System.out.println("No stop points provided, using direct route estimation.");
                 estimate = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
             }
 
@@ -118,43 +118,8 @@ public class RideService {
         }
         route = routeRepository.save(route);
 
-        // try to auto-assign an available driver
-        Optional<Driver> optDriver = driverRepository.autoAssign(vehicleType, 1, dto.isBabyFriendly(), dto.isPetFriendly());
         Driver assigned = null;
-        if (optDriver.isPresent()) {
-            assigned = optDriver.get();
-        } else {
-            // create a mock driver + vehicle and persist it
-            Driver mock = new Driver();
-            mock.setEmail("mock1.driver@example.com");
-            mock.setPassword("password");
-            mock.setFirstName("Mock");
-            mock.setLastName("Driver");
-            mock.setPhoneNumber("000000000");
-            mock.setAddress("Mock address");
-            mock.setProfileImage(null);
-            mock.setActive(true);
-            mock.setBlocked(false);
-            mock.setStatus(DriverStatus.ACTIVE);
-            mock.setAvailable(true);
-            mock.setRating(5.0);
-            mock.setWorkingHoursLast24(0.0);
 
-            Vehicle vehicle = new Vehicle();
-            vehicle.setLicencePlate("MOCK-" + System.currentTimeMillis());
-            vehicle.setModel("MockModel");
-            vehicle.setPetFriendly(dto.isPetFriendly());
-            vehicle.setChildFriendly(dto.isBabyFriendly());
-            vehicle.setSeatCount(4);
-            vehicle.setType(vehicleType);
-
-            // establish the bi-directional relationship
-            mock.assignVehicle(vehicle);
-
-            assigned = driverRepository.save(mock);
-        }
-
-        // create ride and assign the driver
         Ride ride = new Ride();
         ride.setStatus(RideStatus.REQUESTED);
         ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
@@ -163,13 +128,6 @@ public class RideService {
         ride.setRoute(route);
         ride.setDriver(assigned);
         ride = rideRepository.save(ride);
-
-        // add ride to driver's history and mark unavailable
-        if (assigned != null) {
-            assigned.addRide(ride);
-            assigned.setAvailable(false);
-            driverRepository.save(assigned);
-        }
 
         response.setId(ride.getId());
         response.setMainPassengerEmail(dto.getMainPassengerEmail());

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 import { FormsModule } from '@angular/forms';
@@ -37,6 +37,29 @@ export class RideOrderingForm {
   favoriteOpen: boolean = false;
 
   validator: FromValidator = new FromValidator();
+  // Last estimate response from backend (distance, time, price)
+  lastEstimate: any = null;
+
+  // Compute simple fallback estimate (Haversine distance, naive time and price) when backend is unavailable
+  private computeFallbackEstimate(start: {lat:number, lon:number}, end: {lat:number, lon:number}) {
+    if (!start || !end) return null;
+    const toRad = (deg:number) => deg * Math.PI / 180;
+    const R = 6371; // km
+    const dLat = toRad(end.lat - start.lat);
+    const dLon = toRad(end.lon - start.lon);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(start.lat)) * Math.cos(toRad(end.lat)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distanceKm = R * c;
+    // assume average speed 30 km/h for estimate (conservative urban)
+    const estimatedTimeMinutes = (distanceKm / 30) * 60;
+    // naive price: 0.7 EUR per km (example)
+    const priceEstimate = distanceKm * 0.7;
+    return {
+      distanceKm: Math.round(distanceKm * 1000) / 1000, // 3 decimals
+      estimatedTimeMinutes: Math.round(estimatedTimeMinutes),
+      priceEstimate: Math.round(priceEstimate * 1000) / 1000
+    };
+  }
 
   hasErrors(): boolean {
     if (this.validator.addressError(this.pickupAddress) || this.validator.addressError(this.destinationAddress)) return true;
@@ -336,6 +359,35 @@ export class RideOrderingForm {
         stopLongitudes: stopLongitudes,
       };
 
+      // Call backend to get distance/time/price estimates
+      try {
+        console.log('estimateReq ->', estimateReq);
+        const estimateResp = await this.rideService.estimateRoute(estimateReq);
+        // Round numeric fields to 3 decimals where appropriate
+        if (estimateResp) {
+          estimateResp.distanceKm = typeof estimateResp.distanceKm === 'number' ? Math.round(estimateResp.distanceKm * 1000) / 1000 : estimateResp.distanceKm;
+          estimateResp.priceEstimate = typeof estimateResp.priceEstimate === 'number' ? Math.round(estimateResp.priceEstimate * 1000) / 1000 : estimateResp.priceEstimate;
+          estimateResp.estimatedTimeMinutes = typeof estimateResp.estimatedTimeMinutes === 'number' ? Math.round(estimateResp.estimatedTimeMinutes) : estimateResp.estimatedTimeMinutes;
+        }
+        this.lastEstimate = estimateResp;
+        console.log('Route estimate from backend', estimateResp);
+        try { this.cdr.detectChanges(); } catch(e) {}
+      } catch (e: any) {
+        // Log detailed HTTP error info when available
+        console.warn('estimateRoute call failed', e && e.status ? { status: e.status, error: e.error || e.message } : e);
+        // compute fallback estimate so user sees something on first click
+        try {
+          const fallback = this.computeFallbackEstimate(startGeo, endGeo);
+          if (fallback) {
+            this.lastEstimate = fallback;
+            console.log('Using fallback estimate', fallback);
+            try { this.cdr.detectChanges(); } catch(e) {}
+          }
+        } catch (fe) {
+          console.warn('fallback estimate failed', fe);
+        }
+      }
+
       // Show only markers for start/stops/end (no connecting polyline)
       const points: { lat: number; lng: number; display?: string }[] = [];
       if (startGeo) points.push({ lat: startGeo.lat, lng: startGeo.lon, display: this.pickupAddress });
@@ -356,7 +408,7 @@ export class RideOrderingForm {
     this.showPreferences = true;
   }
 
-  constructor(private rideService: RideService, private mapRouteService: MapRouteService) {}
+  constructor(private rideService: RideService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef) {}
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);

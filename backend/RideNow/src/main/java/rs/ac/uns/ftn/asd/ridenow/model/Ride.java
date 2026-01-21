@@ -43,9 +43,9 @@ public class Ride {
 
     private String cancelledBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "driver_id", nullable = false)
-    Driver driver;
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "driver_id", nullable = true)
+    private Driver driver;
 
     @OneToOne(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
     private Rating rating;

@@ -42,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/*/cancel").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/rides/panic-alert").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/rides/estimate-route").permitAll()
+                        .requestMatchers("/api/rides/**").permitAll()
                         .requestMatchers("/api/vehicles/").permitAll()
                         .anyRequest().authenticated()
                 )

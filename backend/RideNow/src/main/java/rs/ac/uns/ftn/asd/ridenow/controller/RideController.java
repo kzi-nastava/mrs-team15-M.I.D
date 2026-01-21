@@ -18,7 +18,6 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
@@ -113,16 +112,21 @@ public class RideController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/estimate-route")
+    @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
+        System.out.println("Estimate route with stops called");
         try {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-            RouteResponseDTO response = rideService.estimateRoute(dto);
-            return ResponseEntity.status(201).body(response);
-
+            User email = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            try {
+                RouteResponseDTO response = rideService.estimateRoute(dto);
+                return ResponseEntity.status(201).body(response);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                return ResponseEntity.badRequest().build();
+            }
         }catch (Exception e){
+            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -131,6 +135,11 @@ public class RideController {
     @PostMapping
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
+        try{
+            SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        } catch (Exception e){
+            return ResponseEntity.status(403).build();
+        }
         return ResponseEntity.status(201).body(rideService.orderRide(request));
     }
 
