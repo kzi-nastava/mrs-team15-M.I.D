@@ -13,7 +13,10 @@
   <section class="cr-grid">
     <aside class="cr-card cr-profile">
       <div class="avatar-large">
-        <img *ngIf="changedDriver?.avatarUrl; else initialsLeft" [src]="changedDriver.avatarUrl" alt="profile avatar">
+        <img 
+        *ngIf="changedDriver?.avatarUrl"
+        [src]="backendUrl + changedDriver.avatarUrl" 
+        alt="profile avatar">
         <ng-template #initialsLeft>{{ changedDriver.firstName?.charAt(0) }}{{ changedDriver.lastName?.charAt(0) }}</ng-template>
       </div>
       <h2 class="name">{{ changedDriver.firstName }} {{ changedDriver.lastName }}</h2>
@@ -42,13 +45,15 @@
           <div class="label">Avatar</div>
           <div class="current">
             <div class="avatar-thumb" [class.changed]="isAvatarChanged()">
-              <img *ngIf="originalDriver?.avatarUrl; else noCurSmall" [src]="originalDriver.avatarUrl" alt="current avatar">
+              <img *ngIf="originalDriver?.avatarUrl; else noCurSmall" 
+              [src]="backendUrl + originalDriver.avatarUrl" 
+              alt="current avatar">
               <ng-template #noCurSmall><div class="avatar-initial">{{ originalDriver?.firstName?.charAt(0) || '?' }}</div></ng-template>
             </div>
           </div>
           <div class="proposed">
             <div class="avatar-thumb" [class.changed]="isAvatarChanged()">
-              <img *ngIf="changedDriver?.avatarUrl; else noPropSmall" [src]="changedDriver.avatarUrl" alt="proposed avatar">
+              <img *ngIf="changedDriver?.avatarUrl; else noPropSmall" [src]="backendUrl + changedDriver.avatarUrl" alt="proposed avatar">
               <ng-template #noPropSmall><div class="avatar-initial">{{ changedDriver?.firstName?.charAt(0) || '?' }}</div></ng-template>
             </div>
           </div>

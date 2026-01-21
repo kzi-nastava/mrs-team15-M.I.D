@@ -29,7 +29,6 @@ public class UpdateProfileRequestDTO {
     @NotBlank
     private String address;
 
-    private String profileImage;
 
     public UpdateProfileRequestDTO() { super(); }
 

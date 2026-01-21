@@ -15,6 +15,7 @@ export class ChangeRequestForm implements OnInit {
   @Input() requestMeta: any | null = null;
   @Output() approve = new EventEmitter<any>();
   @Output() reject = new EventEmitter<any>();
+  backendUrl = 'http://localhost:8081';
 
   isMock = false;
   adminNotes = '';

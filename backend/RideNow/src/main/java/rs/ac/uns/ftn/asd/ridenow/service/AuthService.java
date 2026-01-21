@@ -95,7 +95,7 @@ public class AuthService {
         return activationToken;
     }
 
-    private String generateProfileImageUrl(MultipartFile profileImage) throws IOException {
+    public String generateProfileImageUrl(MultipartFile profileImage) throws IOException {
         String imageURL = profileImageURL;
         if (profileImage != null && !profileImage.isEmpty()) {
             String uploadDir = "uploads/";

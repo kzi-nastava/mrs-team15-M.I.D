@@ -7,15 +7,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -77,10 +80,15 @@ public class DriverController {
         return ResponseEntity.ok(rides);
     }
 
-    @PostMapping("/{id}/change-request")
-    public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@PathVariable @NotNull @Min(1) Long id,
-                                                                       @RequestBody @NotNull DriverChangeRequestDTO request) {
-        return ResponseEntity.ok(driverService.requestDriverChanges(id, request));
+    @PostMapping(path = "/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@ModelAttribute DriverChangeRequestDTO request,
+                                                                       @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof  Driver driver){
+            return ResponseEntity.ok(driverService.requestDriverChanges(driver, request, profileImage));
+        }
+        return ResponseEntity.badRequest().build();
+
     }
 
     @PutMapping("/change-status")

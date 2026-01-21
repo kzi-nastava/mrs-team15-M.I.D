@@ -121,7 +121,7 @@ export class ChangeRequest implements OnInit {
     const adminId = admin?.id || 1;
     const dto = { approved: true, message: event?.notes || '' };
     this.resultMessage = 'Approving...';
-    this.adminService.reviewDriverRequest(adminId, requestId, dto).subscribe({
+    this.adminService.reviewDriverRequest(requestId, dto).subscribe({
       next: () => {
         this.resultMessage = `Approved ${requestId || this.requestMeta?.id}`;
       },
@@ -143,7 +143,7 @@ export class ChangeRequest implements OnInit {
     const adminId = admin?.id || 1;
     const dto = { approved: false, message: event?.notes || '' };
     this.resultMessage = 'Rejecting...';
-    this.adminService.reviewDriverRequest(adminId, requestId, dto).subscribe({
+    this.adminService.reviewDriverRequest(requestId, dto).subscribe({
       next: () => {
         this.resultMessage = `Rejected ${requestId || this.requestMeta?.id}`;
       },

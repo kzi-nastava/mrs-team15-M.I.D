@@ -12,11 +12,15 @@ export class AdminService {
     return this.http.post(`${this.apiURL}/driver-register`, data);
   }
 
-  getDriverRequests(adminId: number): Observable<any> {
-    return this.http.get(`${this.apiURL}/${adminId}/driver-requests`);
+  getDriverRequests(): Observable<any> {
+    return this.http.get(`${this.apiURL}/driver-requests`);
   }
 
-  reviewDriverRequest(adminId: number, requestId: number | string, dto: any): Observable<any> {
-    return this.http.put(`${this.apiURL}/${adminId}/driver-requests/${requestId}`, dto);
+  getUserById(id: number): Observable<any> {
+    return this.http.get(`${this.apiURL}/users/${id}`);
+  }
+
+  reviewDriverRequest(requestId: number | string, dto: any): Observable<any> {
+    return this.http.put(`${this.apiURL}/driver-requests/${requestId}`, dto);
   }
 }

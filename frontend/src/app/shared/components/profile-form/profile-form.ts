@@ -1,4 +1,5 @@
 import { Component, ViewChild, ElementRef, ChangeDetectorRef, OnInit } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { VehicleForm } from '../vehicle-form/vehicle-form';
@@ -19,12 +20,12 @@ import { Observable } from 'rxjs';
 export class ProfileForm implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  selectedProfileFile: File | null = null;
+  userAvatar: string | SafeUrl = '';
+  backendUrl = 'http://localhost:8081';
 
-  // ---------------- DEV ----------------
-  private readonly DEV_USER_ID = 9;
 
   // ---------------- UI STATE ----------------
-  userAvatar: string = '';
   showToast = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
@@ -51,12 +52,28 @@ export class ProfileForm implements OnInit {
   constructor(
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private userService: UserService
+    private userService: UserService,
+    private sanitizer: DomSanitizer
   ) {}
+
+  // Get logged-in user's id from localStorage, fallback to DEV id
+  private getCurrentUserId(): number {
+    let userId = 11; // DEV user id
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        const parsed = JSON.parse(raw as string);
+        if (parsed && parsed.id) userId = Number(parsed.id);
+      }
+    } catch (e) {
+      // ignore and use DEV id
+    }
+    return userId;
+  }
 
   // ---------------- INIT ----------------
   ngOnInit(): void {
-    this.userService.getUser(this.DEV_USER_ID).subscribe({
+    this.userService.getUser().subscribe({
       next: (res) => this.mapUser(res),
       error: (err) => {
         console.error('Failed to load user profile', err);
@@ -75,7 +92,7 @@ export class ProfileForm implements OnInit {
     this.user.role = res.role?.toLowerCase() || this.user.role;
 
     if (res.profileImage) {
-      this.userAvatar = res.profileImage;
+      this.userAvatar = this.backendUrl + res.profileImage;
     }
 
     if (res.licensePlate || res.vehicleModel) {
@@ -166,7 +183,12 @@ export class ProfileForm implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      this.userAvatar = URL.createObjectURL(file);
+      this.selectedProfileFile = file;
+      const blobUrl = URL.createObjectURL(file);
+      // sanitize blob URL for Angular binding
+      this.userAvatar = this.sanitizer.bypassSecurityTrustUrl(blobUrl);
+      console.debug('[ProfileForm] selected file:', { name: file.name, type: file.type, size: file.size, blobUrl });
+      this.cdr.detectChanges();
     }
   }
 
@@ -181,24 +203,28 @@ export class ProfileForm implements OnInit {
       this.showToastMessage('Please fix validation errors.', 'error');
       return;
     }
+    // Build FormData so backend can accept multipart/form-data (including image file)
+    const formData = new FormData();
+    formData.append('email', this.user.email || '');
+    formData.append('firstName', this.user.firstName || '');
+    formData.append('lastName', this.user.lastName || '');
+    formData.append('phoneNumber', this.user.phone || '');
+    formData.append('address', this.user.address || '');
+
+    if (this.selectedProfileFile) {
+      formData.append('profileImage', this.selectedProfileFile);
+    }
 
     if (this.user.role === 'driver') {
-      const driverPayload = {
-        licensePlate: this.user.vehicle.licensePlate ? String(this.user.vehicle.licensePlate).toUpperCase().trim() : null,
-        email: this.user.email,
-        firstName: this.user.firstName,
-        lastName: this.user.lastName,
-        phoneNumber: this.user.phone,
-        address: this.user.address,
-        profileImage: this.userAvatar || null,
-        vehicleModel: this.user.vehicle.model || null,
-        numberOfSeats: this.user.vehicle.seats || 0,
-        vehicleType: this.user.vehicle.type || null,
-        babyFriendly: this.user.vehicle.babyFriendly || false,
-        petFriendly: this.user.vehicle.petFriendly || false
-      };
+      // driver-specific fields
+      formData.append('licensePlate', this.user.vehicle.licensePlate ? String(this.user.vehicle.licensePlate).toUpperCase().trim() : '');
+      formData.append('vehicleModel', this.user.vehicle.model || '');
+      formData.append('numberOfSeats', String(this.user.vehicle.seats || 0));
+      formData.append('vehicleType', this.user.vehicle.type || '');
+      formData.append('babyFriendly', String(!!this.user.vehicle.babyFriendly));
+      formData.append('petFriendly', String(!!this.user.vehicle.petFriendly));
 
-      this.userService.requestDriverChange(this.DEV_USER_ID, driverPayload).subscribe({
+      this.userService.requestDriverChange(formData).subscribe({
         next: () => {
           this.showToastMessage('Change request sent for admin approval.');
         },
@@ -210,16 +236,8 @@ export class ProfileForm implements OnInit {
       return;
     }
 
-    const payload = {
-      email: this.user.email,
-      firstName: this.user.firstName,
-      lastName: this.user.lastName,
-      phoneNumber: this.user.phone,
-      address: this.user.address,
-      profileImage: this.userAvatar || null
-    };
-
-    this.userService.updateUser(this.DEV_USER_ID, payload).subscribe({
+    // non-driver update
+    this.userService.updateUser( formData).subscribe({
       next: () => {
         this.showToastMessage('Profile updated successfully.');
       },

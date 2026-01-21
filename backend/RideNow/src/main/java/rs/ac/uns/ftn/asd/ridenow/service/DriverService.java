@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
@@ -14,6 +15,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -33,6 +35,7 @@ public class DriverService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService = new AuthService();
 
     public DriverService(RideRepository rideRepository,
                          RatingRepository ratingRepository, DriverRepository driverRepository,
@@ -120,20 +123,21 @@ public class DriverService {
         return new PageImpl(driverHistory, pageable, driverRides.getTotalElements());
     }
 
-    public DriverChangeResponseDTO requestDriverChanges(@NotNull Long driverId, @NotNull DriverChangeRequestDTO request) {
+    public DriverChangeResponseDTO requestDriverChanges(Driver driver, DriverChangeRequestDTO request, MultipartFile profileImage) throws IOException {
         // map DTO -> entity
         DriverChangeResponseDTO response = new DriverChangeResponseDTO();
         DriverRequest entity = new DriverRequest();
         entity.setSubmissionDate(new Date(System.currentTimeMillis()));
         entity.setRequestStatus(rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus.PENDING);
-        entity.setDriverId(driverId);
+        entity.setDriverId(driver.getId());
 
         entity.setEmail(request.getEmail());
         entity.setFirstName(request.getFirstName());
         entity.setLastName(request.getLastName());
         entity.setPhoneNumber(request.getPhoneNumber());
         entity.setAddress(request.getAddress());
-        entity.setProfileImage(request.getProfileImage());
+        String profileImageURL = authService.generateProfileImageUrl(profileImage);
+        entity.setProfileImage(profileImageURL);
         entity.setLicensePlate(request.getLicensePlate());
         entity.setVehicleModel(request.getVehicleModel());
         entity.setNumberOfSeats(request.getNumberOfSeats());
@@ -146,7 +150,7 @@ public class DriverService {
         response.setLastName(request.getLastName());
         response.setPhoneNumber(request.getPhoneNumber());
         response.setAddress(request.getAddress());
-        response.setProfileImage(request.getProfileImage());
+        response.setProfileImage(profileImageURL);
         response.setLicensePlate(request.getLicensePlate());
         response.setVehicleModel(request.getVehicleModel());
         response.setNumberOfSeats(request.getNumberOfSeats());
@@ -155,18 +159,13 @@ public class DriverService {
         response.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
 
         // vehicleId is required by entity; try to set to driver's current vehicle if present
-        try {
-            Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
-            if (driver.getVehicle() != null) {
-                entity.setVehicleId(driver.getVehicle().getId());
-            } else {
-                entity.setVehicleId(0L);
-            }
-        } catch (Exception ex) {
+
+        if (driver.getVehicle() != null) {
+            entity.setVehicleId(driver.getVehicle().getId());
+        } else {
             entity.setVehicleId(0L);
         }
 
-        System.out.println(entity.getLicensePlate());
         // save
         driverRequestRepository.save(entity);
 
