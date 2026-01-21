@@ -99,12 +99,12 @@ public class RideController {
     }
 
     @PostMapping("/{id}/finish")
-    public ResponseEntity<RideResponseDTO> finish(@PathVariable @NotNull @Min(1) Long id) {
+    public ResponseEntity<Boolean> finish(@PathVariable @NotNull @Min(1) Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long driverId = user.getId();
 
-        RideResponseDTO res = rideService.finishRide(id, driverId);
-        return ResponseEntity.ok(res);
+        Boolean nextAvailable = rideService.finishRide(id, driverId);
+        return ResponseEntity.ok(nextAvailable);
     }
 
     @PutMapping("/{id}/start")
