@@ -34,7 +34,7 @@
             </div>
             <div class="current-ride-info ride-field mb-4 d-flex align-items-center">
                <p> Distance: <strong>{{ estimatedDistanceKm | number:'1.1-2' }} km</strong></p>
-               <p class="ms-4"> Duration: <strong>{{ estimatedDurationMin }} min</strong> </p>
+               <p class="ms-4"> Remaining: <strong>{{ remainingTimeMin !== undefined ? remainingTimeMin : estimatedDurationMin }} min</strong> </p>
                <p class="ms-4" *ngIf="finalPrice"> Price: <strong>{{ finalPrice | number:'1.2-2' }} RSD</strong> </p>
             </div>
             <div *ngIf="isPassenger" class="mb-4">

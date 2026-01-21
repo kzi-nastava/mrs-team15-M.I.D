@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.exception.RoutingException;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
@@ -182,9 +183,16 @@ public class RideService {
             throw new EntityNotFoundException("No driver assigned to ride with id " + rideId);
         }
 
-        // TODO: implement real time estimation
         Vehicle vehicle = driver.getVehicle();
-        return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), 10);
+        try {
+            double[] endCoordinate = routingService.getGeocode(ride.getRoute().getEndLocation().getAddress());
+
+            RideEstimateResponseDTO estimate = routingService.getRoute(vehicle.getLat(), vehicle.getLon(), endCoordinate[0], endCoordinate[1]);
+
+            return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), estimate.getEstimatedDurationMin());
+        } catch (Exception e) {
+            throw new RoutingException("Unable to track ride: " + e.getMessage());
+        }
     }
 
     public Boolean finishRide(Long rideId, Long driverId) {
@@ -348,7 +356,7 @@ public class RideService {
             throw new Exception("Ride does not exists");
         }
         Ride ride = optionalRide.get();
-        if (ride.getDriver().getId().equals(driver.getId())){
+        if (!ride.getDriver().getId().equals(driver.getId())){
             throw new Exception("You are not a driver on this ride");
         }
         String reason = request.getReason().trim();
