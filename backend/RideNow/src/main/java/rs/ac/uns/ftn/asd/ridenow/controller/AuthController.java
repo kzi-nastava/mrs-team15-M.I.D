@@ -66,7 +66,7 @@ public class AuthController {
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestBody ResetPasswordRequestDTO request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestParam String token, @RequestBody ResetPasswordRequestDTO request) {
         Optional<ForgotPasswordToken> optionalToken = forgotPasswordTokenRepository.findByToken(token);
         if (optionalToken.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
