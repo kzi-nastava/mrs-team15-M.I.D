@@ -95,6 +95,17 @@ export class RideService {
     return this.http.post<any>(`${this.apiURL}/inconsistency`, data);
   }
 
+  finishRide(rideId: number): Observable<boolean> {
+    return this.http.post<boolean>(`${this.apiURL}/${rideId}/finish`, {});
+  }
+  
+  trackRide(rideId: number): Observable<{
+    location: { latitude: number; longitude: number; address: string | null };
+    remainingTimeInMinutes: number;
+  }> {
+    return this.http.get<any>(`${this.apiURL}/${rideId}/track`);
+  }
+
   stopRide() {
     return this.http.put(`${this.apiURL}/stop`, null);
   }

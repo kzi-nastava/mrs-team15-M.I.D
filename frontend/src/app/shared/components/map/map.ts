@@ -24,6 +24,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private routeSubscription?: Subscription;
   private alertSubscription?: Subscription;
   private markersSubscription?: Subscription;
+  private vehicleLocationSubscription?: Subscription;
+  private trackedVehicleMarker?: any;
 
   private currentRoute: any[] = [];
   private isAlertMode: boolean = false;
@@ -61,9 +63,21 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       console.warn('No route to alert!');
     }
   });
+
+  this.vehicleLocationSubscription = this.mapRouteService.vehicleLocation$.subscribe(async location => {
+    if (location) {
+      const L = await import('leaflet');
+      this.updateTrackedVehicle(location.lat, location.lng, L);
+    } else {
+      this.clearTrackedVehicle();
+    }
+  });
 }
 
   ngOnDestroy(): void {
+    if (this.vehicleLocationSubscription) {
+      this.vehicleLocationSubscription.unsubscribe();
+    }
     if (this.vehiclesSubscription) {
       this.vehiclesSubscription.unsubscribe();
     }
@@ -76,6 +90,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (this.markersSubscription) {
       this.markersSubscription.unsubscribe();
     }
+    this.vehicleService.stopFetchingVehicles();
   }
 
   private async initMap(): Promise<void> {
@@ -199,26 +214,46 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private async drawMarkers(route: any[], isAlert: boolean = false) {
-    if (!this.map || !route || route.length === 0) return;
-    const L = (window as any).L || await import('leaflet');
+  this.clearRoute();
 
-    this.clearRoute();
-    this.clearMarkers();
+  await new Promise(resolve => setTimeout(resolve, 50));
 
-    // Only show start (green) and end (red) markers; hide intermediate blue markers
-    this.markersLayerGroup = undefined;
+  this.currentRoute = route;
+  this.isAlertMode = isAlert;
 
-    // start marker
-    if (route.length > 0) {
-      const start = route[0];
-      this.startMarker = L.circleMarker([start.lat, start.lng], {
-        radius: 8,
-        color: '#22c55e',
-        fillColor: '#22c55e',
-        fillOpacity: 0.6
-      }).bindPopup(start.display || start.name || 'Start').addTo(this.map);
-    }
+  const L = await import('leaflet');
+  const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
+
+  const routeColor = isAlert ? "#ef4444" : "#111";
+  const routeWeight = isAlert ? 6 : 5;
+
+  this.routeLayer = L.polyline(latLngs, {
+    weight: routeWeight,
+    color: routeColor,
+    opacity: isAlert ? 0.9 : 0.8,
+    lineCap: "round",
+    lineJoin: "round",
+    className: isAlert ? 'alert-route' : ''
+  }).addTo(this.map);
+
+  this.startMarker = L.circleMarker(latLngs[0], {
+    radius: isAlert ? 10 : 8,
+    color: "#22c55e",
+    fillColor: "#22c55e",
+    fillOpacity: 0.4
+  }).addTo(this.map);
+
+  this.endMarker = L.circleMarker(latLngs[latLngs.length - 1], {
+    radius: isAlert ? 10 : 8,
+    color: isAlert ? "#dc2626" : "#ef4444",
+    fillColor: isAlert ? "#dc2626" : "#ef4444",
+    fillOpacity: isAlert ? 0.6 : 0.4
+  }).addTo(this.map);
+
+  this.map.fitBounds(this.routeLayer.getBounds(), {
+    padding: [30, 30]
+  });
+}
 
     // end marker
     if (route.length > 1) {
@@ -254,22 +289,44 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private clearRoute(): void {
     if (!this.map) return;
 
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-      this.routeLayer = undefined;
-    }
+  this.currentRoute = [];
+  this.isAlertMode = false;
+}
 
-    if (this.startMarker) {
-      this.map.removeLayer(this.startMarker);
-      this.startMarker = undefined;
-    }
+private async updateTrackedVehicle(lat: number, lng: number, L: any): Promise<void> {
+  if (!this.map) return;
 
-    if (this.endMarker) {
-      this.map.removeLayer(this.endMarker);
-      this.endMarker = undefined;
-    }
+  if (this.trackedVehicleMarker) {
+    this.trackedVehicleMarker.setLatLng([lat, lng]);
+  } else {
+    const svgString = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="14" fill="#3b82f6" stroke="white" stroke-width="3"/>
+        <circle cx="12" cy="20" r="2.5" fill="white"/>
+        <circle cx="20" cy="20" r="2.5" fill="white"/>
+        <rect x="8" y="16" width="16" height="4" fill="white"/>
+        <rect x="12" y="13" width="11" height="3" fill="white"/>
+        <circle cx="16" cy="16" r="4" fill="yellow" opacity="0.8"/>
+      </svg>
+    `;
 
-    this.currentRoute = [];
-    this.isAlertMode = false;
+    const icon = L.icon({
+      iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString),
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
+      popupAnchor: [0, -20]
+    });
+
+    this.trackedVehicleMarker = L.marker([lat, lng], { icon })
+      .addTo(this.map)
+      .bindPopup('Your ride vehicle');
   }
+}
+
+private clearTrackedVehicle(): void {
+  if (this.trackedVehicleMarker && this.map) {
+    this.map.removeLayer(this.trackedVehicleMarker);
+    this.trackedVehicleMarker = undefined;
+  }
+}
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.exception.RoutingException;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
 import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
@@ -175,28 +176,25 @@ public class RideService {
             throw new EntityNotFoundException("No driver assigned to ride with id " + rideId);
         }
 
-        // TODO: implement real time estimation
         Vehicle vehicle = driver.getVehicle();
-        return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), 10);
+        try {
+            double[] endCoordinate = routingService.getGeocode(ride.getRoute().getEndLocation().getAddress());
+
+            RideEstimateResponseDTO estimate = routingService.getRoute(vehicle.getLat(), vehicle.getLon(), endCoordinate[0], endCoordinate[1]);
+
+            return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), estimate.getEstimatedDurationMin());
+        } catch (Exception e) {
+            throw new RoutingException("Unable to track ride: " + e.getMessage());
+        }
     }
 
-    public RideResponseDTO finishRide(Long rideId, Long driverId) {
+    public Boolean finishRide(Long rideId, Long driverId) {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
 
         ride.setStatus(RideStatus.FINISHED);
         ride = rideRepository.save(ride);
 
-        // mark driver as available again
-        Driver driver = ride.getDriver();
-        if (driver != null) {
-            driver.setAvailable(true);
-            if(driver.getPendingStatus() != null){
-                driver.setStatus(driver.getPendingStatus());
-                driver.setPendingStatus(null);
-            }
-            driverRepository.save(driver);
-        }
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextHour = now.plusHours(1);
 
@@ -204,18 +202,24 @@ public class RideService {
                 driverId, now, nextHour);
 
         if (scheduledRides.isEmpty()) {
-            return null;
+            // mark driver as available again
+            Driver driver = ride.getDriver();
+            if (driver != null) {
+                driver.setAvailable(true);
+                if(driver.getPendingStatus() != null){
+                    driver.setStatus(driver.getPendingStatus());
+                    driver.setPendingStatus(null);
+                }
+                driverRepository.save(driver);
+            }
+            return false;
         }
 
         Ride nextRide = scheduledRides.get(0);
-        RideResponseDTO response = new RideResponseDTO();
-        response.setRideId(nextRide.getId());
-        response.setStartTime(nextRide.getScheduledTime());
-        response.setPassengerEmails(nextRide.getPassengers().stream()
-                .map(p -> p.getUser().getEmail())
-                .toList());
+        nextRide.setStatus(RideStatus.IN_PROGRESS);
+        rideRepository.save(nextRide);
 
-        return response;
+        return true;
     }
 
     public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
@@ -345,7 +349,7 @@ public class RideService {
             throw new Exception("Ride does not exists");
         }
         Ride ride = optionalRide.get();
-        if (ride.getDriver().getId().equals(driver.getId())){
+        if (!ride.getDriver().getId().equals(driver.getId())){
             throw new Exception("You are not a driver on this ride");
         }
         String reason = request.getReason().trim();
