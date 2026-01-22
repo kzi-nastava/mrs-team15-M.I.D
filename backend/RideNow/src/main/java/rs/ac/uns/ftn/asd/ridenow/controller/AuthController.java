@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class AuthController {
     private UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO request) {
         try {
             LoginResponseDTO responseDTO = authService.login(request);
             return ResponseEntity.ok().body(responseDTO);
@@ -54,7 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
         try {
             authService.forgotPassword(request);
             return ResponseEntity.ok().build();
@@ -65,7 +66,7 @@ public class AuthController {
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestBody ResetPasswordRequestDTO request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestParam String token, @RequestBody ResetPasswordRequestDTO request) {
         Optional<ForgotPasswordToken> optionalToken = forgotPasswordTokenRepository.findByToken(token);
         if (optionalToken.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
@@ -85,7 +86,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> register(
+    public ResponseEntity<?> register(@Valid
             @ModelAttribute RegisterRequestDTO request,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
         try {

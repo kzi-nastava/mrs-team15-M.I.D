@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,7 @@ public class DriverController {
     }
 
     @PutMapping("/change-status")
-    public ResponseEntity<?> changeDriverStatus(@RequestBody DriverStatusRequestDTO request) {
+    public ResponseEntity<?> changeDriverStatus(@Valid @RequestBody DriverStatusRequestDTO request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user instanceof  Driver driver){
             driverService.changeDriverStatus(driver, request);
