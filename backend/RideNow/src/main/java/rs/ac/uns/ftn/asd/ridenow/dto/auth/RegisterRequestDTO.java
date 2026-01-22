@@ -31,7 +31,7 @@ public class RegisterRequestDTO {
     private String firstName;
 
     @NotBlank(message = "Last name is required")
-    @Size(min = 2, max = 30, message = "Lasr name must be between 2 and 30 characters")
+    @Size(min = 2, max = 30, message = "Last name must be between 2 and 30 characters")
     @Pattern(regexp = "^[A-ZČĆŠĐŽ][a-zčćšđž]+$",
             message = "Last name must start with a capital letter and contain only letters")
     private String lastName;

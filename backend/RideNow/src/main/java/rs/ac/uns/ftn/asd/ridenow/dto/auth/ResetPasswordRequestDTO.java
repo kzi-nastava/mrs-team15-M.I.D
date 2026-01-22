@@ -10,12 +10,12 @@ import rs.ac.uns.ftn.asd.ridenow.validator.PasswordMatch;
 @Getter
 @PasswordMatch(password = "newPassword", confirmPassword = "confirmNewPassword", message = "Passwords do not match")
 public class ResetPasswordRequestDTO {
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters long")
+    @NotBlank(message = "New password is required")
+    @Size(min = 6, message = "New password must be at least 6 characters long")
     private String newPassword;
 
-    @NotBlank(message = "Confirm password is required")
-    @Size(min = 6, message = "Confirm password must be at least 6 characters long")
+    @NotBlank(message = "Confirm new password is required")
+    @Size(min = 6, message = "Confirm new password must be at least 6 characters long")
     private  String confirmNewPassword;
 
     public ResetPasswordRequestDTO() {
