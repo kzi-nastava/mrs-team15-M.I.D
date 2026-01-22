@@ -18,7 +18,7 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
             "AND (:babyFriendly = false OR d.vehicle.childFriendly = true) " +
             "AND (:petFriendly = false OR d.vehicle.petFriendly = true) " +
             "ORDER BY d.workingHoursLast24 ASC")
-    Optional<Driver> autoAssign(@Param("type") VehicleType type,
+    Driver autoAssign(@Param("type") VehicleType type,
                                        @Param("seats") int seats,
                                        @Param("babyFriendly") boolean babyFriendly,
                                        @Param("petFriendly") boolean petFriendly);

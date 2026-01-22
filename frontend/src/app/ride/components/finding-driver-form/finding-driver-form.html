@@ -1,10 +1,6 @@
 <div class="finding-inner">
     
-  <div class="dev-controls">
-    <button class="dev-btn" (click)="simulateFound()">Simulate: Driver Found</button>
-    <button class="dev-btn" (click)="simulateNotFound()">Simulate: No Driver</button>
-    <button class="dev-btn" (click)="resetSearch()">Reset</button>
-  </div>
+  <!-- developer controls removed in production -->
 
   <!-- Searching state -->
   <ng-container *ngIf="state === 'searching'">
