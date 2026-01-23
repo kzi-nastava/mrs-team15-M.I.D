@@ -37,6 +37,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       await this.initMap();
     }
     this.routeSubscription = this.mapRouteService.route$.subscribe(routeData => {
+      // ensure any previous drawings are removed before drawing a new route
+      try { this.clearRoute(); } catch(e) {}
+      try { this.clearMarkers(); } catch(e) {}
       this.currentRoute = routeData.route;
       this.isAlertMode = routeData.isAlert || false;
       this.drawRoute(routeData.route, routeData.isAlert);
@@ -215,10 +218,38 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         fillOpacity: 0.6
       }).bindPopup(end.display || end.name || 'End').addTo(this.map);
     }
+    // intermediate stop markers (blue)
+    try {
+      const intermediate = route.slice(1, Math.max(1, route.length - 1));
+      if (intermediate && intermediate.length > 0) {
+        this.markersLayerGroup = L.layerGroup();
+        intermediate.forEach((p: any) => {
+          try {
+            const m = L.circleMarker([p.lat, p.lng], {
+              radius: 6,
+              color: '#2563eb',
+              fillColor: '#2563eb',
+              fillOpacity: 0.85
+            }).bindPopup(p.display || p.name || 'Stop');
+            this.markersLayerGroup.addLayer(m);
+          } catch (inner) { console.warn('failed to add intermediate marker', inner); }
+        });
+        if (this.markersLayerGroup.getLayers().length > 0) this.markersLayerGroup.addTo(this.map);
+      }
+    } catch (e) {
+      console.warn('adding intermediate markers failed', e);
+    }
     // fit to available markers
     try {
-      if (this.startMarker && this.endMarker) {
-        const group = L.featureGroup([this.startMarker, this.endMarker]);
+      // prefer fitting bounds to all markers (intermediate + start/end) when available
+      const groups: any[] = [];
+      if (this.startMarker) groups.push(this.startMarker);
+      if (this.endMarker) groups.push(this.endMarker);
+      if (this.markersLayerGroup && this.markersLayerGroup.getLayers().length > 0) {
+        groups.push(...this.markersLayerGroup.getLayers());
+      }
+      if (groups.length > 1) {
+        const group = L.featureGroup(groups);
         this.map.fitBounds(group.getBounds(), { padding: [30, 30] });
       } else if (this.startMarker) {
         this.map.setView(this.startMarker.getLatLng(), this.zoom);
@@ -236,6 +267,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.map.removeLayer(this.markersLayerGroup);
       this.markersLayerGroup = undefined;
     }
+    // also remove any standalone start/end markers
+    if (this.startMarker && this.map) {
+      try { this.map.removeLayer(this.startMarker); } catch(e) {}
+      this.startMarker = undefined;
+    }
+    if (this.endMarker && this.map) {
+      try { this.map.removeLayer(this.endMarker); } catch(e) {}
+      this.endMarker = undefined;
+    }
   }
   private clearRoute(): void {
     if (!this.map) return;
@@ -244,8 +284,27 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.map.removeLayer(this.routeLayer);
       this.routeLayer = undefined;
     }
-  this.currentRoute = [];
-  this.isAlertMode = false;
+    // also clear markers when clearing route to avoid duplicates
+    try { this.clearMarkers(); } catch(e) {}
+
+    // Remove any other polylines that may have been added previously
+    try {
+      const globalL = (window as any).L;
+      if (this.map && globalL) {
+        this.map.eachLayer((layer: any) => {
+          try {
+            if (layer instanceof globalL.Polyline) {
+              this.map.removeLayer(layer);
+            }
+          } catch (inner) {}
+        });
+      }
+    } catch (e) {
+      console.debug('clearRoute: failed to remove extra polylines', e);
+    }
+
+    this.currentRoute = [];
+    this.isAlertMode = false;
   }
 
 

@@ -86,7 +86,13 @@ public class RideService {
 
             // calculate a price estimate using default vehicle type (STANDARD)
             double price = priceService.calculatePrice(VehicleType.STANDARD, estimate.getDistanceKm());
-            response.setPriceEstimate(price);
+            response.setPriceEstimateStandard(price);
+
+            price = priceService.calculatePrice(VehicleType.LUXURY, estimate.getDistanceKm());
+            response.setPriceEstimateLuxury(price);
+
+            price = priceService.calculatePrice(VehicleType.VAN, estimate.getDistanceKm());
+            response.setPriceEstimateVan(price);
 
             // routeId is not persisted for estimates
             response.setRouteId(null);
@@ -120,17 +126,22 @@ public class RideService {
         }
         route = routeRepository.save(route);
 
-        Driver assigned = null;
-
         Ride ride = new Ride();
+
+        int seats = 1;
+        seats = seats + (dto.getLinkedPassengers() != null ? dto.getLinkedPassengers().size() : 0);
+        // Assign best driver
+        Driver assigned= driverRepository.autoAssign(vehicleType, seats,dto.isBabyFriendly(), dto.isPetFriendly());
+        ride.setDriver(assigned);
         ride.setStatus(RideStatus.REQUESTED);
         ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
         ride.setDistanceKm(dto.getDistanceKm());
         ride.setPrice(dto.getPriceEstimate());
         ride.setRoute(route);
-        ride.setDriver(assigned);
-        ride = rideRepository.save(ride);
-
+        if (assigned != null) {
+            ride = rideRepository.save(ride);
+            response.setDriverId(assigned.getId());
+        }
         response.setId(ride.getId());
         response.setMainPassengerEmail(dto.getMainPassengerEmail());
         response.setStartAddress(dto.getStartAddress());

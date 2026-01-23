@@ -46,7 +46,7 @@ public class PassengerController {
         dto.setRouteId(routeId);
         dto.setDistanceKm(14.0);
         dto.setEstimatedTimeMinutes(25);
-        dto.setPriceEstimate(1800);
+        dto.setPriceEstimateStandard(1800);
 
         return ResponseEntity.ok(dto);
     }
@@ -61,13 +61,13 @@ public class PassengerController {
         dto1.setRouteId(1L);
         dto1.setDistanceKm(10.5);
         dto1.setEstimatedTimeMinutes(20);
-        dto1.setPriceEstimate(1500);
+        dto1.setPriceEstimateStandard(1500);
         collection.add(dto1);
         RouteResponseDTO dto2 = new RouteResponseDTO();
         dto2.setRouteId(2L);
         dto2.setDistanceKm(25.0);
         dto2.setEstimatedTimeMinutes(40);
-        dto2.setPriceEstimate(3000);
+        dto2.setPriceEstimateStandard(3000);
         collection.add(dto2);
         return ResponseEntity.ok(collection);
     }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
@@ -21,6 +21,9 @@ export interface RidePreferences {
 })
 export class RidePreferenceForm {
   constructor() {}
+  @Input() estimate: any;
+  @Input() selectedVehicleType: string = 'STANDARD';
+
   vehicleType: string = '';
   babySeat: boolean = false;
   petFriendly: boolean = false;
@@ -34,6 +37,24 @@ export class RidePreferenceForm {
   @Output() confirm = new EventEmitter<RidePreferences>();
   @Output() cancel = new EventEmitter<void>();
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['selectedVehicleType'] && !this.vehicleType) {
+      // map parent uppercase value to lowercase option values used in this form
+      try { this.vehicleType = (this.selectedVehicleType || 'STANDARD').toLowerCase(); } catch(e) {}
+    }
+  }
+
+  getSelectedPrice(): string {
+    if (!this.estimate) return '-';
+    const vt = (this.vehicleType || '').toLowerCase();
+    try {
+      if (vt === 'standard') return String(this.estimate.priceEstimateStandard ?? this.estimate.priceEstimate ?? '-');
+      if (vt === 'luxury') return String(this.estimate.priceEstimateLuxury ?? this.estimate.priceEstimate ?? '-');
+      if (vt === 'van') return String(this.estimate.priceEstimateVan ?? this.estimate.priceEstimate ?? '-');
+    } catch (e) {}
+    return String(this.estimate.priceEstimate ?? '-');
+  }
+
   addEmptyGuest() {
     this.guests.push('');
   }
@@ -45,7 +66,8 @@ export class RidePreferenceForm {
   }
 
   onConfirm() {
-    this.confirm.emit({ vehicleType: this.vehicleType, babySeat: this.babySeat, petFriendly: this.petFriendly, guests: [...this.guests] });
+    const vt = (this.vehicleType || '').toUpperCase() || 'STANDARD';
+    this.confirm.emit({ vehicleType: vt, babySeat: this.babySeat, petFriendly: this.petFriendly, guests: [...this.guests] });
   }
 
   onCancel() {

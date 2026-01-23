@@ -115,7 +115,6 @@ public class RideController {
     @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
-        System.out.println("Estimate route with stops called");
         try {
             User email = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             try {
