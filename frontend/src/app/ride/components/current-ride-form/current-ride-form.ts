@@ -113,7 +113,7 @@ export class CurrentRideForm implements OnDestroy {
         if (typeof err.error === 'string') {
           this.showMessageToast(err.error);
         } else {
-          this.showMessageToast('Failed to report inconsistency. Please try again.');
+          this.showMessageToast('Failed to report inconsistency. Please try again.' + err.message);
         }
       }
     });

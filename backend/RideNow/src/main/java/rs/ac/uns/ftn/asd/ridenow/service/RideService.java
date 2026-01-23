@@ -224,8 +224,8 @@ public class RideService {
 
     public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
         RegisteredUser regUser = registeredUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
-        Passenger passenger = (Passenger) passengerRepository.findByUser(regUser).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
         Ride ride = rideRepository.findById(req.getRideId()).orElseThrow(() -> new EntityNotFoundException("Ride with id " + req.getRideId() + " not found"));
+        Passenger passenger = passengerRepository.findByUserAndRide(regUser, ride).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
 
         Inconsistency inconsistency = new Inconsistency(ride, passenger, req.getDescription());
         Inconsistency savedInconsistency = inconsistencyRepository.save(inconsistency);

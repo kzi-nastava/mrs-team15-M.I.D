@@ -45,7 +45,7 @@ export class NavbarComponent {
     this.menuOpen.set(false);
   }
 
-  get showLogoutButton(): boolean {
+  get isLoggedIn(): boolean {
     const role = localStorage.getItem('role');
     const jwtToken = localStorage.getItem('jwtToken');
     return !!role && !!jwtToken;
@@ -56,9 +56,9 @@ export class NavbarComponent {
     return role === "DRIVER";
   }
 
-  get isAdmin(): boolean {
+  get role(): string | null {
     const role = localStorage.getItem('role');
-    return role === 'ADMIN';
+    return role;
   }
 
   message = '';
@@ -68,9 +68,9 @@ export class NavbarComponent {
 onToggleChange(event: MouseEvent) {
   event.preventDefault();
   if (this.isUpdatingStatus) return;
-  const previousStatus = this.isActive;      
-  const newStatus = !previousStatus;         
-  this.isActive = newStatus;                 
+  const previousStatus = this.isActive;
+  const newStatus = !previousStatus;
+  this.isActive = newStatus;
   const statusString = newStatus ? 'ACTIVE' : 'INACTIVE';
 
   this.isUpdatingStatus = true;
@@ -103,7 +103,7 @@ onToggleChange(event: MouseEvent) {
       next: () => {
         localStorage.removeItem('role');
         localStorage.removeItem('jwtToken');
-        this.driverState.resetStatus();  
+        this.driverState.resetStatus();
         this.isActive = false;
         this.driverStatus = '';
         this.showMessageToast( 'You have been logged out successfully. See you next time!');
@@ -122,8 +122,8 @@ onToggleChange(event: MouseEvent) {
   showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
     setTimeout(() => { this.showMessage = false;}, 3000);
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
   }
 }
