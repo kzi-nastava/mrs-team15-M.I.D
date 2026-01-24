@@ -27,7 +27,7 @@ import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 import { ActivationPage } from './auth/pages/activation-page/activation-page';
 
 export const routes: Routes = [
-    { path: '', component: Landing },         // Default route (home page)
+    { path: '', component: Home },         // Default route (home page)
     { path: 'landing', component: Landing },  // /landing route
     { path: 'login', component: Login},
     { path: 'forgot-password', component: ForgotPassword},
