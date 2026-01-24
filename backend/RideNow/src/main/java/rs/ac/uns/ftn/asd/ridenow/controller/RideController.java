@@ -108,9 +108,24 @@ public class RideController {
 
     @PutMapping("/{id}/start")
     public ResponseEntity<Void> startRide(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof Driver)) {
+            return ResponseEntity.status(403).build();
+        }
         rideService.startRide(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}/start")
+    public ResponseEntity<StartRideResponseDTO> passangerPickup(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof Driver)) {
+            return ResponseEntity.status(403).build();
+        }
+        StartRideResponseDTO response = rideService.passangerPickup(id);
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(

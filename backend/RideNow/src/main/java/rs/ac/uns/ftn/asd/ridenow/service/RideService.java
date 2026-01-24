@@ -139,8 +139,32 @@ public class RideService {
         ride.setPrice(dto.getPriceEstimate());
         ride.setRoute(route);
         if (assigned != null) {
-            ride = rideRepository.save(ride);
-            response.setDriverId(assigned.getId());
+            // Add passengers to ride
+            Passenger mainPassenger = new Passenger();
+            RegisteredUser mainUser = (RegisteredUser) registeredUserRepository.findByEmail(dto.getMainPassengerEmail())
+                    .orElseThrow(() -> new EntityNotFoundException("User with email " + dto.getMainPassengerEmail() + " not found"));
+            mainPassenger.setUser(mainUser);
+            mainPassenger.setRole(PassengerRole.CREATOR);
+            mainPassenger.setRide(ride);
+            ride.addPassenger(mainPassenger);
+            if (dto.getLinkedPassengers() != null) {
+                for (String email : dto.getLinkedPassengers()) {
+                    try {
+                        RegisteredUser user = (RegisteredUser) registeredUserRepository.findByEmail(email)
+                                .orElseThrow(() -> new EntityNotFoundException("User with email " + email + " not found"));
+
+                        Passenger passenger = new Passenger();
+                        passenger.setUser(user);
+                        passenger.setRole(PassengerRole.PASSENGER);
+                        passenger.setRide(ride);
+                        ride.addPassenger(passenger);
+                    } catch (Exception e) {
+                        // skip invalid passengers
+                    }
+                }
+                ride = rideRepository.save(ride);
+                response.setDriverId(assigned.getId());
+            }
         }
         response.setId(ride.getId());
         response.setMainPassengerEmail(dto.getMainPassengerEmail());
@@ -244,7 +268,12 @@ public class RideService {
     }
 
     public void startRide(Long rideId) {
-        // mock – no logic
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
+
+        ride.setStatus(RideStatus.IN_PROGRESS);
+        ride.setStartTime(LocalDateTime.now());
+        rideRepository.save(ride);
     }
 
     public List<UpcomingRideDTO> getUpcomingRidesByUser(Long user_id) {
@@ -465,5 +494,26 @@ public class RideService {
         routeRepository.save(route);
 
         ride.setRoute(route);
+    }
+
+    public StartRideResponseDTO passangerPickup(Long id) {
+        Ride ride = rideRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + id + " not found"));
+
+        StartRideResponseDTO responseDTO = new StartRideResponseDTO();
+        responseDTO.setId(ride.getId());
+        responseDTO.setStartAddress(ride.getRoute().getStartLocation().getAddress());
+        responseDTO.setEndAddress(ride.getRoute().getEndLocation().getAddress());
+        // responseDTO.setRoute(ride.getRoute().get);
+
+        List<String> passengerNames = new ArrayList<>();
+
+        for (Passenger passenger : ride.getPassengers()) {
+            RegisteredUser user = passenger.getUser();
+            passengerNames.add(user.getFirstName() + " " + user.getLastName());
+        }
+        responseDTO.setPassengers(passengerNames);
+
+        return responseDTO;
     }
 }

@@ -1,8 +1,11 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, Input, OnInit } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { DriverService } from '../../../services/driver.service';
 import { MissingPassengersModal } from '../missing-passengers-modal/missing-passengers-modal';
+import { UpcomingRide } from '../upcoming-rides-table/upcoming-rides-table';
 
 @Component({
   selector: 'app-start-ride-form',
@@ -11,8 +14,13 @@ import { MissingPassengersModal } from '../missing-passengers-modal/missing-pass
   styleUrl: './start-ride-form.css',
 })
 
-export class StartRideForm {
-  constructor(private router: Router) {}
+export class StartRideForm implements OnInit {
+  @Input() ride?: UpcomingRide | null;
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private driverService: DriverService
+  ) {}
 
   // Modal handling via MissingPassengersModal
   @ViewChild('missingModal') missingModal!: MissingPassengersModal;
@@ -34,8 +42,22 @@ export class StartRideForm {
       this.confirmMessage = 'The following passengers are not present:';
       // show modal listing missing passengers and allow confirm
     } else {
-      // all passengers present -> start ride immediately without modal
-      this.router.navigate(['/current-ride']);
+      // all passengers present -> attempt to call backend to start ride
+      const idParam = this.route.snapshot.queryParams['id'];
+      const rideId = this.ride && this.ride.id ? this.ride.id : (idParam ? +idParam : NaN);
+      if (Number.isFinite(rideId)) {
+        this.driverService.startRide(rideId).subscribe({
+          next: () => this.router.navigate(['/current-ride']),
+          error: (err) => {
+            console.error('Failed to start ride', err);
+            // fallback: navigate locally
+            this.router.navigate(['/current-ride']);
+          }
+        });
+      } else {
+        // no ride id provided — fall back to previous local navigation
+        this.router.navigate(['/current-ride']);
+      }
       return;
     }
 
@@ -62,7 +84,20 @@ export class StartRideForm {
     }
     // Proceed to start ride
     this.closeConfirmModal();
-    this.router.navigate(['/current-ride']);
+    const idParam = this.route.snapshot.queryParams['id'];
+    const rideId = this.ride && this.ride.id ? this.ride.id : (idParam ? +idParam : NaN);
+    if (Number.isFinite(rideId)) {
+      this.driverService.startRide(rideId).subscribe({
+        next: () => this.router.navigate(['/current-ride']),
+        error: (err) => {
+          console.error('Failed to start ride', err);
+          // still navigate as a soft fallback
+          this.router.navigate(['/current-ride']);
+        }
+      });
+    } else {
+      this.router.navigate(['/current-ride']);
+    }
   }
   
   // Example passengers list — replace with real data as needed
@@ -79,5 +114,14 @@ export class StartRideForm {
     passenger.present = !passenger.present;
     // update present count reactively so template reflects state immediately
     this.presentCount = this.passengers.filter(p => p.present).length;
+  }
+
+  ngOnInit(): void {
+    // If ride data is provided via navigation state, initialize passengers list
+    if (this.ride && this.ride.passengers) {
+      // assume `ride.passengers` is a comma-separated string
+      this.passengers = this.ride.passengers.split(',').map((n: string) => ({ name: n.trim(), present: false }));
+      this.presentCount = this.passengers.filter(p => p.present).length;
+    }
   }
 }
