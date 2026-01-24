@@ -118,13 +118,42 @@ public class RideService {
         Location start = new Location(dto.getStartLatitude(), dto.getStartLongitude(), dto.getStartAddress());
         Location end = new Location(dto.getEndLatitude(), dto.getEndLongitude(), dto.getEndAddress());
         Route route = new Route(dto.getDistanceKm(), dto.getEstimatedTimeMinutes(), start, end);
-        if (dto.getStopAddresses() != null && dto.getStopLatitudes() != null && dto.getStopLongitudes() != null) {
-            int stops = Math.min(dto.getStopAddresses().size(), Math.min(dto.getStopLatitudes().size(), dto.getStopLongitudes().size()));
+
+        // validate and add stop locations (ensure latitudes and longitudes lists match)
+        if (dto.getStopLatitudes() != null || dto.getStopLongitudes() != null || dto.getStopAddresses() != null) {
+            List<Double> stopLats = dto.getStopLatitudes();
+            List<Double> stopLons = dto.getStopLongitudes();
+            List<String> stopAddrs = dto.getStopAddresses();
+
+            if (stopLats == null || stopLons == null) {
+                throw new IllegalArgumentException("Stop latitudes and longitudes must both be provided or both be null");
+            }
+            if (stopLats.size() != stopLons.size()) {
+                throw new IllegalArgumentException("Stop latitudes and longitudes lists must have the same size");
+            }
+            int stops = stopLats.size();
+            if (stopAddrs != null && stopAddrs.size() != stops) {
+                throw new IllegalArgumentException("Stop addresses list size must match stop coordinates size");
+            }
+
             for (int i = 0; i < stops; i++) {
-                route.addStopLocation(new Location(dto.getStopLatitudes().get(i), dto.getStopLongitudes().get(i), dto.getStopAddresses().get(i)));
+                String addr = (stopAddrs != null) ? stopAddrs.get(i) : null;
+                route.addStopLocation(new Location(stopLats.get(i), stopLons.get(i), addr));
             }
         }
-        route = routeRepository.save(route);
+
+        // validate and set drawable route polyline points (routeLattitudes / routeLongitudes)
+        List<Double> routeLats = dto.getRouteLattitudes();
+        List<Double> routeLons = dto.getRouteLongitudes();
+        if (routeLats == null || routeLons == null) {
+            throw new IllegalArgumentException("Route latitudes and longitudes must both be provided");
+        }
+        if (routeLats.size() != routeLons.size()) {
+            throw new IllegalArgumentException("Route latitudes and longitudes lists must have the same size");
+        }
+        for (int i = 0; i < routeLats.size(); i++) {
+            route.getPolylinePoints().add(new PolylinePoint(routeLats.get(i), routeLons.get(i)));
+        }
 
         Ride ride = new Ride();
 
@@ -137,7 +166,7 @@ public class RideService {
         ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
         ride.setDistanceKm(dto.getDistanceKm());
         ride.setPrice(dto.getPriceEstimate());
-        ride.setRoute(route);
+
         if (assigned != null) {
             // Add passengers to ride
             Passenger mainPassenger = new Passenger();
@@ -162,6 +191,9 @@ public class RideService {
                         // skip invalid passengers
                     }
                 }
+
+                route = routeRepository.save(route);
+                ride.setRoute(route);
                 ride = rideRepository.save(ride);
                 response.setDriverId(assigned.getId());
             }

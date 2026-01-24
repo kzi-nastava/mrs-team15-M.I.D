@@ -57,4 +57,10 @@ public class OrderRideRequestDTO {
 
     @NotNull
     private double priceEstimate;
+
+    @NotEmpty
+    private List<Double> routeLattitudes;
+
+    @NotEmpty
+    private List<Double> routeLongitudes;
 }
