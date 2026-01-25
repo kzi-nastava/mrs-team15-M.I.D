@@ -4,13 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/passengers")
@@ -59,5 +62,13 @@ public class PassengerController {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
+    }
+
+    @GetMapping("/ride-history")
+    public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
+                                                                   @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return ResponseEntity.ok().body(passengerService.getRideHistory(user.getId(),dateFrom, dateTo, sortBy, sortDirection));
     }
 }

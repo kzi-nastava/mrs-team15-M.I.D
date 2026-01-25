@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AddFavoriteModal } from '../add-favorite-modal/add-favorite-modal';
@@ -44,14 +44,15 @@ export class UserHistoryTable {
   // ride pending favorite change
   private pendingRide: Ride | null = null;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
   @Input()
   set rides(value: Ride[]) {
-    this._rides = value;
+    this._rides = value || [];
     if (this._rides.length > 0) {
       this.applySorting();
     }
+    try { this.cdr.detectChanges(); } catch (e) {}
   }
   get rides(): Ride[] {
     return this._rides;
