@@ -31,12 +31,15 @@ export class DriverHistory implements OnInit {
   currentSortBy?: string;
   currentSortDir?: string;
 
+  // Filter state
+  currentFilterDate?: number;
+
   ngOnInit(): void {
     this.loadRideHistory();
   }
 
-  private loadRideHistory(page: number = 0, sortBy?: string, sortDir?: string): void {
-    this.rideHistoryService.getDriverRideHistory(page, this.pageSize, sortBy, sortDir).subscribe({
+  private loadRideHistory(page: number = 0, sortBy?: string, sortDir?: string, date?: number): void {
+    this.rideHistoryService.getDriverRideHistory(page, this.pageSize, sortBy, sortDir, date).subscribe({
       next: (data: PaginatedRideHistoryResponse) => {
         this.allRides = this.transformRideData(data.content);
         this.filteredRides = [...this.allRides];
@@ -79,34 +82,41 @@ export class DriverHistory implements OnInit {
 
   onFilter(filterDate: string): void {
     if (filterDate) {
-      this.filteredRides = this.allRides.filter(ride => ride.date === filterDate);
+      // Convert date string (YYYY-MM-DD) to timestamp (Long)
+      const date = new Date(filterDate);
+      date.setHours(0, 0, 0, 0); // Set to start of day
+      this.currentFilterDate = date.getTime();
     } else {
-      this.filteredRides = [...this.allRides];
+      this.currentFilterDate = undefined;
     }
+    this.currentPage = 0; // Reset to first page when filtering
+    this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
   }
 
   onClearFilter(): void {
-    this.filteredRides = [...this.allRides];
+    this.currentFilterDate = undefined;
+    this.currentPage = 0; // Reset to first page
+    this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir);
   }
 
   onSort(event: { column: string, direction: string }): void {
     this.currentSortBy = event.column;
     this.currentSortDir = event.direction;
     this.currentPage = 0; // Reset to first page when sorting
-    this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir);
+    this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
   }
 
   goToNextPage(): void {
     if (!this.isLastPage) {
       this.currentPage++;
-      this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir);
+      this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
     }
   }
 
   goToPreviousPage(): void {
     if (!this.isFirstPage) {
       this.currentPage--;
-      this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir);
+      this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
     }
   }
 }
