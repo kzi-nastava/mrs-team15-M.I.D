@@ -52,7 +52,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     Page<Ride> findRidesSortedByDurationDesc(@Param("driverId") Long driverId, Pageable pageable);
 
     @Query("SELECT r FROM Ride r " +
-            "WHERE r.driver = :driver AND r.status = rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus.ACCEPTED")
+            "WHERE r.driver = :driver AND r.status = rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus.REQUESTED")
     List<Ride> findScheduledRidesByDriver(@Param("driver") Driver driver);
 
     @Query("SELECT r FROM Ride r " +

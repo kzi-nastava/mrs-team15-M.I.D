@@ -204,12 +204,15 @@ export class FindingDriverForm implements OnInit {
   }
 
   backToRideDetail() {
-    const id = (this.ride as any).id;
-    if (id !== undefined && id !== null) {
-      this.router.navigate(['/ride-details', id]);
-    } else {
-      // fallback: go back to previous page or home
-      if (window && window.history && window.history.length > 1) {
+    // Navigate to the current-ride page and pass the ride info via navigation state
+    try {
+      this.router.navigate(['/current-ride'], { state: { ride: this.ride } });
+    } catch (e) {
+      // fallback to previous behavior
+      const id = (this.ride as any).id;
+      if (id !== undefined && id !== null) {
+        this.router.navigate(['/ride-details', id]);
+      } else if (window && window.history && window.history.length > 1) {
         window.history.back();
       } else {
         this.router.navigate(['/home']);

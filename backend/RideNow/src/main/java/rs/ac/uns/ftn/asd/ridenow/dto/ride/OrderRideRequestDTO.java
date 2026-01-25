@@ -10,10 +10,6 @@ import java.util.List;
 @Getter @Setter
 public class OrderRideRequestDTO {
 
-    @Email
-    @NotBlank
-    private String mainPassengerEmail;
-
     @NotBlank
     private String startAddress;
 

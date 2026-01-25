@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
@@ -14,6 +15,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
+import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
@@ -103,7 +105,7 @@ public class RideService {
         }
     }
 
-    public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto) {
+    public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto, String mainPassenger) {
         OrderRideResponseDTO response = new OrderRideResponseDTO();
 
         // validate vehicle type
@@ -160,22 +162,32 @@ public class RideService {
         int seats = 1;
         seats = seats + (dto.getLinkedPassengers() != null ? dto.getLinkedPassengers().size() : 0);
         // Assign best driver
-        Driver assigned= driverRepository.autoAssign(vehicleType, seats,dto.isBabyFriendly(), dto.isPetFriendly());
-        ride.setDriver(assigned);
-        ride.setStatus(RideStatus.REQUESTED);
-        ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
-        ride.setDistanceKm(dto.getDistanceKm());
-        ride.setPrice(dto.getPriceEstimate());
-
-        if (assigned != null) {
+        List<Driver> drivers = driverRepository.autoAssign(
+                vehicleType,
+                seats,
+                dto.isBabyFriendly(),
+                dto.isPetFriendly(),
+                PageRequest.of(0, 1)
+        );
+        System.out.println("drivers: " + drivers);
+        if (!drivers.isEmpty()) {
+            Driver assigned = drivers.get(0);
+            System.out.println("Driver assigned: " + assigned);
+            ride.setDriver(assigned);
+            ride.setStatus(RideStatus.REQUESTED);
+            ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
+            ride.setDistanceKm(dto.getDistanceKm());
+            ride.setPrice(dto.getPriceEstimate());
             // Add passengers to ride
-            Passenger mainPassenger = new Passenger();
-            RegisteredUser mainUser = (RegisteredUser) registeredUserRepository.findByEmail(dto.getMainPassengerEmail())
-                    .orElseThrow(() -> new EntityNotFoundException("User with email " + dto.getMainPassengerEmail() + " not found"));
-            mainPassenger.setUser(mainUser);
-            mainPassenger.setRole(PassengerRole.CREATOR);
-            mainPassenger.setRide(ride);
-            ride.addPassenger(mainPassenger);
+            Passenger main = new Passenger();
+            System.out.println("Getting main passanger" + mainPassenger);
+            RegisteredUser mainUser = (RegisteredUser) registeredUserRepository.findByEmail(mainPassenger)
+                    .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
+            System.out.println("Got main passenger");
+            main.setUser(mainUser);
+            main.setRole(PassengerRole.CREATOR);
+            main.setRide(ride);
+            ride.addPassenger(main);
             if (dto.getLinkedPassengers() != null) {
                 for (String email : dto.getLinkedPassengers()) {
                     try {
@@ -199,7 +211,7 @@ public class RideService {
             }
         }
         response.setId(ride.getId());
-        response.setMainPassengerEmail(dto.getMainPassengerEmail());
+        response.setMainPassengerEmail(mainPassenger);
         response.setStartAddress(dto.getStartAddress());
         response.setEndAddress(dto.getEndAddress());
         response.setStopAddresses(dto.getStopAddresses());

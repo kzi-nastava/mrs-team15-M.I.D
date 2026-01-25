@@ -131,16 +131,11 @@ public class RideController {
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
         try {
-            User email = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            try {
-                RouteResponseDTO response = rideService.estimateRoute(dto);
-                return ResponseEntity.status(201).body(response);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                return ResponseEntity.badRequest().build();
-            }
+            User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            RouteResponseDTO response = rideService.estimateRoute(dto);
+            return ResponseEntity.status(201).body(response);
+
         }catch (Exception e){
-            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -150,11 +145,13 @@ public class RideController {
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
         try{
-            SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String email = user.getEmail();
+            System.out.println("orderRide: " + request);
+            return ResponseEntity.status(201).body(rideService.orderRide(request, email));
         } catch (Exception e){
             return ResponseEntity.status(403).build();
         }
-        return ResponseEntity.status(201).body(rideService.orderRide(request));
     }
 
     @PostMapping("/{rideId}/rate")
