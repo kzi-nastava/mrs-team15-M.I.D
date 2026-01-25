@@ -12,6 +12,7 @@ import { PassengerService } from '../../../services/passenger.service';
 import { MapRouteService } from '../../../services/map-route.service';
 
 interface FavoriteRoute {
+  id?: number | null;
   name: string;
   pickup: string;
   destination: string;
@@ -33,8 +34,8 @@ export class RideOrderingForm implements OnInit {
   dragOverIndex: number | null = null;
 
   favorites: FavoriteRoute[] = [
-    { name: 'Home → Work', pickup: '123 Home St', destination: '456 Work Ave', stops: [] },
-    { name: 'Airport Ride', pickup: 'Home Address', destination: 'Airport Terminal 1', stops: [] },
+    { id: null, name: 'Home → Work', pickup: '123 Home St', destination: '456 Work Ave', stops: [] },
+    { id: null, name: 'Airport Ride', pickup: 'Home Address', destination: 'Airport Terminal 1', stops: [] },
   ];
   selectedFavorite: string | null = null;
   favoriteOpen: boolean = false;
@@ -42,30 +43,11 @@ export class RideOrderingForm implements OnInit {
   validator: FromValidator = new FromValidator();
   // Last estimate response from backend (distance, time, price)
   lastEstimate: any = null;
+  // currently selected favorite route id (if applied from backend)
+  currentFavoriteRouteId: number | null = null;
   // Selected vehicle type for pricing and ordering (default STANDARD)
   selectedVehicleType: 'STANDARD' | 'LUXURY' | 'VAN' = 'STANDARD';
   // Last estimate response from backend (distance, time, price)
-
-  // Compute simple fallback estimate (Haversine distance, naive time and price) when backend is unavailable
-  private computeFallbackEstimate(start: {lat:number, lon:number}, end: {lat:number, lon:number}) {
-    if (!start || !end) return null;
-    const toRad = (deg:number) => deg * Math.PI / 180;
-    const R = 6371; // km
-    const dLat = toRad(end.lat - start.lat);
-    const dLon = toRad(end.lon - start.lon);
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(start.lat)) * Math.cos(toRad(end.lat)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distanceKm = R * c;
-    // assume average speed 30 km/h for estimate (conservative urban)
-    const estimatedTimeMinutes = (distanceKm / 30) * 60;
-    // naive price: 0.7 EUR per km (example)
-    const priceEstimate = distanceKm * 0.7;
-    return {
-      distanceKm: Math.round(distanceKm * 1000) / 1000, // 3 decimals
-      estimatedTimeMinutes: Math.round(estimatedTimeMinutes),
-      priceEstimate: Math.round(priceEstimate * 1000) / 1000
-    };
-  }
 
   hasErrors(): boolean {
     if (this.validator.addressError(this.pickupAddress) || this.validator.addressError(this.destinationAddress)) return true;
@@ -99,17 +81,91 @@ export class RideOrderingForm implements OnInit {
       this.stops = [];
     } else {
       this.selectedFavorite = name;
-      this.applyFavorite();
+      const fav = this.favorites.find(f => f.name === name);
+      if (fav && typeof fav.id === 'number') {
+        // fetch full route details from backend for this favorite
+        this.passengerService.getFavoriteRoute(fav.id).subscribe({
+          next: (r: any) => {
+            console.log('Fetched favorite route', r);
+            try {
+              const distance = r?.distanceKm ?? r?.distance ?? r?.distanceKm;
+              const time = r?.estimatedTimeMinutes ?? r?.estimatedDurationMin ?? r?.estimatedTime ?? r?.estimatedDuration;
+              console.log('Favorite route estimate', { distanceKm: distance, estimatedTimeMinutes: time });
+              // store last estimate so UI can show values similarly to manual estimates
+              this.lastEstimate = r;
+              // mark current favorite route id as applied
+              this.currentFavoriteRouteId = fav.id ?? null;
+
+              // Try to draw returned geometry if present
+              let roadRoute = r?.route ?? r?.routePoints ?? r?.routeGeometry ?? null;
+              if (Array.isArray(roadRoute) && roadRoute.length > 0) {
+                const normalized = roadRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
+                this.mapRouteService.drawRoute(normalized);
+                // draw markers for start and end (and optional stops if available)
+                try {
+                  const markers: { lat: number; lng: number; display?: string }[] = [];
+                  if (normalized.length > 0) markers.push({ lat: normalized[0].lat, lng: normalized[0].lng, display: this.pickupAddress || r.startAddress || fav.pickup });
+                  if (normalized.length > 1) markers.push({ lat: normalized[normalized.length - 1].lat, lng: normalized[normalized.length - 1].lng, display: this.destinationAddress || r.endAddress || fav.destination });
+                  this.mapRouteService.drawMarkers(markers);
+                } catch (e) {
+                  console.warn('drawing markers for normalized route failed', e);
+                }
+              } else if (Array.isArray(r?.routeLattitudes) && Array.isArray(r?.routeLongitudes) && r.routeLattitudes.length === r.routeLongitudes.length) {
+                const pts = r.routeLattitudes.map((lat: number, i: number) => ({ lat, lng: r.routeLongitudes[i] }));
+                const normalizedPts = pts.map((p: any) => ({ lat: p.lat, lng: p.lng }));
+                this.mapRouteService.drawRoute(normalizedPts);
+                try {
+                  const markers: { lat: number; lng: number; display?: string }[] = [];
+                  if (normalizedPts.length > 0) markers.push({ lat: normalizedPts[0].lat, lng: normalizedPts[0].lng, display: this.pickupAddress || r.startAddress || fav.pickup });
+                  if (normalizedPts.length > 1) markers.push({ lat: normalizedPts[normalizedPts.length - 1].lat, lng: normalizedPts[normalizedPts.length - 1].lng, display: this.destinationAddress || r.endAddress || fav.destination });
+                  this.mapRouteService.drawMarkers(markers);
+                } catch (e) { console.warn('drawing markers for routeLattitudes failed', e); }
+              } else if (Array.isArray(r?.routeLatitudes) && Array.isArray(r?.routeLongitudes) && r.routeLatitudes.length === r.routeLongitudes.length) {
+                const pts = r.routeLatitudes.map((lat: number, i: number) => ({ lat, lng: r.routeLongitudes[i] }));
+                const normalizedPts = pts.map((p: any) => ({ lat: p.lat, lng: p.lng }));
+                this.mapRouteService.drawRoute(normalizedPts);
+                try {
+                  const markers: { lat: number; lng: number; display?: string }[] = [];
+                  if (normalizedPts.length > 0) markers.push({ lat: normalizedPts[0].lat, lng: normalizedPts[0].lng, display: this.pickupAddress || r.startAddress || fav.pickup });
+                  if (normalizedPts.length > 1) markers.push({ lat: normalizedPts[normalizedPts.length - 1].lat, lng: normalizedPts[normalizedPts.length - 1].lng, display: this.destinationAddress || r.endAddress || fav.destination });
+                  this.mapRouteService.drawMarkers(markers);
+                } catch (e) { console.warn('drawing markers for routeLatitudes failed', e); }
+              } else {
+                // no geometry provided by backend — fallback to geocode-based markers/route
+                try { this.geocodeAndShowMarkers(); } catch (e) { console.warn('geocode fallback for favorite failed', e); }
+              }
+            } catch (e) {
+              console.warn('Processing favorite route response failed', e);
+            }
+            try {
+              this.pickupAddress = r.startAddress ?? r.pickup ?? r.origin ?? fav.pickup ?? '';
+              this.destinationAddress = r.endAddress ?? r.destination ?? r.to ?? fav.destination ?? '';
+              this.stops = r.stops ?? r.intermediateStops ?? r.stopAddresses ?? fav.stops ?? [];
+              try { this.cdr.detectChanges(); } catch(e) {}
+            } catch (e) {
+              console.warn('Applying favorite route details failed, falling back', e);
+              this.applyFavorite();
+            }
+          },
+          error: (err: any) => {
+            console.warn('Failed to load favorite route details', err);
+            this.applyFavorite();
+          }
+        });
+      } else {
+        console.log('Applying local favorite (no id)', fav);
+        this.currentFavoriteRouteId = null;
+        this.applyFavorite();
+      }
     }
     this.favoriteOpen = false;
-    // applying a favorite changes addresses/stops so clear estimate
-    this.lastEstimate = null;
   }
 
   addStop() {
     this.stops.push('');
     // modifying stops invalidates previous estimate
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
   }
 
   onDragStart(event: DragEvent, index: number) {
@@ -145,6 +201,7 @@ export class RideOrderingForm implements OnInit {
     this.draggedIndex = null;
     // reordering stops invalidates previous estimate
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
   }
 
   onDragEnd(_event: DragEvent) {
@@ -152,12 +209,14 @@ export class RideOrderingForm implements OnInit {
     this.draggedIndex = null;
     // ensure estimate is cleared if drag changed order
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
   }
 
   removeStop(index: number) {
     this.stops.splice(index, 1);
     // removing a stop invalidates previous estimate
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
   }
 
   // -- Address change handlers & map update --
@@ -175,6 +234,7 @@ export class RideOrderingForm implements OnInit {
     this.fetchSuggestionsDebounced(val, 'pickup');
     // Clear any previous estimate when inputs change
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
     console.debug('onPickupChange', val);
   }
 
@@ -183,6 +243,7 @@ export class RideOrderingForm implements OnInit {
     this.fetchSuggestionsDebounced(val, 'destination');
     // Clear any previous estimate when inputs change
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
     console.debug('onDestinationChange', val);
   }
 
@@ -191,6 +252,7 @@ export class RideOrderingForm implements OnInit {
     this.fetchSuggestionsDebounced(val, 'stop', index);
     // Clear any previous estimate when inputs change
     this.lastEstimate = null;
+    this.currentFavoriteRouteId = null;
     console.debug('onStopChange', index, val);
   }
 
@@ -442,17 +504,6 @@ export class RideOrderingForm implements OnInit {
       } catch (e: any) {
         // Log detailed HTTP error info when available
         console.warn('estimateRoute call failed', e && e.status ? { status: e.status, error: e.error || e.message } : e);
-        // compute fallback estimate so user sees something on first click
-        try {
-          const fallback = this.computeFallbackEstimate(startGeo, endGeo);
-          if (fallback) {
-            this.lastEstimate = fallback;
-            console.log('Using fallback estimate', fallback);
-            try { this.cdr.detectChanges(); } catch(e) {}
-          }
-        } catch (fe) {
-          console.warn('fallback estimate failed', fe);
-        }
       }
 
       // Show only markers for start/stops/end (no connecting polyline) if no route was drawn
@@ -482,6 +533,12 @@ export class RideOrderingForm implements OnInit {
   }
 
   constructor(private rideService: RideService, private passengerService: PassengerService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}
+  private formatDisplayName(raw?: string | null): string {
+    if (!raw) return '';
+    const parts = raw.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    if (parts.length <= 3) return parts.join(', ');
+    return parts.slice(0, 3).join(', ');
+  }
 
   ngOnInit(): void {
     this.loadFavoriteRoutes();
@@ -493,12 +550,38 @@ export class RideOrderingForm implements OnInit {
       this.passengerService.getFavoriteRoutes().subscribe({
         next: (res: any[]) => {
           try {
-            this.favorites = (res || []).map(r => ({
-              name: r.name ?? r.routeName ?? (r.startAddress && r.endAddress ? `${r.startAddress} → ${r.endAddress}` : 'Favorite'),
-              pickup: r.startAddress ?? r.pickup ?? r.origin ?? '',
-              destination: r.endAddress ?? r.destination ?? r.to ?? '',
-              stops: r.stops ?? r.intermediateStops ?? r.stopAddresses ?? []
-            }));
+            this.favorites = (res || []).map(r => {
+              const startRaw = r.startAddress ?? r.pickup ?? r.origin ?? '';
+              const endRaw = r.endAddress ?? r.destination ?? r.to ?? '';
+              const stopsArr: any[] = r.stops ?? r.intermediateStops ?? r.stopAddresses ?? [];
+              const hasStartEnd = !!(startRaw && endRaw);
+
+              let name: string;
+              if (hasStartEnd) {
+                const parts: string[] = [];
+                const s = this.formatDisplayName(String(startRaw));
+                if (s) parts.push(s);
+                if (Array.isArray(stopsArr) && stopsArr.length > 0) {
+                  for (const st of stopsArr) {
+                    const fs = this.formatDisplayName(String(st ?? ''));
+                    if (fs) parts.push(fs);
+                  }
+                }
+                const e = this.formatDisplayName(String(endRaw));
+                if (e) parts.push(e);
+                name = parts.join(' → ');
+              } else {
+                name = this.formatDisplayName(r.name ?? r.routeName ?? 'Favorite');
+              }
+
+              return {
+                id: r.routeId ?? null,
+                name,
+                pickup: startRaw,
+                destination: endRaw,
+                stops: Array.isArray(stopsArr) ? stopsArr : []
+              };
+            });
             try { this.cdr.detectChanges(); } catch(e) {}
           } catch (mapErr) {
             console.warn('Mapping favorite routes failed', mapErr);
@@ -572,6 +655,9 @@ export class RideOrderingForm implements OnInit {
         else if (vehicleTypeChosen === 'VAN') priceForType = route?.priceEstimateVan ?? route?.priceEstimate ?? 0;
       } catch (e) { priceForType = route?.priceEstimate ?? 0; }
 
+      // prefer the currently applied favorite id (cleared when inputs change)
+      const favoriteRouteId = this.currentFavoriteRouteId ?? null;
+
       const orderDto: any = {
         startAddress: estimateReq.startAddress,
         startLatitude: estimateReq.startLatitude,
@@ -590,6 +676,7 @@ export class RideOrderingForm implements OnInit {
         distanceKm: route?.distanceKm ?? 0,
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
         priceEstimate: priceForType,
+        favoriteRouteId: favoriteRouteId,
         // include route geometry (if available) so finding-driver can draw it immediately
         route: normalizedRoute,
         // backend expects separate arrays of latitudes/longitudes for the whole polyline

@@ -21,6 +21,11 @@ export class PassengerService {
     return this.http.get<any[]>(`${this.apiURL}/favorite-routes`);
   }
 
+  // GET /passengers/favorite-routes/{routeId}
+  getFavoriteRoute(routeId: number) {
+    return this.http.get<any>(`${this.apiURL}/favorite-routes/${routeId}`);
+  }
+
   // PUT /passengers/favorite-routes/{routeId}
   addFavorite(routeId: number) {
     return this.http.put<any>(`${this.apiURL}/favorite-routes/${routeId}`, {});

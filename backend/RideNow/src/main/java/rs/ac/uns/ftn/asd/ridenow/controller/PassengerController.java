@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
@@ -42,10 +43,17 @@ public class PassengerController {
     }
 
     @GetMapping("/favorite-routes")
-    public ResponseEntity<Collection<RouteResponseDTO>> getRoutes() {
+    public ResponseEntity<Collection<FavoriteRouteResponseDTO>> getRoutes() {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
+    }
+
+    @GetMapping("/favorite-routes/{id}")
+    public ResponseEntity<RouteResponseDTO> getRoute(@PathVariable Long id) {
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(passengerService.getRoute(user.getId(), id));
     }
 
     @GetMapping("/ride-history")

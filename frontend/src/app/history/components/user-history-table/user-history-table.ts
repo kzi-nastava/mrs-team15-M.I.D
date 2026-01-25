@@ -164,7 +164,10 @@ private applySorting(): void {
     if (routeId) {
       this.passengerService.addFavorite(routeId).subscribe({
         next: () => {
-          this.pendingRide!.favorite = true;
+          // mark all rides that share this routeId as favorite
+          try {
+            this._rides.forEach(r => { if (r.routeId === routeId) r.favorite = true; });
+          } catch (e) {}
           this.pendingRide = null;
           try { this.cdr.detectChanges(); } catch (e) {}
         },
@@ -187,7 +190,10 @@ private applySorting(): void {
     if (routeId) {
       this.passengerService.removeFavorite(routeId).subscribe({
         next: () => {
-          this.pendingRide!.favorite = false;
+          // mark all rides that share this routeId as not favorite
+          try {
+            this._rides.forEach(r => { if (r.routeId === routeId) r.favorite = false; });
+          } catch (e) {}
           this.pendingRide = null;
           try { this.cdr.detectChanges(); } catch (e) {}
         },

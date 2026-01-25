@@ -115,48 +115,53 @@ public class RideService {
         } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid vehicle type: " + dto.getVehicleType());
         }
+        Route route = null;
+        if (dto.getFavoriteRouteId() == null) {
+            // create route
+            Location start = new Location(dto.getStartLatitude(), dto.getStartLongitude(), dto.getStartAddress());
+            Location end = new Location(dto.getEndLatitude(), dto.getEndLongitude(), dto.getEndAddress());
+            route = new Route(dto.getDistanceKm(), dto.getEstimatedTimeMinutes(), start, end);
 
-        // create route
-        Location start = new Location(dto.getStartLatitude(), dto.getStartLongitude(), dto.getStartAddress());
-        Location end = new Location(dto.getEndLatitude(), dto.getEndLongitude(), dto.getEndAddress());
-        Route route = new Route(dto.getDistanceKm(), dto.getEstimatedTimeMinutes(), start, end);
+            // validate and add stop locations (ensure latitudes and longitudes lists match)
+            if (dto.getStopLatitudes() != null || dto.getStopLongitudes() != null || dto.getStopAddresses() != null) {
+                List<Double> stopLats = dto.getStopLatitudes();
+                List<Double> stopLons = dto.getStopLongitudes();
+                List<String> stopAddrs = dto.getStopAddresses();
 
-        // validate and add stop locations (ensure latitudes and longitudes lists match)
-        if (dto.getStopLatitudes() != null || dto.getStopLongitudes() != null || dto.getStopAddresses() != null) {
-            List<Double> stopLats = dto.getStopLatitudes();
-            List<Double> stopLons = dto.getStopLongitudes();
-            List<String> stopAddrs = dto.getStopAddresses();
+                if (stopLats == null || stopLons == null) {
+                    throw new IllegalArgumentException("Stop latitudes and longitudes must both be provided or both be null");
+                }
+                if (stopLats.size() != stopLons.size()) {
+                    throw new IllegalArgumentException("Stop latitudes and longitudes lists must have the same size");
+                }
+                int stops = stopLats.size();
+                if (stopAddrs != null && stopAddrs.size() != stops) {
+                    throw new IllegalArgumentException("Stop addresses list size must match stop coordinates size");
+                }
 
-            if (stopLats == null || stopLons == null) {
-                throw new IllegalArgumentException("Stop latitudes and longitudes must both be provided or both be null");
+                for (int i = 0; i < stops; i++) {
+                    String addr = (stopAddrs != null) ? stopAddrs.get(i) : null;
+                    route.addStopLocation(new Location(stopLats.get(i), stopLons.get(i), addr));
+                }
             }
-            if (stopLats.size() != stopLons.size()) {
-                throw new IllegalArgumentException("Stop latitudes and longitudes lists must have the same size");
-            }
-            int stops = stopLats.size();
-            if (stopAddrs != null && stopAddrs.size() != stops) {
-                throw new IllegalArgumentException("Stop addresses list size must match stop coordinates size");
-            }
 
-            for (int i = 0; i < stops; i++) {
-                String addr = (stopAddrs != null) ? stopAddrs.get(i) : null;
-                route.addStopLocation(new Location(stopLats.get(i), stopLons.get(i), addr));
+            // validate and set drawable route polyline points (routeLattitudes / routeLongitudes)
+            List<Double> routeLats = dto.getRouteLattitudes();
+            List<Double> routeLons = dto.getRouteLongitudes();
+            if (routeLats == null || routeLons == null) {
+                throw new IllegalArgumentException("Route latitudes and longitudes must both be provided");
             }
-        }
+            if (routeLats.size() != routeLons.size()) {
+                throw new IllegalArgumentException("Route latitudes and longitudes lists must have the same size");
+            }
+            for (int i = 0; i < routeLats.size(); i++) {
+                route.getPolylinePoints().add(new PolylinePoint(routeLats.get(i), routeLons.get(i)));
+            }
+        }else{
+            route = routeRepository.findById(dto.getFavoriteRouteId())
+                    .orElseThrow(() -> new EntityNotFoundException("Favorite route with id " + dto.getFavoriteRouteId() + " not found"));
 
-        // validate and set drawable route polyline points (routeLattitudes / routeLongitudes)
-        List<Double> routeLats = dto.getRouteLattitudes();
-        List<Double> routeLons = dto.getRouteLongitudes();
-        if (routeLats == null || routeLons == null) {
-            throw new IllegalArgumentException("Route latitudes and longitudes must both be provided");
         }
-        if (routeLats.size() != routeLons.size()) {
-            throw new IllegalArgumentException("Route latitudes and longitudes lists must have the same size");
-        }
-        for (int i = 0; i < routeLats.size(); i++) {
-            route.getPolylinePoints().add(new PolylinePoint(routeLats.get(i), routeLons.get(i)));
-        }
-
         Ride ride = new Ride();
 
         int seats = 1;
@@ -169,7 +174,6 @@ public class RideService {
                 dto.isPetFriendly(),
                 PageRequest.of(0, 1)
         );
-        System.out.println("drivers: " + drivers);
         if (!drivers.isEmpty()) {
             Driver assigned = drivers.get(0);
             System.out.println("Driver assigned: " + assigned);
@@ -180,10 +184,9 @@ public class RideService {
             ride.setPrice(dto.getPriceEstimate());
             // Add passengers to ride
             Passenger main = new Passenger();
-            System.out.println("Getting main passanger" + mainPassenger);
             RegisteredUser mainUser = (RegisteredUser) registeredUserRepository.findByEmail(mainPassenger)
                     .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
-            System.out.println("Got main passenger");
+
             main.setUser(mainUser);
             main.setRole(PassengerRole.CREATOR);
             main.setRide(ride);
@@ -203,8 +206,13 @@ public class RideService {
                         // skip invalid passengers
                     }
                 }
-
+            }
+            if (dto.getFavoriteRouteId() == null) {
                 route = routeRepository.save(route);
+                ride.setRoute(route);
+                ride = rideRepository.save(ride);
+                response.setDriverId(assigned.getId());
+            }else{
                 ride.setRoute(route);
                 ride = rideRepository.save(ride);
                 response.setDriverId(assigned.getId());

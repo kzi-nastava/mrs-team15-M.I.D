@@ -59,4 +59,6 @@ public class OrderRideRequestDTO {
 
     @NotEmpty
     private List<Double> routeLongitudes;
+
+    private Long favoriteRouteId;
 }

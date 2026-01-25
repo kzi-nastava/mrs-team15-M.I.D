@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RoutePointDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.FavoriteRoute;
@@ -119,47 +120,22 @@ public class PassengerService {
         registeredUserRepository.save(user);
     }
 
-    public Collection<RouteResponseDTO> getRoutes(Long userId) {
+    public Collection<FavoriteRouteResponseDTO> getRoutes(Long userId) {
         RegisteredUser user = registeredUserRepository.getReferenceById(userId);
-        RouteResponseDTO dto = new RouteResponseDTO();
-        Collection<RouteResponseDTO> dtos = new ArrayList<>();
+        FavoriteRouteResponseDTO dto = new FavoriteRouteResponseDTO();
+        Collection<FavoriteRouteResponseDTO> dtos = new ArrayList<>();
         List<FavoriteRoute> routes = user.getFavoriteRoutes();
         for (FavoriteRoute fr : routes) {
             Route route = fr.getRoute();
             dto.setRouteId(route.getId());
-            dto.setDistanceKm(route.getDistanceKm());
-            dto.setEstimatedTimeMinutes((int) route.getEstimatedTimeMin());
-            dto.setPriceEstimateStandard(priceService.calculatePrice(VehicleType.STANDARD, route.getDistanceKm()));
-            dto.setPriceEstimateLuxury(priceService.calculatePrice(VehicleType.LUXURY, route.getDistanceKm()));
-            dto.setPriceEstimateVan(priceService.calculatePrice(VehicleType.VAN, route.getDistanceKm()));
             dto.setEndAddress(route.getEndLocation().getAddress());
-            dto.setEndLatitude(route.getEndLocation().getLatitude());
-            dto.setEndLongitude(route.getEndLocation().getLongitude());
             dto.setStartAddress(route.getStartLocation().getAddress());
-            dto.setStartLatitude(route.getStartLocation().getLatitude());
-            dto.setStartLongitude(route.getStartLocation().getLongitude());
             //Stops
             if (route.getStopLocations() != null) {
                 List<String> stops = new ArrayList<>();
                 route.getStopLocations().forEach(stop -> stops.add(stop.getAddress()));
                 dto.setStopAddresses(stops);
-                List<Double> stopLats = new ArrayList<>();
-                route.getStopLocations().forEach(stop -> stopLats.add(stop.getLatitude()));
-                dto.setStopLatitudes(stopLats);
-                List<Double> stopLons = new ArrayList<>();
-                route.getStopLocations().forEach(stop -> stopLons.add(stop.getLongitude()));
-                dto.setStopLongitudes(stopLons);
             }
-            // Route Polyline Points
-            List<RoutePointDTO> routePoints = route.getPolylinePoints().stream()
-                    .map(pp -> {
-                        RoutePointDTO rp = new RoutePointDTO();
-                        rp.setLat(pp.getLatitude());
-                        rp.setLng(pp.getLongitude());
-                        return rp;
-                    })
-                    .collect(Collectors.toList());
-            dto.setRoute(routePoints);
 
             dtos.add(dto);
         }
@@ -233,5 +209,59 @@ public class PassengerService {
         }
 
         return history;
+    }
+
+    public RouteResponseDTO getRoute(Long id, Long id1) {
+        RegisteredUser user = registeredUserRepository.getReferenceById(id);
+
+        FavoriteRoute found = null;
+        for (FavoriteRoute fr : user.getFavoriteRoutes()) {
+            if (fr.getRoute() != null && fr.getRoute().getId() != null && fr.getRoute().getId().equals(id1)) {
+                found = fr;
+                break;
+            }
+        }
+
+        if (found == null) {
+            throw new EntityNotFoundException("Favorite route with id " + id1 + " not found for user " + id);
+        }
+
+        Route route = found.getRoute();
+        RouteResponseDTO dto = new RouteResponseDTO();
+        dto.setRouteId(route.getId());
+        dto.setDistanceKm(route.getDistanceKm());
+        dto.setEstimatedTimeMinutes((int) route.getEstimatedTimeMin());
+        dto.setPriceEstimateStandard(priceService.calculatePrice(VehicleType.STANDARD, route.getDistanceKm()));
+        dto.setPriceEstimateLuxury(priceService.calculatePrice(VehicleType.LUXURY, route.getDistanceKm()));
+        dto.setPriceEstimateVan(priceService.calculatePrice(VehicleType.VAN, route.getDistanceKm()));
+        dto.setEndAddress(route.getEndLocation().getAddress());
+        dto.setEndLatitude(route.getEndLocation().getLatitude());
+        dto.setEndLongitude(route.getEndLocation().getLongitude());
+        dto.setStartAddress(route.getStartLocation().getAddress());
+        dto.setStartLatitude(route.getStartLocation().getLatitude());
+        dto.setStartLongitude(route.getStartLocation().getLongitude());
+        //Stops
+        if (route.getStopLocations() != null) {
+            List<String> stops = new ArrayList<>();
+            route.getStopLocations().forEach(stop -> stops.add(stop.getAddress()));
+            dto.setStopAddresses(stops);
+            List<Double> stopLats = new ArrayList<>();
+            route.getStopLocations().forEach(stop -> stopLats.add(stop.getLatitude()));
+            dto.setStopLatitudes(stopLats);
+            List<Double> stopLons = new ArrayList<>();
+            route.getStopLocations().forEach(stop -> stopLons.add(stop.getLongitude()));
+            dto.setStopLongitudes(stopLons);
+        }
+        // Route Polyline Points
+        List<RoutePointDTO> routePoints = route.getPolylinePoints().stream()
+                .map(pp -> {
+                    RoutePointDTO rp = new RoutePointDTO();
+                    rp.setLat(pp.getLatitude());
+                    rp.setLng(pp.getLongitude());
+                    return rp;
+                })
+                .collect(Collectors.toList());
+        dto.setRoute(routePoints);
+        return dto;
     }
 }
