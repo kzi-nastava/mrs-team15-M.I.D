@@ -15,11 +15,11 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
-import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RideService {
@@ -317,6 +317,7 @@ public class RideService {
 
         ride.setStatus(RideStatus.IN_PROGRESS);
         ride.setStartTime(LocalDateTime.now());
+        // TODO: set driver availability to false
         rideRepository.save(ride);
     }
 
@@ -546,9 +547,25 @@ public class RideService {
 
         StartRideResponseDTO responseDTO = new StartRideResponseDTO();
         responseDTO.setId(ride.getId());
-        responseDTO.setStartAddress(ride.getRoute().getStartLocation().getAddress());
-        responseDTO.setEndAddress(ride.getRoute().getEndLocation().getAddress());
-        // responseDTO.setRoute(ride.getRoute().get);
+        // Start and End Address should be up to third comma
+        String startAddress = ride.getRoute().getStartLocation().getAddress();
+        String endAddress = ride.getRoute().getEndLocation().getAddress();
+        String[] startParts = startAddress.split(",", 4);
+        String[] endParts = endAddress.split(",", 4);
+        responseDTO.setStartAddress(startParts.length >= 3 ? String.join(",", startParts[0], startParts[1], startParts[2]) : startAddress);
+        responseDTO.setEndAddress(endParts.length >= 3 ? String.join(",", endParts[0], endParts[1], endParts[2]) : endAddress);
+
+
+        // Map model PolylinePoint objects to DTOs expected by the response
+        List<RoutePointDTO> routePoints = ride.getRoute().getPolylinePoints().stream()
+                .map(pp -> {
+                    RoutePointDTO rp = new RoutePointDTO();
+                    rp.setLat(pp.getLatitude());
+                    rp.setLng(pp.getLongitude());
+                    return rp;
+                })
+                .collect(Collectors.toList());
+        responseDTO.setRoute(routePoints);
 
         List<String> passengerNames = new ArrayList<>();
 
