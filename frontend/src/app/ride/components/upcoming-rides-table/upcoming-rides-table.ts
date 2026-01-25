@@ -151,20 +151,7 @@ private applySorting(): void {
   }
 
   startRide(ride: UpcomingRide): void {
-    this.driverService.startRide(ride.id).subscribe({
-      next: () => {
-        this.router.navigate(['/current-ride']);
-      },
-      error: (err) => {
-        let message = 'Failed to start ride. Please try again.';
-        if (typeof err.error === 'string') {
-          message = err.error;
-        } else if (err.error?.message) {
-          message = err.error.message;
-        }
-        this.rideCanceled.emit(message);
-        this.cdr.detectChanges();
-      }
-    });
+    // Navigate to the Start Ride page and pass the selected ride data via navigation state
+    this.router.navigate(['/start-ride'], { state: { ride } });
   }
 }

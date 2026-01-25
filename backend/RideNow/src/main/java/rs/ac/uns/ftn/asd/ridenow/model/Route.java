@@ -50,6 +50,15 @@ public class Route {
     })
     private List<Location> stopLocations = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(name = "route_polyline_points",
+            joinColumns = @JoinColumn(name = "route_id"))
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "point_latitude", nullable = false)),
+            @AttributeOverride(name = "longitude", column = @Column(name = "point_longitude", nullable = false))
+    })
+    private List<PolylinePoint> polylinePoints = new ArrayList<>();
+
     public Route(double distanceKm, double estimatedTimeMin, Location startLocation, Location endLocation) {
         this.distanceKm = distanceKm;
         this.estimatedTimeMin = estimatedTimeMin;

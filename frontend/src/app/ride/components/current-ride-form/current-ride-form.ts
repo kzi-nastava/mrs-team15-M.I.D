@@ -63,6 +63,39 @@ export class CurrentRideForm implements OnDestroy {
       this.isDriver = false;
       this.isPassenger = true;
     }
+    // If navigation provided ride info in state, initialize from it to avoid extra API call
+    try {
+      const nav = (this.router as any).getCurrentNavigation && (this.router as any).getCurrentNavigation();
+      const incoming = nav && nav.extras && nav.extras.state && (nav.extras.state.ride || nav.extras.state.order) ? (nav.extras.state.ride || nav.extras.state.order) : (typeof history !== 'undefined' && (history as any).state ? (history as any).state.ride || (history as any).state.order : null);
+      if (incoming) {
+        try {
+          this.pickupAddress = incoming.startAddress || incoming.startAddress || '';
+          this.destinationAddress = incoming.endAddress || incoming.endAddress || '';
+          this.estimatedDistanceKm = incoming.distanceKm || incoming.distanceKm;
+          this.estimatedDurationMin = incoming.estimatedTimeMinutes || incoming.estimatedDurationMin || incoming.estimatedDurationMin;
+          this.rideId = incoming.id || incoming.rideId || undefined;
+          // draw route immediately if provided
+          if (incoming.route) {
+            try { this.mapRouteService.drawRoute(incoming.route); } catch(e) {}
+          } else if (incoming.routeLattitudes && incoming.routeLongitudes && Array.isArray(incoming.routeLattitudes) && Array.isArray(incoming.routeLongitudes) && incoming.routeLattitudes.length === incoming.routeLongitudes.length) {
+            const pts = incoming.routeLattitudes.map((lat:any, i:number) => ({ lat: Number(lat), lng: Number(incoming.routeLongitudes[i]) }));
+            try { this.mapRouteService.drawRoute(pts); } catch(e) {}
+          }
+          this.cdr.detectChanges();
+          // if we have a rideId, start tracking
+          if (this.rideId) {
+            this.startTracking(Number(this.rideId));
+          }
+          return;
+        } catch (e) {
+          console.warn('Initializing CurrentRideForm from navigation state failed', e);
+        }
+      }
+    } catch (e) {
+      console.warn('Checking navigation state for current ride failed', e);
+    }
+
+    // fallback: fetch from backend
     this.fetchCurrentRide();
   }
 

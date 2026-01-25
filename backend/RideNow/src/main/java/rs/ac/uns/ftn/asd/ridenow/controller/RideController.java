@@ -108,24 +108,34 @@ public class RideController {
 
     @PutMapping("/{id}/start")
     public ResponseEntity<Void> startRide(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof Driver)) {
+            return ResponseEntity.status(403).build();
+        }
         rideService.startRide(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}/start")
+    public ResponseEntity<StartRideResponseDTO> passangerPickup(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(user instanceof Driver)) {
+            return ResponseEntity.status(403).build();
+        }
+        StartRideResponseDTO response = rideService.passangerPickup(id);
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
         try {
-            User email = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            try {
-                RouteResponseDTO response = rideService.estimateRoute(dto);
-                return ResponseEntity.status(201).body(response);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                return ResponseEntity.badRequest().build();
-            }
+            User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            RouteResponseDTO response = rideService.estimateRoute(dto);
+            return ResponseEntity.status(201).body(response);
+
         }catch (Exception e){
-            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -135,11 +145,13 @@ public class RideController {
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
         try{
-            SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            String email = user.getEmail();
+            System.out.println("orderRide: " + request);
+            return ResponseEntity.status(201).body(rideService.orderRide(request, email));
         } catch (Exception e){
             return ResponseEntity.status(403).build();
         }
-        return ResponseEntity.status(201).body(rideService.orderRide(request));
     }
 
     @PostMapping("/{rideId}/rate")

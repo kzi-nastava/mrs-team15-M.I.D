@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, ReplaySubject } from 'rxjs';
 
 export interface RouteData {
   route: any[];
@@ -8,14 +8,16 @@ export interface RouteData {
 
 @Injectable({ providedIn: 'root' })
 export class MapRouteService {
-  private routeSubject = new Subject<RouteData>();
+  // ReplaySubject(1) buffers the latest route so components that subscribe
+  // after a route was emitted (e.g., map recreated on reload) still receive it.
+  private routeSubject = new ReplaySubject<RouteData>(1);
   route$ = this.routeSubject.asObservable();
 
   private isAlertMode = new BehaviorSubject<boolean>(false);
   isAlert$ = this.isAlertMode.asObservable();
 
-  // Separate subject for marker-only displays
-  private markersSubject = new Subject<RouteData>();
+  // Separate subject for marker-only displays; buffer latest as well
+  private markersSubject = new ReplaySubject<RouteData>(1);
   markers$ = this.markersSubject.asObservable();
   private vehicleLocationSubject = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   vehicleLocation$ = this.vehicleLocationSubject.asObservable();

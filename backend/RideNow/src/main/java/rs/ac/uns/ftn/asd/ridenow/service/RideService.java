@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RideService {
@@ -103,7 +105,7 @@ public class RideService {
         }
     }
 
-    public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto) {
+    public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto, String mainPassenger) {
         OrderRideResponseDTO response = new OrderRideResponseDTO();
 
         // validate vehicle type
@@ -118,32 +120,98 @@ public class RideService {
         Location start = new Location(dto.getStartLatitude(), dto.getStartLongitude(), dto.getStartAddress());
         Location end = new Location(dto.getEndLatitude(), dto.getEndLongitude(), dto.getEndAddress());
         Route route = new Route(dto.getDistanceKm(), dto.getEstimatedTimeMinutes(), start, end);
-        if (dto.getStopAddresses() != null && dto.getStopLatitudes() != null && dto.getStopLongitudes() != null) {
-            int stops = Math.min(dto.getStopAddresses().size(), Math.min(dto.getStopLatitudes().size(), dto.getStopLongitudes().size()));
+
+        // validate and add stop locations (ensure latitudes and longitudes lists match)
+        if (dto.getStopLatitudes() != null || dto.getStopLongitudes() != null || dto.getStopAddresses() != null) {
+            List<Double> stopLats = dto.getStopLatitudes();
+            List<Double> stopLons = dto.getStopLongitudes();
+            List<String> stopAddrs = dto.getStopAddresses();
+
+            if (stopLats == null || stopLons == null) {
+                throw new IllegalArgumentException("Stop latitudes and longitudes must both be provided or both be null");
+            }
+            if (stopLats.size() != stopLons.size()) {
+                throw new IllegalArgumentException("Stop latitudes and longitudes lists must have the same size");
+            }
+            int stops = stopLats.size();
+            if (stopAddrs != null && stopAddrs.size() != stops) {
+                throw new IllegalArgumentException("Stop addresses list size must match stop coordinates size");
+            }
+
             for (int i = 0; i < stops; i++) {
-                route.addStopLocation(new Location(dto.getStopLatitudes().get(i), dto.getStopLongitudes().get(i), dto.getStopAddresses().get(i)));
+                String addr = (stopAddrs != null) ? stopAddrs.get(i) : null;
+                route.addStopLocation(new Location(stopLats.get(i), stopLons.get(i), addr));
             }
         }
-        route = routeRepository.save(route);
+
+        // validate and set drawable route polyline points (routeLattitudes / routeLongitudes)
+        List<Double> routeLats = dto.getRouteLattitudes();
+        List<Double> routeLons = dto.getRouteLongitudes();
+        if (routeLats == null || routeLons == null) {
+            throw new IllegalArgumentException("Route latitudes and longitudes must both be provided");
+        }
+        if (routeLats.size() != routeLons.size()) {
+            throw new IllegalArgumentException("Route latitudes and longitudes lists must have the same size");
+        }
+        for (int i = 0; i < routeLats.size(); i++) {
+            route.getPolylinePoints().add(new PolylinePoint(routeLats.get(i), routeLons.get(i)));
+        }
 
         Ride ride = new Ride();
 
         int seats = 1;
         seats = seats + (dto.getLinkedPassengers() != null ? dto.getLinkedPassengers().size() : 0);
         // Assign best driver
-        Driver assigned= driverRepository.autoAssign(vehicleType, seats,dto.isBabyFriendly(), dto.isPetFriendly());
-        ride.setDriver(assigned);
-        ride.setStatus(RideStatus.REQUESTED);
-        ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
-        ride.setDistanceKm(dto.getDistanceKm());
-        ride.setPrice(dto.getPriceEstimate());
-        ride.setRoute(route);
-        if (assigned != null) {
-            ride = rideRepository.save(ride);
-            response.setDriverId(assigned.getId());
+        List<Driver> drivers = driverRepository.autoAssign(
+                vehicleType,
+                seats,
+                dto.isBabyFriendly(),
+                dto.isPetFriendly(),
+                PageRequest.of(0, 1)
+        );
+        System.out.println("drivers: " + drivers);
+        if (!drivers.isEmpty()) {
+            Driver assigned = drivers.get(0);
+            System.out.println("Driver assigned: " + assigned);
+            ride.setDriver(assigned);
+            ride.setStatus(RideStatus.REQUESTED);
+            ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
+            ride.setDistanceKm(dto.getDistanceKm());
+            ride.setPrice(dto.getPriceEstimate());
+            // Add passengers to ride
+            Passenger main = new Passenger();
+            System.out.println("Getting main passanger" + mainPassenger);
+            RegisteredUser mainUser = (RegisteredUser) registeredUserRepository.findByEmail(mainPassenger)
+                    .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
+            System.out.println("Got main passenger");
+            main.setUser(mainUser);
+            main.setRole(PassengerRole.CREATOR);
+            main.setRide(ride);
+            ride.addPassenger(main);
+            if (dto.getLinkedPassengers() != null) {
+                for (String email : dto.getLinkedPassengers()) {
+                    try {
+                        RegisteredUser user = (RegisteredUser) registeredUserRepository.findByEmail(email)
+                                .orElseThrow(() -> new EntityNotFoundException("User with email " + email + " not found"));
+
+                        Passenger passenger = new Passenger();
+                        passenger.setUser(user);
+                        passenger.setRole(PassengerRole.PASSENGER);
+                        passenger.setRide(ride);
+                        ride.addPassenger(passenger);
+                    } catch (Exception e) {
+                        // skip invalid passengers
+                    }
+                }
+
+                route = routeRepository.save(route);
+                ride.setRoute(route);
+                ride = rideRepository.save(ride);
+                response.setDriverId(assigned.getId());
+            }
         }
         response.setId(ride.getId());
-        response.setMainPassengerEmail(dto.getMainPassengerEmail());
+        response.setMainPassengerEmail(mainPassenger);
         response.setStartAddress(dto.getStartAddress());
         response.setEndAddress(dto.getEndAddress());
         response.setStopAddresses(dto.getStopAddresses());
@@ -244,7 +312,13 @@ public class RideService {
     }
 
     public void startRide(Long rideId) {
-        // mock – no logic
+        Ride ride = rideRepository.findById(rideId)
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
+
+        ride.setStatus(RideStatus.IN_PROGRESS);
+        ride.setStartTime(LocalDateTime.now());
+        // TODO: set driver availability to false
+        rideRepository.save(ride);
     }
 
     public List<UpcomingRideDTO> getUpcomingRidesByUser(Long user_id) {
@@ -465,5 +539,42 @@ public class RideService {
         routeRepository.save(route);
 
         ride.setRoute(route);
+    }
+
+    public StartRideResponseDTO passangerPickup(Long id) {
+        Ride ride = rideRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Ride with id " + id + " not found"));
+
+        StartRideResponseDTO responseDTO = new StartRideResponseDTO();
+        responseDTO.setId(ride.getId());
+        // Start and End Address should be up to third comma
+        String startAddress = ride.getRoute().getStartLocation().getAddress();
+        String endAddress = ride.getRoute().getEndLocation().getAddress();
+        String[] startParts = startAddress.split(",", 4);
+        String[] endParts = endAddress.split(",", 4);
+        responseDTO.setStartAddress(startParts.length >= 3 ? String.join(",", startParts[0], startParts[1], startParts[2]) : startAddress);
+        responseDTO.setEndAddress(endParts.length >= 3 ? String.join(",", endParts[0], endParts[1], endParts[2]) : endAddress);
+
+
+        // Map model PolylinePoint objects to DTOs expected by the response
+        List<RoutePointDTO> routePoints = ride.getRoute().getPolylinePoints().stream()
+                .map(pp -> {
+                    RoutePointDTO rp = new RoutePointDTO();
+                    rp.setLat(pp.getLatitude());
+                    rp.setLng(pp.getLongitude());
+                    return rp;
+                })
+                .collect(Collectors.toList());
+        responseDTO.setRoute(routePoints);
+
+        List<String> passengerNames = new ArrayList<>();
+
+        for (Passenger passenger : ride.getPassengers()) {
+            RegisteredUser user = passenger.getUser();
+            passengerNames.add(user.getFirstName() + " " + user.getLastName());
+        }
+        responseDTO.setPassengers(passengerNames);
+
+        return responseDTO;
     }
 }

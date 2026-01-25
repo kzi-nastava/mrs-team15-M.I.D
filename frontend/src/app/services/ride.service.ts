@@ -106,6 +106,11 @@ export class RideService {
     return this.http.get<any>(`${this.apiURL}/${rideId}/track`);
   }
 
+  // Call backend GET /rides/{id}/start which triggers passenger pickup logic
+  passengerPickup(rideId: number) {
+    return this.http.get<any>(`${this.apiURL}/${rideId}/start`);
+  }
+
   stopRide() {
     return this.http.put(`${this.apiURL}/stop`, null);
   }

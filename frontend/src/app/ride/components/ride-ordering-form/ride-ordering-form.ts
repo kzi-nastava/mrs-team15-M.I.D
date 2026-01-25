@@ -517,9 +517,19 @@ export class RideOrderingForm {
       const route = await this.rideService.estimateRoute(estimateReq);
       console.log('Route estimate', route);
 
+      // Normalize any returned route geometry so it can be passed to next page
+      let normalizedRoute: any[] | null = null;
+      try {
+        const roadRoute = route?.route ?? route?.routePoints ?? null;
+        if (Array.isArray(roadRoute) && roadRoute.length > 0) {
+          normalizedRoute = roadRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0], display: p.display || p.name }));
+        }
+      } catch (e) {
+        console.warn('normalizing route failed', e);
+        normalizedRoute = null;
+      }
+
       const userJson = localStorage.getItem('user');
-      let mainEmail = 'guest@example.com';
-      try { if (userJson) mainEmail = JSON.parse(userJson).email || mainEmail; } catch(e) {}
 
       const vehicleTypeChosen = (prefs.vehicleType ? (prefs.vehicleType as string).toUpperCase() : (this.selectedVehicleType || 'STANDARD')) as 'STANDARD' | 'LUXURY' | 'VAN';
 
@@ -532,7 +542,6 @@ export class RideOrderingForm {
       } catch (e) { priceForType = route?.priceEstimate ?? 0; }
 
       const orderDto: any = {
-        mainPassengerEmail: mainEmail,
         startAddress: estimateReq.startAddress,
         startLatitude: estimateReq.startLatitude,
         startLongitude: estimateReq.startLongitude,
@@ -550,6 +559,21 @@ export class RideOrderingForm {
         distanceKm: route?.distanceKm ?? 0,
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
         priceEstimate: priceForType,
+        // include route geometry (if available) so finding-driver can draw it immediately
+        route: normalizedRoute,
+        // backend expects separate arrays of latitudes/longitudes for the whole polyline
+        routeLattitudes: (function(){
+          try {
+            const pts = normalizedRoute && normalizedRoute.length > 0 ? normalizedRoute : ([{ lat: startGeo.lat, lng: startGeo.lon }].concat(stopLatitudes.map((lat,i)=>({lat, lng: stopLongitudes[i]}))).concat([{ lat: endGeo.lat, lng: endGeo.lon }]));
+            return (pts || []).map((p:any)=>p.lat);
+          } catch(e){ return []; }
+        })(),
+        routeLongitudes: (function(){
+          try {
+            const pts = normalizedRoute && normalizedRoute.length > 0 ? normalizedRoute : ([{ lat: startGeo.lat, lng: startGeo.lon }].concat(stopLatitudes.map((lat,i)=>({lat, lng: stopLongitudes[i]}))).concat([{ lat: endGeo.lat, lng: endGeo.lon }]));
+            return (pts || []).map((p:any)=>p.lng);
+          } catch(e){ return []; }
+        })(),
       };
 
       console.log('Order DTO', orderDto);

@@ -6,18 +6,18 @@
             <div class="ride-field mb-3">
                <label><strong>Pickup location</strong></label>
                <div class="ride-value-section">
-                  <p class="ride-value">Bulevar Mihajla Pupina 10, Novi Sad</p>
+                  <p class="ride-value">{{ pickupLocation }}</p>
                </div>
             </div>
             <div class="ride-field mb-3">
                <label><strong>Destination</strong></label>
                <div class="ride-value-section">
-                  <p class="ride-value">Futoška 10, Novi Sad</p>
+                  <p class="ride-value">{{ destination }}</p>
                </div>
             </div>
             <div class="ride-field mb-4 d-flex align-items-center">
                <label class="mb-0">Estimated arrival:</label>
-               <div class="ride-time"> 4 min</div>
+               <div class="ride-time">{{ estimatedArrival }}</div>
             </div>
             <div class="ride-field mb-3">
                <label><i class="bi bi-people me-1"></i><strong>Passengers ({{ passengers.length }})</strong></label>
@@ -35,7 +35,9 @@
                </div>
             </div>
             
-                  <label *ngIf="presentCount < passengers.length" style="color: red;">Start ride when all passengers are aboard.</label>
+            
+
+               <label *ngIf="presentCount < passengers.length" style="color: red;">Start ride when all passengers are aboard.</label>
                   <app-button width="100%" height="38px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Start ride" (clicked)="startRide()"></app-button>
          </form>
     </div>
