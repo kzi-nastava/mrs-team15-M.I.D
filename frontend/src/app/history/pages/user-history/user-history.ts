@@ -106,7 +106,8 @@ export class UserHistory  {
       panicBy: r.panicBy ?? null,
       rating: r.rating ? (r.rating.driverRating ?? r.rating) : null,
       inconsistencies: r.inconsistencies ?? null,
-      favorite: false,
+      favorite: !!(r as any).favoriteRoute,
+      routeId: r.route?.id ?? (r as any).routeId ?? null,
       pickupAddress: r.route?.startLocation?.address ?? r.startAddress ?? null,
       destinationAddress: r.route?.endLocation?.address ?? r.endAddress ?? null,
       stopAddresses: stopAddrs

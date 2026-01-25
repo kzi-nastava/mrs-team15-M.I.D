@@ -4,10 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
-import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
 
@@ -26,35 +24,21 @@ public class PassengerController {
         this.passengerService = passengerService;
     }
 
-    @PutMapping("/{id}/routes/{routeId}")
+    @PutMapping("/favorite-routes/{routeId}")
     public ResponseEntity<RouteResponseDTO> addToFavorites(
-            @PathVariable Long id,
             @PathVariable Long routeId) {
-
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
         return ResponseEntity.ok(passengerService.addToFavorites(id, routeId));
     }
 
-    @DeleteMapping("/{id}/routes/{routeId}")
+    @DeleteMapping("/favorite-routes/{routeId}")
     public ResponseEntity<Void> removeFromFavorites(
-            @PathVariable Long id,
             @PathVariable Long routeId) {
-
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
         passengerService.removeFromFavorites(id, routeId);
         return ResponseEntity.status(204).build();
-    }
-
-    @GetMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<RouteResponseDTO> getRouteById(
-            @PathVariable Long id,
-            @PathVariable Long routeId) {
-
-        RouteResponseDTO dto = new RouteResponseDTO();
-        dto.setRouteId(routeId);
-        dto.setDistanceKm(14.0);
-        dto.setEstimatedTimeMinutes(25);
-        dto.setPriceEstimateStandard(1800);
-
-        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/favorite-routes")

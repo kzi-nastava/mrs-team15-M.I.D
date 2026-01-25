@@ -2,7 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RoutePointDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.FavoriteRoute;
@@ -12,6 +12,8 @@ import rs.ac.uns.ftn.asd.ridenow.model.Ride;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.RegisteredUserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,21 +32,91 @@ public class PassengerService {
     private RegisteredUserRepository registeredUserRepository;
     @Autowired
     private RideRepository rideRepository;
+    @Autowired
+    private RouteRepository routeRepository;
 
     public RouteResponseDTO addToFavorites(Long userId, Long routeId) {
+        RegisteredUser user = registeredUserRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
 
+        Route route = routeRepository.findById(routeId)
+                .orElseThrow(() -> new EntityNotFoundException("Route with id " + routeId + " not found"));
+
+        // check if already in favorites
+        boolean exists = user.getFavoriteRoutes().stream()
+                .anyMatch(fr -> fr.getRoute() != null && fr.getRoute().getId() != null && fr.getRoute().getId().equals(routeId));
+
+        if (!exists) {
+            FavoriteRoute fr = new FavoriteRoute();
+            fr.setRoute(route);
+            fr.assignUser(user);
+            registeredUserRepository.save(user);
+        }
+
+        // build response DTO from route
         RouteResponseDTO dto = new RouteResponseDTO();
-        dto.setRouteId(routeId);
-        dto.setDistanceKm(14.0);
-        dto.setEstimatedTimeMinutes(25);
-        dto.setPriceEstimateStandard(1800);
+        dto.setRouteId(route.getId());
+        dto.setDistanceKm(route.getDistanceKm());
+        dto.setEstimatedTimeMinutes((int) route.getEstimatedTimeMin());
+        dto.setPriceEstimateStandard(priceService.calculatePrice(VehicleType.STANDARD, route.getDistanceKm()));
+        dto.setPriceEstimateLuxury(priceService.calculatePrice(VehicleType.LUXURY, route.getDistanceKm()));
+        dto.setPriceEstimateVan(priceService.calculatePrice(VehicleType.VAN, route.getDistanceKm()));
+        if (route.getEndLocation() != null) {
+            dto.setEndAddress(route.getEndLocation().getAddress());
+            dto.setEndLatitude(route.getEndLocation().getLatitude());
+            dto.setEndLongitude(route.getEndLocation().getLongitude());
+        }
+        if (route.getStartLocation() != null) {
+            dto.setStartAddress(route.getStartLocation().getAddress());
+            dto.setStartLatitude(route.getStartLocation().getLatitude());
+            dto.setStartLongitude(route.getStartLocation().getLongitude());
+        }
+
+        if (route.getStopLocations() != null) {
+            List<String> stops = new ArrayList<>();
+            route.getStopLocations().forEach(stop -> stops.add(stop.getAddress()));
+            dto.setStopAddresses(stops);
+            List<Double> stopLats = new ArrayList<>();
+            route.getStopLocations().forEach(stop -> stopLats.add(stop.getLatitude()));
+            dto.setStopLatitudes(stopLats);
+            List<Double> stopLons = new ArrayList<>();
+            route.getStopLocations().forEach(stop -> stopLons.add(stop.getLongitude()));
+            dto.setStopLongitudes(stopLons);
+        }
+
+        List<RoutePointDTO> routePoints = route.getPolylinePoints().stream()
+                .map(pp -> {
+                    RoutePointDTO rp = new RoutePointDTO();
+                    rp.setLat(pp.getLatitude());
+                    rp.setLng(pp.getLongitude());
+                    return rp;
+                }).collect(Collectors.toList());
+        dto.setRoute(routePoints);
 
         return dto;
     }
 
 
     public void removeFromFavorites(Long userId, Long routeId) {
-        // mock: route removed from favorites
+        RegisteredUser user = registeredUserRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
+
+        FavoriteRoute found = null;
+        for (FavoriteRoute fr : new ArrayList<>(user.getFavoriteRoutes())) {
+            if (fr.getRoute() != null && fr.getRoute().getId() != null && fr.getRoute().getId().equals(routeId)) {
+                found = fr;
+                break;
+            }
+        }
+
+        if (found == null) {
+            throw new EntityNotFoundException("Favorite route with id " + routeId + " not found for user " + userId);
+        }
+
+        // remove association and save user (orphanRemoval=true will delete FavoriteRoute)
+        user.getFavoriteRoutes().remove(found);
+        found.setUser(null);
+        registeredUserRepository.save(user);
     }
 
     public Collection<RouteResponseDTO> getRoutes(Long userId) {
@@ -135,6 +207,17 @@ public class PassengerService {
             dto.setPrice(ride.getPrice());
             dto.setPanicTriggered(ride.getPanicAlert() != null);
 
+            RegisteredUser user = registeredUserRepository.getReferenceById(id);
+            boolean isFavorite = false;
+            for (FavoriteRoute fr : user.getFavoriteRoutes()) {
+                if (fr.getRoute() != null && ride.getRoute() != null && fr.getRoute().getId() != null && ride.getRoute().getId() != null &&
+                        fr.getRoute().getId().equals(ride.getRoute().getId())) {
+                    isFavorite = true;
+                    break;
+                }
+            }
+            dto.setFavoriteRoute(isFavorite);
+            dto.setRouteId(ride.getRoute() != null ? ride.getRoute().getId() : null);
             history.add(dto);
         }
 

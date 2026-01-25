@@ -1,5 +1,6 @@
 import { Component, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { PassengerService } from '../../../services/passenger.service';
 import { CommonModule } from '@angular/common';
 import { AddFavoriteModal } from '../add-favorite-modal/add-favorite-modal';
 import { RemoveFavoriteModal } from '../remove-favorite-modal/remove-favorite-modal';
@@ -7,6 +8,8 @@ import { RemoveFavoriteModal } from '../remove-favorite-modal/remove-favorite-mo
 export interface Ride{
   id: number;
   route: string;
+  // routeId corresponds to backend route identifier (used for favorite toggles)
+  routeId?: number | null;
   startTime: string;
   endTime: string;
   passengers: string;
@@ -44,7 +47,7 @@ export class UserHistoryTable {
   // ride pending favorite change
   private pendingRide: Ride | null = null;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
+  constructor(private router: Router, private cdr: ChangeDetectorRef, private passengerService: PassengerService) {}
 
   @Input()
   set rides(value: Ride[]) {
@@ -157,17 +160,47 @@ private applySorting(): void {
   // Called when add-favorite modal confirm is emitted
   onAddFavoriteConfirmed(): void {
     if (!this.pendingRide) return;
-    this.pendingRide.favorite = true;
-    this.pendingRide = null;
-    // TODO: persist favorite state via API if needed
+    const routeId = (this.pendingRide as any).routeId;
+    if (routeId) {
+      this.passengerService.addFavorite(routeId).subscribe({
+        next: () => {
+          this.pendingRide!.favorite = true;
+          this.pendingRide = null;
+          try { this.cdr.detectChanges(); } catch (e) {}
+        },
+        error: (e) => {
+          console.warn('Failed to add favorite', e);
+          this.pendingRide = null;
+          try { this.cdr.detectChanges(); } catch (e) {}
+        }
+      });
+    } else {
+      this.pendingRide.favorite = true;
+      this.pendingRide = null;
+    }
   }
 
   // Called when remove-favorite modal confirm is emitted
   onRemoveFavoriteConfirmed(): void {
     if (!this.pendingRide) return;
-    this.pendingRide.favorite = false;
-    this.pendingRide = null;
-    // TODO: persist favorite state via API if needed
+    const routeId = (this.pendingRide as any).routeId;
+    if (routeId) {
+      this.passengerService.removeFavorite(routeId).subscribe({
+        next: () => {
+          this.pendingRide!.favorite = false;
+          this.pendingRide = null;
+          try { this.cdr.detectChanges(); } catch (e) {}
+        },
+        error: (e) => {
+          console.warn('Failed to remove favorite', e);
+          this.pendingRide = null;
+          try { this.cdr.detectChanges(); } catch (e) {}
+        }
+      });
+    } else {
+      this.pendingRide.favorite = false;
+      this.pendingRide = null;
+    }
   }
 
 }

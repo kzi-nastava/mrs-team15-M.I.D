@@ -20,4 +20,14 @@ export class PassengerService {
   getFavoriteRoutes(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiURL}/favorite-routes`);
   }
+
+  // PUT /passengers/favorite-routes/{routeId}
+  addFavorite(routeId: number) {
+    return this.http.put<any>(`${this.apiURL}/favorite-routes/${routeId}`, {});
+  }
+
+  // DELETE /passengers/favorite-routes/{routeId}
+  removeFavorite(routeId: number) {
+    return this.http.delete<void>(`${this.apiURL}/favorite-routes/${routeId}`);
+  }
 }
