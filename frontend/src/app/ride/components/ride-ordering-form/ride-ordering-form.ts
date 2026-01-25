@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectorRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Button } from '../../../shared/components/button/button';
@@ -8,6 +8,7 @@ import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
 import { RidePreferenceForm } from '../ride-preference-form/ride-preference-form';
 import { RideService } from '../../../services/ride.service';
+import { PassengerService } from '../../../services/passenger.service';
 import { MapRouteService } from '../../../services/map-route.service';
 
 interface FavoriteRoute {
@@ -24,7 +25,7 @@ interface FavoriteRoute {
   templateUrl: './ride-ordering-form.html',
   styleUrls: ['./ride-ordering-form.css'],
 })
-export class RideOrderingForm {
+export class RideOrderingForm implements OnInit {
   pickupAddress: string = '';
   destinationAddress: string = '';
   stops: string[] = [];
@@ -480,7 +481,37 @@ export class RideOrderingForm {
     this.routeChosen = true;
   }
 
-  constructor(private rideService: RideService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}
+  constructor(private rideService: RideService, private passengerService: PassengerService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}
+
+  ngOnInit(): void {
+    this.loadFavoriteRoutes();
+  }
+
+  private loadFavoriteRoutes() {
+    try {
+      // Load favorite routes for authenticated passenger
+      this.passengerService.getFavoriteRoutes().subscribe({
+        next: (res: any[]) => {
+          try {
+            this.favorites = (res || []).map(r => ({
+              name: r.name ?? r.routeName ?? (r.startAddress && r.endAddress ? `${r.startAddress} → ${r.endAddress}` : 'Favorite'),
+              pickup: r.startAddress ?? r.pickup ?? r.origin ?? '',
+              destination: r.endAddress ?? r.destination ?? r.to ?? '',
+              stops: r.stops ?? r.intermediateStops ?? r.stopAddresses ?? []
+            }));
+            try { this.cdr.detectChanges(); } catch(e) {}
+          } catch (mapErr) {
+            console.warn('Mapping favorite routes failed', mapErr);
+          }
+        },
+        error: (err) => {
+          console.warn('Failed to load favorite routes', err);
+        }
+      });
+    } catch (e) {
+      console.warn('loadFavoriteRoutes failed', e);
+    }
+  }
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);

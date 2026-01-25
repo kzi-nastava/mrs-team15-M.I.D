@@ -2,8 +2,11 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
 
 import java.util.ArrayList;
@@ -51,24 +54,10 @@ public class PassengerController {
         return ResponseEntity.ok(dto);
     }
 
-    @GetMapping("/{userId}/routes")
-    public ResponseEntity<Collection<RouteResponseDTO>> getRoutes(
-            @PathVariable Long userId,
-            @RequestParam(required = false, defaultValue = "false") boolean favorite) {
+    @GetMapping("/favorite-routes")
+    public ResponseEntity<Collection<RouteResponseDTO>> getRoutes() {
 
-        Collection<RouteResponseDTO> collection = new ArrayList<>();
-        RouteResponseDTO dto1 = new RouteResponseDTO();
-        dto1.setRouteId(1L);
-        dto1.setDistanceKm(10.5);
-        dto1.setEstimatedTimeMinutes(20);
-        dto1.setPriceEstimateStandard(1500);
-        collection.add(dto1);
-        RouteResponseDTO dto2 = new RouteResponseDTO();
-        dto2.setRouteId(2L);
-        dto2.setDistanceKm(25.0);
-        dto2.setEstimatedTimeMinutes(40);
-        dto2.setPriceEstimateStandard(3000);
-        collection.add(dto2);
-        return ResponseEntity.ok(collection);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
     }
 }
