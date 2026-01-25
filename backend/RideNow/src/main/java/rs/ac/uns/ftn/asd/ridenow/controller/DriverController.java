@@ -39,7 +39,8 @@ public class DriverController {
     public ResponseEntity<Page<DriverHistoryItemDTO>> getRideHistory(@RequestParam(defaultValue = "0") int page,
                                                                      @RequestParam(defaultValue = "10") int size,
                                                                      @RequestParam(defaultValue = "date") String sortBy,
-                                                                     @RequestParam(defaultValue = "desc") String sortDir) {
+                                                                     @RequestParam(defaultValue = "desc") String sortDir,
+                                                                     @RequestParam(required = false) @Min(0) Long date){
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long id = user.getId();
@@ -47,14 +48,14 @@ public class DriverController {
         Page<DriverHistoryItemDTO> history;
 
         if ("passengers".equals(sortBy)) {
-            history = driverService.getDriverHistory(id,PageRequest.of(page, size), "passengers",  sortDir);
+            history = driverService.getDriverHistory(id,PageRequest.of(page, size), "passengers",  sortDir, date);
         } else if ("duration".equals(sortBy)) {
-            history = driverService.getDriverHistory(id, PageRequest.of(page, size), "duration",  sortDir);
+            history = driverService.getDriverHistory(id, PageRequest.of(page, size), "duration",  sortDir, date);
         } else {
             // Use standard sorting for other fields
             Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
             Pageable pageable = PageRequest.of(page, size, sort);
-            history = driverService.getDriverHistory(id, pageable, "", "");
+            history = driverService.getDriverHistory(id, pageable, "", "", date);
         }
 
         return ResponseEntity.ok(history);

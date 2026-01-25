@@ -19,7 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -55,28 +57,49 @@ public class DriverService {
         this.passwordEncoder = passwordEncoder;
     }
 
-  private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir) {
+  private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
-        if (sortBy.equals("passengers")){
-            if (sortDir.equals("asc")){
-                return rideRepository.findRidesSortedByFirstPassengerNameAsc(driverId, pageable);
-            } else {
-                return rideRepository.findRidesSortedByFirstPassengerNameDesc(driverId, pageable);
-            }
-        } else if (sortBy.equals("duration")){
-            if (sortDir.equals("asc")){
-                return rideRepository.findRidesSortedByDurationAsc(driverId, pageable);
-            } else {
-                return rideRepository.findRidesSortedByDurationDesc(driverId, pageable);
-            }
-        }
-        return rideRepository.findByDriverWithAllRelations(driver, pageable);
+
+      LocalDateTime startOfDay = null;
+      LocalDateTime endOfDay = null;
+
+      if (date != null) {
+          LocalDateTime dateTime = LocalDateTime.ofInstant(
+                  Instant.ofEpochMilli(date), ZoneId.systemDefault());
+          startOfDay = dateTime.toLocalDate().atStartOfDay();
+          endOfDay = dateTime.toLocalDate().atTime(23, 59, 59);
+      }
+
+      if (sortBy.equals("passengers")) {
+          if (sortDir.equals("asc")) {
+              return date != null ?
+                      rideRepository.findRidesSortedByFirstPassengerNameAscWithDate(driverId, startOfDay, endOfDay, pageable) :
+                      rideRepository.findRidesSortedByFirstPassengerNameAsc(driverId, pageable);
+          } else {
+              return date != null ?
+                      rideRepository.findRidesSortedByFirstPassengerNameDescWithDate(driverId, startOfDay, endOfDay, pageable) :
+                      rideRepository.findRidesSortedByFirstPassengerNameDesc(driverId, pageable);
+          }
+      } else if (sortBy.equals("duration")) {
+          if (sortDir.equals("asc")) {
+              return date != null ?
+                      rideRepository.findRidesSortedByDurationAscWithDate(driverId, startOfDay, endOfDay, pageable) :
+                      rideRepository.findRidesSortedByDurationAsc(driverId, pageable);
+          } else {
+              return date != null ?
+                      rideRepository.findRidesSortedByDurationDescWithDate(driverId, startOfDay, endOfDay, pageable) :
+                      rideRepository.findRidesSortedByDurationDesc(driverId, pageable);
+          }
+      }
+      return date != null ?
+              rideRepository.findByDriverWithAllRelationsAndDate(driver, startOfDay, endOfDay, pageable) :
+              rideRepository.findByDriverWithAllRelations(driver, pageable);
     }
 
-    public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable, String sortBy, String sortDir) {
+    public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
-        Page<Ride> driverRides = getRides(driverId, pageable, sortBy, sortDir);
+        Page<Ride> driverRides = getRides(driverId, pageable, sortBy, sortDir, date);
         for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(new RouteDTO(ride.getRoute()));

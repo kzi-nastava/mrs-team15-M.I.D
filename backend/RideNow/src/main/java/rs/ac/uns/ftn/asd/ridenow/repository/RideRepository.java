@@ -51,6 +51,64 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END DESC")
     Page<Ride> findRidesSortedByDurationDesc(@Param("driverId") Long driverId, Pageable pageable);
 
+    // Date-filtered passengers sorting - ascending
+    @Query("SELECT r FROM Ride r " +
+            "WHERE r.driver.id = :driverId " +
+            "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
+            "ORDER BY " +
+            "(SELECT COUNT(p) FROM r.passengers p) ASC, " +
+            "(SELECT MIN(p.user.firstName) FROM r.passengers p) ASC")
+    Page<Ride> findRidesSortedByFirstPassengerNameAscWithDate(@Param("driverId") Long driverId,
+                                                              @Param("startDate") LocalDateTime startDate,
+                                                              @Param("endDate") LocalDateTime endDate,
+                                                              Pageable pageable);
+
+    // Date-filtered passengers sorting - descending
+    @Query("SELECT r FROM Ride r " +
+            "WHERE r.driver.id = :driverId " +
+            "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
+            "ORDER BY " +
+            "(SELECT COUNT(p) FROM r.passengers p) DESC, " +
+            "(SELECT MIN(p.user.firstName) FROM r.passengers p) DESC")
+    Page<Ride> findRidesSortedByFirstPassengerNameDescWithDate(@Param("driverId") Long driverId,
+                                                               @Param("startDate") LocalDateTime startDate,
+                                                               @Param("endDate") LocalDateTime endDate,
+                                                               Pageable pageable);
+
+    // Date-filtered duration sorting - ascending
+    @Query("SELECT r FROM Ride r " +
+            "WHERE r.driver.id = :driverId " +
+            "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
+            "ORDER BY CASE WHEN r.startTime IS NULL OR r.endTime IS NULL THEN 0 ELSE 1 END ASC, " +
+            "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END ASC")
+    Page<Ride> findRidesSortedByDurationAscWithDate(@Param("driverId") Long driverId,
+                                                    @Param("startDate") LocalDateTime startDate,
+                                                    @Param("endDate") LocalDateTime endDate,
+                                                    Pageable pageable);
+
+    // Date-filtered duration sorting - descending
+    @Query("SELECT r FROM Ride r " +
+            "WHERE r.driver.id = :driverId " +
+            "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
+            "ORDER BY CASE WHEN r.startTime IS NULL OR r.endTime IS NULL THEN 1 ELSE 0 END ASC, " +
+            "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END DESC")
+    Page<Ride> findRidesSortedByDurationDescWithDate(@Param("driverId") Long driverId,
+                                                     @Param("startDate") LocalDateTime startDate,
+                                                     @Param("endDate") LocalDateTime endDate,
+                                                     Pageable pageable);
+
+    // Date-filtered standard sorting with relations
+    @Query("SELECT r FROM Ride r " +
+            "LEFT JOIN FETCH r.passengers p " +
+            "LEFT JOIN FETCH p.user " +
+            "LEFT JOIN FETCH r.panicAlert " +
+            "WHERE r.driver = :driver " +
+            "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate")
+    Page<Ride> findByDriverWithAllRelationsAndDate(@Param("driver") Driver driver,
+                                                   @Param("startDate") LocalDateTime startDate,
+                                                   @Param("endDate") LocalDateTime endDate,
+                                                   Pageable pageable);
+
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver = :driver AND r.status = rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus.ACCEPTED")
     List<Ride> findScheduledRidesByDriver(@Param("driver") Driver driver);

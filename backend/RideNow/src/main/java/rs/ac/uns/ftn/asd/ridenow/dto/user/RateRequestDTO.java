@@ -7,12 +7,12 @@ import lombok.Setter;
 @Getter @Setter
 public class RateRequestDTO {
     @NotNull
-    @Max(5)
-    @Min(1)
+    @Max(value = 5, message = "Rating must be between 1 and 5")
+    @Min(value = 1, message = "Rating must be between 1 and 5")
     private Integer driverRating;
     @NotNull
-    @Max(5)
-    @Min(1)
+    @Max(value = 5, message = "Rating must be between 1 and 5")
+    @Min(value = 1, message = "Rating must be between 1 and 5")
     private Integer vehicleRating;
     private String driverComment;
     private String vehicleComment;

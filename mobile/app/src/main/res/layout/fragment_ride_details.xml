@@ -198,13 +198,66 @@
                     android:background="@android:color/black"
                     android:padding="12dp" />
 
-                <TextView
-                    android:id="@+id/tvDetailRating"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/ride_details_rating"
-                    android:textSize="16sp"
-                    android:padding="16dp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Driver Rating Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Driver Rating"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:id="@+id/llDriverStars"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+                        <!-- Stars will be added programmatically -->
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvDriverComment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Driver comment will appear here"
+                        android:textSize="14sp"
+                        android:textColor="#666666"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Vehicle Rating Section -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Vehicle Rating"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <LinearLayout
+                        android:id="@+id/llVehicleStars"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+                        <!-- Stars will be added programmatically -->
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvVehicleComment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Vehicle comment will appear here"
+                        android:textSize="14sp"
+                        android:textColor="#666666" />
+
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

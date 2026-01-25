@@ -75,10 +75,13 @@ export class RideHistoryService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  getDriverRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string): Observable<PaginatedRideHistoryResponse> {
+  getDriverRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string, date?: number): Observable<PaginatedRideHistoryResponse> {
     let url = `${this.apiUrl}/driver/ride-history?page=${page}&size=${size}`;
     if (sortBy && sortDir) {
       url += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+    }
+    if (date !== undefined && date !== null) {
+      url += `&date=${date}`;
     }
     return this.http.get<PaginatedRideHistoryResponse>(url);
   }
