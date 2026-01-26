@@ -50,12 +50,12 @@
                   <a class="nav-link" routerLink="/driver-history" (click)="closeMenu()">Ride History</a>
                 </li>
                 }
-                @if (role === 'DRIVER') {
+                @if (role === 'DRIVER' || role === 'USER') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/upcoming-rides" (click)="closeMenu()">Upcoming Rides</a>
                 </li>
                 }
-                @if (role === 'USER') {
+                @if (role === 'USER' ) {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
                 </li>
