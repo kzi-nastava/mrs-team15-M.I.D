@@ -21,18 +21,20 @@
             </div>
             <div class="ride-field mb-3">
                <label><i class="bi bi-people me-1"></i><strong>Passengers ({{ passengers.length }})</strong></label>
-               <div class="passengers-list mt-2">
-                  <span
-                    *ngFor="let p of passengers; trackBy: trackByPassenger"
-                    class="badge me-1 mb-1"
-                    [ngClass]="p.present ? 'bg-success' : 'bg-secondary'"
-                    (click)="togglePassenger(p)"
-                    role="button"
-                    aria-pressed="{{p.present}}"
-                  >
-                    {{ p.name }}
-                  </span>
-               </div>
+                      <div class="passengers-list mt-2 d-flex flex-wrap">
+                           <div
+                              *ngFor="let p of passengers; trackBy: trackByPassenger"
+                              class="passenger-item me-2 mb-2 d-flex align-items-center p-1"
+                              [ngClass]="p.present ? 'bg-success' : 'bg-secondary'"
+                              (click)="togglePassenger(p)"
+                              role="button"
+                              aria-pressed="{{p.present}}"
+                              style="border-radius:6px; cursor:pointer;"
+                           >
+                              <img [src]="p.image || 'assets/pfp/default-avatar-icon.jpg'" alt="avatar" class="me-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                              <span>{{ p.name }}</span>
+                           </div>
+                      </div>
             </div>
             
             

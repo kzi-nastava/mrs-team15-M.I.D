@@ -11,7 +11,6 @@ import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.ForgotPasswordTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
@@ -25,6 +24,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.context.annotation.Lazy;
 
 @Service
 public class AuthService {
@@ -43,8 +43,10 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    // Inject DriverService lazily to break circular dependency between AuthService <-> DriverService
     @Autowired
-    private  DriverService driverService;
+    @Lazy
+    private DriverService driverService;
 
     @Autowired
     private JwtUtil jwtUtil;

@@ -27,16 +27,24 @@ import java.time.LocalDateTime;
 @Service
 public class PassengerService {
 
-    @Autowired
-    private PriceService priceService;
-    @Autowired
-    private RegisteredUserRepository registeredUserRepository;
-    @Autowired
-    private RideRepository rideRepository;
-    @Autowired
-    private RouteRepository routeRepository;
+    private final PriceService priceService;
+    private final RegisteredUserRepository registeredUserRepository;
+    private final RideRepository rideRepository;
+    private final RouteRepository routeRepository;
+
+    public PassengerService(PriceService priceService,
+                            RegisteredUserRepository registeredUserRepository,
+                            RideRepository rideRepository,
+                            RouteRepository routeRepository) {
+        this.priceService = priceService;
+        this.registeredUserRepository = registeredUserRepository;
+        this.rideRepository = rideRepository;
+        this.routeRepository = routeRepository;
+    }
 
     public RouteResponseDTO addToFavorites(Long userId, Long routeId) {
+
+        // fetch user and route
         RegisteredUser user = registeredUserRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
 
@@ -99,6 +107,8 @@ public class PassengerService {
 
 
     public void removeFromFavorites(Long userId, Long routeId) {
+
+        // fetch user and find favorite route
         RegisteredUser user = registeredUserRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
 
@@ -114,7 +124,6 @@ public class PassengerService {
             throw new EntityNotFoundException("Favorite route with id " + routeId + " not found for user " + userId);
         }
 
-        // remove association and save user (orphanRemoval=true will delete FavoriteRoute)
         user.getFavoriteRoutes().remove(found);
         found.setUser(null);
         registeredUserRepository.save(user);

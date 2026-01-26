@@ -41,7 +41,7 @@ public class DriverService {
     private final VehicleRepository vehicleRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final AuthService authService = new AuthService();
+    private final AuthService authService;
 
     public DriverService(RideRepository rideRepository,
                          RatingRepository ratingRepository, DriverRepository driverRepository,
@@ -50,7 +50,7 @@ public class DriverService {
                          UserRepository userRepository,
                          EmailService emailService,
                          PasswordEncoder passwordEncoder,
-                         VehicleRepository vehicleRepository) {
+                         VehicleRepository vehicleRepository, AuthService authService) {
         this.rideRepository = rideRepository;
         this.ratingRepository = ratingRepository;
         this.driverRepository = driverRepository;
@@ -60,6 +60,7 @@ public class DriverService {
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.vehicleRepository = vehicleRepository;
+        this.authService = authService;
     }
 
   private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
@@ -153,7 +154,22 @@ public class DriverService {
     }
 
     public DriverChangeResponseDTO requestDriverChanges(Driver driver, DriverChangeRequestDTO request, MultipartFile profileImage) throws IOException {
-        // map DTO -> entity
+
+        // Check email and license plate uniqueness
+        if (request.getEmail() != null && !request.getEmail().equals(driver.getEmail())) {
+            Optional<User> existing = userRepository.findByEmail(request.getEmail());
+            if (existing.isPresent() && !existing.get().getId().equals(driver.getId())) {
+                throw new IllegalArgumentException("Email already in use: " + request.getEmail());
+            }
+        }
+        // License plate check
+        if (request.getLicensePlate() != null && driver.getVehicle() != null && !request.getLicensePlate().equals(driver.getVehicle().getLicencePlate())) {
+            Vehicle existingVehicle = vehicleRepository.findByLicencePlate(request.getLicensePlate());
+            if (existingVehicle != null && !existingVehicle.getDriver().getId().equals(driver.getId())) {
+                throw new IllegalArgumentException("License plate already in use: " + request.getLicensePlate());
+            }
+        }
+
         DriverChangeResponseDTO response = new DriverChangeResponseDTO();
         DriverRequest entity = new DriverRequest();
         entity.setSubmissionDate(new Date(System.currentTimeMillis()));
@@ -165,7 +181,12 @@ public class DriverService {
         entity.setLastName(request.getLastName());
         entity.setPhoneNumber(request.getPhoneNumber());
         entity.setAddress(request.getAddress());
-        String profileImageURL = authService.generateProfileImageUrl(profileImage);
+        String profileImageURL = driver.getProfileImage();
+        // Check if profile image is provided
+        if (profileImage != null && !profileImage.isEmpty()){
+            profileImageURL = authService.generateProfileImageUrl(profileImage);
+
+        }
         entity.setProfileImage(profileImageURL);
         entity.setLicensePlate(request.getLicensePlate());
         entity.setVehicleModel(request.getVehicleModel());
@@ -187,7 +208,6 @@ public class DriverService {
         response.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
         response.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
 
-        // vehicleId is required by entity; try to set to driver's current vehicle if present
 
         if (driver.getVehicle() != null) {
             entity.setVehicleId(driver.getVehicle().getId());
@@ -295,7 +315,6 @@ public class DriverService {
 
         ActivationToken activationToken = optionalToken.get();
         if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            // handle expiry: delete old token, attach new token and resend activation email
             handleExpiredActivationToken(activationToken);
             throw new IllegalArgumentException("Token expired. New activation link sent to your email.");
         }

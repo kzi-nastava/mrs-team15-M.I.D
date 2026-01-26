@@ -14,6 +14,7 @@ public class StartRideResponseDTO {
     private String endAddress;
     private List<String> passengers;
     private List<RoutePointDTO> route;
+    private List<String> passengerImages;
 
     public StartRideResponseDTO() {
         super();

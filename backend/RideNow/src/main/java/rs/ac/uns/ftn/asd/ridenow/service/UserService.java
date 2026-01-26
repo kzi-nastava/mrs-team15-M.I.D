@@ -21,13 +21,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final DriverRepository driverRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
 
-    public UserService(UserRepository userRepository, DriverRepository driverRepository, PasswordEncoder passwordEncoder, AuthService authService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthService authService) {
         this.userRepository = userRepository;
-        this.driverRepository = driverRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
     }
@@ -43,12 +41,7 @@ public class UserService {
         // verify current password
         String stored = user.getPassword();
         boolean matches;
-        if (stored != null && (stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$"))) {
-            matches = passwordEncoder.matches(dto.getCurrentPassword(), stored);
-        } else {
-            matches = dto.getCurrentPassword() != null && dto.getCurrentPassword().equals(stored);
-        }
-        System.out.println(passwordEncoder.encode(stored));
+        matches = passwordEncoder.matches(dto.getCurrentPassword(), stored);
         if (!matches) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
@@ -73,7 +66,7 @@ public class UserService {
         UserResponseDTO dto = new UserResponseDTO();
 
         dto.setId(user.getId());
-        dto.setRole(user instanceof Driver ? UserRoles.DRIVER : UserRoles.USER);
+        dto.setRole(user.getRole());
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
@@ -83,7 +76,6 @@ public class UserService {
         dto.setActive(user.isActive());
 
         if (user instanceof Driver driver) {
-            System.out.println("Fetching driver details for user ID: " + user.getId());
             Vehicle vehicle = driver.getVehicle();
 
             if (vehicle != null) {
@@ -103,6 +95,7 @@ public class UserService {
     }
 
     public void updateUser(Long userId, UpdateProfileRequestDTO dto, MultipartFile profileImage) throws IOException {
+
         Optional<User> opt = userRepository.findById(userId);
         if (opt.isEmpty()) {
             throw new IllegalArgumentException("User not found with id: " + userId);
@@ -124,8 +117,13 @@ public class UserService {
         user.setLastName(dto.getLastName());
         user.setPhoneNumber(dto.getPhoneNumber());
         user.setAddress(dto.getAddress());
-        String profileImageURL = authService.generateProfileImageUrl(profileImage);
-        user.setProfileImage(profileImageURL);
+        // Check if profile image is provided
+        if (profileImage != null && !profileImage.isEmpty()){
+            String profileImageURL = authService.generateProfileImageUrl(profileImage);
+            user.setProfileImage(profileImageURL);
+        }else{
+            user.setProfileImage(user.getProfileImage());
+        }
 
         userRepository.save(user);
     }

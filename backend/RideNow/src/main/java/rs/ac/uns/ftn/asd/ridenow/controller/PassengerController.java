@@ -60,7 +60,6 @@ public class PassengerController {
     public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
                                                                    @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         return ResponseEntity.ok().body(passengerService.getRideHistory(user.getId(),dateFrom, dateTo, sortBy, sortDirection));
     }
 }
