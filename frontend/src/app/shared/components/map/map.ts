@@ -4,6 +4,7 @@ import { VehicleService } from '../../../services/vehicle.service';
 import { Subscription } from 'rxjs';
 import { Vehicle } from '../../../model/vehicle.model';
 import { MapRouteService } from '../../../services/map-route.service';
+import { LocationTrackingService } from '../../../services/location-tracking.service';
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -23,14 +24,18 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private alertSubscription?: Subscription;
   private markersSubscription?: Subscription;
   private vehicleLocationSubscription?: Subscription;
+  private driverLocationSubscription?: Subscription;
   private trackedVehicleMarker?: any;
+  private driverLocationMarker?: any;
+  private driverLicencePlate: string | null = null;
 
   private currentRoute: any[] = [];
   private isAlertMode: boolean = false;
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private vehicleService: VehicleService,
-    private mapRouteService: MapRouteService
+    private mapRouteService: MapRouteService,
+    private locationTrackingService: LocationTrackingService
   ) {}
   async ngAfterViewInit(): Promise<void> {
     if (isPlatformBrowser(this.platformId)) {
@@ -67,10 +72,28 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.clearTrackedVehicle();
     }
   });
+
+  // Subscribe to driver's current location updates
+  this.driverLocationSubscription = this.locationTrackingService.currentLocation$.subscribe(async location => {
+    if (location) {
+      const L = await import('leaflet');
+      this.updateDriverLocation(location.lat, location.lon, L);
+    } else {
+      this.clearDriverLocation();
+    }
+  });
+
+  // Subscribe to driver's license plate
+  this.locationTrackingService.driverLicencePlate$.subscribe(licencePlate => {
+    this.driverLicencePlate = licencePlate;
+  });
 }
   ngOnDestroy(): void {
     if (this.vehicleLocationSubscription) {
       this.vehicleLocationSubscription.unsubscribe();
+    }
+    if (this.driverLocationSubscription) {
+      this.driverLocationSubscription.unsubscribe();
     }
     if (this.vehiclesSubscription) {
       this.vehiclesSubscription.unsubscribe();
@@ -118,7 +141,20 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
   }
   private updateVehicleMarkers(vehicles: Vehicle[], L: any): void {
-    vehicles.forEach(vehicle => {
+    // Filter out the driver's own vehicle if they are currently active
+    const filteredVehicles = this.driverLicencePlate
+      ? vehicles.filter(v => v.licencePlate !== this.driverLicencePlate)
+      : vehicles;
+
+    // Remove markers for vehicles that no longer exist or belong to the driver
+    this.vehicleMarkers.forEach((marker, licencePlate) => {
+      if (!filteredVehicles.find(v => v.licencePlate === licencePlate)) {
+        this.map.removeLayer(marker);
+        this.vehicleMarkers.delete(licencePlate);
+      }
+    });
+
+    filteredVehicles.forEach(vehicle => {
       let marker = this.vehicleMarkers.get(vehicle.licencePlate);
       if (!marker) {
         marker = this.createVehicleMarker(vehicle, L);
@@ -257,11 +293,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     } catch (e) {
       console.warn('fitBounds markers failed', e);
     }
-  
+
     // markers-only: we already added start/end above; nothing more to do here
 }
 
-    
+
   private clearMarkers() {
     if (this.markersLayerGroup && this.map) {
       this.map.removeLayer(this.markersLayerGroup);
@@ -348,6 +384,42 @@ private clearTrackedVehicle(): void {
   if (this.trackedVehicleMarker && this.map) {
     this.map.removeLayer(this.trackedVehicleMarker);
     this.trackedVehicleMarker = undefined;
+  }
+}
+
+private updateDriverLocation(lat: number, lon: number, L: any): void {
+  if (!this.map) return;
+
+  if (this.driverLocationMarker) {
+    // Update existing marker position
+    this.driverLocationMarker.setLatLng([lat, lon]);
+  } else {
+    // Create new marker for driver location
+    const svgString = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="14" fill="#10b981" stroke="white" stroke-width="3"/>
+        <circle cx="16" cy="16" r="6" fill="white"/>
+        <circle cx="16" cy="16" r="3" fill="#10b981"/>
+      </svg>
+    `;
+
+    const icon = L.icon({
+      iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString),
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -18]
+    });
+
+    this.driverLocationMarker = L.marker([lat, lon], { icon })
+      .addTo(this.map)
+      .bindPopup('Your current location');
+  }
+}
+
+private clearDriverLocation(): void {
+  if (this.driverLocationMarker && this.map) {
+    this.map.removeLayer(this.driverLocationMarker);
+    this.driverLocationMarker = undefined;
   }
 }
 }

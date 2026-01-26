@@ -22,11 +22,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 public class DriverService {
@@ -36,6 +38,7 @@ public class DriverService {
     private final DriverRequestRepository driverRequestRepository;
     private final ActivationTokenRepository activationTokenRepository;
     private final UserRepository userRepository;
+    private final VehicleRepository vehicleRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService = new AuthService();
@@ -46,7 +49,8 @@ public class DriverService {
                          ActivationTokenRepository activationTokenRepository,
                          UserRepository userRepository,
                          EmailService emailService,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         VehicleRepository vehicleRepository) {
         this.rideRepository = rideRepository;
         this.ratingRepository = ratingRepository;
         this.driverRepository = driverRepository;
@@ -55,6 +59,7 @@ public class DriverService {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
+        this.vehicleRepository = vehicleRepository;
     }
 
   private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
@@ -196,15 +201,54 @@ public class DriverService {
         return response;
     }
 
+    private String formatAddress(String fullAddress) {
+        if (fullAddress == null || fullAddress.trim().isEmpty()) {
+            return fullAddress;
+        }
+
+        String[] parts = fullAddress.split(",");
+        if (parts.length < 1) {
+            return fullAddress; // Return original if not enough parts
+        }
+
+        StringBuilder formattedAddress = new StringBuilder();
+
+        // Check if first part contains a number (house number)
+        String firstPart = parts[0].trim();
+        Pattern numberPattern = Pattern.compile("\\d+");
+        boolean hasHouseNumber = numberPattern.matcher(firstPart).find();
+
+        if (hasHouseNumber) {
+            // If there's a house number, append it and then the street (second part)
+            formattedAddress.append(firstPart).append(" ");
+            if (parts.length > 1) {
+                formattedAddress.append(parts[1].trim());
+            }
+        } else {
+            // If no house number, the first part is the street
+            formattedAddress.append(firstPart);
+        }
+
+        // Add city (6th from behind, which is parts.length - 6)
+        int cityIndex = parts.length - 6;
+        if (cityIndex >= 0 && cityIndex < parts.length) {
+            formattedAddress.append(", ").append(parts[cityIndex].trim());
+        }
+
+        return formattedAddress.toString();
+    }
+
     public List<UpcomingRideDTO> findScheduledRides(Long driverId) {
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
         List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
         List<UpcomingRideDTO> rideDTOs = new ArrayList<>();
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
         for (Ride ride : rides) {
             UpcomingRideDTO dto = new UpcomingRideDTO();
             dto.setId(ride.getId());
-            dto.setStartTime(ride.getScheduledTime().toString());
+            dto.setStartTime(ride.getScheduledTime().format(formatter));
             dto.setPassengers("");
             for (Passenger p : ride.getPassengers()) {
                 dto.setPassengers(dto.getPassengers() + p.getUser().getFirstName() + " " + p.getUser().getLastName() + ", ");
@@ -213,7 +257,11 @@ public class DriverService {
                 dto.setPassengers(dto.getPassengers().substring(0, dto.getPassengers().length() - 2));
             }
             dto.setCanCancel(true);
-            dto.setRoute(ride.getRoute().getStartLocation().getAddress() + " → " + ride.getRoute().getEndLocation().getAddress());
+
+            String formattedStartAddress = formatAddress(ride.getRoute().getStartLocation().getAddress());
+            String formattedEndAddress = formatAddress(ride.getRoute().getEndLocation().getAddress());
+
+            dto.setRoute(formattedStartAddress + " → " + formattedEndAddress);
             rideDTOs.add(dto);
         }
 
@@ -291,5 +339,21 @@ public class DriverService {
         userRepository.save(user);
         // send email
         emailService.sendDriverActivationMail(user.getEmail(), newToken);
+    }
+
+    public DriverLocationResponseDTO updateDriverLocation(Driver driver, DriverLocationRequestDTO request) {
+        Vehicle vehicle = vehicleRepository.findByDriver(driver);
+        if (vehicle == null) {
+            throw new IllegalArgumentException("Driver not found");
+        }
+        vehicle.setLat(request.getLat());
+        vehicle.setLon(request.getLon());
+        vehicleRepository.save(vehicle);
+
+        DriverLocationResponseDTO response = new DriverLocationResponseDTO();
+        response.setLat(request.getLat());
+        response.setLon(request.getLon());
+        response.setLicencePlate(vehicle.getLicencePlate());
+        return response;
     }
 }

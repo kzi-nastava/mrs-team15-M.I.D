@@ -129,7 +129,15 @@ public class DriverController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("message", "Failed to activate account"));
         }
-
     }
 
+    @PutMapping("/update-location")
+    public ResponseEntity<DriverLocationResponseDTO> updateDriverLocation(@Valid @RequestBody DriverLocationRequestDTO request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof Driver driver) {
+            DriverLocationResponseDTO response = driverService.updateDriverLocation(driver, request);
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().build();
+    }
 }

@@ -25,17 +25,17 @@ export class UpcomingRides {
 
   allUpcomingRides: UpcomingRide[] = [];
   filteredUpcomingRides: UpcomingRide[] = [...this.allUpcomingRides]
-   
+
 ngOnInit(): void {
   const role = localStorage.getItem('role');
   this.isDriver = role === 'DRIVER';
-  
+
   if (role !== 'USER' && role !== 'DRIVER') {
     this.showMessageToast('Access denied');
     return;
   }
 
-  const ridesObservable = this.isDriver 
+  const ridesObservable = this.isDriver
     ? this.driverService.getUpcomingRides()
     : this.rideService.getMyUpcomingRides();
 
@@ -50,7 +50,8 @@ ngOnInit(): void {
         );
       }
 
-      this.cdr.detectChanges();
+      // Trigger change detection after data is set
+      setTimeout(() => this.cdr.detectChanges(), 0);
     },
     error: (err) => {
       console.error('Error fetching upcoming rides:', err);
@@ -70,11 +71,11 @@ ngOnInit(): void {
     this.filteredUpcomingRides = [...this.allUpcomingRides];
   }
 
-  
+
   showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;
-    this.cdr.detectChanges();  
+    this.cdr.detectChanges();
     setTimeout(() => { this.showMessage = false;}, 3000);
   }
 }

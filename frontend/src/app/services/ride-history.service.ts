@@ -16,6 +16,7 @@ export interface Route {
   startLocation: Location;
   endLocation: Location;
   stopLocations: Location[];
+  polylinePoints: Location[];
 }
 
 export interface Rating {
