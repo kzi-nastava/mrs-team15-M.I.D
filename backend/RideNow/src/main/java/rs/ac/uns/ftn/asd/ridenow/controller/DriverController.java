@@ -90,7 +90,7 @@ public class DriverController {
         if (user instanceof  Driver driver){
             return ResponseEntity.ok(driverService.requestDriverChanges(driver, request, profileImage));
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(403).build();
 
     }
 
@@ -121,6 +121,7 @@ public class DriverController {
 
     @PutMapping("/activate-account")
     public ResponseEntity<?> activateDriverAccount(@RequestBody DriverAccountActivationRequestDTO request) {
+        
         try {
             driverService.activateDriverAccountByToken(request);
             return ResponseEntity.ok(Map.of("message", "Account activated successfully"));

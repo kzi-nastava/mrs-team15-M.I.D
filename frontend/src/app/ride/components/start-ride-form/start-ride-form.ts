@@ -22,6 +22,7 @@ export class StartRideForm implements OnInit, OnChanges {
   pickupLocation: string = 'Bulevar Mihajla Pupina 10, Novi Sad';
   destination: string = 'Futoška 10, Novi Sad';
   estimatedArrival: string = '4 min';
+  backendUrl: string = 'http://localhost:8081';
 
   constructor(
     private router: Router,
@@ -56,10 +57,12 @@ export class StartRideForm implements OnInit, OnChanges {
 
     this.rideService.passengerPickup(rideId).subscribe({
       next: (res) => {
+        console.log('passengerPickup response:', res);
         this.applyBackendDataToUI(res);
         try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
       },
       error: (err) => {
+        console.error('passengerPickup error:', err);
         try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
       }
     });
@@ -76,9 +79,30 @@ export class StartRideForm implements OnInit, OnChanges {
           let name = '';
           if (typeof p === 'string') name = p;
           else name = p.name ?? p.fullName ?? (p.firstName && p.lastName ? `${p.firstName} ${p.lastName}` : JSON.stringify(p));
-          return { name: name, present: false };
+          return { name: name, present: false, image: null } as any;
         });
         this.presentCount = this.passengers.filter(p => p.present).length;
+        break;
+      }
+    }
+
+    // attach passenger images if backend returned them (by index)
+    const imageKeys = ['passengerImages', 'passengerImageUrls', 'passengerPhotos', 'passengerPhotoUrls'];
+    for (const k of imageKeys) {
+      if (res[k] && Array.isArray(res[k]) && this.passengers && this.passengers.length > 0) {
+        const imgs = res[k];
+        for (let i = 0; i < imgs.length && i < this.passengers.length; i++) {
+          const raw = imgs[i];
+          if (!raw) continue;
+          let url = '';
+          if (typeof raw === 'string') url = raw;
+          else if (raw.url) url = raw.url;
+          else if (raw.path) url = raw.path;
+
+          // prefix backend url when path is relative
+          if (url && url.startsWith('/')) url = this.backendUrl + url;
+          this.passengers[i].image = url || null;
+        }
         break;
       }
     }
@@ -168,8 +192,8 @@ export class StartRideForm implements OnInit, OnChanges {
       const rideId = this.getRideId();
       if (Number.isFinite(rideId)) {
         this.driverService.startRide(rideId).subscribe({
-          next: () => this.router.navigate(['/current-ride']),
-          error: () => this.router.navigate(['/current-ride'])
+          next: (res) => { console.log('startRide response:', res); this.router.navigate(['/current-ride']); },
+          error: (err) => { console.error('startRide error:', err); this.router.navigate(['/current-ride']); }
         });
       } else {
         // no ride id provided — fall back to previous local navigation
@@ -204,8 +228,8 @@ export class StartRideForm implements OnInit, OnChanges {
     const rideId = this.getRideId();
     if (Number.isFinite(rideId)) {
       this.driverService.startRide(rideId).subscribe({
-        next: () => this.router.navigate(['/current-ride']),
-        error: () => this.router.navigate(['/current-ride'])
+        next: (res) => { console.log('confirmStart startRide response:', res); this.router.navigate(['/current-ride']); },
+        error: (err) => { console.error('confirmStart startRide error:', err); this.router.navigate(['/current-ride']); }
       });
     } else {
       this.router.navigate(['/current-ride']);
@@ -213,9 +237,9 @@ export class StartRideForm implements OnInit, OnChanges {
   }
   
   // Example passengers list — replace with real data as needed
-  passengers: { name: string; present: boolean }[] = [
-    { name: 'Marko Marković', present: false },
-    { name: 'Ana Jovanović', present: false },
+  passengers: { name: string; present: boolean; image?: string | null }[] = [
+    { name: 'Marko Marković', present: false, image: null },
+    { name: 'Ana Jovanović', present: false, image: null },
   ];
 
   trackByPassenger(index: number, passenger: { name: string; present: boolean }) {

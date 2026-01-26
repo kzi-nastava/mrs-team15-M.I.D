@@ -83,7 +83,7 @@ public class AdminService {
 
         // set admin response date
         req.setAdminResponseDate(new Date(System.currentTimeMillis()));
-
+        req.setMessage(dto.getMessage());
         if (dto.isApproved()) {
             req.setRequestStatus(DriverChangesStatus.APPROVED);
 
@@ -158,6 +158,7 @@ public class AdminService {
 
         } else {
             req.setRequestStatus(DriverChangesStatus.REJECTED);
+
         }
 
         driverRequestRepository.save(req);

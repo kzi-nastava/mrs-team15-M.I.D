@@ -26,6 +26,8 @@ public class DriverRequest{
     @Enumerated(EnumType.STRING)
     private DriverChangesStatus requestStatus;
 
+    private String message;
+
 
     @Column(nullable = false)
     private Long driverId;

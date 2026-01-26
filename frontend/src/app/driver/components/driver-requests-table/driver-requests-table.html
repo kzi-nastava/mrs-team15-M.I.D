@@ -30,7 +30,7 @@
         </td>
         <td>{{ r.originalDriver._full?.firstName || r.changedDriver.firstName }} {{ r.originalDriver._full?.lastName || r.changedDriver.lastName }}</td>
         <td>{{ r.id }}</td>
-        <td>{{ r.submittedAt | date:'short' }}</td>
+        <td>{{ r.submittedAt | date:'shortDate' }}</td>
         <td>
           <span class="status {{ r.status }}">{{ r.status | titlecase }}</span>
         </td>

@@ -84,18 +84,14 @@ public class AdminController {
     @PostMapping("/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
             @Valid @RequestBody RegisterDriverRequestDTO request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.status(201).body(adminService.register(request));
     }
 
     @GetMapping("/driver-requests")
     public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests() {
-        System.out.println("User is an administrator.");
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(user instanceof Administrator)) {
-            return ResponseEntity.ok(adminService.getDriverRequests());
-        }
-        System.out.println("User is not an administrator.");
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(adminService.getDriverRequests());
     }
 
     @PutMapping("driver-requests/{requestId}")
@@ -104,22 +100,15 @@ public class AdminController {
             @Valid @RequestBody AdminChangesReviewRequestDTO dto) {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(user instanceof Administrator)) {
-            Long id = user.getId();
-            adminService.reviewDriverRequest(id, requestId, dto);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+        Long id = user.getId();
+        adminService.reviewDriverRequest(id, requestId, dto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(user instanceof  Administrator)){
-            return ResponseEntity.ok(userService.getUserById(id));
-        }
-        return ResponseEntity.badRequest().build();
-
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
 }

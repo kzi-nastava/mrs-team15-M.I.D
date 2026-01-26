@@ -18,5 +18,6 @@ export class StartRide implements OnInit {
     // Try to read ride data from navigation extras state first, fall back to history.state
     const nav = this.router.getCurrentNavigation?.();
     this.ride = nav?.extras?.state?.['ride'] ?? (window.history.state && window.history.state['ride'] ? window.history.state['ride'] : null);
+    console.log('StartRide ngOnInit - ride:', this.ride);
   }
 }
