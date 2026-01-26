@@ -4,6 +4,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { RideHistoryTableComponent, Ride } from '../../components/ride-history-table/ride-history-table';
 import { RideHistoryService, RideHistoryResponse, PaginatedRideHistoryResponse } from '../../../services/ride-history.service';
 import { Button } from '../../../shared/components/button/button';
+import { formatAddress } from '../../../shared/utils/address.utils';
 
 @Component({
   selector: 'app-driver-history',
@@ -63,7 +64,7 @@ export class DriverHistory implements OnInit {
     return apiData.map((ride, index) => ({
       id: index + 1,
       route: ride.route
-        ? `${ride.route.startLocation.address} → ${ride.route.endLocation.address}`
+        ? `${formatAddress(ride.route.startLocation.address)} → ${formatAddress(ride.route.endLocation.address)}`
         : 'N/A',
       passengers: ride.passengers.join(', '),
       date: ride.date,

@@ -41,9 +41,12 @@ export class UpcomingRidesTable implements OnInit {
   @Input()
   set upcomingRides(value: UpcomingRide[]) {
     this._upcomingRides = value;
-    if (this._upcomingRides.length > 0) {
-      this.applySorting();
-    }
+    // Use setTimeout to defer sorting to next change detection cycle
+    setTimeout(() => {
+      if (this._upcomingRides.length > 0) {
+        this.applySorting();
+      }
+    }, 0);
     console.log(this.upcomingRides);
   }
   get upcomingRides(): UpcomingRide[] {
@@ -84,9 +87,16 @@ private applySorting(): void {
 
     if (this.sortColumn === 'startTime') {
       const parse = (value: string) => {
-        const [datePart, timePart] = value.split(', ');
-        const [day, month, year] = datePart.split('-').map(Number);
+        if (!value) return 0;
+        // Format: "DD/MM/YYYY HH:MM"
+        const [datePart, timePart] = value.split(' ');
+        if (!datePart || !timePart) return 0;
+
+        const [day, month, year] = datePart.split('/').map(Number);
         const [hour, minute] = timePart.split(':').map(Number);
+
+        if (isNaN(day) || isNaN(month) || isNaN(year) || isNaN(hour) || isNaN(minute)) return 0;
+
         return new Date(year, month - 1, day, hour, minute).getTime();
       };
 

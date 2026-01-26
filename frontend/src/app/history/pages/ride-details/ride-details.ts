@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, PLATFORM_ID, I
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Ride } from '../../components/ride-history-table/ride-history-table';
-import { RideService } from '../../../services/ride.service';
+import { formatAddress } from '../../../shared/utils/address.utils';
 
 @Component({
   selector: 'app-ride-details',
@@ -20,7 +20,6 @@ export class RideDetails implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private rideService: RideService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     // Get ride data from navigation state in constructor
@@ -79,102 +78,71 @@ export class RideDetails implements OnInit, AfterViewInit, OnDestroy {
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
 
-    // Fetch the actual route from the estimate endpoint
-    this.rideService.estimate({
-      startAddress: routeData.startLocation.address,
-      destinationAddress: routeData.endLocation.address
-    }).subscribe({
-      next: (response) => {
-        if (response && response.route) {
-          // Draw the route using the fetched route data
-          const routeCoordinates: [number, number][] = response.route.map(
-            (point: any) => [point.lat, point.lng] as [number, number]
-          );
-
-          // Draw the route as a polyline
-          const routeLine = L.polyline(routeCoordinates, {
-            color: '#0d6efd',
-            weight: 4,
-            opacity: 0.8
-          }).addTo(this.map);
-
-          // Create custom icons for start and end points
-          const startIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div style="background-color: #28a745; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-               <span style="color: white; font-weight: bold; font-size: 18px;">A</span>
-             </div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-          });
-
-          const endIcon = L.divIcon({
-            className: 'custom-marker',
-            html: `<div style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-               <span style="color: white; font-weight: bold; font-size: 18px;">B</span>
-             </div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-          });
-
-          // Add start marker
-          L.marker(routeCoordinates[0], { icon: startIcon })
-            .addTo(this.map)
-            .bindPopup(`<b>Start</b><br>${routeData.startLocation.address}`);
-
-          // Add end marker
-          L.marker(routeCoordinates[routeCoordinates.length - 1], { icon: endIcon })
-            .addTo(this.map)
-            .bindPopup(`<b>End</b><br>${routeData.endLocation.address}`);
-
-          // Fit the map to show the entire route
-          this.map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-        }
-      },
-      error: (err) => {
-        console.error('Error fetching route:', err);
-        // Fallback: draw simple line between start and end if estimate fails
-        const routeCoordinates: [number, number][] = [
+    // Use polylinePoints from the route data if available
+    const routeCoordinates: [number, number][] = routeData.polylinePoints && routeData.polylinePoints.length > 0
+      ? routeData.polylinePoints.map(point => [point.latitude, point.longitude] as [number, number])
+      : [
           [routeData.startLocation.latitude, routeData.startLocation.longitude],
           ...routeData.stopLocations.map(stop => [stop.latitude, stop.longitude] as [number, number]),
           [routeData.endLocation.latitude, routeData.endLocation.longitude]
         ];
 
-        const routeLine = L.polyline(routeCoordinates, {
-          color: '#0d6efd',
-          weight: 4,
-          opacity: 0.8
-        }).addTo(this.map);
+    // Draw the route as a polyline
+    const routeLine = L.polyline(routeCoordinates, {
+      color: '#0d6efd',
+      weight: 4,
+      opacity: 0.8
+    }).addTo(this.map);
 
-        const startIcon = L.divIcon({
-          className: 'custom-marker',
-          html: `<div style="background-color: #28a745; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-               <span style="color: white; font-weight: bold; font-size: 18px;">A</span>
-             </div>`,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15]
-        });
-
-        const endIcon = L.divIcon({
-          className: 'custom-marker',
-          html: `<div style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
-               <span style="color: white; font-weight: bold; font-size: 18px;">B</span>
-             </div>`,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15]
-        });
-
-        L.marker(routeCoordinates[0], { icon: startIcon })
-          .addTo(this.map)
-          .bindPopup(`<b>Start</b><br>${routeData.startLocation.address}`);
-
-        L.marker(routeCoordinates[routeCoordinates.length - 1], { icon: endIcon })
-          .addTo(this.map)
-          .bindPopup(`<b>End</b><br>${routeData.endLocation.address}`);
-
-        this.map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
-      }
+    // Create custom icons for start and end points
+    const startIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="background-color: #28a745; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+             <span style="color: white; font-weight: bold; font-size: 18px;">A</span>
+           </div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
     });
+
+    const endIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="background-color: #dc3545; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+             <span style="color: white; font-weight: bold; font-size: 18px;">B</span>
+           </div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+
+    // Add start marker
+    L.marker(routeCoordinates[0], { icon: startIcon })
+      .addTo(this.map)
+      .bindPopup(`<b>Start</b><br>${formatAddress(routeData.startLocation.address)}`);
+
+    // Add stop location markers
+    if (routeData.stopLocations && routeData.stopLocations.length > 0) {
+      routeData.stopLocations.forEach((stop, index) => {
+        const stopIcon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div style="background-color: #ffc107; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                 <span style="color: white; font-weight: bold; font-size: 16px;">${index + 1}</span>
+               </div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        L.marker([stop.latitude, stop.longitude], { icon: stopIcon })
+          .addTo(this.map)
+          .bindPopup(`<b>Stop ${index + 1}</b><br>${formatAddress(stop.address)}`);
+      });
+    }
+
+    // Add end marker
+    L.marker(routeCoordinates[routeCoordinates.length - 1], { icon: endIcon })
+      .addTo(this.map)
+      .bindPopup(`<b>End</b><br>${formatAddress(routeData.endLocation.address)}`);
+
+    // Fit the map to show the entire route
+    this.map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
   }
 
   formatDate(date: string): string {

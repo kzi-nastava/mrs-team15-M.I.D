@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
 
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     );
 
     Vehicle findByLicencePlate(String licencePlate);
+
+    Vehicle findByDriver(Driver driver);
 }

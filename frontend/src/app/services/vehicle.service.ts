@@ -38,7 +38,7 @@ export class VehicleService {
     });
 
     // Then continue fetching every 5 seconds
-    this.updateSubscription = interval(5000).subscribe(() => {
+    this.updateSubscription = interval(10000).subscribe(() => {
       this.http.get<any[]>(`${this.apiURL}/?lat=${centerLat}&lon=${centerLng}`).subscribe({
         next: (response) => {
           const vehicles = response.map(v => ({

@@ -45,6 +45,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/").hasRole("USER")
                         .requestMatchers("/api/vehicles/").permitAll()
                         .requestMatchers("/api/passengers/favorite-routes").hasRole("USER")
+                        .requestMatchers("/api/driver/update-location").hasRole("DRIVER")
 
                         .anyRequest().authenticated()
                 )

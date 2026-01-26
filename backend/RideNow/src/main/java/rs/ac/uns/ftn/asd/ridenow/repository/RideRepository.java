@@ -110,7 +110,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
                                                    Pageable pageable);
 
     @Query("SELECT r FROM Ride r " +
-            "WHERE r.driver = :driver AND r.status = rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus.REQUESTED")
+            "WHERE r.driver = :driver AND r.status = 'REQUESTED'")
     List<Ride> findScheduledRidesByDriver(@Param("driver") Driver driver);
 
     @Query("SELECT r FROM Ride r " +
@@ -135,7 +135,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             JOIN public.passenger p  ON p.ride_id = r.id
             JOIN public."user" u ON u.id = p.user_id
             JOIN public.route route ON route.id = r.route_id
-            WHERE mp.user_id = :userId  AND r.status = 'ACCEPTED' AND r.scheduled_time >= now()
+            WHERE mp.user_id = :userId  AND r.status = 'REQUESTED' AND r.scheduled_time >= now()
             GROUP BY r.id, route.start_address, route.end_address, r.scheduled_time, cp.user_id
             ORDER BY r.scheduled_time ASC;
        \s""", nativeQuery = true)

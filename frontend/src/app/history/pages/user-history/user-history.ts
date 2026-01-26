@@ -28,6 +28,7 @@ export class UserHistory  {
   private loadHistory(dateFrom?: string, dateTo?: string, sortBy?: string, sortDirection?: string) {
     this.rideHistoryService.getPassengerRideHistory(dateFrom, dateTo, sortBy, sortDirection).subscribe({
       next: (res: RawRideHistoryDTO[]) => {
+        console.log('Fetched ride history:', res);
         try {
           const mapped = (res || []).map((r, idx) => this.mapToRide(r, idx + 1));
           // assign immediately so filteredRides contains all entries as soon as they're available

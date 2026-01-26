@@ -13,6 +13,7 @@
           <th scope="col" class="sortable" (click)="sort('startTime')">
             End time <span class="sort-icon">{{ getSortIcon('endTime') }}</span>
           </th>
+          <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -24,6 +25,18 @@
             <td>{{ ride.route }}</td>
             <td>{{ ride.startTime }}</td>
             <td>{{ ride.endTime  }}</td>
+            <td (click)="$event.stopPropagation()">
+              @if (canRate(ride)) {
+                <app-button
+                  text="Rate"
+                  variant="primary"
+                  width="auto"
+                  height="auto"
+                  fontWeight="600"
+                  (clicked)="rateRide(ride)">
+                </app-button>
+              }
+            </td>
           </tr>
         }
       </tbody>

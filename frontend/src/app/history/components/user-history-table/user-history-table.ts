@@ -4,6 +4,7 @@ import { PassengerService } from '../../../services/passenger.service';
 import { CommonModule } from '@angular/common';
 import { AddFavoriteModal } from '../add-favorite-modal/add-favorite-modal';
 import { RemoveFavoriteModal } from '../remove-favorite-modal/remove-favorite-modal';
+import { Button } from '../../../shared/components/button/button';
 
 export interface Ride{
   id: number;
@@ -34,7 +35,7 @@ type SortDirection = 'asc' | 'desc' | '';
 @Component({
   selector: 'app-user-history-table',
   standalone: true,
-  imports: [CommonModule, AddFavoriteModal, RemoveFavoriteModal],
+  imports: [CommonModule, AddFavoriteModal, RemoveFavoriteModal, Button],
   templateUrl: './user-history-table.html',
   styleUrl: './user-history-table.css',
 })
@@ -129,6 +130,29 @@ private applySorting(): void {
 
   viewRideDetails(ride: Ride): void {
     this.router.navigate(['/history-ride-details', ride.id], { state: { ride } });
+  }
+
+  rateRide(ride: Ride): void {
+    this.router.navigate(['/rating', ride.id]);
+  }
+
+  canRate(ride: Ride): boolean {
+    if (!ride.endTime || ride.rating) return false;
+
+    // Parse endTime format: "DD-MM-YYYY, HH:MM"
+    try {
+      const [datePart, timePart] = ride.endTime.split(', ');
+      const [day, month, year] = datePart.split('-').map(Number);
+      const [hour, minute] = timePart.split(':').map(Number);
+
+      const rideDate = new Date(year, month - 1, day, hour, minute);
+      const now = new Date();
+      const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
+
+      return rideDate >= threeDaysAgo;
+    } catch (e) {
+      return false;
+    }
   }
 
   // Request toggle: open appropriate modal
