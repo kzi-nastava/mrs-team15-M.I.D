@@ -97,7 +97,7 @@ export class FindingDriverForm implements OnInit {
               const photo =  environment.backendUrl + (driverUser.profileImage ||  '/assets/pfp/default-avatar-icon.jpg');
               const vehicle = res?.assignedDriver?.vehicleModel || driverUser.vehicleModel || '';
               const plate = res?.assignedDriver?.licensePlate || driverUser.licensePlate || '';
-              const eta = res?.assignedDriver?.etaMinutes || res?.estimatedTimeMinutes || 0;
+              const eta = res?.assignedDriver?.ETA || res?.estimatedTimeMinutes || 0;
               this.foundDriver = {
                 name,
                 etaMinutes: eta,

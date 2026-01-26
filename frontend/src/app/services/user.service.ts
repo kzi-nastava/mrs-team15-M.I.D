@@ -22,8 +22,8 @@ export class UserService {
     return this.http.get(`${this.apiURL}`);
   }
 
-  changePassword(id: number, data: { currentPassword: string; newPassword: string; confirmNewPassword: string; }): Observable<any> {
-    return this.http.put(`${this.apiURL}/${id}/change-password`, data, { observe: 'response' });
+  changePassword( data: { currentPassword: string; newPassword: string; confirmNewPassword: string; }): Observable<any> {
+    return this.http.put(`${this.apiURL}/change-password`, data, { observe: 'response' });
   }
 
 }

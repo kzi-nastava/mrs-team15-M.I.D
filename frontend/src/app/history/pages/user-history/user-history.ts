@@ -1,94 +1,135 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { UserHistoryTable } from '../../components/user-history-table/user-history-table';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { CommonModule } from '@angular/common';
 import { Ride } from '../../components/user-history-table/user-history-table';
+import { RideHistoryService, RideHistoryResponse } from '../../../services/ride-history.service';
+
+// Raw DTO from backend may include slight shape differences (string cost, driverName, etc.)
+type RawRideHistoryDTO = any;
 
 @Component({
   selector: 'app-user-history',
   standalone: true,
-  imports: [UserHistoryTable, PageHeaderComponent],
+  imports: [UserHistoryTable, PageHeaderComponent, CommonModule],
   templateUrl: './user-history.html',
   styleUrl: './user-history.css',
 })
 export class UserHistory  {
-allRides: Ride[] = [
-  {
-    id: 1,
-    route: 'Bulevar Oslobođenja 12 → Trg slobode 1',
-    startTime: '12-03-2026, 18:45',
-    endTime: '12-03-2026, 19:10',
-    passengers: 'Marko Marković, Ana Jovanović',
-    driver: 'Petar Petrović',
-    cancelled: null,
-    cancelledBy: null,
-    cost: '850 RSD',
-    panicButton: null,
-    panicBy: null,
-    rating: 5,
-    inconsistencies: null,
-  },
-  {
-    id: 2,
-    route: 'Liman IV, Narodnog fronta 45 → Spens',
-    startTime: '10-02-2026, 21:10',
-    endTime: '10-02-2026, 21:35',
-    passengers: 'Jelena Ilić',
-    driver: 'Milan Jovanović',
-    cancelled: null,
-    cancelledBy: null,
-    cost: '620 RSD',
-    panicButton: null,
-    panicBy: null,
-    rating: 4,
-    inconsistencies: null,
-  },
-  {
-    id: 3,
-    route: 'Železnička stanica Novi Sad → Petrovaradinska tvrđava',
-    startTime: '05-01-2026, 09:15',
-    endTime: '05-01-2026, 09:40',
-    passengers: 'Jovana Nikolić, Stefan Stojanović',
-    driver: 'Nikola Stanković',
-    cancelled: null,
-    cancelledBy: null,
-    cost: '780 RSD',
-    panicButton: null,
-    panicBy: null,
-    rating: 5,
-    inconsistencies: null,
-  },
-  {
-    id: 4,
-    route: 'Detelinara, Branka Ćopića 18 → Univerzitet',
-    startTime: '18-04-2026, 19:02',
-    endTime: '18-04-2026, 19:02',
-    passengers: 'Milica Đorđević',
-    driver: 'Aleksandar Kovačević',
-    cancelled: 'Driver unavailable',
-    cancelledBy: 'DRIVER',
-    cost: '0 RSD',
-    panicButton: null,
-    panicBy: null,
-    rating: null,
-    inconsistencies: ['Ride cancelled after driver assignment'],
-  },
-  {
-    id: 5,
-    route: 'Klisa, Temerinska 102 → Trg republike',
-    startTime: '05-01-2026, 09:14',
-    endTime: '05-01-2026, 09:50',
-    passengers: 'Nikola Ilić, Jelena Pavlović, Dušan Stanković',
-    driver: 'Marko Radulović',
-    cancelled: null,
-    cancelledBy: null,
-    cost: '1,150 RSD',
-    panicButton: 'Emergency button pressed during ride',
-    panicBy: 'PASSENGER',
-    rating: 3,
-    inconsistencies: ['Panic button activated', 'Ride duration longer than expected'],
-  },
-];
-  filteredRides: Ride[] = [...this.allRides]
+  allRides: Ride[] = [];
+  filteredRides: Ride[] = [];
+
+  constructor(private rideHistoryService: RideHistoryService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.loadHistory();
+  }
+
+  private loadHistory(dateFrom?: string, dateTo?: string, sortBy?: string, sortDirection?: string) {
+    this.rideHistoryService.getPassengerRideHistory(dateFrom, dateTo, sortBy, sortDirection).subscribe({
+      next: (res: RawRideHistoryDTO[]) => {
+        try {
+          const mapped = (res || []).map((r, idx) => this.mapToRide(r, idx + 1));
+          // assign immediately so filteredRides contains all entries as soon as they're available
+          this.allRides = mapped;
+          this.filteredRides = [...this.allRides];
+          // ensure parent view updates (debug panel relies on this)
+          Promise.resolve().then(() => { try { this.cdr.detectChanges(); } catch(e){} });
+        } catch (e) {
+          console.warn('Mapping ride history failed', e);
+          this.allRides = [];
+          this.filteredRides = [];
+        }
+      },
+      error: (err) => {
+        console.warn('Failed to load ride history', err);
+        this.allRides = [];
+        this.filteredRides = [];
+      }
+    });
+  }
+
+  private mapToRide(r: RawRideHistoryDTO, idx: number): Ride {
+    const idVal = (r as any).id ?? idx;
+
+    // route label fallback: prefer route.start/end, then startAddress/endAddress, then id label
+    const routeLabel = (r.route && r.route.startLocation && r.route.endLocation)
+      ? `${r.route.startLocation.address} → ${r.route.endLocation.address}`
+      : ((r.startAddress && r.endAddress) ? `${r.startAddress} → ${r.endAddress}` : `Ride #${idVal}`);
+
+    // start/end time: try parse r.date, fallback to current time
+    let startTimeStr = '';
+    let endTimeStr = '';
+    try {
+      if (r.date) {
+        startTimeStr = this.formatDateTime(r.date);
+      } else {
+        startTimeStr = this.formatDateTime(new Date().toISOString());
+      }
+      if (r.date && typeof r.durationMinutes === 'number') {
+        const startDt = new Date(r.date);
+        const endDt = new Date(startDt.getTime() + (r.durationMinutes || 0) * 60000);
+        endTimeStr = this.formatDateTime(endDt.toISOString());
+      } else {
+        endTimeStr = startTimeStr;
+      }
+    } catch (e) {
+      startTimeStr = '';
+      endTimeStr = '';
+    }
+
+    const passengers = Array.isArray(r.passengers) ? r.passengers.join(', ') : (r.passengers as any) || '';
+
+    const driverName = (r as any).driverName ?? (r as any).driver ?? '';
+    let costStr = '0 RSD';
+    try {
+      if ((r as any).cost !== undefined && (r as any).cost !== null) {
+        costStr = typeof (r as any).cost === 'number' ? `${(r as any).cost} RSD` : String((r as any).cost);
+      } else if (r.cost) {
+        costStr = typeof r.cost === 'number' ? `${r.cost} RSD` : String(r.cost);
+      }
+    } catch (e) {}
+
+    const stopAddrs = r.route?.stopLocations ? (r.route.stopLocations.map((s: any) => s.address) || []) : (r.stopAddresses ?? []);
+
+    return {
+      id: idVal,
+      route: routeLabel,
+      startTime: startTimeStr,
+      endTime: endTimeStr,
+      passengers: passengers,
+      driver: driverName,
+      cancelled: r.cancelled ? 'Yes' : null,
+      cancelledBy: r.cancelledBy ?? null,
+      cost: costStr,
+      panicButton: r.panic ? 'Emergency' : null,
+      panicBy: r.panicBy ?? null,
+      rating: r.rating ? (r.rating.driverRating ?? r.rating) : null,
+      inconsistencies: r.inconsistencies ?? null,
+      favorite: !!(r as any).favoriteRoute,
+      routeId: r.route?.id ?? (r as any).routeId ?? null,
+      pickupAddress: r.route?.startLocation?.address ?? r.startAddress ?? null,
+      destinationAddress: r.route?.endLocation?.address ?? r.endAddress ?? null,
+      stopAddresses: stopAddrs
+    } as Ride;
+  }
+
+  private formatDateTime(dateIso: string): string {
+    try {
+      const d = new Date(dateIso);
+      if (isNaN(d.getTime())) return '';
+      const pad = (n: number) => n < 10 ? '0' + n : String(n);
+      const day = pad(d.getDate());
+      const month = pad(d.getMonth() + 1);
+      const year = d.getFullYear();
+      const hours = pad(d.getHours());
+      const minutes = pad(d.getMinutes());
+      return `${day}-${month}-${year}, ${hours}:${minutes}`;
+    } catch (e) {
+      return '';
+    }
+  }
+
   onFilter(filterDate: string): void {
     if(filterDate){
       filterDate = formatFilterDate(filterDate)

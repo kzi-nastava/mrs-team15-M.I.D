@@ -61,7 +61,7 @@ export class ChangePasswordPage {
       confirmNewPassword: confirm,
     };
 
-    this.userService.changePassword(Number(userId), payload).subscribe({
+    this.userService.changePassword(payload).subscribe({
       next: () => {
         this.router.navigate(['/profile'], {
           state: {

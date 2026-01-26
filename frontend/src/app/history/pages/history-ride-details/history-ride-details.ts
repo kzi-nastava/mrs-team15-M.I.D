@@ -24,6 +24,12 @@ export class HistoryRideDetails {
 
   ngOnInit(): void {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
+    // Prefer navigation state (caller passed full ride object)
+    const navState = (history && (history as any).state) ? (history as any).state : null;
+    if (navState && navState.ride) {
+      this.ride = navState.ride as Ride;
+      return;
+    }
     this.loadRide();
   }
 

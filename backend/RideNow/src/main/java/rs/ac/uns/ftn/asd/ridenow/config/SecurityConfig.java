@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/estimate-route").hasRole("USER")
                         .requestMatchers("/api/rides/").hasRole("USER")
                         .requestMatchers("/api/vehicles/").permitAll()
+                        .requestMatchers("/api/passengers/favorite-routes").hasRole("USER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
