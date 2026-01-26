@@ -204,14 +204,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private async drawRoute(route: any[], isAlert: boolean = false) {
   if (!this.map || !route?.length) return;
 
-  this.clearRoute(); // briše samo polyline i start/end markere
+  this.clearRoute();
   this.currentRoute = route;
   this.isAlertMode = isAlert;
 
   const L = await import('leaflet');
   const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
 
-  // polyline
   this.routeLayer = L.polyline(latLngs, {
     color: isAlert ? "#ef4444" : "#111",
     weight: isAlert ? 6 : 5,
@@ -219,6 +218,28 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     lineCap: "round",
     lineJoin: "round"
   }).addTo(this.map);
+
+  if (route.length > 0) {
+    const start = route[0];
+    this.startMarker = L.circleMarker([start.lat, start.lng], {
+      radius: 8,
+      color: '#22c55e',
+      fillColor: '#22c55e',
+      fillOpacity: 0.6
+    }).bindPopup(start.display || start.name || 'Pickup address').addTo(this.map);
+  }
+
+  if (route.length > 1) {
+    const end = route[route.length - 1];
+    this.endMarker = L.circleMarker([end.lat, end.lng], {
+      radius: 8,
+      color: isAlert ? '#dc2626' : '#ef4444',
+      fillColor: isAlert ? '#dc2626' : '#ef4444',
+      fillOpacity: 0.6
+    }).bindPopup(end.display || end.name || 'Destination address').addTo(this.map);
+  }
+
+  this.map.fitBounds(this.routeLayer.getBounds(), { padding: [30, 30] });
 }
 
   private async drawMarkers(route: any[], isAlert: boolean = false) {
