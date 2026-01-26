@@ -42,6 +42,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       await this.initMap();
     }
     this.routeSubscription = this.mapRouteService.route$.subscribe(routeData => {
+      this.resetRouteAndMarkers();
+      if (!routeData.route || routeData.route.length === 0) return;
       // ensure any previous drawings are removed before drawing a new route
       try { this.clearRoute(); } catch(e) {}
       try { this.clearMarkers(); } catch(e) {}
@@ -59,6 +61,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   this.alertSubscription = this.mapRouteService.isAlert$.subscribe(isAlert => {
     this.isAlertMode = isAlert;
     if (this.currentRoute.length > 0) {
+      this.resetRouteAndMarkers();  
       this.drawRoute(this.currentRoute, isAlert);
     } else {
       console.warn('No route to alert!');
@@ -242,12 +245,32 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   this.map.fitBounds(this.routeLayer.getBounds(), { padding: [30, 30] });
 }
 
+private resetRouteAndMarkers(): void {
+    if (!this.map) return;
+    if (this.routeLayer) {
+      this.map.removeLayer(this.routeLayer);
+      this.routeLayer = undefined;
+    }
+    if (this.startMarker) {
+      this.map.removeLayer(this.startMarker);
+      this.startMarker = undefined;
+    }
+    if (this.endMarker) {
+      this.map.removeLayer(this.endMarker);
+      this.endMarker = undefined;
+    }
+    if (this.markersLayerGroup) {
+      this.map.removeLayer(this.markersLayerGroup);
+      this.markersLayerGroup = undefined;
+    }
+    this.currentRoute = [];
+  }
+
   private async drawMarkers(route: any[], isAlert: boolean = false) {
     if (!this.map || !route || route.length === 0) return;
     const L = (window as any).L || await import('leaflet');
 
-    this.clearRoute();
-    this.clearMarkers();
+    this.resetRouteAndMarkers();  
   await new Promise(resolve => setTimeout(resolve, 50));
 
     // Only show start (green) and end (red) markers; hide intermediate blue markers

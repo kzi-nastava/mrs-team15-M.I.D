@@ -499,6 +499,7 @@ export class RideOrderingForm implements OnInit {
 
   ngOnInit(): void {
     this.loadFavoriteRoutes();
+    this.mapRouteService.clearRoute();
   }
 
   private loadFavoriteRoutes() {

@@ -52,4 +52,10 @@ export class MapRouteService {
   clearVehicleLocation() {
     this.vehicleLocationSubject.next(null);
   }
+
+  clearRoute() {
+    this.routeSubject.next({ route: [], isAlert: false });
+    this.markersSubject.next({ route: [], isAlert: false });
+    this.isAlertMode.next(false);
+  }
 }
