@@ -16,7 +16,7 @@ export class ChangePasswordPage {
   showCurrent = false;
   showNew = false;
   showConfirm = false;
-  // DEV fallback id
+  
   private readonly DEV_USER_ID = 9;
 
   constructor(private router: Router, private userService: UserService) {}
@@ -43,7 +43,7 @@ export class ChangePasswordPage {
       return;
     }
 
-    // determine user id (try localStorage, fallback to DEV id)
+    
     let userId = this.DEV_USER_ID;
     try {
       const raw = localStorage.getItem('user');
@@ -52,7 +52,7 @@ export class ChangePasswordPage {
         if (parsed && parsed.id) userId = Number(parsed.id);
       }
     } catch (e) {
-      // ignore and use DEV id
+      
     }
 
     const payload = {

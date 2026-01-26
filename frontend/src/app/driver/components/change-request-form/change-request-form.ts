@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-change-request-form',
@@ -15,7 +16,7 @@ export class ChangeRequestForm implements OnInit {
   @Input() requestMeta: any | null = null;
   @Output() approve = new EventEmitter<any>();
   @Output() reject = new EventEmitter<any>();
-  backendUrl = 'http://localhost:8081';
+  backendUrl : string = environment.backendUrl;
 
   isMock = false;
   adminNotes = '';

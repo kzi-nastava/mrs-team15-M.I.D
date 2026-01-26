@@ -33,6 +33,7 @@ export class RideOrderingForm implements OnInit {
   draggedIndex: number | null = null;
   dragOverIndex: number | null = null;
 
+  // Mocked favorite routes for demo purposes
   favorites: FavoriteRoute[] = [
     { id: null, name: 'Home → Work', pickup: '123 Home St', destination: '456 Work Ave', stops: [] },
     { id: null, name: 'Airport Ride', pickup: 'Home Address', destination: 'Airport Terminal 1', stops: [] },
@@ -41,13 +42,9 @@ export class RideOrderingForm implements OnInit {
   favoriteOpen: boolean = false;
 
   validator: FromValidator = new FromValidator();
-  // Last estimate response from backend (distance, time, price)
   lastEstimate: any = null;
-  // currently selected favorite route id (if applied from backend)
   currentFavoriteRouteId: number | null = null;
-  // Selected vehicle type for pricing and ordering (default STANDARD)
   selectedVehicleType: 'STANDARD' | 'LUXURY' | 'VAN' = 'STANDARD';
-  // Last estimate response from backend (distance, time, price)
 
   hasErrors(): boolean {
     if (this.validator.addressError(this.pickupAddress) || this.validator.addressError(this.destinationAddress)) return true;
@@ -91,17 +88,14 @@ export class RideOrderingForm implements OnInit {
               const distance = r?.distanceKm ?? r?.distance ?? r?.distanceKm;
               const time = r?.estimatedTimeMinutes ?? r?.estimatedDurationMin ?? r?.estimatedTime ?? r?.estimatedDuration;
               console.log('Favorite route estimate', { distanceKm: distance, estimatedTimeMinutes: time });
-              // store last estimate so UI can show values similarly to manual estimates
               this.lastEstimate = r;
-              // mark current favorite route id as applied
               this.currentFavoriteRouteId = fav.id ?? null;
 
-              // Try to draw returned geometry if present
               let roadRoute = r?.route ?? r?.routePoints ?? r?.routeGeometry ?? null;
               if (Array.isArray(roadRoute) && roadRoute.length > 0) {
                 const normalized = roadRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
                 this.mapRouteService.drawRoute(normalized);
-                // draw markers for start and end (and optional stops if available)
+                
                 try {
                   const markers: { lat: number; lng: number; display?: string }[] = [];
                   if (normalized.length > 0) markers.push({ lat: normalized[0].lat, lng: normalized[0].lng, display: this.pickupAddress || r.startAddress || fav.pickup });
@@ -163,7 +157,6 @@ export class RideOrderingForm implements OnInit {
 
   addStop() {
     this.stops.push('');
-    // modifying stops invalidates previous estimate
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
@@ -194,12 +187,12 @@ export class RideOrderingForm implements OnInit {
       return;
     }
     const item = this.stops.splice(from, 1)[0];
-    // If dragging from a position before the drop target and we removed it, the target index shifts down by 1
     const insertIndex = from < to ? to : to;
     this.stops.splice(insertIndex, 0, item);
+    
     this.dragOverIndex = null;
     this.draggedIndex = null;
-    // reordering stops invalidates previous estimate
+    
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
@@ -207,32 +200,30 @@ export class RideOrderingForm implements OnInit {
   onDragEnd(_event: DragEvent) {
     this.dragOverIndex = null;
     this.draggedIndex = null;
-    // ensure estimate is cleared if drag changed order
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
 
   removeStop(index: number) {
     this.stops.splice(index, 1);
-    // removing a stop invalidates previous estimate
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
 
-  // -- Address change handlers & map update --
+  // address change handlers and map change
   private updateTimer: any = null;
   private suggestTimer: any = null;
 
   pickupSuggestions: Array<any> = [];
   destinationSuggestions: Array<any> = [];
   stopSuggestions: Array<Array<any>> = [];
-  // If true, suggestions will be restricted/bias to Novi Sad, Serbia
+  
   restrictSuggestionsToNoviSad: boolean = true;
 
   onPickupChange(val: string) {
     this.pickupAddress = val;
     this.fetchSuggestionsDebounced(val, 'pickup');
-    // Clear any previous estimate when inputs change
+    
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
     console.debug('onPickupChange', val);
@@ -241,7 +232,7 @@ export class RideOrderingForm implements OnInit {
   onDestinationChange(val: string) {
     this.destinationAddress = val;
     this.fetchSuggestionsDebounced(val, 'destination');
-    // Clear any previous estimate when inputs change
+    
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
     console.debug('onDestinationChange', val);
@@ -250,7 +241,7 @@ export class RideOrderingForm implements OnInit {
   onStopChange(val: string, index: number) {
     this.stops[index] = val;
     this.fetchSuggestionsDebounced(val, 'stop', index);
-    // Clear any previous estimate when inputs change
+    
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
     console.debug('onStopChange', index, val);
@@ -258,11 +249,6 @@ export class RideOrderingForm implements OnInit {
 
   selectVehicleType(type: 'STANDARD' | 'LUXURY' | 'VAN') {
     this.selectedVehicleType = type;
-  }
-
-  private updateMapMarkersDebounced(delay = 400) {
-    if (this.updateTimer) clearTimeout(this.updateTimer);
-    this.updateTimer = setTimeout(() => { this.geocodeAndShowMarkers(); }, delay);
   }
 
   private async geocodeAndShowMarkers() {
@@ -282,7 +268,7 @@ export class RideOrderingForm implements OnInit {
       console.debug('geocodeAndShowMarkers points=', points.length);
 
       if (points.length > 1) {
-        // Try backend routing to get road-following polyline
+        
         try {
           const estimateReq = {
             startAddress: this.pickupAddress || '',
@@ -303,25 +289,11 @@ export class RideOrderingForm implements OnInit {
             this.mapRouteService.drawRoute(normalized);
             return;
           }
-
-          // fallback: if POST /estimate-route did not include geometry, try GET /estimate which returns route points
-          try {
-            const getResp = await lastValueFrom(this.rideService.estimate({ startAddress: this.pickupAddress || '', destinationAddress: this.destinationAddress || '' }).pipe());
-            const getRoute = getResp?.route ?? getResp;
-            if (Array.isArray(getRoute) && getRoute.length > 0) {
-              const normalized2 = getRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
-              this.mapRouteService.drawRoute(normalized2);
-              return;
-            }
-          } catch (ge) {
-            console.warn('fallback GET /estimate failed', ge);
-          }
         } catch (e) {
           console.warn('estimateRoute failed', e);
         }
       }
 
-      // fallback: draw straight-line connections between geocoded points
       if (points.length > 0) {
         this.mapRouteService.drawRoute(points.map(p => ({ lat: p.lat, lng: p.lng })));
       }
@@ -330,7 +302,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
-  // --- Suggestions (Nominatim) ---
+  // Suggestions 
   private fetchSuggestionsDebounced(query: string, target: 'pickup' | 'destination' | 'stop', index?: number, delay = 250) {
     if (this.suggestTimer) clearTimeout(this.suggestTimer);
     this.suggestTimer = setTimeout(() => { this.fetchSuggestions(query, target, index); }, delay);
@@ -345,11 +317,10 @@ export class RideOrderingForm implements OnInit {
         return;
       }
 
-      // bias results to Novi Sad (Serbia). If user typed a house number, use structured query
       const hasNumber = /\d/.test(query);
       let url: string;
       if (this.restrictSuggestionsToNoviSad && hasNumber) {
-        // use structured param so house numbers are matched better
+        
         url = `https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(query)}&city=Novi%20Sad&countrycodes=rs&addressdetails=1&limit=10`;
       } else {
         let q = query;
@@ -379,7 +350,7 @@ export class RideOrderingForm implements OnInit {
     const normalized = (chosen || '').replace(/\s+/g, ' ').trim();
     this.pickupAddress = normalized;
     this.pickupSuggestions = [];
-    // ensure change handlers run and validation updates
+    
     try { this.onPickupChange(this.pickupAddress); } catch (e) {}
     console.debug('onPickupSuggestion chosen', { item, pickupAddress: this.pickupAddress, len: (this.pickupAddress || '').length, valid: this.validator.addressError(this.pickupAddress) });
   }
@@ -427,7 +398,7 @@ export class RideOrderingForm implements OnInit {
           console.warn('showRoute aborted: validation failed and geocode fallback did not find both addresses');
           return;
         }
-        // continue despite validation errors because geocoding succeeded
+        
       } catch (e) {
         console.warn('geocode fallback error', e);
         return;
@@ -461,12 +432,12 @@ export class RideOrderingForm implements OnInit {
         stopLongitudes: stopLongitudes,
       };
 
-      // Call backend to get distance/time/price estimates
+      // calling backend to get distance/time/price estimates
       let routeDrawn = false;
       try {
         console.log('estimateReq ->', estimateReq);
         const estimateResp = await this.rideService.estimateRoute(estimateReq);
-        // Round numeric fields to 3 decimals where appropriate
+        
         if (estimateResp) {
           estimateResp.distanceKm = typeof estimateResp.distanceKm === 'number' ? Math.round(estimateResp.distanceKm * 1000) / 1000 : estimateResp.distanceKm;
           estimateResp.priceEstimate = typeof estimateResp.priceEstimate === 'number' ? Math.round(estimateResp.priceEstimate * 1000) / 1000 : estimateResp.priceEstimate;
@@ -476,7 +447,6 @@ export class RideOrderingForm implements OnInit {
         console.log('Route estimate from backend', estimateResp);
         try { this.cdr.detectChanges(); } catch(e) {}
 
-        // Try to draw route geometry returned by estimate-route (POST). If absent, fallback to GET /estimate, then to markers.
         let routeDrawn = false;
         try {
           const roadRoute = estimateResp?.route ?? estimateResp?.routePoints ?? null;
@@ -484,29 +454,16 @@ export class RideOrderingForm implements OnInit {
             const normalized = roadRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
             this.mapRouteService.drawRoute(normalized);
             routeDrawn = true;
-          } else {
-            // fallback: request geometry via GET /estimate
-            try {
-              const getResp = await lastValueFrom(this.rideService.estimate({ startAddress: estimateReq.startAddress, destinationAddress: estimateReq.endAddress }).pipe());
-              const getRoute = getResp?.route ?? getResp;
-              if (Array.isArray(getRoute) && getRoute.length > 0) {
-                const normalized2 = getRoute.map((p: any) => ({ lat: p.lat ?? p.latitude ?? p[1], lng: p.lng ?? p.longitude ?? p[0] }));
-                this.mapRouteService.drawRoute(normalized2);
-                routeDrawn = true;
-              }
-            } catch (ge) {
-              console.warn('fallback GET /estimate failed', ge);
-            }
-          }
+          } 
         } catch (e) {
           console.warn('Drawing route from estimate response failed', e);
         }
       } catch (e: any) {
-        // Log detailed HTTP error info when available
+        
         console.warn('estimateRoute call failed', e && e.status ? { status: e.status, error: e.error || e.message } : e);
       }
 
-      // Show only markers for start/stops/end (no connecting polyline) if no route was drawn
+      
       if (!routeDrawn) {
         const points: { lat: number; lng: number; display?: string }[] = [];
         if (startGeo) points.push({ lat: startGeo.lat, lng: startGeo.lon, display: this.pickupAddress });
@@ -524,7 +481,7 @@ export class RideOrderingForm implements OnInit {
   
 
   showPreferences: boolean = false;
-  // Whether the user clicked "Choose route" (enables showing Calculate Price)
+  
   routeChosen: boolean = false;
 
   chooseRoute() {
@@ -546,7 +503,7 @@ export class RideOrderingForm implements OnInit {
 
   private loadFavoriteRoutes() {
     try {
-      // Load favorite routes for authenticated passenger
+      
       this.passengerService.getFavoriteRoutes().subscribe({
         next: (res: any[]) => {
           try {
@@ -598,9 +555,7 @@ export class RideOrderingForm implements OnInit {
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
-    // keep preferences visible until navigation completes to avoid flashing parent form
-
-    // Build basic estimate payload by geocoding addresses
+    
     try {
       const startGeo = await this.rideService.geocodeAddress(this.pickupAddress) || { lat: 0, lon: 0 };
       const endGeo = await this.rideService.geocodeAddress(this.destinationAddress) || { lat: 0, lon: 0 };
@@ -631,7 +586,7 @@ export class RideOrderingForm implements OnInit {
       const route = await this.rideService.estimateRoute(estimateReq);
       console.log('Route estimate', route);
 
-      // Normalize any returned route geometry so it can be passed to next page
+      
       let normalizedRoute: any[] | null = null;
       try {
         const roadRoute = route?.route ?? route?.routePoints ?? null;
@@ -647,7 +602,7 @@ export class RideOrderingForm implements OnInit {
 
       const vehicleTypeChosen = (prefs.vehicleType ? (prefs.vehicleType as string).toUpperCase() : (this.selectedVehicleType || 'STANDARD')) as 'STANDARD' | 'LUXURY' | 'VAN';
 
-      // choose price field based on vehicle type (backend may return per-type fields)
+      
       let priceForType = route?.priceEstimate ?? 0;
       try {
         if (vehicleTypeChosen === 'STANDARD') priceForType = route?.priceEstimateStandard ?? route?.priceEstimate ?? 0;
@@ -655,7 +610,7 @@ export class RideOrderingForm implements OnInit {
         else if (vehicleTypeChosen === 'VAN') priceForType = route?.priceEstimateVan ?? route?.priceEstimate ?? 0;
       } catch (e) { priceForType = route?.priceEstimate ?? 0; }
 
-      // prefer the currently applied favorite id (cleared when inputs change)
+      
       const favoriteRouteId = this.currentFavoriteRouteId ?? null;
 
       const orderDto: any = {
@@ -677,9 +632,7 @@ export class RideOrderingForm implements OnInit {
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
         priceEstimate: priceForType,
         favoriteRouteId: favoriteRouteId,
-        // include route geometry (if available) so finding-driver can draw it immediately
         route: normalizedRoute,
-        // backend expects separate arrays of latitudes/longitudes for the whole polyline
         routeLattitudes: (function(){
           try {
             const pts = normalizedRoute && normalizedRoute.length > 0 ? normalizedRoute : ([{ lat: startGeo.lat, lng: startGeo.lon }].concat(stopLatitudes.map((lat,i)=>({lat, lng: stopLongitudes[i]}))).concat([{ lat: endGeo.lat, lng: endGeo.lon }]));
@@ -695,16 +648,16 @@ export class RideOrderingForm implements OnInit {
       };
 
       console.log('Order DTO', orderDto);
-      // Navigate to finding-driver immediately with the order payload
+      
       try {
         await this.router.navigate(['/finding-driver'], { state: { order: orderDto } });
-        // Emit immediate navigation event so parent can react if needed
+        
         this.orderAttempt.emit({ navigated: true, order: orderDto });
-        // Now hide preferences (component will likely be destroyed after navigation)
+        
         this.showPreferences = false;
       } catch (navErr) {
         console.warn('Navigation to finding-driver failed', navErr);
-        // fallback: hide preferences so user can try again
+        
         this.showPreferences = false;
       }
 

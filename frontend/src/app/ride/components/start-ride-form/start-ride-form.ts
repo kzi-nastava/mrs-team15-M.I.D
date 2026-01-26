@@ -8,21 +8,20 @@ import { RideService } from '../../../services/ride.service';
 import { MapRouteService } from '../../../services/map-route.service';
 import { MissingPassengersModal } from '../missing-passengers-modal/missing-passengers-modal';
 import { UpcomingRide } from '../upcoming-rides-table/upcoming-rides-table';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-start-ride-form',
+  standalone: true,
   imports: [Button, CommonModule, MissingPassengersModal],
   templateUrl: './start-ride-form.html',
-  styleUrl: './start-ride-form.css',
+  styleUrls: ['./start-ride-form.css'],
 })
 
 export class StartRideForm implements OnInit, OnChanges {
   @Input() ride?: UpcomingRide | null;
-  // displayable ride fields (defaults kept for existing UI)
   pickupLocation: string = 'Bulevar Mihajla Pupina 10, Novi Sad';
   destination: string = 'Futoška 10, Novi Sad';
-  estimatedArrival: string = '4 min';
-  backendUrl: string = 'http://localhost:8081';
 
   constructor(
     private router: Router,
@@ -30,8 +29,11 @@ export class StartRideForm implements OnInit, OnChanges {
     private driverService: DriverService,
     private rideService: RideService,
     private cdr: ChangeDetectorRef,
-    private mapRouteService: MapRouteService
+    private mapRouteService: MapRouteService,
   ) {}
+
+  // backend base url used to prefix relative image paths returned by API
+  backendUrl: string = environment.backendUrl;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['ride'] && changes['ride'].currentValue) {
@@ -42,7 +44,7 @@ export class StartRideForm implements OnInit, OnChanges {
   private triggerPassengerPickup(): void {
     const idParam = this.route.snapshot.queryParams['id'];
     let rideId = this.ride && this.ride.id ? this.ride.id : (idParam ? +idParam : NaN);
-    // fallback: try navigation extras or window.history.state
+   
     if (!Number.isFinite(rideId)) {
       const nav = this.router.getCurrentNavigation?.();
       const navRideId = nav?.extras?.state?.['ride']?.id ?? null;
@@ -119,26 +121,18 @@ export class StartRideForm implements OnInit, OnChanges {
       if (res[k]) { this.destination = String(res[k]); break; }
     }
 
-    // estimated arrival
-    if (res.estimatedArrival) this.estimatedArrival = String(res.estimatedArrival);
-    else if (res.estimatedArrivalMinutes) this.estimatedArrival = res.estimatedArrivalMinutes + ' min';
-    else if (res.etaMinutes) this.estimatedArrival = res.etaMinutes + ' min';
-
-    // Route data: normalize and draw on map via MapRouteService
     const routeKeys = ['route', 'path', 'points', 'polyline', 'coords', 'coordinates'];
     for (const k of routeKeys) {
       if (res[k]) {
         let raw = res[k];
         let normalized: any[] = [];
         try {
-          // If polyline string (encoded), try to decode if helper exists
           if (typeof raw === 'string') {
-            // try JSON parse
-            try { raw = JSON.parse(raw); } catch (e) { /* leave as string */ }
+            // JSON parse
+            try { raw = JSON.parse(raw); } catch (e) { }
           }
 
           if (Array.isArray(raw)) {
-            // array of [lat,lng] or objects
             if (raw.length > 0 && Array.isArray(raw[0]) && raw[0].length >= 2) {
               normalized = raw.map((p: any) => ({ lat: Number(p[0]), lng: Number(p[1]) }));
             } else {
@@ -155,20 +149,19 @@ export class StartRideForm implements OnInit, OnChanges {
 
         if (normalized && normalized.length > 0) {
           try { this.mapRouteService.drawRoute(normalized, !!res.isAlert); } catch(e) { /* ignore */ }
-          // draw only start and end markers
+          
           try {
             const pts = [];
             if (normalized.length > 0) pts.push(normalized[0]);
             if (normalized.length > 1) pts.push(normalized[normalized.length - 1]);
             if (pts.length > 0) this.mapRouteService.drawMarkers(pts, !!res.isAlert);
-          } catch (e) { /* ignore */ }
+          } catch (e) {}
           break;
         }
       }
     }
   }
 
-  // Modal handling via MissingPassengersModal
   @ViewChild('missingModal') missingModal!: MissingPassengersModal;
   confirmMessage: string = '';
   missingPassengers: string[] = [];
@@ -176,19 +169,16 @@ export class StartRideForm implements OnInit, OnChanges {
   presentCount: number = 0;
 
   startRide(): void {
-    // compute missing passengers
+    // finding missing passengers
     this.missingPassengers = this.passengers.filter(p => !p.present).map(p => p.name);
     this.presentCount = this.passengers.filter(p => p.present).length;
     this.canStart = this.presentCount > 0;
 
     if (this.presentCount === 0) {
       this.confirmMessage = 'No passengers are present. You cannot start the ride.';
-      // show modal to inform driver nothing is present
     } else if (this.missingPassengers.length > 0) {
       this.confirmMessage = 'The following passengers are not present:';
-      // show modal listing missing passengers and allow confirm
     } else {
-      // all passengers present -> attempt to call backend to start ride
       const rideId = this.getRideId();
       if (Number.isFinite(rideId)) {
         this.driverService.startRide(rideId).subscribe({
@@ -202,7 +192,6 @@ export class StartRideForm implements OnInit, OnChanges {
       return;
     }
 
-    // open the reusable modal component for the other cases
     if (this.missingModal) {
       this.missingModal.confirmMessage = this.confirmMessage;
       this.missingModal.missingPassengers = this.missingPassengers;
@@ -212,7 +201,6 @@ export class StartRideForm implements OnInit, OnChanges {
   }
 
   closeConfirmModal(): void {
-    // delegate to modal component
     if (this.missingModal) {
       this.missingModal.closeModal();
     }
@@ -236,7 +224,7 @@ export class StartRideForm implements OnInit, OnChanges {
     }
   }
   
-  // Example passengers list — replace with real data as needed
+  // Mock passenger data
   passengers: { name: string; present: boolean; image?: string | null }[] = [
     { name: 'Marko Marković', present: false, image: null },
     { name: 'Ana Jovanović', present: false, image: null },
@@ -248,18 +236,12 @@ export class StartRideForm implements OnInit, OnChanges {
 
   togglePassenger(passenger: { name: string; present: boolean }) {
     passenger.present = !passenger.present;
-    // update present count reactively so template reflects state immediately
     this.presentCount = this.passengers.filter(p => p.present).length;
   }
 
   ngOnInit(): void {
-    // Always attempt to trigger passenger pickup when component initializes.
-    // triggerPassengerPickup will try multiple fallbacks to obtain the ride id.
     this.triggerPassengerPickup();
-
-    // If ride data is provided via navigation state, initialize passengers list
     if (this.ride && this.ride.passengers) {
-      // assume `ride.passengers` is a comma-separated string
       this.passengers = this.ride.passengers.split(',').map((n: string) => ({ name: n.trim(), present: false }));
       this.presentCount = this.passengers.filter(p => p.present).length;
     }

@@ -15,10 +15,6 @@
                   <p class="ride-value">{{ destination }}</p>
                </div>
             </div>
-            <div class="ride-field mb-4 d-flex align-items-center">
-               <label class="mb-0">Estimated arrival:</label>
-               <div class="ride-time">{{ estimatedArrival }}</div>
-            </div>
             <div class="ride-field mb-3">
                <label><i class="bi bi-people me-1"></i><strong>Passengers ({{ passengers.length }})</strong></label>
                       <div class="passengers-list mt-2 d-flex flex-wrap">
@@ -31,7 +27,7 @@
                               aria-pressed="{{p.present}}"
                               style="border-radius:6px; cursor:pointer;"
                            >
-                              <img [src]="p.image || 'assets/pfp/default-avatar-icon.jpg'" alt="avatar" class="me-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                              <img [src]="p.image || backendUrl + 'uploads/default.jpg'" alt="avatar" class="me-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
                               <span>{{ p.name }}</span>
                            </div>
                       </div>

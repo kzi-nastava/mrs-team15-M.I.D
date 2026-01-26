@@ -1,9 +1,9 @@
 import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../../services/admin.service';
-import { UserService } from '../../../services/user.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-driver-requests-table',
@@ -20,7 +20,8 @@ export class DriverRequestsTable implements OnInit {
   selectedStatus: string = 'all';
   sortField: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
-  constructor(private adminService: AdminService, private userService: UserService, private cdr: ChangeDetectorRef) {}
+  backendUrl : string = environment.backendUrl;
+  constructor(private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     let adminId = this.DEV_ADMIN_ID;
@@ -33,7 +34,7 @@ export class DriverRequestsTable implements OnInit {
         }
       }
     } catch (e) {
-      // ignore and use default
+      console.error('Failed to parse user from localStorage', e);
     }
 
     this.currentAdminId = adminId;
@@ -60,7 +61,7 @@ export class DriverRequestsTable implements OnInit {
       role: (u.role || 'driver').toLowerCase(),
       email: u.email || dtoFallback?.email || null,
       address: u.address || dtoFallback?.address || null,
-      avatarUrl: u.profileImage || dtoFallback?.profileImage || 'assets/pfp/default-avatar-icon.jpg',
+      avatarUrl: u.profileImage || dtoFallback?.profileImage || 'uploads/default.jpg',
       activeHours: u.hoursWorkedLast24 ?? dtoFallback?.activeHours ?? 0,
       vehicle,
     };
@@ -70,7 +71,7 @@ export class DriverRequestsTable implements OnInit {
     this.adminService.getDriverRequests().subscribe({
       next: (res: any[]) => {
         console.debug('getDriverRequests response', res);
-        // map backend DTOs into UI request objects
+        
         const list = (res || []).map((dto, idx) => ({
           _backendDto: dto,
           id: dto.id,
@@ -78,7 +79,7 @@ export class DriverRequestsTable implements OnInit {
           status: (dto.status || '').toLowerCase(),
           requestedBy: `${dto.firstName} ${dto.lastName}`,
           reason: 'Driver change request',
-          // originalDriver will be fetched from UserService.getUser(driverId)
+          
           originalDriver: {
             driverId: dto.driverId ?? null,
             _loaded: false,
@@ -88,13 +89,13 @@ export class DriverRequestsTable implements OnInit {
             role: 'driver',
             email: null,
             address: null,
-            avatarUrl: 'assets/pfp/default-avatar-icon.jpg',
+            avatarUrl: 'uploads/default.jpg',
             activeHours: 0,
             vehicle: { licensePlate: null, model: null, seats: null, petFriendly: false, babyFriendly: false },
           },
               changedDriver: this.normalizeDto(dto)
         }));
-        // For entries with driverId, fetch stored user profiles in parallel so originalDriver is populated
+        
         const driverIds = (res || []).map(dto => dto?.driverId ?? null);
         console.log('DriverRequestsTable: driverIds extracted from DTOs', driverIds);
         const userFetchObservables = (res || []).map((dto, idx) => {
@@ -105,14 +106,14 @@ export class DriverRequestsTable implements OnInit {
 
         if (userFetchObservables.length === 0) {
           this.requests = list;
-          try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+          try { this.cdr.detectChanges(); } catch (e) { }
           return;
         }
 
         forkJoin(userFetchObservables).subscribe({
           next: (users: any[]) => {
             console.log('DriverRequestsTable: forkJoin returned users array', users);
-            // merge fetched users into list.originalDriver and then publish
+            
             users.forEach((u, i) => {
               const dto = res[i];
               console.log('DriverRequestsTable: fetched user for request', i, u);
@@ -127,19 +128,19 @@ export class DriverRequestsTable implements OnInit {
               }
             });
             this.requests = list;
-            try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+            try { this.cdr.detectChanges(); } catch (e) {}
           },
           error: (err) => {
             console.error('Failed to fetch users for driver requests', err);
-            // fallback: expose requests without stored-user enrichment
+            
             this.requests = list;
-            try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+            try { this.cdr.detectChanges(); } catch (e) { }
           }
         });
       },
       error: (err) => {
         console.error('Failed to load driver requests', err);
-        // keep requests empty on error
+        
       }
     });
   }
@@ -153,7 +154,7 @@ export class DriverRequestsTable implements OnInit {
       role: 'driver',
       email: dto.email || null,
       address: dto.address || null,
-      avatarUrl: dto.profileImage || 'assets/pfp/default-avatar-icon.jpg',
+      avatarUrl: dto.profileImage || 'uploads/default.jpg',
       vehicle: {
         licensePlate: dto.licensePlate || null,
         model: dto.vehicleModel || null,
@@ -213,7 +214,6 @@ export class DriverRequestsTable implements OnInit {
       });
     };
 
-    // if originalDriver not yet loaded and we have driverId, fetch before emitting
     if (req.originalDriver && req.originalDriver._loaded === false && req.originalDriver.driverId) {
       this.adminService.getUserById(req.originalDriver.driverId).subscribe({
         next: (u: any) => {

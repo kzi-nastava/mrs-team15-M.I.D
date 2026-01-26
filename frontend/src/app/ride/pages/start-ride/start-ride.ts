@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   selector: 'app-start-ride',
   imports: [MapComponent, StartRideForm],
   templateUrl: './start-ride.html',
-  styleUrl: './start-ride.css',
+  styleUrls: ['./start-ride.css'],
 })
 export class StartRide implements OnInit {
   ride: any = null;
