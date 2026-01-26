@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { Vehicle } from '../../../model/vehicle.model';
 import { MapRouteService } from '../../../services/map-route.service';
 import { LocationTrackingService } from '../../../services/location-tracking.service';
+
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -17,11 +18,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @Input() centerLng: number = 19.8452;
   @Input() zoom: number = 13;
   @Input() showVehicles: boolean = true;
+  
   private map: any;
   private vehicleMarkers: Map<string, any> = new Map();
   private vehiclesSubscription?: Subscription;
- private routeSubscription?: Subscription;
-  private alertSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   private markersSubscription?: Subscription;
   private vehicleLocationSubscription?: Subscription;
   private driverLocationSubscription?: Subscription;
@@ -29,68 +30,62 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private driverLocationMarker?: any;
   private driverLicencePlate: string | null = null;
 
-  private currentRoute: any[] = [];
-  private isAlertMode: boolean = false;
+  private routeLayer?: any;
+  private startMarker?: any;
+  private endMarker?: any;
+  private markersLayerGroup?: any;
+  
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private vehicleService: VehicleService,
     private mapRouteService: MapRouteService,
     private locationTrackingService: LocationTrackingService
   ) {}
+
   async ngAfterViewInit(): Promise<void> {
     if (isPlatformBrowser(this.platformId)) {
       await this.initMap();
     }
+    
+    // Simple subscription - just redraw when route data changes
     this.routeSubscription = this.mapRouteService.route$.subscribe(routeData => {
-      this.resetRouteAndMarkers();
-      if (!routeData.route || routeData.route.length === 0) return;
-      // ensure any previous drawings are removed before drawing a new route
-      try { this.clearRoute(); } catch(e) {}
-      try { this.clearMarkers(); } catch(e) {}
-      this.currentRoute = routeData.route;
-      this.isAlertMode = routeData.isAlert || false;
-      this.drawRoute(routeData.route, routeData.isAlert);
+      console.log('Route subscription fired:', routeData);
+      if (!routeData.route || routeData.route.length === 0) {
+        this.clearAllLayers();
+        return;
+      }
+      
+      this.drawRoute(routeData.route, routeData.isAlert || false);
     });
+    
     this.markersSubscription = this.mapRouteService.markers$.subscribe(routeData => {
-      // draw markers only
-      this.clearRoute();
-      this.clearMarkers();
-      this.isAlertMode = routeData.isAlert || false;
-      this.drawMarkers(routeData.route, routeData.isAlert);
+      console.log('Markers subscription fired:', routeData);
+      this.drawMarkers(routeData.route, routeData.isAlert || false);
     });
-  this.alertSubscription = this.mapRouteService.isAlert$.subscribe(isAlert => {
-    this.isAlertMode = isAlert;
-    if (this.currentRoute.length > 0) {
-      this.resetRouteAndMarkers();  
-      this.drawRoute(this.currentRoute, isAlert);
-    } else {
-      console.warn('No route to alert!');
-    }
-  });
-  this.vehicleLocationSubscription = this.mapRouteService.vehicleLocation$.subscribe(async location => {
-    if (location) {
-      const L = await import('leaflet');
-      this.updateTrackedVehicle(location.lat, location.lng, L);
-    } else {
-      this.clearTrackedVehicle();
-    }
-  });
+    
+    this.vehicleLocationSubscription = this.mapRouteService.vehicleLocation$.subscribe(async location => {
+      if (location) {
+        const L = await import('leaflet');
+        this.updateTrackedVehicle(location.lat, location.lng, L);
+      } else {
+        this.clearTrackedVehicle();
+      }
+    });
 
-  // Subscribe to driver's current location updates
-  this.driverLocationSubscription = this.locationTrackingService.currentLocation$.subscribe(async location => {
-    if (location) {
-      const L = await import('leaflet');
-      this.updateDriverLocation(location.lat, location.lon, L);
-    } else {
-      this.clearDriverLocation();
-    }
-  });
+    this.driverLocationSubscription = this.locationTrackingService.currentLocation$.subscribe(async location => {
+      if (location) {
+        const L = await import('leaflet');
+        this.updateDriverLocation(location.lat, location.lon, L);
+      } else {
+        this.clearDriverLocation();
+      }
+    });
 
-  // Subscribe to driver's license plate
-  this.locationTrackingService.driverLicencePlate$.subscribe(licencePlate => {
-    this.driverLicencePlate = licencePlate;
-  });
-}
+    this.locationTrackingService.driverLicencePlate$.subscribe(licencePlate => {
+      this.driverLicencePlate = licencePlate;
+    });
+  }
+
   ngOnDestroy(): void {
     if (this.vehicleLocationSubscription) {
       this.vehicleLocationSubscription.unsubscribe();
@@ -103,9 +98,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
     if (this.routeSubscription) {
       this.routeSubscription.unsubscribe();
-    }
-    if (this.alertSubscription) {
-      this.alertSubscription.unsubscribe();
     }
     if (this.markersSubscription) {
       this.markersSubscription.unsubscribe();
@@ -120,10 +112,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
+    
     if (this.showVehicles) {
       this.vehiclesSubscription = this.vehicleService.vehicles$.subscribe(vehicles => {
         this.updateVehicleMarkers(vehicles, L);
       });
+      
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -143,13 +137,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }
     }
   }
+
   private updateVehicleMarkers(vehicles: Vehicle[], L: any): void {
-    // Filter out the driver's own vehicle if they are currently active
     const filteredVehicles = this.driverLicencePlate
       ? vehicles.filter(v => v.licencePlate !== this.driverLicencePlate)
       : vehicles;
 
-    // Remove markers for vehicles that no longer exist or belong to the driver
     this.vehicleMarkers.forEach((marker, licencePlate) => {
       if (!filteredVehicles.find(v => v.licencePlate === licencePlate)) {
         this.map.removeLayer(marker);
@@ -175,6 +168,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }
     });
   }
+
   private createVehicleMarker(vehicle: Vehicle, L: any): any {
     const iconUrl = this.getVehicleIcon(vehicle.available);
     const icon = L.icon({
@@ -187,6 +181,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .addTo(this.map)
       .bindPopup(`${vehicle.licencePlate}<br>${vehicle.available ? 'Available' : 'In use'}`);
   }
+
   private getVehicleIcon(available: boolean): string {
     const color = available ? '#22c55e' : '#ef4444';
     const svgString = `
@@ -200,53 +195,57 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     `;
     return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString);
   }
-  private routeLayer?: any;
-  private startMarker?: any;
-  private endMarker?: any;
-  private markersLayerGroup?: any;
+
   private async drawRoute(route: any[], isAlert: boolean = false) {
-  if (!this.map || !route?.length) return;
+    if (!this.map || !route?.length) return;
 
-  this.clearRoute();
-  this.currentRoute = route;
-  this.isAlertMode = isAlert;
+    console.log('Drawing route, isAlert:', isAlert);
 
-  const L = await import('leaflet');
-  const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
+    // Clear existing layers
+    this.clearRouteLayers();
 
-  this.routeLayer = L.polyline(latLngs, {
-    color: isAlert ? "#ef4444" : "#111",
-    weight: isAlert ? 6 : 5,
-    opacity: isAlert ? 0.9 : 0.8,
-    lineCap: "round",
-    lineJoin: "round"
-  }).addTo(this.map);
+    const L = await import('leaflet');
+    const latLngs: [number, number][] = route.map(p => [p.lat, p.lng]);
 
-  if (route.length > 0) {
-    const start = route[0];
-    this.startMarker = L.circleMarker([start.lat, start.lng], {
-      radius: 8,
-      color: '#22c55e',
-      fillColor: '#22c55e',
-      fillOpacity: 0.6
-    }).bindPopup(start.display || start.name || 'Pickup address').addTo(this.map);
+    // Draw the route with color based on alert status
+    this.routeLayer = L.polyline(latLngs, {
+      color: isAlert ? "#ef4444" : "#111",
+      weight: isAlert ? 6 : 5,
+      opacity: isAlert ? 0.9 : 0.8,
+      lineCap: "round",
+      lineJoin: "round"
+    }).addTo(this.map);
+
+    console.log('Route drawn with color:', isAlert ? "#ef4444" : "#111");
+
+    // Start marker (green)
+    if (route.length > 0) {
+      const start = route[0];
+      this.startMarker = L.circleMarker([start.lat, start.lng], {
+        radius: 8,
+        color: '#22c55e',
+        fillColor: '#22c55e',
+        fillOpacity: 0.6
+      }).bindPopup(start.display || start.name || 'Pickup address').addTo(this.map);
+    }
+
+    // End marker (red, darker if alert)
+    if (route.length > 1) {
+      const end = route[route.length - 1];
+      this.endMarker = L.circleMarker([end.lat, end.lng], {
+        radius: 8,
+        color: isAlert ? '#dc2626' : '#ef4444',
+        fillColor: isAlert ? '#dc2626' : '#ef4444',
+        fillOpacity: 0.6
+      }).bindPopup(end.display || end.name || 'Destination address').addTo(this.map);
+    }
+
+    this.map.fitBounds(this.routeLayer.getBounds(), { padding: [30, 30] });
   }
 
-  if (route.length > 1) {
-    const end = route[route.length - 1];
-    this.endMarker = L.circleMarker([end.lat, end.lng], {
-      radius: 8,
-      color: isAlert ? '#dc2626' : '#ef4444',
-      fillColor: isAlert ? '#dc2626' : '#ef4444',
-      fillOpacity: 0.6
-    }).bindPopup(end.display || end.name || 'Destination address').addTo(this.map);
-  }
-
-  this.map.fitBounds(this.routeLayer.getBounds(), { padding: [30, 30] });
-}
-
-private resetRouteAndMarkers(): void {
+  private clearRouteLayers(): void {
     if (!this.map) return;
+    
     if (this.routeLayer) {
       this.map.removeLayer(this.routeLayer);
       this.routeLayer = undefined;
@@ -263,20 +262,34 @@ private resetRouteAndMarkers(): void {
       this.map.removeLayer(this.markersLayerGroup);
       this.markersLayerGroup = undefined;
     }
-    this.currentRoute = [];
+  }
+
+  private clearAllLayers(): void {
+    this.clearRouteLayers();
+    
+    // Remove any stray polylines
+    try {
+      const globalL = (window as any).L;
+      if (this.map && globalL) {
+        this.map.eachLayer((layer: any) => {
+          try {
+            if (layer instanceof globalL.Polyline) {
+              this.map.removeLayer(layer);
+            }
+          } catch (inner) {}
+        });
+      }
+    } catch (e) {
+      console.debug('clearAllLayers: failed to remove extra polylines', e);
+    }
   }
 
   private async drawMarkers(route: any[], isAlert: boolean = false) {
     if (!this.map || !route || route.length === 0) return;
     const L = (window as any).L || await import('leaflet');
 
-    this.resetRouteAndMarkers();  
-  await new Promise(resolve => setTimeout(resolve, 50));
-
-    // Only show start (green) and end (red) markers; hide intermediate blue markers
-    this.markersLayerGroup = undefined;
-  this.currentRoute = route;
-  this.isAlertMode = isAlert;
+    this.clearRouteLayers();
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     // start marker
     if (route.length > 0) {
@@ -288,17 +301,19 @@ private resetRouteAndMarkers(): void {
         fillOpacity: 0.6
       }).bindPopup(start.display || start.name || 'Start').addTo(this.map);
     }
+    
     // end marker
     if (route.length > 1) {
       const end = route[route.length - 1];
       this.endMarker = L.circleMarker([end.lat, end.lng], {
         radius: 8,
-        color: this.isAlertMode ? '#dc2626' : '#ef4444',
-        fillColor: this.isAlertMode ? '#dc2626' : '#ef4444',
+        color: isAlert ? '#dc2626' : '#ef4444',
+        fillColor: isAlert ? '#dc2626' : '#ef4444',
         fillOpacity: 0.6
       }).bindPopup(end.display || end.name || 'End').addTo(this.map);
     }
-    // intermediate stop markers (blue)
+    
+    // intermediate markers
     try {
       const intermediate = route.slice(1, Math.max(1, route.length - 1));
       if (intermediate && intermediate.length > 0) {
@@ -312,16 +327,20 @@ private resetRouteAndMarkers(): void {
               fillOpacity: 0.85
             }).bindPopup(p.display || p.name || 'Stop');
             this.markersLayerGroup.addLayer(m);
-          } catch (inner) { console.warn('failed to add intermediate marker', inner); }
+          } catch (inner) { 
+            console.warn('failed to add intermediate marker', inner); 
+          }
         });
-        if (this.markersLayerGroup.getLayers().length > 0) this.markersLayerGroup.addTo(this.map);
+        if (this.markersLayerGroup.getLayers().length > 0) {
+          this.markersLayerGroup.addTo(this.map);
+        }
       }
     } catch (e) {
       console.warn('adding intermediate markers failed', e);
     }
-    // fit to available markers
+    
+    // fit bounds
     try {
-      // prefer fitting bounds to all markers (intermediate + start/end) when available
       const groups: any[] = [];
       if (this.startMarker) groups.push(this.startMarker);
       if (this.endMarker) groups.push(this.endMarker);
@@ -337,133 +356,76 @@ private resetRouteAndMarkers(): void {
     } catch (e) {
       console.warn('fitBounds markers failed', e);
     }
-
-    // markers-only: we already added start/end above; nothing more to do here
-}
-
-
-  private clearMarkers() {
-    if (this.markersLayerGroup && this.map) {
-      this.map.removeLayer(this.markersLayerGroup);
-      this.markersLayerGroup = undefined;
-    }
-    // also remove any standalone start/end markers
-    if (this.startMarker && this.map) {
-      try { this.map.removeLayer(this.startMarker); } catch(e) {}
-      this.startMarker = undefined;
-    }
-    if (this.endMarker && this.map) {
-      try { this.map.removeLayer(this.endMarker); } catch(e) {}
-      this.endMarker = undefined;
-    }
   }
-  private clearRoute(): void {
-    if (!this.map) return;
-
-    if (this.routeLayer) {
-      this.map.removeLayer(this.routeLayer);
-      this.routeLayer = undefined;
-    }
-    // also clear markers when clearing route to avoid duplicates
-    try { this.clearMarkers(); } catch(e) {}
-
-    // Remove any other polylines that may have been added previously
-    try {
-      const globalL = (window as any).L;
-      if (this.map && globalL) {
-        this.map.eachLayer((layer: any) => {
-          try {
-            if (layer instanceof globalL.Polyline) {
-              this.map.removeLayer(layer);
-            }
-          } catch (inner) {}
-        });
-      }
-    } catch (e) {
-      console.debug('clearRoute: failed to remove extra polylines', e);
-    }
-
-    this.currentRoute = [];
-    this.isAlertMode = false;
-  }
-
 
   private async updateTrackedVehicle(lat: number, lng: number, L: any): Promise<void> {
-  if (!this.map) return;
+    if (!this.map) return;
 
-    if (this.endMarker) {
-      this.map.removeLayer(this.endMarker);
-      this.endMarker = undefined;
+    if (this.trackedVehicleMarker) {
+      this.trackedVehicleMarker.setLatLng([lat, lng]);
+    } else {
+      const svgString = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="14" fill="#3b82f6" stroke="white" stroke-width="3"/>
+          <circle cx="12" cy="20" r="2.5" fill="white"/>
+          <circle cx="20" cy="20" r="2.5" fill="white"/>
+          <rect x="8" y="16" width="16" height="4" fill="white"/>
+          <rect x="12" y="13" width="11" height="3" fill="white"/>
+          <circle cx="16" cy="16" r="4" fill="yellow" opacity="0.8"/>
+        </svg>
+      `;
+
+      const icon = L.icon({
+        iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString),
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+        popupAnchor: [0, -20]
+      });
+
+      this.trackedVehicleMarker = L.marker([lat, lng], { icon })
+        .addTo(this.map)
+        .bindPopup('Your ride vehicle');
     }
-  if (this.trackedVehicleMarker) {
-    this.trackedVehicleMarker.setLatLng([lat, lng]);
-  } else {
-    const svgString = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="14" fill="#3b82f6" stroke="white" stroke-width="3"/>
-        <circle cx="12" cy="20" r="2.5" fill="white"/>
-        <circle cx="20" cy="20" r="2.5" fill="white"/>
-        <rect x="8" y="16" width="16" height="4" fill="white"/>
-        <rect x="12" y="13" width="11" height="3" fill="white"/>
-        <circle cx="16" cy="16" r="4" fill="yellow" opacity="0.8"/>
-      </svg>
-    `;
-
-    this.currentRoute = [];
-    this.isAlertMode = false;
-    const icon = L.icon({
-      iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString),
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-      popupAnchor: [0, -20]
-    });
-
-    this.trackedVehicleMarker = L.marker([lat, lng], { icon })
-      .addTo(this.map)
-      .bindPopup('Your ride vehicle');
   }
-}
 
-private clearTrackedVehicle(): void {
-  if (this.trackedVehicleMarker && this.map) {
-    this.map.removeLayer(this.trackedVehicleMarker);
-    this.trackedVehicleMarker = undefined;
+  private clearTrackedVehicle(): void {
+    if (this.trackedVehicleMarker && this.map) {
+      this.map.removeLayer(this.trackedVehicleMarker);
+      this.trackedVehicleMarker = undefined;
+    }
   }
-}
 
-private updateDriverLocation(lat: number, lon: number, L: any): void {
-  if (!this.map) return;
+  private updateDriverLocation(lat: number, lon: number, L: any): void {
+    if (!this.map) return;
 
-  if (this.driverLocationMarker) {
-    // Update existing marker position
-    this.driverLocationMarker.setLatLng([lat, lon]);
-  } else {
-    // Create new marker for driver location
-    const svgString = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-        <circle cx="16" cy="16" r="14" fill="#10b981" stroke="white" stroke-width="3"/>
-        <circle cx="16" cy="16" r="6" fill="white"/>
-        <circle cx="16" cy="16" r="3" fill="#10b981"/>
-      </svg>
-    `;
+    if (this.driverLocationMarker) {
+      this.driverLocationMarker.setLatLng([lat, lon]);
+    } else {
+      const svgString = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="14" fill="#10b981" stroke="white" stroke-width="3"/>
+          <circle cx="16" cy="16" r="6" fill="white"/>
+          <circle cx="16" cy="16" r="3" fill="#10b981"/>
+        </svg>
+      `;
 
-    const icon = L.icon({
-      iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString),
-      iconSize: [36, 36],
-      iconAnchor: [18, 18],
-      popupAnchor: [0, -18]
-    });
+      const icon = L.icon({
+        iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString),
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -18]
+      });
 
-    this.driverLocationMarker = L.marker([lat, lon], { icon })
-      .addTo(this.map)
-      .bindPopup('Your current location');
+      this.driverLocationMarker = L.marker([lat, lon], { icon })
+        .addTo(this.map)
+        .bindPopup('Your current location');
+    }
   }
-}
 
-private clearDriverLocation(): void {
-  if (this.driverLocationMarker && this.map) {
-    this.map.removeLayer(this.driverLocationMarker);
-    this.driverLocationMarker = undefined;
+  private clearDriverLocation(): void {
+    if (this.driverLocationMarker && this.map) {
+      this.map.removeLayer(this.driverLocationMarker);
+      this.driverLocationMarker = undefined;
+    }
   }
-}
 }

@@ -57,6 +57,11 @@
                 }
                 @if (role === 'USER' ) {
                 <li class="nav-item">
+                  <a class="nav-link" routerLink="/current-ride" (click)="closeMenu()">Current ride</a>
+                </li>
+                }
+                @if (role === 'USER' ) {
+                <li class="nav-item">
                   <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
                 </li>
                 }

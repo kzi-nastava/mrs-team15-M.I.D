@@ -173,8 +173,8 @@ export class CurrentRideForm implements OnDestroy {
   }
 
   onPanicConfirmed() {
-    alert("Panic is activated");
     this.showPanicModal = false;
+    this.mapRouteService.alertRoute();
   }
 
   markCompleted(): void {

@@ -13,36 +13,42 @@ export class MapRouteService {
   private routeSubject = new ReplaySubject<RouteData>(1);
   route$ = this.routeSubject.asObservable();
 
-  private isAlertMode = new BehaviorSubject<boolean>(false);
-  isAlert$ = this.isAlertMode.asObservable();
-
-  // Separate subject for marker-only displays; buffer latest as well
   private markersSubject = new ReplaySubject<RouteData>(1);
   markers$ = this.markersSubject.asObservable();
   private vehicleLocationSubject = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   vehicleLocation$ = this.vehicleLocationSubject.asObservable();
+
+  private currentRouteData: RouteData = { route: [], isAlert: false };
 
   drawRoute(route: any[], isAlert: boolean = false) {
     if (!route || route.length === 0) {
       console.warn('Empty route received');
       return;
     }
-    this.routeSubject.next({ route, isAlert });
-    this.isAlertMode.next(isAlert);
+    this.currentRouteData = { route, isAlert };
+    this.routeSubject.next(this.currentRouteData);
   }
 
   drawMarkers(points: any[], isAlert: boolean = false) {
     if (!points || points.length === 0) return;
-    this.markersSubject.next({ route: points, isAlert });
-    this.isAlertMode.next(isAlert);
+    this.currentRouteData = { route: points, isAlert };
+    this.markersSubject.next(this.currentRouteData);
   }
 
   alertRoute() {
-    this.isAlertMode.next(true);
+    if (this.currentRouteData.route.length > 0) {
+      this.currentRouteData.isAlert = true;
+      this.routeSubject.next({ ...this.currentRouteData });
+    } else {
+      console.warn('No route to alert');
+    }
   }
 
   clearAlert() {
-    this.isAlertMode.next(false);
+    if (this.currentRouteData.route.length > 0) {
+      this.currentRouteData.isAlert = false;
+      this.routeSubject.next({ ...this.currentRouteData });
+    }
   }
 
   updateVehicleLocation(lat: number, lng: number) {
@@ -54,8 +60,8 @@ export class MapRouteService {
   }
 
   clearRoute() {
+    this.currentRouteData = { route: [], isAlert: false };
     this.routeSubject.next({ route: [], isAlert: false });
     this.markersSubject.next({ route: [], isAlert: false });
-    this.isAlertMode.next(false);
   }
 }
