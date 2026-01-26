@@ -70,11 +70,6 @@
                   <a class="nav-link" routerLink="/login" (click)="closeMenu()">Log in</a>
                 </li>
                 }
-                @if (!isLoggedIn) {
-                <li class="nav-item">
-                  <a class="nav-link" routerLink="/reset-password" (click)="closeMenu()">Reset Password</a>
-                </li>
-                }
                 @if (isLoggedIn) {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
