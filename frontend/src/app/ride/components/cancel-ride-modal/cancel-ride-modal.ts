@@ -17,6 +17,7 @@ export class CancelRideModal {
   @Output() confirmCancel = new EventEmitter<{id: number, reason: string}>
 
   reason : string = '';
+  isDriver : boolean = localStorage.getItem("role") === "DRIVER"
 
   onClose(){
     this.close.emit();
