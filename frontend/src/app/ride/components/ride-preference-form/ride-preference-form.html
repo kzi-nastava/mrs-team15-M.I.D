@@ -30,7 +30,7 @@
 
   <div class="schedule-picker mb-3">
     <label class="form-label mb-1">Schedule ride</label>
-    <input class="form-control" type="datetime-local" [(ngModel)]="scheduledTime" [min]="minDatetime" (ngModelChange)="onScheduledTimeChange($event)" />
+    <input class="form-control" type="datetime-local" [(ngModel)]="scheduledTime" [min]="minDatetime" [max]="maxDatetime" (ngModelChange)="onScheduledTimeChange($event)" />
     <div class="error" *ngIf="scheduledTimeError">{{ scheduledTimeError }}</div>
   </div>
 

@@ -31,6 +31,7 @@ export class RidePreferenceForm {
   guests: string[] = [];
   scheduledTime: string | null = null;
   minDatetime: string | null = null;
+  maxDatetime: string | null = null;
   scheduledTimeError: string | null = null;
   validator: FromValidator = new FromValidator();
 
@@ -49,6 +50,7 @@ export class RidePreferenceForm {
     // ensure minDatetime is set when inputs change (component init)
     try {
       if (!this.minDatetime) this.minDatetime = this._formatLocalDatetime(new Date());
+      if (!this.maxDatetime) this.maxDatetime = this._formatLocalDatetime(new Date(Date.now() + 5 * 60 * 60 * 1000));
     } catch(e) {}
   }
 
@@ -73,6 +75,14 @@ export class RidePreferenceForm {
     if (this.scheduledTime && this._isInPast(this.scheduledTime)) {
       this.scheduledTimeError = 'Scheduled time cannot be in the past';
     }
+    // ensure scheduled time is not more than 5 hours ahead
+    try {
+      if (this.scheduledTime && this.maxDatetime) {
+        const sel = new Date(this.scheduledTime).getTime();
+        const max = new Date(this.maxDatetime).getTime();
+        if (sel > max) this.scheduledTimeError = 'Scheduled time cannot be more than 5 hours ahead';
+      }
+    } catch(e) {}
   }
 
   removeGuest(idx: number) {
@@ -86,6 +96,14 @@ export class RidePreferenceForm {
     if (this.scheduledTime && this._isInPast(this.scheduledTime)) {
       this.scheduledTimeError = 'Scheduled time cannot be in the past';
       return;
+    }
+    if (this.scheduledTime && this.maxDatetime) {
+      try {
+        if (new Date(this.scheduledTime).getTime() > new Date(this.maxDatetime).getTime()) {
+          this.scheduledTimeError = 'Scheduled time cannot be more than 5 hours ahead';
+          return;
+        }
+      } catch(e) {}
     }
     const vt = (this.vehicleType || '').toUpperCase() || 'STANDARD';
     this.confirm.emit({ vehicleType: vt, babySeat: this.babySeat, petFriendly: this.petFriendly, guests: [...this.guests], scheduledTime: this.scheduledTime });
