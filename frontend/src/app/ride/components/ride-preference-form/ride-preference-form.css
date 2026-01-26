@@ -207,3 +207,36 @@
   display: flex;
   align-items: center;
 }
+
+/* Improve visibility of datetime-local picker in dark theme */
+.ride-preference-section .schedule-picker .form-control {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 6px 10px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 14px;
+  padding-right: 40px; /* leave space for picker icon */
+}
+
+/* WebKit browsers: tint the calendar icon so it contrasts */
+.ride-preference-section .schedule-picker .form-control::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2) saturate(0.4);
+  opacity: 1;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+/* Make sure on focus the control stays readable */
+.ride-preference-section .schedule-picker .form-control:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.08);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* Ensure native clear controls are hidden where needed */
+.ride-preference-section .schedule-picker .form-control::-ms-clear,
+.ride-preference-section .schedule-picker .form-control::-ms-expand {
+  display: none;
+}

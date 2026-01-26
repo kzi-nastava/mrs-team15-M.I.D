@@ -8,5 +8,5 @@ import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import java.util.Optional;
 
 public interface RegisteredUserRepository extends JpaRepository<RegisteredUser, Long> {
-    Optional<Object> findByEmail(@Email @NotBlank String mainPassengerEmail);
+    Optional<RegisteredUser> findByEmail(String mainPassengerEmail);
 }

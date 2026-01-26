@@ -28,12 +28,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PutMapping("/{id}/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<Void> changePassword(
-            @PathVariable Long id,
             @Valid @RequestBody ChangePasswordRequestDTO dto) {
-
-        userService.changePassword(id, dto);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        userService.changePassword(user.getId(), dto);
         return ResponseEntity.ok().build();
     }
 

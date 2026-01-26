@@ -598,7 +598,7 @@ export class RideOrderingForm implements OnInit {
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
-    this.showPreferences = false;
+    // keep preferences visible until navigation completes to avoid flashing parent form
 
     // Build basic estimate payload by geocoding addresses
     try {
@@ -672,7 +672,7 @@ export class RideOrderingForm implements OnInit {
         babyFriendly: !!prefs.babySeat,
         petFriendly: !!prefs.petFriendly,
         linkedPassengers: prefs.guests && prefs.guests.length ? prefs.guests : [],
-        scheduledTime: null,
+        scheduledTime: prefs && prefs.scheduledTime ? (function(){ try { return new Date(prefs.scheduledTime).toISOString(); } catch(e){ return prefs.scheduledTime; } })() : null,
         distanceKm: route?.distanceKm ?? 0,
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
         priceEstimate: priceForType,
@@ -697,14 +697,16 @@ export class RideOrderingForm implements OnInit {
       console.log('Order DTO', orderDto);
       // Navigate to finding-driver immediately with the order payload
       try {
-        this.router.navigate(['/finding-driver'], { state: { order: orderDto } });
+        await this.router.navigate(['/finding-driver'], { state: { order: orderDto } });
+        // Emit immediate navigation event so parent can react if needed
+        this.orderAttempt.emit({ navigated: true, order: orderDto });
+        // Now hide preferences (component will likely be destroyed after navigation)
+        this.showPreferences = false;
       } catch (navErr) {
         console.warn('Navigation to finding-driver failed', navErr);
+        // fallback: hide preferences so user can try again
+        this.showPreferences = false;
       }
-
-      // Do not call backend here; finding-driver page will call the backend after navigation
-      // Emit immediate navigation event so parent can react if needed
-      this.orderAttempt.emit({ navigated: true, order: orderDto });
 
     } catch (err) {
       console.error('Order failed', err);
