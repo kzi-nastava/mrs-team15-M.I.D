@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 80vh;
-  background: #ffffff; /* keep page background light */
+  background: #ffffff; 
 }
 
 @media (max-width: 768px) {
@@ -16,12 +16,10 @@
   
 }
 
-/* Map container: keep light background so map tiles appear normally */
 .map-container { background: #ffffff; }
 
-/* Card: apply dark theme only to the card */
 .card {
-  background: #0f1720;
+  background: #000000;
   border-radius: 8px;
   padding: 24px;
   text-align: center;
@@ -34,7 +32,7 @@
   display: flex;
   flex-direction: column;
   overflow: auto;
-  min-height: 520px; /* keep card height stable between searching/found/notfound */
+  min-height: 520px; 
 }
 
 @media (max-width: 768px) {

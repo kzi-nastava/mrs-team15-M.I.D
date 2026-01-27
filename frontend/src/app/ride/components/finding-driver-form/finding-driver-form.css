@@ -22,7 +22,7 @@
   right: 0;
   top: 2px;
   height: 4px;
-  background-image: linear-gradient(to right, transparent 0 20%, #0e0e0e 20% 30%, transparent 30% 50%);
+  background-image: #000 ;
   background-size: 60px 4px;
   animation: roadMove 0.8s linear infinite;
   opacity: 0.9;
@@ -70,7 +70,7 @@
   text-align: left;
   margin: 12px 0 0 0;
   padding: 8px 12px;
-  background: #0f1720;
+  background: #000000;
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.04);
 }
@@ -123,7 +123,7 @@
   margin: 8px 0 12px 0;
   gap: 8px;
   text-align: center;
-  background: linear-gradient(180deg,#0b1220,#071018);
+  background: #000000;
   border: 1px solid rgba(255,255,255,0.03);
 }
 
