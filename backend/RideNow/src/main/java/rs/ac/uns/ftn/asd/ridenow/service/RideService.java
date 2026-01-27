@@ -476,6 +476,7 @@ public class RideService {
         ride.setStartTime(LocalDateTime.now());
         Driver driver = ride.getDriver();
         driver.setStatus(DriverStatus.INACTIVE);
+        driverRepository.save(driver);
         rideRepository.save(ride);
     }
 
