@@ -14,16 +14,19 @@ import java.util.Optional;
 
 public interface RideRepository extends JpaRepository<Ride, Long> {
     List<Ride> findByDriver(Driver driver);
-    @Query("SELECT r FROM Ride r " +
+    @Query("SELECT DISTINCT r FROM Ride r " +
             "LEFT JOIN FETCH r.passengers p " +
             "LEFT JOIN FETCH p.user " +
             "LEFT JOIN FETCH r.panicAlert " +
-            "WHERE r.driver = :driver")
+            "WHERE r.driver = :driver " +
+            "AND r.status IN ('FINISHED', 'CANCELLED')")
     Page<Ride> findByDriverWithAllRelations(@Param("driver") Driver driver, Pageable pageable);
+
 
     // Passengers sorting - ascending (rides with no passengers come first)
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "ORDER BY " +
             "(SELECT COUNT(p) FROM r.passengers p) ASC, " +
             "(SELECT MIN(p.user.firstName) FROM r.passengers p) ASC")
@@ -32,6 +35,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Passengers sorting - descending (rides with no passengers come last)
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "ORDER BY " +
             "(SELECT COUNT(p) FROM r.passengers p) DESC, " +
             "(SELECT MIN(p.user.firstName) FROM r.passengers p) DESC")
@@ -40,6 +44,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Duration sorting - ascending (rides with no duration come first)
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "ORDER BY CASE WHEN r.startTime IS NULL OR r.endTime IS NULL THEN 0 ELSE 1 END ASC, " +
             "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END ASC")
     Page<Ride> findRidesSortedByDurationAsc(@Param("driverId") Long driverId, Pageable pageable);
@@ -47,6 +52,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Duration sorting - descending (rides with no duration come last)
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "ORDER BY CASE WHEN r.startTime IS NULL OR r.endTime IS NULL THEN 1 ELSE 0 END ASC, " +
             "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END DESC")
     Page<Ride> findRidesSortedByDurationDesc(@Param("driverId") Long driverId, Pageable pageable);
@@ -54,6 +60,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Date-filtered passengers sorting - ascending
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
             "ORDER BY " +
             "(SELECT COUNT(p) FROM r.passengers p) ASC, " +
@@ -66,6 +73,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Date-filtered passengers sorting - descending
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
             "ORDER BY " +
             "(SELECT COUNT(p) FROM r.passengers p) DESC, " +
@@ -78,6 +86,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Date-filtered duration sorting - ascending
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
             "ORDER BY CASE WHEN r.startTime IS NULL OR r.endTime IS NULL THEN 0 ELSE 1 END ASC, " +
             "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END ASC")
@@ -89,6 +98,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
     // Date-filtered duration sorting - descending
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate " +
             "ORDER BY CASE WHEN r.startTime IS NULL OR r.endTime IS NULL THEN 1 ELSE 0 END ASC, " +
             "CASE WHEN r.startTime IS NOT NULL AND r.endTime IS NOT NULL THEN (r.endTime - r.startTime) ELSE 0 END DESC")
@@ -98,16 +108,18 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
                                                      Pageable pageable);
 
     // Date-filtered standard sorting with relations
-    @Query("SELECT r FROM Ride r " +
+    @Query("SELECT DISTINCT r FROM Ride r " +
             "LEFT JOIN FETCH r.passengers p " +
             "LEFT JOIN FETCH p.user " +
             "LEFT JOIN FETCH r.panicAlert " +
             "WHERE r.driver = :driver " +
+            "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate")
     Page<Ride> findByDriverWithAllRelationsAndDate(@Param("driver") Driver driver,
                                                    @Param("startDate") LocalDateTime startDate,
                                                    @Param("endDate") LocalDateTime endDate,
                                                    Pageable pageable);
+
 
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver = :driver AND r.status = 'REQUESTED'")

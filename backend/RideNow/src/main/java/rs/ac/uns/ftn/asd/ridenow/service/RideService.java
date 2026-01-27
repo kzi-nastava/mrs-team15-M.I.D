@@ -119,13 +119,18 @@ public class RideService {
 
         Ride ride = new Ride();
 
-        response = getBestDriver(dto, vehicleType);
-        if (response.getDriverId() == null) {
-            // no suitable driver found
-            response.setStatus(null);
-            response.setId(null);
-            response.setDriverId(null);
-            return response;
+        if (dto.getScheduledTime() != null) {
+            LocalDateTime scheduled = dto.getScheduledTime();
+            LocalDateTime prev30 = scheduled.minusMinutes(30);
+            LocalDateTime next30 = scheduled.plusMinutes(30);
+
+            response = getBestDriver(dto, vehicleType, prev30, next30);
+
+        }else{
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextHour = now.plusHours(1);
+            response = getBestDriver(dto, vehicleType, now, nextHour);
+
         }
 
         Driver assigned = driverRepository.findById(response.getDriverId())
@@ -206,7 +211,7 @@ public class RideService {
         return response;
     }
 
-    public OrderRideResponseDTO getBestDriver(OrderRideRequestDTO dto, VehicleType vehicleType){
+    public OrderRideResponseDTO getBestDriver(OrderRideRequestDTO dto, VehicleType vehicleType, LocalDateTime now, LocalDateTime nextHour){
 
         OrderRideResponseDTO response = new OrderRideResponseDTO();
 
@@ -236,10 +241,6 @@ public class RideService {
         // compute distances from driver current location to ride start
         double startLat = dto.getStartLatitude();
         double startLon = dto.getStartLongitude();
-
-        // exclude drivers who have scheduled rides in the next hour
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextHour = now.plusHours(1);
 
         List<Driver> availableDrivers = matchingDrivers.stream()
                 .filter(Driver::getAvailable)
