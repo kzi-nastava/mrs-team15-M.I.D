@@ -1,5 +1,7 @@
 package com.example.ridenow.util;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
@@ -12,9 +14,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ClientUtils {
-    private static final String BASE_URL = "http://10.0.2.2:8080/api/";
-    private static String authToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc2OTM0MTkwNywiZXhwIjoxNzY5MzQ1NTA3fQ.2o4h7-laSO0bJS9iDiayHXbLBRBuzd49AoUTQ7hHK7E";
-    private static String role = null;
+    private static final String BASE_URL = "http://10.0.2.2:8081/api/";
+    private static String authToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1Z2xqZXNpYy5taWFAamp6bWFqLmVkdS5ycyIsImlhdCI6MTc2OTQ3MzkzNiwiZXhwIjoxNzY5NDc3NTM2fQ.1hMwFDWDg8o_D012pwPPhxkno-BzqbP-Nr_zi2OHSbo";
+    private static String role = "DRIVER";
 
     private static OkHttpClient okHttpClient = new OkHttpClient.Builder()
             .addInterceptor(new Interceptor() {
@@ -30,6 +32,18 @@ public class ClientUtils {
                     return chain.proceed(requestBuilder.build());
                 }
             })
+            // Simple logger interceptor to print request URL and response code to Logcat
+            .addInterceptor(new Interceptor() {
+                @NonNull
+                @Override
+                public Response intercept(@NonNull Chain chain) throws IOException {
+                    Request request = chain.request();
+                    Log.i("ClientUtils", "HTTP " + request.method() + " " + request.url());
+                    Response response = chain.proceed(request);
+                    Log.i("ClientUtils", "Response: code=" + response.code() + " for " + request.url());
+                    return response;
+                }
+            })
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build();
@@ -42,5 +56,13 @@ public class ClientUtils {
 
     public static <T> T getClient(Class<T> service) {
         return retrofit.create(service);
+    }
+
+    // Return server root (without the "/api/" suffix) so relative image paths can be resolved
+    public static String getServerBaseUrl() {
+        if (BASE_URL.endsWith("/api/") || BASE_URL.endsWith("/api")) {
+            return BASE_URL.replace("/api/", "").replace("/api", "");
+        }
+        return BASE_URL;
     }
 }
