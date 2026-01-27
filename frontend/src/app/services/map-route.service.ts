@@ -18,6 +18,9 @@ export class MapRouteService {
   private vehicleLocationSubject = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   vehicleLocation$ = this.vehicleLocationSubject.asObservable();
 
+  private centerOnVehicleSubject = new BehaviorSubject<boolean>(false);
+  centerOnVehicle$ = this.centerOnVehicleSubject.asObservable();
+
   private currentRouteData: RouteData = { route: [], isAlert: false };
 
   drawRoute(route: any[], isAlert: boolean = false) {
@@ -53,6 +56,11 @@ export class MapRouteService {
 
   updateVehicleLocation(lat: number, lng: number) {
     this.vehicleLocationSubject.next({ lat, lng });
+  }
+
+  updateVehicleLocationAndCenter(lat: number, lng: number) {
+    this.vehicleLocationSubject.next({ lat, lng });
+    this.centerOnVehicleSubject.next(true);
   }
 
   clearVehicleLocation() {

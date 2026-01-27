@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.dto.ride;
 
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 
 import java.util.List;
 
@@ -9,10 +10,7 @@ import java.util.List;
 @Setter
 public class CurrentRideDTO {
     private int estimatedDurationMin;
-    private double distanceKm;
-    private List<RoutePointDTO> route;
-    private String startAddress;
-    private String endAddress;
+    private RouteDTO route;
     private Long rideId;
 
     public  CurrentRideDTO(){ super(); }
