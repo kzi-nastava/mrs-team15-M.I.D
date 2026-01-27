@@ -653,9 +653,8 @@ public class RideService {
     private void updateRideRoute(String startAddress, String endAddress,
                                  Ride ride) throws Exception {
 
-        double[] startCoordinate = routingService.getGeocode(startAddress);
-        double latStart = startCoordinate[0];
-        double lonStart = startCoordinate[1];
+        double latStart = ride.getRoute().getStartLocation().getLatitude();
+        double lonStart = ride.getRoute().getStartLocation().getLongitude();
 
         double[] endCoordinate = routingService.getGeocode(endAddress);
         double latEnd = endCoordinate[0];
