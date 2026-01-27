@@ -683,6 +683,15 @@ public class RideService {
         responseDTO.setStartAddress(startParts.length >= 3 ? String.join(",", startParts[0], startParts[1], startParts[2]) : startAddress);
         responseDTO.setEndAddress(endParts.length >= 3 ? String.join(",", endParts[0], endParts[1], endParts[2]) : endAddress);
 
+        // Stop lats and lons
+        List<Double> stopLats = new ArrayList<>();
+        List<Double> stopLons = new ArrayList<>();
+        for (Location stop : ride.getRoute().getStopLocations()) {
+            stopLats.add(stop.getLatitude());
+            stopLons.add(stop.getLongitude());
+        }
+        responseDTO.setStopLats(stopLats);
+        responseDTO.setStopLngs(stopLons);
 
         // Map model PolylinePoint objects to DTOs expected by the response
         List<RoutePointDTO> routePoints = ride.getRoute().getPolylinePoints().stream()
