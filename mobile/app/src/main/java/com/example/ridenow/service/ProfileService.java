@@ -1,12 +1,14 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.user.UserResponseDTO;
+import com.example.ridenow.dto.user.ChangePasswordRequestDTO;
 
 import java.util.Map;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.Part;
@@ -20,5 +22,7 @@ public interface ProfileService {
     @Multipart
     @PUT("users")
     Call<Void> updateUser(@PartMap Map<String, RequestBody> partMap, @Part MultipartBody.Part profileImage);
-}
 
+    @PUT("users/change-password")
+    Call<Void> changePassword(@Body ChangePasswordRequestDTO dto);
+}
