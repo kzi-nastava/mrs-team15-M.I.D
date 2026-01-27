@@ -24,7 +24,7 @@
       <tr *ngFor="let r of filteredRequests">
         <td>
           <div class="avatar-cell">
-            <img *ngIf="(r.originalDriver._full?.profileImage) || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl" [src]="r.originalDriver._full?.profileImage || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl" alt="avatar" class="small-avatar" />
+            <img *ngIf="(r.originalDriver._full?.profileImage) || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl" [src]="backendUrl + (r.originalDriver._full?.profileImage || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl)" alt="avatar" class="small-avatar" />
             <div *ngIf="!((r.originalDriver._full?.profileImage) || r.originalDriver.avatarUrl || r.changedDriver.avatarUrl)" class="avatar-fallback">{{ ((r.originalDriver._full?.firstName || r.changedDriver.firstName || r.originalDriver.firstName) && (r.originalDriver._full?.firstName || r.changedDriver.firstName || r.originalDriver.firstName).charAt(0)) || '?' }}</div>
           </div>
         </td>
