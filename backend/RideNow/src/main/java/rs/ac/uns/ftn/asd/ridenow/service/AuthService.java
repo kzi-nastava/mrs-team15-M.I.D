@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,6 +48,9 @@ public class AuthService {
     @Autowired
     @Lazy
     private DriverService driverService;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -134,8 +138,10 @@ public class AuthService {
             driver.setAvailable(true);
         }
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
+        long expiresAt = System.currentTimeMillis() + expiration;
         LoginResponseDTO responseDTO = new LoginResponseDTO();
         responseDTO.setToken(token);
+        responseDTO.setExpiresAt(expiresAt);
         responseDTO.setRole(existingUser.getRole().name());
         existingUser.setJwtTokenValid(true);
         userRepository.save(existingUser);

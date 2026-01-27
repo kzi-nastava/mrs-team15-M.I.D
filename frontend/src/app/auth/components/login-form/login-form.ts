@@ -6,6 +6,7 @@ import { FromValidator } from '../../../shared/components/form-validator';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
+import { TokenExpirationService } from '../../../services/token-expiration.service';
 @Component({
   selector: 'app-login-form',
   standalone: true,
@@ -15,7 +16,7 @@ import { Router } from '@angular/router';
 })
 export class LoginForm {
 
-  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router){}
+  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router, private tokenExpirationService: TokenExpirationService ){}
 
   passwordVisible = false;
   
@@ -44,6 +45,8 @@ export class LoginForm {
       next: (response) => {
         localStorage.setItem('jwtToken', response.token);
         localStorage.setItem('role', response.role);
+        localStorage.setItem('tokenExpiration', response.expiresAt.toString());
+        this.tokenExpirationService.startTokenExpirationCheck(); 
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
         setTimeout(() => { this.router.navigate(['/home']); }, 4000);
       },
