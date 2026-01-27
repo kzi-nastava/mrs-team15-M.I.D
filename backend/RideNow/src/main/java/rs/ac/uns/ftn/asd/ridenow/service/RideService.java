@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
@@ -133,7 +134,13 @@ public class RideService {
         // Assign selected driver
         ride.setDriver(assigned);
         ride.setStatus(RideStatus.REQUESTED);
-        ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
+        if (dto.getScheduledTime() == null) {
+            ride.setScheduledTime(LocalDateTime.now().plusMinutes(ETA));
+        }
+        else {
+            ride.setScheduledTime(dto.getScheduledTime());
+            ETA = (int) java.time.Duration.between(LocalDateTime.now(), dto.getScheduledTime()).toMinutes();
+        }
         ride.setDistanceKm(dto.getDistanceKm());
         ride.setPrice(dto.getPriceEstimate());
         // Add passengers to ride
@@ -173,12 +180,11 @@ public class RideService {
             response.setDriverId(assigned.getId());
         }
 
-        // mark driver unavailable and save driver
-        assigned.setAvailable(false);
-        if(assigned.getPendingStatus() != null){
-            assigned.setStatus(assigned.getPendingStatus());
-            assigned.setPendingStatus(null);
+        // mark driver as unavailable
+        if (dto.getScheduledTime() == null) {
+            assigned.setAvailable(false);
         }
+
         driverRepository.save(assigned);
 
         response.setId(ride.getId());
@@ -386,9 +392,16 @@ public class RideService {
 
         Vehicle vehicle = driver.getVehicle();
         try {
-            double[] endCoordinate = routingService.getGeocode(ride.getRoute().getEndLocation().getAddress());
+            Route route = ride.getRoute();
+            List<Location> stops = route.getStopLocations();
+            List<Double> stopLats = new ArrayList<>();
+            List<Double> stopLons = new ArrayList<>();
+            for (Location stop : stops) {
+                stopLats.add(stop.getLatitude());
+                stopLons.add(stop.getLongitude());
+            }
 
-            RideEstimateResponseDTO estimate = routingService.getRoute(vehicle.getLat(), vehicle.getLon(), endCoordinate[0], endCoordinate[1]);
+            RideEstimateResponseDTO estimate = routingService.getRouteWithStops(vehicle.getLat(), vehicle.getLon(), route.getEndLocation().getLatitude(), route.getEndLocation().getLongitude(), stopLats, stopLons);
 
             return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), estimate.getEstimatedDurationMin());
         } catch (Exception e) {
@@ -401,6 +414,7 @@ public class RideService {
                 .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
 
         ride.setStatus(RideStatus.FINISHED);
+        ride.setEndTime(LocalDateTime.now());
         ride = rideRepository.save(ride);
 
         LocalDateTime now = LocalDateTime.now();
@@ -408,6 +422,9 @@ public class RideService {
 
         List<Ride> scheduledRides = rideRepository.findScheduledRidesForDriverInNextHour(
                 driverId, now, nextHour);
+
+        System.out.println("################################################################################");
+        System.out.println(scheduledRides.size());
 
         if (scheduledRides.isEmpty()) {
             // mark driver as available again
@@ -477,25 +494,13 @@ public class RideService {
                 throw new Exception("You don't have ride in progress");
             }
             Ride ride = optionalRide.get();
-            String startAddress = ride.getRoute().getStartLocation().getAddress();
-            String endAddress = ride.getRoute().getEndLocation().getAddress();
 
-            double[] startCoordinate = routingService.getGeocode(startAddress);
-            double latStart = startCoordinate[0];
-            double lonStart = startCoordinate[1];
+            Route route = ride.getRoute();
 
-            double[] endCoordinate = routingService.getGeocode(endAddress);
-            double latEnd = endCoordinate[0];
-            double lonEnd = endCoordinate[1];
-
-            RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
 
             CurrentRideDTO currentRideDTO = new CurrentRideDTO();
-            currentRideDTO.setStartAddress(startAddress);
-            currentRideDTO.setEndAddress(endAddress);
-            currentRideDTO.setEstimatedDurationMin(response.getEstimatedDurationMin());
-            currentRideDTO.setRoute(response.getRoute());
-            currentRideDTO.setDistanceKm(response.getDistanceKm());
+            currentRideDTO.setEstimatedDurationMin((int) route.getEstimatedTimeMin());
+            currentRideDTO.setRoute(new RouteDTO(route));
             currentRideDTO.setRideId(ride.getId());
             return currentRideDTO;
         } catch (Exception e) {
@@ -683,6 +688,15 @@ public class RideService {
         responseDTO.setStartAddress(startParts.length >= 3 ? String.join(",", startParts[0], startParts[1], startParts[2]) : startAddress);
         responseDTO.setEndAddress(endParts.length >= 3 ? String.join(",", endParts[0], endParts[1], endParts[2]) : endAddress);
 
+        // Stop lats and lons
+        List<Double> stopLats = new ArrayList<>();
+        List<Double> stopLons = new ArrayList<>();
+        for (Location stop : ride.getRoute().getStopLocations()) {
+            stopLats.add(stop.getLatitude());
+            stopLons.add(stop.getLongitude());
+        }
+        responseDTO.setStopLats(stopLats);
+        responseDTO.setStopLngs(stopLons);
 
         // Map model PolylinePoint objects to DTOs expected by the response
         List<RoutePointDTO> routePoints = ride.getRoute().getPolylinePoints().stream()

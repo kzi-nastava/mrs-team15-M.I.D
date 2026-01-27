@@ -29,8 +29,8 @@ export interface Rating {
 export interface RideHistoryResponse {
   route: Route | null;
   passengers: string[];
-  date: string;
-  durationMinutes: number;
+  startTime: string;
+  endTime: string;
   cost: number;
   cancelled: boolean;
   cancelledBy: string | null;

@@ -25,6 +25,9 @@ export class RideEstimationForm {
   estimatedDistanceKm?: number;
   estimatedDurationMin?: number;
 
+  ngOnInit() {
+    this.mapRouteService.clearRoute();
+  }
 
   validator : FromValidator = new FromValidator();
 

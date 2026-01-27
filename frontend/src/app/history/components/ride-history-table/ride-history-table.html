@@ -31,7 +31,7 @@
           <tr class="clickable-row" (click)="viewRideDetails(ride)">
             <td>{{ ride.route }}</td>
             <td>{{ ride.passengers }}</td>
-            <td>{{ formatDate(ride.date) }}</td>
+            <td>{{ ride.date }}</td>
             <td>
               {{ ride.duration }}<br>
               <small class="text-muted">{{ ride.timeRange }}</small>

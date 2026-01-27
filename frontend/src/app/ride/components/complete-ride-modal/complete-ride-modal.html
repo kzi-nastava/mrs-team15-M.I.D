@@ -1,0 +1,15 @@
+<div class="modal-backdrop" (click)="onClose()"></div>
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Complete Ride</h5>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to mark this ride as completed?</p>
+    </div>
+    <div class="modal-footer">
+      <app-button width="150px" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" (clicked)="onClose()" text="Cancel"></app-button>
+      <app-button width="150px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" (clicked)="onConfirm()" text="Confirm"></app-button>
+    </div>
+  </div>
+</div>

@@ -109,12 +109,8 @@ public class DriverService {
         for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(new RouteDTO(ride.getRoute()));
-            dto.setDate(ride.getScheduledTime().toLocalDate());
-            if (ride.getStartTime() != null &&  ride.getEndTime() != null) {
-                dto.setDurationMinutes((double) Duration.between(ride.getStartTime(), ride.getEndTime()).toSeconds() / 60);
-            } else {
-                dto.setDurationMinutes(0.0);
-            }
+            dto.setStartTime(ride.getStartTime());
+            dto.setEndTime(ride.getEndTime());
             dto.setCost(ride.getPrice());
 
             List<String> passengerNames = new ArrayList<>();

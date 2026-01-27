@@ -34,3 +34,7 @@ build/
 
 # Env config
 .env
+
+# Uploaded pictures - ignore everything except default.png
+/uploads/*
+!/uploads/default.png

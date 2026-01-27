@@ -103,6 +103,7 @@ onToggleChange(event: MouseEvent) {
       next: () => {
         localStorage.removeItem('role');
         localStorage.removeItem('jwtToken');
+        localStorage.removeItem('tokenExpiration');
         this.driverState.resetStatus();
         this.isActive = false;
         this.driverStatus = '';

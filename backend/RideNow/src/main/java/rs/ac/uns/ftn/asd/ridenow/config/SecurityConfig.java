@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/driver/change-request").hasRole("DRIVER")
 
                         .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/rides/track").hasRole("USER")
+                        .requestMatchers("/api/rides/{id}/track").hasRole("USER")
                         .requestMatchers("/api/rides/my-current-ride").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/auth/logout").hasAnyRole("ADMIN", "USER", "DRIVER")
                         .requestMatchers("/api/rides/my-upcoming-rides").hasRole("USER")

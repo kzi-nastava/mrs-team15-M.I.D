@@ -17,7 +17,18 @@
 </div>
 <header class="navbar navbar-light mb-1">
       <div class="container-fluid px-5">
+        @if (role === 'ADMIN') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/admin-history" (click)="closeMenu()">Ride Now</a>
+        }
+        @else if (role === 'DRIVER') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/upcoming-rides" (click)="closeMenu()">Ride Now</a>
+        }
+        @else if (role === 'USER') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/ride-ordering" (click)="closeMenu()">Ride Now</a>
+        }
+        @else{
         <a class="navbar-brand fw-bold fs-4" routerLink="/" (click)="closeMenu()">Ride Now</a>
+        }
         <div class="ms-auto">
           <div class="d-flex align-items-center">
             @if (role === 'DRIVER') {
@@ -37,9 +48,11 @@
           </div>
             <div class="navbar-collapse position-absolute end-0 mt-2" [class.show]="menuOpen()" style="width: 200px;">
               <ul class="navbar-nav bg-white border rounded p-2">
+                @if (!role) {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/" (click)="closeMenu()">Home</a>
                 </li>
+              }
                 @if (role === 'USER') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/ride-ordering" (click)="closeMenu()">Order a Ride</a>
@@ -50,12 +63,17 @@
                   <a class="nav-link" routerLink="/driver-history" (click)="closeMenu()">Ride History</a>
                 </li>
                 }
-                @if (role === 'DRIVER') {
+                @if (role === 'DRIVER' || role === 'USER') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/upcoming-rides" (click)="closeMenu()">Upcoming Rides</a>
                 </li>
                 }
-                @if (role === 'USER') {
+                @if (role === 'USER' || role === 'DRIVER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/current-ride" (click)="closeMenu()">Current ride</a>
+                </li>
+                }
+                @if (role === 'USER' ) {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
                 </li>
@@ -68,11 +86,6 @@
                 @if (!isLoggedIn) {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/login" (click)="closeMenu()">Log in</a>
-                </li>
-                }
-                @if (!isLoggedIn) {
-                <li class="nav-item">
-                  <a class="nav-link" routerLink="/reset-password" (click)="closeMenu()">Reset Password</a>
                 </li>
                 }
                 @if (isLoggedIn) {
