@@ -18,9 +18,11 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             "LEFT JOIN FETCH r.passengers p " +
             "LEFT JOIN FETCH p.user " +
             "LEFT JOIN FETCH r.panicAlert " +
+            "LEFT JOIN FETCH r.route " +
             "WHERE r.driver = :driver " +
             "AND r.status IN ('FINISHED', 'CANCELLED')")
     Page<Ride> findByDriverWithAllRelations(@Param("driver") Driver driver, Pageable pageable);
+
 
 
     // Passengers sorting - ascending (rides with no passengers come first)
@@ -112,6 +114,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             "LEFT JOIN FETCH r.passengers p " +
             "LEFT JOIN FETCH p.user " +
             "LEFT JOIN FETCH r.panicAlert " +
+            "LEFT JOIN FETCH r.route " +
             "WHERE r.driver = :driver " +
             "AND r.status IN ('FINISHED', 'CANCELLED') " +
             "AND r.scheduledTime >= :startDate AND r.scheduledTime <= :endDate")
@@ -119,6 +122,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
                                                    @Param("startDate") LocalDateTime startDate,
                                                    @Param("endDate") LocalDateTime endDate,
                                                    Pageable pageable);
+
 
 
     @Query("SELECT r FROM Ride r " +
