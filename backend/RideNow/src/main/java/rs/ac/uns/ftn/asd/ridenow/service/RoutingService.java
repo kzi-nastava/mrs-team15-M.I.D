@@ -3,6 +3,7 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideEstimateResponseDTO;
@@ -15,7 +16,15 @@ import java.util.Arrays;
 import java.util.List;
 @Service
 public class RoutingService {
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public RoutingService() {
+        // Configure RestTemplate with timeouts
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10000); // 10 seconds connection timeout
+        factory.setReadTimeout(15000);    // 15 seconds read timeout
+        this.restTemplate = new RestTemplate(factory);
+    }
 
     public double[] getGeocode(String address) throws Exception {
         String url = "https://nominatim.openstreetmap.org/search" +
@@ -54,15 +63,31 @@ public class RoutingService {
     }
 
     public RideEstimateResponseDTO getRoute(double latStart, double lonStart, double latEnd, double lonEnd) throws Exception {
+        // Validate that start and end coordinates are different
+        if (latStart == latEnd && lonStart == lonEnd) {
+            throw new Exception("Start and end coordinates are identical: (" + latStart + ", " + lonStart + ")");
+        }
+
         String url = "http://router.project-osrm.org/route/v1/driving/"
                 + lonStart + "," + latStart + ";" + lonEnd + "," + latEnd + "?overview=full&geometries=geojson";
 
-        JsonNode response = restTemplate.getForObject(url, JsonNode.class);
+        System.out.println("Making routing request to: " + url);
+
+        JsonNode response;
+        try {
+            response = restTemplate.getForObject(url, JsonNode.class);
+            System.out.println("Received response from OSRM API");
+        } catch (Exception e) {
+            System.out.println("Error calling OSRM API: " + e.getMessage());
+            throw new Exception("Failed to get route from OSRM: " + e.getMessage(), e);
+        }
 
         if (response == null || response.get("routes") == null) {
+            System.out.println("No routes found in OSRM response");
             throw new Exception("Route not found");
         }
 
+        System.out.println("Processing OSRM response...");
         JsonNode route = response.get("routes").get(0);
 
         double distanceMeters = route.get("distance").asDouble();

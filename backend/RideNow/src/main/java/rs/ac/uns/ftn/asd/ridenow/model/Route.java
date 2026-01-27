@@ -53,6 +53,7 @@ public class Route {
     @ElementCollection
     @CollectionTable(name = "route_polyline_points",
             joinColumns = @JoinColumn(name = "route_id"))
+    @OrderColumn(name = "point_order")
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "point_latitude", nullable = false)),
             @AttributeOverride(name = "longitude", column = @Column(name = "point_longitude", nullable = false))
