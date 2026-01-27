@@ -302,7 +302,6 @@ public class RideService {
             // ignore and continue
         }
         if  (assigned != null) {
-            if ()
             response.setETA(ETA);
             response.setDriverId(assigned.getId());
         }else{
