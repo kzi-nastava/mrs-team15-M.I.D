@@ -600,10 +600,8 @@ public class RideService {
     }
 
     private StopRideResponseDTO completeRide(Ride ride, Vehicle vehicle) throws Exception {
-        String startAddress = ride.getRoute().getStartLocation().getAddress();
-        double[] startCoordinate = routingService.getGeocode(startAddress);
-        double latStart = startCoordinate[0];
-        double lonStart = startCoordinate[1];
+        double latStart =  ride.getRoute().getStartLocation().getLatitude();
+        double lonStart =  ride.getRoute().getStartLocation().getLongitude();
 
         double latEnd = vehicle.getLat();
         double lonEnd = vehicle.getLon();
