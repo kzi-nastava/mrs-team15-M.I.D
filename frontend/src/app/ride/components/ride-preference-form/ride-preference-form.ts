@@ -56,11 +56,18 @@ export class RidePreferenceForm {
     if (!this.estimate) return '-';
     const vt = (this.vehicleType || '').toLowerCase();
     try {
-      if (vt === 'standard') return String(this.estimate.priceEstimateStandard ?? this.estimate.priceEstimate ?? '-');
-      if (vt === 'luxury') return String(this.estimate.priceEstimateLuxury ?? this.estimate.priceEstimate ?? '-');
-      if (vt === 'van') return String(this.estimate.priceEstimateVan ?? this.estimate.priceEstimate ?? '-');
+      if (vt === 'standard') return this._formatPrice(this.estimate.priceEstimateStandard ?? this.estimate.priceEstimate ?? null);
+      if (vt === 'luxury') return this._formatPrice(this.estimate.priceEstimateLuxury ?? this.estimate.priceEstimate ?? null);
+      if (vt === 'van') return this._formatPrice(this.estimate.priceEstimateVan ?? this.estimate.priceEstimate ?? null);
     } catch (e) {}
-    return String(this.estimate.priceEstimate ?? '-');
+    return this._formatPrice(this.estimate.priceEstimate ?? null);
+  }
+
+  private _formatPrice(val: any): string {
+    if (val === null || val === undefined) return '-';
+    const n = Number(val);
+    if (!isFinite(n)) return '-';
+    return n.toFixed(3);
   }
 
   addEmptyGuest() {
