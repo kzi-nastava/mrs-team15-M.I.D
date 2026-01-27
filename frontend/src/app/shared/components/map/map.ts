@@ -188,7 +188,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       iconAnchor: [15, 15],
       popupAnchor: [0, -15]
     });
-    return L.marker([vehicle.lat, vehicle.lng], { icon })
+    return L.marker([vehicle.lat, vehicle.lng], { icon, zIndexOffset: -1000 })
       .addTo(this.map)
       .bindPopup(`${vehicle.licencePlate}<br>${vehicle.available ? 'Available' : 'In use'}`);
   }
@@ -351,7 +351,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         popupAnchor: [0, -20]
       });
 
-      this.trackedVehicleMarker = L.marker([lat, lng], { icon })
+      this.trackedVehicleMarker = L.marker([lat, lng], { icon, zIndexOffset: 2000 })
         .addTo(this.map)
         .bindPopup('Your ride vehicle');
     }
@@ -385,7 +385,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         popupAnchor: [0, -18]
       });
 
-      this.driverLocationMarker = L.marker([lat, lon], { icon })
+      this.driverLocationMarker = L.marker([lat, lon], { icon, zIndexOffset: 3000 })
         .addTo(this.map)
         .bindPopup('Your current location');
     }

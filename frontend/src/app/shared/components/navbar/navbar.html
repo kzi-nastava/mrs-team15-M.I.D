@@ -17,7 +17,18 @@
 </div>
 <header class="navbar navbar-light mb-1">
       <div class="container-fluid px-5">
+        @if (role === 'ADMIN') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/admin-history" (click)="closeMenu()">Ride Now</a>
+        }
+        @else if (role === 'DRIVER') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/upcoming-rides" (click)="closeMenu()">Ride Now</a>
+        }
+        @else if (role === 'USER') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/ride-ordering" (click)="closeMenu()">Ride Now</a>
+        }
+        @else{
         <a class="navbar-brand fw-bold fs-4" routerLink="/" (click)="closeMenu()">Ride Now</a>
+        }
         <div class="ms-auto">
           <div class="d-flex align-items-center">
             @if (role === 'DRIVER') {
