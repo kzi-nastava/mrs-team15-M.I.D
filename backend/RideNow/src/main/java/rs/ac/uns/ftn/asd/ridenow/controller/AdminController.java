@@ -2,12 +2,20 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.service.AdminService;
+import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
+import rs.ac.uns.ftn.asd.ridenow.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,9 +26,11 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserService userService;
 
     @Autowired
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, UserService userService) {
+        this.userService = userService;
         this.adminService = adminService;
     }
 
@@ -68,49 +78,37 @@ public class AdminController {
         details.setPanicTriggered(false);
         details.setInconsistencies(null);
         details.setRating(4.8);
-        return ResponseEntity.ok(details);
+        return ResponseEntity.ok().body(details);
     }
 
-    @PostMapping("{id}/driver-register")
+    @PostMapping("/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
-            @PathVariable Long id,
             @Valid @RequestBody RegisterDriverRequestDTO request) {
-
-        RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
-        response.setId(1L);
-        response.setActive(false);
-        response.setEmail(request.getEmail());
-        response.setFirstName(request.getFirstName());
-        response.setLastName(request.getLastName());
-        response.setAddress(request.getAddress());
-        response.setPhoneNumber(request.getPhoneNumber());
-        response.setLicensePlate(request.getLicensePlate());
-        response.setVehicleModel(request.getVehicleModel());
-        response.setVehicleType(request.getVehicleType());
-        response.setNumberOfSeats(request.getNumberOfSeats());
-        response.setBabyFriendly(request.isBabyFriendly());
-        response.setPetFriendly(request.isPetFriendly());
-
-        return ResponseEntity.status(201).body(response);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.status(201).body(adminService.register(request));
     }
 
-    @GetMapping("{id}/driver-requests")
-    public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests(
-            @PathVariable Long id) {
-
-
+    @GetMapping("/driver-requests")
+    public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(adminService.getDriverRequests());
     }
 
-    @PutMapping("{id}/driver-requests/{requestId}")
+    @PutMapping("driver-requests/{requestId}")
     public ResponseEntity<Void> reviewDriverRequest(
-            @PathVariable Long id,
             @PathVariable Long requestId,
             @Valid @RequestBody AdminChangesReviewRequestDTO dto) {
 
-
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
         adminService.reviewDriverRequest(id, requestId, dto);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
 }

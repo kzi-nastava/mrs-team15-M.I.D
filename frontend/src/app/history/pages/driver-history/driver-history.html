@@ -1,0 +1,35 @@
+<app-page-header
+  title="Ride History"
+  description="Review your completed rides"
+  [showDateFilter]="true"
+  (filter)="onFilter($event)"
+  (clearFilter)="onClearFilter()">
+</app-page-header>
+
+<app-ride-history-table
+  [rides]="filteredRides"
+  (sortChange)="onSort($event)">
+</app-ride-history-table>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+  <app-button
+    text="← Previous"
+    variant="primary"
+    width="120px"
+    [disabled]="isFirstPage"
+    (clicked)="goToPreviousPage()">
+  </app-button>
+
+  <span class="text-muted">
+    Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total rides)
+  </span>
+
+  <app-button
+    text="Next →"
+    variant="primary"
+    width="120px"
+    [disabled]="isLastPage"
+    (clicked)="goToNextPage()">
+  </app-button>
+</div>
+

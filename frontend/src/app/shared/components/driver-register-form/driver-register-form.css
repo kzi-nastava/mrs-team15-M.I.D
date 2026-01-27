@@ -1,0 +1,49 @@
+.avatar { width: 120px; height: 120px; }
+.avatar-overlay { background: rgba(0,0,0,0.35); }
+.input-focus:focus { box-shadow: none; }
+.registration-form {
+  padding: 0;
+}
+
+.form-header h2 {
+  font-size: 1.25rem;
+}
+
+.form-footer { width: 100%; }
+
+.custom-switch .form-check-input {
+  width: 50px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 12px;
+  border: none;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.custom-switch .form-check-input::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.custom-switch .form-check-input:checked {
+  background-color: #333;
+}
+
+.custom-switch .form-check-input:checked::after {
+  transform: translateX(26px);
+}
+
+.custom-switch .form-check-label {
+  margin-left: 12px;
+  font-weight: 500;
+  color: #000;
+  user-select: none;
+}

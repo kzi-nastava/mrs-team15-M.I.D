@@ -15,4 +15,9 @@ public class TrackVehicleDTO {
     public TrackVehicleDTO() {
         super();
     }
+
+    public TrackVehicleDTO(Location location, Integer remainingTimeInMinutes) {
+        this.location = location;
+        this.remainingTimeInMinutes = remainingTimeInMinutes;
+    }
 }

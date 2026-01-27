@@ -3,10 +3,11 @@
   cursor: pointer;
   border: 1px solid transparent;
   font-size: 14px;
-  font-weight: 600; 
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin: 5px 0;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -27,7 +28,7 @@
 }
 
 .button.secondary {
-  background-color: #e0e0e0;
+  background-color: #ffff;
   color: #000;
 }
 
@@ -52,4 +53,26 @@
 
 .button.ghost:hover {
   background-color: #f2f2f2;
+}
+
+.button.outline {
+  background-color: transparent;
+  color: white;
+  border: 1px solid #ccc;
+}
+
+.button.outline:hover {
+  background-color: #f2f2f2;
+  color: black;
+}
+
+.button.black-outline {
+  background-color: transparent;
+  color: black;
+  border: 1px solid black;
+}
+
+.button.black-outline:hover {
+  background-color: #f2f2f2;
+  color: black;
 }

@@ -1,0 +1,38 @@
+<div class="px-5 pb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col" class="sortable" (click)="sort('route')">
+            Route <span class="sort-icon">{{ getSortIcon('route') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('passengers')">
+            Passengers <span class="sort-icon">{{ getSortIcon('passengers') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('startTime')">
+            Start time <span class="sort-icon">{{ getSortIcon('startTime') }}</span>
+          </th>
+          <th scope="col">
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (upcomingRide of upcomingRides; track upcomingRide.id) {
+          <tr class="clickable-row">
+            <td>{{ upcomingRide.route }}</td>
+            <td>{{ upcomingRide.passengers }}</td>
+            <td>{{ upcomingRide.startTime }}</td>
+            <td>
+               <app-button *ngIf="isDriver" class="button me-3" width="100px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="start" (clicked)="startRide(upcomingRide)"></app-button>
+               <app-button *ngIf="upcomingRide.canCancel" class="button" width="100px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase" text="cancel" (clicked)="openCancelModal(upcomingRide)"></app-button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<app-cancel-ride-modal *ngIf="showCancelModal && selectedRide" [ride]="selectedRide"
+  (close)="showCancelModal=false" (confirmCancel)="onCancelConfirmed($event)">
+</app-cancel-ride-modal>

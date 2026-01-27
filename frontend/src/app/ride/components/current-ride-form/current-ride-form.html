@@ -1,0 +1,69 @@
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
+    </div>
+  </div>
+</div>
+<div class="current-ride-section row m-0">
+  <div class="col-12 px-0 bg-black text-white rounded-4 custom-form-container">
+    <div class="current-ride-container w-100 px-4 py-3">
+         <form class="current-ride-form">
+            <h2 class="form-title mb-4">Your current ride</h2>
+            <div class="ride-field mb-3">
+               <label><strong>Pickup location</strong></label>
+               <div class="ride-value-section">
+                  <p class="ride-value">{{ pickupAddress }}</p>
+               </div>
+            </div>
+            <div class="ride-field mb-3">
+               <label><strong>Destination</strong></label>
+               <div class="ride-value-section">
+                  <p class="ride-value">{{ destinationAddress }}</p>
+               </div>
+            </div>
+            <div class="current-ride-info ride-field mb-4 d-flex align-items-center">
+               <p> Distance: <strong>{{ estimatedDistanceKm | number:'1.1-2' }} km</strong></p>
+               <p class="ms-4"> Remaining: <strong>{{ remainingTimeMin !== undefined ? remainingTimeMin : estimatedDurationMin }} min</strong> </p>
+               <p class="ms-4" *ngIf="finalPrice"> Price: <strong>{{ finalPrice | number:'1.2-2' }} RSD</strong> </p>
+            </div>
+            <div *ngIf="isPassenger" class="mb-4">
+               <app-button *ngIf="isPassenger" class="mb-2" width="100%" height="38px" variant="outline" fontWeight="700" textTransform="uppercase" text="Report inconsistency" (click)="openReportModal()"></app-button>
+            </div>
+            <div class="emergency-section mb-4">
+               <h5 class="section-title">Emergency</h5>
+               <p class="emergency-text"> Use this only if something serious is happening.</p>
+               <app-button width="100%" height="45px" variant="danger" fontWeight="700" textTransform="uppercase" (clicked)="openPanicModal()" text="PANIC"></app-button>
+            </div>
+            <app-button *ngIf="isDriver" class="mb-2" width="100%" height="38px" variant="outline" fontWeight="700" textTransform="uppercase" text="Stop ride" (clicked)="openStopModal()"></app-button>
+            <app-button *ngIf="isDriver" width="100%" height="38px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Mark completed" (clicked)="openCompleteModal()"></app-button>
+         </form>
+    </div>
+  </div>
+</div>
+
+<app-report-inconsistency-modal (reportSubmitted)="handleReportSubmitted($event)"></app-report-inconsistency-modal>
+<app-stop-ride-modal *ngIf="showStopModal" (close)="showStopModal=false" (confirmStop)="onStopConfirmed($event)"></app-stop-ride-modal>
+<app-panic-modal *ngIf="showPanicModal" (close)="showPanicModal=false" (confirmPanic)="onPanicConfirmed()"></app-panic-modal>
+<app-complete-ride-modal *ngIf="showCompleteModal" (close)="showCompleteModal=false" (confirmComplete)="onCompleteConfirmed()"></app-complete-ride-modal>
+
+
+
+
+
+
+
+
+
+
+

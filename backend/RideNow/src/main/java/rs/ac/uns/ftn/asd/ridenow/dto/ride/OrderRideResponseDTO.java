@@ -28,6 +28,8 @@ public class OrderRideResponseDTO {
     private double distanceKm;
     private int estimatedTimeMinutes;
     private double priceEstimate;
+    private int ETA;
+    private Long driverId;
 
     public OrderRideResponseDTO() { super(); }
 

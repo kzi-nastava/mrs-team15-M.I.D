@@ -1,0 +1,47 @@
+.current-ride-section{
+    height: 75vh;
+    z-index: 1;
+}
+
+.current-ride-form {
+    width: 100%;
+    margin-top: 7vh;
+    min-width: 300px;
+    max-width: 500px;
+    padding-left: 4%;
+}
+
+.form-title {
+  text-align: left;
+}
+
+.emergency-text{
+  margin: 0;
+}
+
+.section-title{
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+
+.ride-value{
+  border: 1px solid white;
+  border-radius: 10px;
+  padding: 5px;
+  padding-left: 10px;
+}
+
+.ride-time{
+  padding-left: 5px;
+  font-weight: 700;
+}
+
+.current-ride-info{
+  margin-top: 10px;
+}
+
+.current-ride-info p{
+  margin: 0px 2px;
+  padding: 0px;
+}

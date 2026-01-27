@@ -1,16 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 import { Button } from '../../../shared/components/button/button';
 import { RouterLink } from '@angular/router';
+import { FromValidator } from '../../../shared/components/form-validator';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
+import { Router } from '@angular/router';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-registration-form',
-  imports: [Button, RouterLink, InputComponent],
+  imports: [Button, RouterLink, InputComponent, CommonModule],
   templateUrl: './registration-form.html',
   styleUrl: './registration-form.css',
 })
 
 export class RegistrationForm {
+
+  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router){}
+
   passwordVisible = false;
   confirmPasswordVisible = false;
   togglePassword(type: string) {
@@ -27,5 +35,79 @@ export class RegistrationForm {
       }
     }
   }
-}
 
+  firstName : string = '';
+  lastName : string = '';
+  phoneNumber : string = '';
+  address : string = '';
+  password : string = '';
+  confirmedPassword : string = '';
+  email : string = '';
+
+  validator : FromValidator = new FromValidator();
+
+  hasErrors(): boolean {
+  return !!(
+    this.validator.firstNameError(this.firstName) || this.validator.lastNameError(this.lastName) ||
+    this.validator.emailError(this.email) || this.validator.phoneError(this.phoneNumber) ||
+    this.validator.addressError(this.address) ||
+    this.validator.passwordError(this.password) ||
+    this.validator.confirmPasswordError(this.password, this.confirmedPassword));
+  }
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  selectedFile: File | null = null;
+
+  openFilePicker(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+    this.selectedFile = input.files[0];
+  }
+
+  signUp(){
+    if(this.hasErrors()) { return ;}
+
+    const data : FormData  = new FormData();
+    data.append('firstName', this.firstName);
+    data.append('lastName', this.lastName);
+    data.append('phoneNumber', this.phoneNumber);
+    data.append('address', this.address);
+    data.append('email', this.email);
+    data.append('password', this.password);
+    data.append('confirmPassword', this.confirmedPassword);
+
+    if(this.selectedFile) {
+      data.append('profileImage', this.selectedFile);
+    }
+
+    this.authService.register(data).subscribe({
+      next: (response) => {
+        this.showMessageToast("Registration successful! Please check your email and activate your account using the link sent to you.");
+        setTimeout(() => { this.router.navigate(['/login']); }, 4000);
+      },
+      error: (err) => {
+        if (typeof err.error === 'string') {
+          this.showMessageToast(err.error);
+        } else {
+          this.showMessageToast('Registration failed. Please try again.');
+        }
+      }
+    });
+  }
+
+  showMessage = false;
+  message = '';
+
+  showMessageToast(message: string): void {
+    this.message = message;
+    this.showMessage = true;
+    this.cdr.detectChanges();  
+    setTimeout(() => { this.showMessage = false;}, 3000);
+  }
+}

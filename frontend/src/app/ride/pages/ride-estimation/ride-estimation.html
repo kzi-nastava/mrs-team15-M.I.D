@@ -1,0 +1,12 @@
+<div class="ride-estimation-section container-fluid px-0">
+  <div class="row mt-5 g-0 g-md-3 row-height">
+    <div class="col-12 col-md-8 ps-md-5 pe-md-3 order-1 mb-3 mb-md-0 map-col-height">
+      <div class="map-container rounded-4 overflow-hidden h-100">
+        <app-map [centerLat]="45.2552" [centerLng]="19.8452" [zoom]="14" [showVehicles]="true"></app-map>
+      </div>
+    </div>
+    <div class="form-section col-md-4 order-2 px-3 px-md-0 form-col-height">
+        <app-ride-estimation-form></app-ride-estimation-form>
+    </div>
+  </div>
+</div>

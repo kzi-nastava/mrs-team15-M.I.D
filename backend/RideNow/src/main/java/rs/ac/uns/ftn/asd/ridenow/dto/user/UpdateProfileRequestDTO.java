@@ -29,19 +29,6 @@ public class UpdateProfileRequestDTO {
     @NotBlank
     private String address;
 
-    private String profileImage;
-
-    @NotBlank
-    private String vehicleModel;
-
-    @Min(1)
-    private int numberOfSeats;
-
-    @NotNull
-    private VehicleType vehicleType;
-
-    private Boolean babyFriendly;
-    private Boolean petFriendly;
 
     public UpdateProfileRequestDTO() { super(); }
 

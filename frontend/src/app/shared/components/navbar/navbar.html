@@ -1,31 +1,110 @@
-<header class="navbar navbar-light">
-  <div class="container-fluid px-5">
-    <a class="navbar-brand fw-bold fs-4" routerLink="/" (click)="closeMenu()">Ride Now</a>
-
-    <div class="ms-auto">
-      <button class="navbar-toggler border-0" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="navbar-collapse position-absolute end-0 mt-2" [class.show]="menuOpen()" style="width: 200px;">
-        <ul class="navbar-nav bg-white border rounded p-2">
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/" (click)="closeMenu()">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/driver-history" (click)="closeMenu()">Ride History</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/login" (click)="closeMenu()">Log in</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/reset-password" (click)="closeMenu()">Reset Password</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
-          </li>
-        </ul>
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
       </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
     </div>
   </div>
+</div>
+<header class="navbar navbar-light mb-1">
+      <div class="container-fluid px-5">
+        @if (role === 'ADMIN') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/admin-history" (click)="closeMenu()">Ride Now</a>
+        }
+        @else if (role === 'DRIVER') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/upcoming-rides" (click)="closeMenu()">Ride Now</a>
+        }
+        @else if (role === 'USER') {
+          <a class="navbar-brand fw-bold fs-4" routerLink="/ride-ordering" (click)="closeMenu()">Ride Now</a>
+        }
+        @else{
+        <a class="navbar-brand fw-bold fs-4" routerLink="/" (click)="closeMenu()">Ride Now</a>
+        }
+        <div class="ms-auto">
+          <div class="d-flex align-items-center">
+            @if (role === 'DRIVER') {
+             <div class="form-check form-switch mt-1 me-4">
+               <input type="checkbox" class="form-check-input black-switch" [checked]="isActive" [disabled]="isUpdatingStatus" (click)="onToggleChange($event)"/>
+               <label class="form-check-label"> {{ isActive ? 'ACTIVE' : 'INACTIVE' }}</label>
+             </div>
+            }
+            @if (isLoggedIn) {
+             <div class="mt-1 me-1 ms-1">
+                <app-button width="100px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log out" (clicked)="logout()"></app-button>
+             </div>
+            }
+            <button class="navbar-toggler border-0" type="button" (click)="toggleMenu()" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+          </div>
+            <div class="navbar-collapse position-absolute end-0 mt-2" [class.show]="menuOpen()" style="width: 200px;">
+              <ul class="navbar-nav bg-white border rounded p-2">
+                @if (!role) {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/" (click)="closeMenu()">Home</a>
+                </li>
+              }
+                @if (role === 'USER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/ride-ordering" (click)="closeMenu()">Order a Ride</a>
+                </li>
+                }
+                @if (role === 'DRIVER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/driver-history" (click)="closeMenu()">Ride History</a>
+                </li>
+                }
+                @if (role === 'DRIVER' || role === 'USER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/upcoming-rides" (click)="closeMenu()">Upcoming Rides</a>
+                </li>
+                }
+                @if (role === 'USER' || role === 'DRIVER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/current-ride" (click)="closeMenu()">Current ride</a>
+                </li>
+                }
+                @if (role === 'USER' ) {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
+                </li>
+                }
+                @if (role === 'ADMIN') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/admin-history" (click)="closeMenu()">Ride History</a>
+                </li>
+                }
+                @if (!isLoggedIn) {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/login" (click)="closeMenu()">Log in</a>
+                </li>
+                }
+                @if (isLoggedIn) {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
+                </li>
+                }
+                @if (role === 'ADMIN') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/driver-registration" (click)="closeMenu()">Driver Registration</a>
+                </li>
+                }
+                @if (role === 'ADMIN') {
+                  <li class="nav-item">
+                    <a class="nav-link" routerLink="/driver-requests" (click)="closeMenu()">Driver Changes</a>
+                  </li>
+                }
+              </ul>
+            </div>
+        </div>
+    </div>
 </header>

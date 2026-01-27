@@ -1,90 +1,144 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
+import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.Location;
-import rs.ac.uns.ftn.asd.ridenow.model.Route;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.UpcomingRideDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Driver;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/driver")
 public class DriverController {
-    @GetMapping("/{id}/ride-history")
-    public ResponseEntity<List<DriverHistoryItemDTO>> getRideHistory(@PathVariable @NotNull @Min(1) Long id) {
-        DriverHistoryItemDTO ride1 = new DriverHistoryItemDTO();
-        Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
-        Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
-        Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
-        ride1.setRoute(new Route(13L, startLocation, endLocation, List.of(stopLocation1), 5, 15));
-        ride1.setDate(java.sql.Date.valueOf("2024-01-15"));
-        ride1.setCost(1500.0);
-        ride1.setCancelled(false);
-        ride1.setInconsistencies(List.of("Late arrival"));
-        ride1.setRating(3.5);
-        ride1.setPanic(false);
-        ride1.setDurationMinutes(20);
-        ride1.setPassengers(List.of("Marko Markovic", "Jovana Jovanovic"));
 
-        DriverHistoryItemDTO ride2 = new DriverHistoryItemDTO();
-        Location startLocation2 = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
-        Location endLocation2 = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
-        Location stopLocation2 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
-        Location stopLocation3 = new Location(43L, 41.423424, 42.42342, "Janka Cmelika 32, Novi Sad");
-        ride2.setRoute(new Route(13L, startLocation2, endLocation2, List.of(stopLocation2, stopLocation3), 5, 15));
-        ride2.setDate(java.sql.Date.valueOf("2024-02-20"));
-        ride2.setCost(800.0);
-        ride2.setCancelled(true);
-        ride2.setInconsistencies(List.of("No show"));
-        ride2.setRating(null);
-        ride2.setPanic(false);
-        ride2.setDurationMinutes(0);
-        ride2.setPassengers(List.of("Ana Anic"));
+    private final DriverService driverService;
 
-        List<DriverHistoryItemDTO> history = List.of(ride1, ride2);
+    @Autowired
+    public DriverController(DriverService driverService) {
+        this.driverService = driverService;
+    }
+
+    @GetMapping("/ride-history")
+    public ResponseEntity<Page<DriverHistoryItemDTO>> getRideHistory(@RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "10") int size,
+                                                                     @RequestParam(defaultValue = "date") String sortBy,
+                                                                     @RequestParam(defaultValue = "desc") String sortDir,
+                                                                     @RequestParam(required = false) @Min(0) Long date){
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
+
+        Page<DriverHistoryItemDTO> history;
+
+        if ("passengers".equals(sortBy)) {
+            history = driverService.getDriverHistory(id,PageRequest.of(page, size), "passengers",  sortDir, date);
+        } else if ("duration".equals(sortBy)) {
+            history = driverService.getDriverHistory(id, PageRequest.of(page, size), "duration",  sortDir, date);
+        } else {
+            // Use standard sorting for other fields
+            Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
+            Pageable pageable = PageRequest.of(page, size, sort);
+            history = driverService.getDriverHistory(id, pageable, "", "", date);
+        }
+
         return ResponseEntity.ok(history);
     }
-
-    @PostMapping("/{id}/finish")
-    public ResponseEntity<RideResponseDTO> finish(@PathVariable @NotNull @Min(1) Long id){
-        RideResponseDTO response = new RideResponseDTO();
-        response.setRideId(1L);
-        Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
-        Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
-        Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
-        response.setRoute(new Route(13L, startLocation, endLocation, List.of(stopLocation1), 5, 15));
-        response.setPassengerEmails(List.of("marko.maric@gmail.com", "ana.danic@gmail.com"));
-        response.setStartTime("2024-05-10T14:30:00");
-
-        return  ResponseEntity.ok(response);
+  
+      private String mapSortField(String sortBy) {
+        return switch (sortBy) {
+            case "route" -> "route.startLocation.address";
+            case "passengers" -> "passengers.user.firstName";
+            case "date" -> "scheduledTime";
+            case "cancelled" -> "cancelled";
+            case "duration" -> "endTime";
+            case "cost" -> "price";
+            case "panic" -> "panicAlert";
+            default -> "scheduledTime";
+        };
     }
 
-    @GetMapping("/{driverId}/rides")
-    public ResponseEntity<List<RideResponseDTO>> findRides(@PathVariable @NotNull @Min(1) Long driverId){
-        RideResponseDTO ride1 = new RideResponseDTO();
-        ride1.setRideId(1L);
-        Location startLocation = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
-        Location endLocation = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
-        Location stopLocation1 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
-        ride1.setRoute(new Route(13L, startLocation, endLocation, List.of(stopLocation1), 5, 15));
-        ride1.setPassengerEmails(List.of("danka.danic@gmail.com", "mario.ploros@gmail.com"));
-        ride1.setStartTime("2024-05-10T14:30:00");
+    @GetMapping("/rides")
+    public ResponseEntity<List<UpcomingRideDTO>> findRides() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long driverId = user.getId();
 
-        RideResponseDTO ride2 = new RideResponseDTO();
-        ride2.setRideId(2L);
-        Location startLocation2 = new Location(12L, 45.2671, 19.8335, "Bulevar Oslobodjenja 45, Novi Sad");
-        Location endLocation2 = new Location(15L, 45.2550, 19.8450, "Narodnog fronta 12, Novi Sad");
-        Location stopLocation2 = new Location(82L, 21.54534, 23.5435345, "Bulevar Evrope 22, Novi Sad");
-        Location stopLocation3 = new Location(43L, 41.423424, 42.42342, "Janka Cmelika 32, Novi Sad");
-        ride2.setRoute(new Route(13L, startLocation2, endLocation2, List.of(stopLocation2, stopLocation3), 5, 15));
-        ride2.setPassengerEmails(List.of("radovan.radinic@gmail.com", "galja.miric@gmail.com"));
-        ride2.setStartTime("2024-05-11T09:15:00");
-        List<RideResponseDTO> rides = List.of(ride1, ride2);
+        List<UpcomingRideDTO> rides = driverService.findScheduledRides(driverId);
         return ResponseEntity.ok(rides);
     }
 
+    @PostMapping(path = "/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@ModelAttribute DriverChangeRequestDTO request,
+                                                                       @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof  Driver driver){
+            return ResponseEntity.ok(driverService.requestDriverChanges(driver, request, profileImage));
+        }
+        return ResponseEntity.status(403).build();
+
+    }
+
+    @PutMapping("/change-status")
+    public ResponseEntity<?> changeDriverStatus(@Valid @RequestBody DriverStatusRequestDTO request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof  Driver driver){
+            driverService.changeDriverStatus(driver, request);
+            DriverStatusResponseDTO response = new DriverStatusResponseDTO();
+            response.setStatus(driver.getStatus());
+            response.setPendingStatus(driver.getPendingStatus());
+            return ResponseEntity.ok().body(response);
+        }
+        return ResponseEntity.badRequest().body("Driver does not exists");
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<?> getDriverStatus() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof  Driver driver){
+            DriverStatusResponseDTO response = new DriverStatusResponseDTO();
+            response.setStatus(driver.getStatus());
+            response.setPendingStatus(driver.getPendingStatus());
+            return ResponseEntity.ok().body(response);
+        }
+        return ResponseEntity.badRequest().body("Driver does not exists");
+    }
+
+    @PutMapping("/activate-account")
+    public ResponseEntity<?> activateDriverAccount(@RequestBody DriverAccountActivationRequestDTO request) {
+        
+        try {
+            driverService.activateDriverAccountByToken(request);
+            return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Failed to activate account"));
+        }
+    }
+
+    @PutMapping("/update-location")
+    public ResponseEntity<DriverLocationResponseDTO> updateDriverLocation(@Valid @RequestBody DriverLocationRequestDTO request) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof Driver driver) {
+            DriverLocationResponseDTO response = driverService.updateDriverLocation(driver, request);
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().build();
+    }
 }

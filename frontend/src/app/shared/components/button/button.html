@@ -7,8 +7,12 @@
   [class.secondary]="variant === 'secondary'"
   [class.danger]="variant === 'danger'"
   [class.ghost]="variant === 'ghost'"
+  [class.outline]="variant === 'outline'"
+  [class.black-outline]="variant === 'black-outline'"
   [style.font-weight]="fontWeight"
   [style.text-transform]="textTransform"
+  [routerLink]="routerLink"
+  [disabled]="disabled"
   (click)="onClick()">
   {{ text }}
 </button>

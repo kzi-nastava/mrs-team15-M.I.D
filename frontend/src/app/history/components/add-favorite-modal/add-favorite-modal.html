@@ -1,0 +1,28 @@
+<div class="modal fade" id="addFavoriteModal" tabindex="-1" aria-labelledby="addFavoriteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-white text-black border border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="addFavoriteModalLabel">Add to Favorites</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Do you want to add this route to your favorites?</p>
+
+        <div class="route-info mt-3">
+          <p class="mb-1"><strong>Pickup:</strong> {{ pickupAddress || '—' }}</p>
+          <p class="mb-1"><strong>Destination:</strong> {{ destinationAddress || '—' }}</p>
+          <div *ngIf="stopAddresses && stopAddresses.length">
+            <p class="mb-1"><strong>Stops:</strong></p>
+            <ul class="mb-0 ps-3">
+              <li *ngFor="let s of stopAddresses">{{ s }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <app-button width="80px" height="38px" variant="secondary" fontWeight="700" text="Cancel" (click)="closeModal()"></app-button>
+        <app-button width="80px" height="38px" variant="primary" fontWeight="700" text="Add" (click)="doConfirm()"></app-button>
+      </div>
+    </div>
+  </div>
+</div>

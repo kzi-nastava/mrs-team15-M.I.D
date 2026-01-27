@@ -1,0 +1,57 @@
+<div class="start-ride-section row m-0">
+  <div class="col-12 px-0 bg-black text-white rounded-4 custom-form-container">
+    <div class="start-ride-container w-100 px-4 py-3">
+         <form class="start-ride-form">
+            <h2 class="form-title mb-4">Your next ride</h2>
+            <div class="ride-field mb-3">
+               <label><strong>Pickup location</strong></label>
+               <div class="ride-value-section">
+                  <p class="ride-value">{{ pickupLocation }}</p>
+               </div>
+            </div>
+            <div class="ride-field mb-3">
+               <label><strong>Destination</strong></label>
+               <div class="ride-value-section">
+                  <p class="ride-value">{{ destination }}</p>
+               </div>
+            </div>
+            <div class="ride-field mb-3">
+               <label><i class="bi bi-people me-1"></i><strong>Passengers ({{ passengers.length }})</strong></label>
+                      <div class="passengers-list mt-2 d-flex flex-wrap">
+                           <div
+                              *ngFor="let p of passengers; trackBy: trackByPassenger"
+                              class="passenger-item me-2 mb-2 d-flex align-items-center p-1"
+                              [ngClass]="p.present ? 'bg-success' : 'bg-secondary'"
+                              (click)="togglePassenger(p)"
+                              role="button"
+                              aria-pressed="{{p.present}}"
+                              style="border-radius:6px; cursor:pointer;"
+                           >
+                              <img [src]="p.image || backendUrl + 'uploads/default.jpg'" alt="avatar" class="me-2" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />
+                              <span>{{ p.name }}</span>
+                           </div>
+                      </div>
+            </div>
+            
+            
+
+               <label *ngIf="presentCount < passengers.length" style="color: red;">Start ride when all passengers are aboard.</label>
+                  <app-button width="100%" height="38px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Start ride" (clicked)="startRide()"></app-button>
+         </form>
+    </div>
+  </div>
+</div>
+
+<app-missing-passengers-modal #missingModal (confirm)="confirmStart()"></app-missing-passengers-modal>
+
+
+
+
+
+
+
+
+
+
+
+

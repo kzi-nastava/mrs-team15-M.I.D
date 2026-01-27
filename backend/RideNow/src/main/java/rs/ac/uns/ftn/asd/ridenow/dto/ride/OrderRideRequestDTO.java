@@ -10,10 +10,6 @@ import java.util.List;
 @Getter @Setter
 public class OrderRideRequestDTO {
 
-    @Email
-    @NotBlank
-    private String mainPassengerEmail;
-
     @NotBlank
     private String startAddress;
 
@@ -57,4 +53,12 @@ public class OrderRideRequestDTO {
 
     @NotNull
     private double priceEstimate;
+
+    @NotEmpty
+    private List<Double> routeLattitudes;
+
+    @NotEmpty
+    private List<Double> routeLongitudes;
+
+    private Long favoriteRouteId;
 }

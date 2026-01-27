@@ -1,106 +1,65 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.user.RateDriverResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.user.RateRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.user.RateVehicleResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/passengers")
 public class PassengerController {
 
-    private PassengerService passengerService;
+    private final PassengerService passengerService;
 
     @Autowired
     public PassengerController(PassengerService passengerService) {
         this.passengerService = passengerService;
     }
 
-
-    @PostMapping("{userId}/rate-driver/{driverId}")
-    public ResponseEntity<RateDriverResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long userId, @PathVariable @NotNull @Min(1) Long driverId, @Valid @RequestBody RateRequestDTO req) {
-        RateDriverResponseDTO res = new RateDriverResponseDTO();
-        res.setPassengerId(userId);
-        res.setDriverId(driverId);
-        res.setRating(req.getRating());
-        res.setComment(req.getComment());
-        res.setRideId(req.getRideId());
-
-        return ResponseEntity.status(201).body(res);
-    }
-
-    @PostMapping("{userId}/rate-vehicle/{vehicleId}")
-    public ResponseEntity<RateVehicleResponseDTO> rateVehicle(@PathVariable @NotNull @Min(1) Long userId, @PathVariable @NotNull @Min(1) Long vehicleId, @Valid @RequestBody RateRequestDTO req) {
-        RateVehicleResponseDTO res = new RateVehicleResponseDTO();
-        res.setPassengerId(userId);
-        res.setVehicleId(vehicleId);
-        res.setRating(req.getRating());
-        res.setComment(req.getComment());
-        res.setRideId(req.getRideId());
-
-        return ResponseEntity.status(201).body(res);
-    }
-
-    @PutMapping("/{id}/routes/{routeId}")
+    @PutMapping("/favorite-routes/{routeId}")
     public ResponseEntity<RouteResponseDTO> addToFavorites(
-            @PathVariable Long id,
             @PathVariable Long routeId) {
-
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
         return ResponseEntity.ok(passengerService.addToFavorites(id, routeId));
     }
 
-    @DeleteMapping("/{id}/routes/{routeId}")
+    @DeleteMapping("/favorite-routes/{routeId}")
     public ResponseEntity<Void> removeFromFavorites(
-            @PathVariable Long id,
             @PathVariable Long routeId) {
-
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long id = user.getId();
         passengerService.removeFromFavorites(id, routeId);
         return ResponseEntity.status(204).build();
     }
 
-    @GetMapping("/{id}/routes/{routeId}")
-    public ResponseEntity<RouteResponseDTO> getRouteById(
-            @PathVariable Long id,
-            @PathVariable Long routeId) {
+    @GetMapping("/favorite-routes")
+    public ResponseEntity<Collection<FavoriteRouteResponseDTO>> getRoutes() {
 
-        RouteResponseDTO dto = new RouteResponseDTO();
-        dto.setRouteId(routeId);
-        dto.setDistanceKm(14.0);
-        dto.setEstimatedTimeMinutes(25);
-        dto.setPriceEstimate(1800);
-
-        return ResponseEntity.ok(dto);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
     }
 
-    @GetMapping("/{userId}/routes")
-    public ResponseEntity<Collection<RouteResponseDTO>> getRoutes(
-            @PathVariable Long userId,
-            @RequestParam(required = false, defaultValue = "false") boolean favorite) {
+    @GetMapping("/favorite-routes/{id}")
+    public ResponseEntity<RouteResponseDTO> getRoute(@PathVariable Long id) {
 
-        Collection<RouteResponseDTO> collection = new ArrayList<>();
-        RouteResponseDTO dto1 = new RouteResponseDTO();
-        dto1.setRouteId(1L);
-        dto1.setDistanceKm(10.5);
-        dto1.setEstimatedTimeMinutes(20);
-        dto1.setPriceEstimate(1500);
-        collection.add(dto1);
-        RouteResponseDTO dto2 = new RouteResponseDTO();
-        dto2.setRouteId(2L);
-        dto2.setDistanceKm(25.0);
-        dto2.setEstimatedTimeMinutes(40);
-        dto2.setPriceEstimate(3000);
-        collection.add(dto2);
-        return ResponseEntity.ok(collection);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(passengerService.getRoute(user.getId(), id));
+    }
+
+    @GetMapping("/ride-history")
+    public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
+                                                                   @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok().body(passengerService.getRideHistory(user.getId(),dateFrom, dateTo, sortBy, sortDirection));
     }
 }

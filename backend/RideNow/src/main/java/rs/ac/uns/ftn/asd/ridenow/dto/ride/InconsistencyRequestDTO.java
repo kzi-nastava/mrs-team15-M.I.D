@@ -7,12 +7,8 @@ import lombok.Setter;
 
 @Getter @Setter
 public class InconsistencyRequestDTO {
-    @NotNull
+    @NotNull (message = "Ride ID cannot be null")
     private Long rideId;
-    @NotNull
-    private Long passengerId;
-    @NotNull @NotEmpty
+    @NotNull (message = "Description cannot be null") @NotEmpty (message = "Description cannot be empty")
     private String description;
-    @NotNull
-    private Long driverId;
 }

@@ -28,7 +28,15 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import java.util.Locale;
+import java.util.List;
+import java.util.ArrayList;
 import com.example.ridenow.R;
+import com.example.ridenow.dto.driver.DriverHistoryResponse;
+import com.example.ridenow.dto.driver.RideHistory;
+import com.example.ridenow.service.DriverService;
+import com.example.ridenow.util.ClientUtils;
+
+import retrofit2.Call;
 
 public class DriverHistoryFragment extends Fragment implements SensorEventListener {
     private EditText etDateFilter;
@@ -43,13 +51,17 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
     private static final int SHAKE_TIMEOUT = 1000;
     private long lastShakeTime = 0;
 
-    private final String[][] rideDataTest = {
-            {"Bulevar oslobođenja, Novi Sad → Aerodrom Nikola Tesla, Beograd", "Marko Marković, Ana Jovanović", "2025-12-12", "25 min", "14:30 - 14:55", null, null, "1550 RSD", null, null, "4", "Losa tura"},
-            {"Trg slobode → Železnička stanica", "Petar Petrović", "2025-12-11", "12 min", "09:15 - 09:27", "Od strane putnika", "Petar Petrović", "800 RSD", null, null, "3", null},
-            {"Liman 3 → Promenada Shopping", "Jovana Nikolić, Stefan Stojanović", "2025-12-12", "18 min", "16:00 - 16:18", null, null, "1275 RSD", "Od strane putnika", "Jovana Nikolić", "5", null},
-            {"Hotel Park → Spens", "Milica Đorđević", "2025-12-10", "30 min", "11:00 - 11:30", "Od strane vozača", null, "1800 RSD", null, null, "2", "Vozac je kasnio"},
-            {"Centar → Štrand", "Nikola Ilić, Jelena Pavlović, Dušan Stanković", "2025-12-12", "22 min", "13:45 - 14:07", null, null, "2050 RSD", null, null, "4", null}
-    };
+    // Pagination variables
+    private int currentPage = 0;
+    private int pageSize = 8;
+    private boolean isLoading = false;
+    private boolean hasMoreData = true;
+    private String currentSortBy = "date";
+    private String currentSortDir = "desc";
+    private String currentDateFilter = null;
+
+    private DriverService driverService;
+    private List<RideHistory> allRideData;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,6 +72,10 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         btnApplyFilter = view.findViewById(R.id.btnApplyFilter);
         btnClearFilter = view.findViewById(R.id.btnClearFilter);
         tableDriverHistory = view.findViewById(R.id.tableDriverHistory);
+
+        // Initialize service and data
+        driverService = ClientUtils.getClient(DriverService.class);
+        allRideData = new ArrayList<>();
 
         setupDatePicker();
         setupButtons();
@@ -72,9 +88,6 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupHeaderClickListeners();
-        populateDriverHistoryTable(rideDataTest);
-        sortTable(2);
-        updateSortIndicators();
         setupShakeDetection();
     }
 
@@ -125,9 +138,13 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
     private void onShakeDetected() {
         // Trigger the same action as clicking the date header
-        if (currentSortColumn != 2) { // If already sorted by date
-            currentSortColumn = 2; // Set to date column
-            isAscending = true; // Ascending
+        if (currentSortColumn == 2 && currentSortBy.equals("date")) {
+            // Already sorted by date, toggle direction
+            isAscending = !isAscending;
+        } else {
+            // Set to date column
+            currentSortColumn = 2;
+            isAscending = true;
         }
         sortTable(2);
     }
@@ -206,80 +223,40 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             isAscending = true;
         }
 
+        // Map column index to API sort fields
+        switch (columnIndex) {
+            case 0:
+                currentSortBy = "route";
+                break;
+            case 1:
+                currentSortBy = "passengers";
+                break;
+            case 2:
+                currentSortBy = "date";
+                break;
+            case 3:
+                currentSortBy = "durationMinutes";
+                break;
+            case 5:
+                currentSortBy = "cancelled";
+                break;
+            case 7:
+                currentSortBy = "cost";
+                break;
+            case 8:
+                currentSortBy = "panic";
+                break;
+            default:
+                currentSortBy = "date";
+                break;
+        }
+
+        currentSortDir = isAscending ? "asc" : "desc";
+        currentPage = 0; // Reset to first page when sorting changes
+
+        // Reload data with new sorting
+        loadDriverHistory();
         updateSortIndicators();
-
-        String[][] sortedData = getSortedData();
-
-        // Clear existing rows except header
-        int childCount = tableDriverHistory.getChildCount();
-        if (childCount > 2) {
-            tableDriverHistory.removeViews(2, childCount - 2);
-        }
-
-        populateDriverHistoryTable(sortedData);
-    }
-
-    private String[][] getSortedData() {
-        String[][] dataToSort;
-
-        if (selectedDate != null) {
-            // If filter is applied, get filtered data
-            java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            String filterDateString = dateFormat.format(selectedDate.getTime());
-            dataToSort = java.util.Arrays.stream(rideDataTest)
-                    .filter(ride -> ride[2].equals(filterDateString))
-                    .toArray(String[][]::new);
-        } else {
-            dataToSort = rideDataTest.clone();
-        }
-
-        java.util.Arrays.sort(dataToSort, (row1, row2) -> {
-            String value1 = row1[currentSortColumn] != null ? row1[currentSortColumn] : "";
-            String value2 = row2[currentSortColumn] != null ? row2[currentSortColumn] : "";
-
-            int comparison;
-
-            // Special handling for different column types
-            switch (currentSortColumn) {
-                case 2: // Date column
-                    try {
-                        java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                        java.util.Date date1 = dateFormat.parse(value1);
-                        java.util.Date date2 = dateFormat.parse(value2);
-                        comparison = date1.compareTo(date2);
-                    } catch (Exception e) {
-                        comparison = value1.compareTo(value2);
-                    }
-                    break;
-                case 7: // Cost column
-                    try {
-                        // Extract numeric value from cost string (e.g., "1550 RSD" -> 1550)
-                        int cost1 = Integer.parseInt(value1.replaceAll("[^0-9]", ""));
-                        int cost2 = Integer.parseInt(value2.replaceAll("[^0-9]", ""));
-                        comparison = Integer.compare(cost1, cost2);
-                    } catch (Exception e) {
-                        comparison = value1.compareTo(value2);
-                    }
-                    break;
-                case 3: // Duration column
-                    try {
-                        // Extract numeric value from duration string (e.g., "25 min" -> 25)
-                        int duration1 = Integer.parseInt(value1.replaceAll("[^0-9]", ""));
-                        int duration2 = Integer.parseInt(value2.replaceAll("[^0-9]", ""));
-                        comparison = Integer.compare(duration1, duration2);
-                    } catch (Exception e) {
-                        comparison = value1.compareTo(value2);
-                    }
-                    break;
-                default:
-                    comparison = value1.compareToIgnoreCase(value2);
-                    break;
-            }
-
-            return isAscending ? comparison : -comparison;
-        });
-
-        return dataToSort;
     }
 
     private void setupDatePicker() {
@@ -318,54 +295,103 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
     }
 
     private void applyDateFilter() {
-        // Clear existing rows except header
-        int childCount = tableDriverHistory.getChildCount();
-        if (childCount > 2) {
-            tableDriverHistory.removeViews(2, childCount - 2);
+        if (selectedDate != null) {
+            // Convert date to Long timestamp (milliseconds since epoch)
+            currentDateFilter = String.valueOf(selectedDate.getTimeInMillis());
+            currentPage = 0; // Reset to first page
+            loadDriverHistory();
+            Toast.makeText(getContext(), "Filter applied", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Please select a date first", Toast.LENGTH_SHORT).show();
         }
-
-        // Load filtered and sorted data
-        String[][] sortedData = getSortedData();
-        populateDriverHistoryTable(sortedData);
-        Toast.makeText(getContext(), "Filter applied", Toast.LENGTH_SHORT).show();
     }
 
     private void clearFilter() {
         etDateFilter.setText("");
         selectedDate = null;
-
-        // Clear existing rows except header
-        int childCount = tableDriverHistory.getChildCount();
-        if (childCount > 2) {
-            tableDriverHistory.removeViews(2, childCount - 2);
-        }
-
-        // Reload sorted data
-        String[][] sortedData = getSortedData();
-        populateDriverHistoryTable(sortedData);
+        currentDateFilter = null;
+        currentPage = 0; // Reset to first page
+        loadDriverHistory();
         Toast.makeText(getContext(), "Filter cleared", Toast.LENGTH_SHORT).show();
     }
 
     private void loadDriverHistory() {
-        populateDriverHistoryTable(rideDataTest);
+        if (isLoading) return;
+
+        isLoading = true;
+
+        Call<DriverHistoryResponse> call = driverService.getDriverRideHistory(
+            currentPage,
+            pageSize,
+            currentSortBy,
+            currentSortDir,
+            currentDateFilter
+        );
+
+        call.enqueue(new retrofit2.Callback<DriverHistoryResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<DriverHistoryResponse> call, retrofit2.Response<DriverHistoryResponse> response) {
+                isLoading = false;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    DriverHistoryResponse historyResponse = response.body();
+
+                    if (currentPage == 0) {
+                        // First page, clear existing data
+                        allRideData.clear();
+                    }
+
+                    allRideData.addAll(historyResponse.getContent());
+                    hasMoreData = !historyResponse.isLast();
+
+                    if (currentPage == 0) {
+                        // First load or refresh, clear table and populate
+                        clearTableRows();
+                        populateDriverHistoryTableFromAPI(allRideData);
+                        updateSortIndicators();
+                    } else {
+                        // Load more data, append to table
+                        removeLoadMoreButton(); // Remove button before adding new data
+                        populateDriverHistoryTableFromAPI(historyResponse.getContent());
+                    }
+
+                    // Add "Load More" button if there's more data
+                    addLoadMoreButtonIfNeeded();
+                } else {
+                    Toast.makeText(getContext(), "Failed to load driver history", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<DriverHistoryResponse> call, Throwable t) {
+                isLoading = false;
+                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void populateDriverHistoryTable(String[][] rideData) {
-        View rootView = getView();
-        if (rootView == null) return;
+    private void clearTableRows() {
+        // Clear existing rows except header and separators
+        removeLoadMoreButton();
+        int childCount = tableDriverHistory.getChildCount();
+        if (childCount > 2) {
+            tableDriverHistory.removeViews(2, childCount - 2);
+        }
+    }
 
-        TableLayout tableLayout = rootView.findViewById(R.id.tableDriverHistory);
-
-        for (String[] ride : rideData) {
+    private void populateDriverHistoryTableFromAPI(List<RideHistory> rideHistories) {
+        for (RideHistory rideHistory : rideHistories) {
             TableRow tableRow = new TableRow(getContext());
             tableRow.setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12));
             tableRow.setGravity(Gravity.CENTER);
-            tableRow.setOnClickListener(v -> openRideDetails(ride));
+            tableRow.setOnClickListener(v -> openRideDetailsFromAPI(rideHistory));
             tableRow.setBackgroundResource(R.drawable.custom_row_selector);
 
             // Route column
             TextView routeText = new TextView(getContext());
-            routeText.setText(ride[0]);
+            String routeDisplay = rideHistory.getRoute().getStartLocation().getAddress() +
+                                " → " + rideHistory.getRoute().getEndLocation().getAddress();
+            routeText.setText(routeDisplay);
             routeText.setGravity(Gravity.CENTER);
             routeText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
             routeText.setMinWidth(dpToPx(150));
@@ -380,7 +406,10 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
             // Passengers column
             TextView passengersText = new TextView(getContext());
-            passengersText.setText(ride[1]);
+            String passengersDisplay = rideHistory.getPassengers() != null && !rideHistory.getPassengers().isEmpty()
+                                     ? String.join(", ", rideHistory.getPassengers())
+                                     : "N/A";
+            passengersText.setText(passengersDisplay);
             passengersText.setGravity(Gravity.CENTER);
             passengersText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
             passengersText.setMinWidth(dpToPx(120));
@@ -396,7 +425,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
             // Date column
             TextView dateText = new TextView(getContext());
-            dateText.setText(ride[2]);
+            dateText.setText(rideHistory.getDate());
             dateText.setGravity(Gravity.CENTER);
             dateText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
@@ -412,12 +441,15 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             durationLayout.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
             TextView durationText = new TextView(getContext());
-            durationText.setText(ride[3]);
+            String durationDisplay = String.format("%.0f min", rideHistory.getDurationMinutes());
+            durationText.setText(durationDisplay);
             durationText.setTextSize(14f);
             durationText.setGravity(Gravity.CENTER);
 
             TextView timeRangeText = new TextView(getContext());
-            timeRangeText.setText(ride[4]);
+            // For now, we'll show estimated time as we don't have start/end times in the API
+            String timeRangeDisplay = String.format("~%.0f min estimated", rideHistory.getRoute().getEstimatedTimeMin());
+            timeRangeText.setText(timeRangeDisplay);
             timeRangeText.setTextSize(12f);
             timeRangeText.setTextColor(Color.parseColor("#666666"));
             timeRangeText.setGravity(Gravity.CENTER);
@@ -436,9 +468,9 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             cancelledLayout.setGravity(Gravity.CENTER);
             cancelledLayout.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
-            if (ride[5] != null) {
+            if (rideHistory.isCancelled()) {
                 TextView cancelledText = new TextView(getContext());
-                String cancelledBy = ride[5];
+                String cancelledBy = rideHistory.getCancelledBy() != null ? rideHistory.getCancelledBy() : "Cancelled";
                 cancelledText.setText(cancelledBy);
                 cancelledText.setBackgroundResource(R.drawable.red_rounded_background);
                 cancelledText.setTextColor(Color.WHITE);
@@ -446,17 +478,6 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
                 cancelledText.setTextSize(15f);
                 cancelledText.setGravity(Gravity.CENTER);
                 cancelledLayout.addView(cancelledText);
-
-                // Show passenger name if cancelled by passenger
-                if (ride[6] != null) {
-                    TextView cancelledByText = new TextView(getContext());
-                    cancelledByText.setText(ride[6]);
-                    cancelledByText.setTextSize(14f);
-                    cancelledByText.setTextColor(Color.parseColor("#666666"));
-                    cancelledByText.setGravity(Gravity.CENTER);
-                    cancelledByText.setPadding(0, dpToPx(2), 0, 0);
-                    cancelledLayout.addView(cancelledByText);
-                }
             } else {
                 TextView noText = new TextView(getContext());
                 noText.setText("N/A");
@@ -471,7 +492,8 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
             // Cost column
             TextView costText = new TextView(getContext());
-            costText.setText(ride[7]);
+            String costDisplay = String.format("%.2f RSD", rideHistory.getCost());
+            costText.setText(costDisplay);
             costText.setGravity(Gravity.CENTER);
             costText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
@@ -486,23 +508,23 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             panicLayout.setGravity(Gravity.CENTER);
             panicLayout.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
-            if (ride[8] != null) {
+            if (rideHistory.getPanic() != null && rideHistory.getPanic()) {
                 TextView panicText = new TextView(getContext());
-                panicText.setText(ride[8]);
+                panicText.setText("Panic");
                 panicText.setBackgroundResource(R.drawable.red_rounded_background);
                 panicText.setTextColor(Color.WHITE);
                 panicText.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
                 panicText.setTextSize(15f);
                 panicText.setGravity(Gravity.CENTER);
+                panicLayout.addView(panicText);
 
-                if (ride[9] != null) {
+                if (rideHistory.getPanicBy() != null) {
                     TextView panicByText = new TextView(getContext());
-                    panicByText.setText(ride[9]);
+                    panicByText.setText(rideHistory.getPanicBy());
                     panicByText.setTextSize(14f);
                     panicByText.setTextColor(Color.parseColor("#666666"));
                     panicByText.setGravity(Gravity.CENTER);
-
-                    panicLayout.addView(panicText);
+                    panicByText.setPadding(0, dpToPx(2), 0, 0);
                     panicLayout.addView(panicByText);
                 }
             } else {
@@ -518,22 +540,66 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             tableRow.addView(panicLayout);
 
             // Add the row to table
-            tableLayout.addView(tableRow);
+            tableDriverHistory.addView(tableRow);
 
             // Add separator line
             View separator = new View(getContext());
             separator.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, dpToPx(1)));
             separator.setBackgroundColor(Color.parseColor("#CCCCCC"));
-            tableLayout.addView(separator);
+            tableDriverHistory.addView(separator);
         }
     }
 
-    private void openRideDetails(String[] rideData) {
+    private void openRideDetailsFromAPI(RideHistory rideHistory) {
         Bundle bundle = new Bundle();
-        bundle.putStringArray("ride_data", rideData);
+        bundle.putSerializable("ride_history", rideHistory);
 
         NavController navController = Navigation.findNavController(requireView());
         navController.navigate(R.id.action_driverHistory_to_rideDetails, bundle);
+    }
+
+    private void addLoadMoreButtonIfNeeded() {
+        if (!hasMoreData) return;
+
+        // Remove existing load more button if any
+        removeLoadMoreButton();
+
+        Button loadMoreButton = new Button(getContext());
+        loadMoreButton.setText("Load More");
+        loadMoreButton.setTag("load_more_button");
+        loadMoreButton.setPadding(dpToPx(16), dpToPx(8), dpToPx(16), dpToPx(8));
+
+        TableRow buttonRow = new TableRow(getContext());
+        buttonRow.setGravity(Gravity.CENTER);
+        buttonRow.setPadding(0, dpToPx(16), 0, dpToPx(16));
+
+        TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        buttonParams.span = 7; // Span all columns
+        loadMoreButton.setLayoutParams(buttonParams);
+
+        buttonRow.addView(loadMoreButton);
+        tableDriverHistory.addView(buttonRow);
+
+        loadMoreButton.setOnClickListener(v -> {
+            currentPage++;
+            loadDriverHistory();
+        });
+    }
+
+    private void removeLoadMoreButton() {
+        for (int i = tableDriverHistory.getChildCount() - 1; i >= 0; i--) {
+            View child = tableDriverHistory.getChildAt(i);
+            if (child instanceof TableRow) {
+                TableRow row = (TableRow) child;
+                if (row.getChildCount() > 0) {
+                    View firstChild = row.getChildAt(0);
+                    if (firstChild instanceof Button && "load_more_button".equals(firstChild.getTag())) {
+                        tableDriverHistory.removeViewAt(i);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
 

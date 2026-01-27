@@ -1,0 +1,40 @@
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sort-icon {
+  font-size: 0.8em;
+  margin-left: 0.25rem;
+  opacity: 0.6;
+}
+.fav-cell {
+  width: 40px;
+  text-align: center;
+}
+
+.fav-cell .bi {
+  font-size: 1.05rem;
+}
+
+.fav-cell .bi {
+  cursor: pointer;
+}
+
+.sortable:hover .sort-icon {
+  opacity: 1;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}

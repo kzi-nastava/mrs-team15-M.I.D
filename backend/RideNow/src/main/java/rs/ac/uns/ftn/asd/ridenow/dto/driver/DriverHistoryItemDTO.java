@@ -1,35 +1,26 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.driver;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import rs.ac.uns.ftn.asd.ridenow.model.Route;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter @Setter
 public class DriverHistoryItemDTO {
-    @NotNull @NotEmpty
-    private Route route;
-    @NotNull @NotEmpty
+    private RouteDTO route;
     private List<String> passengers;
-    @NotNull
-    private Date date;
-    @NotNull
-    private Integer durationMinutes;
-    @NotNull
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private Double cost;
-    @NotNull
     private Boolean cancelled;
     private String cancelledBy;
-    @NotNull
     private Boolean panic;
     private String panicBy;
-    @NotNull
-    private Double rating;
-    @NotNull @NotEmpty
+    private RatingDTO rating;
     private List<String> inconsistencies;
 
 }

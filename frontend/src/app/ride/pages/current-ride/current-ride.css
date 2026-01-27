@@ -1,0 +1,16 @@
+.current-ride-section {
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+}
+
+@media (max-width: 768px) {
+  .map-container {
+    padding: 0 20px;
+  }
+
+  .form-section{
+    margin-bottom: 20px;
+  }
+  
+}

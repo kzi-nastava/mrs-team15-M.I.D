@@ -1,0 +1,25 @@
+<div class="modal-backdrop" (click)="onClose()"></div>
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Reorder Ride</h5>
+    </div>
+    <div class="modal-body">
+        <p>Do you want to request the same route again? You can book this ride immediately or schedule it for later.</p>
+        <div *ngIf="showScheduleInputs" class="mt-3">
+            <label class="form-label">Select date</label>
+            <input type="date" class="form-control mb-2" [(ngModel)]="date"/>
+            <div class="error" *ngIf="validator.dateError(date)">{{ validator.dateError(date) }}</div>
+            <label class="form-label">Select time</label>
+            <input type="time" class="form-control" [(ngModel)]="time"/>
+            <div class="error" *ngIf="validator.timeError(time)">{{ validator.timeError(time) }}</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+        <app-button height="35px" variant="primary" fontWeight="700" textTransform="uppercase"(clicked)="onBookNow()" text="Book Now"></app-button>
+        <app-button height="35px" *ngIf="!showScheduleInputs" variant="primary" fontWeight="700" textTransform="uppercase"(clicked)="onScheduleForLater()" text="Schedule for Later"></app-button>
+        <app-button *ngIf="showScheduleInputs" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Confirm Schedule" (clicked)="onConfirmSchedule()" [disabled]="hasErrors()"></app-button>
+        <app-button height="35px" variant="secondary" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
+    </div>
+  </div>
+</div>

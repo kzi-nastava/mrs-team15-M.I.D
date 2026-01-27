@@ -1,0 +1,32 @@
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop" (click)="onClose()"></div>
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Panic confirmation</h5>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to trigger the panic alert? <br> This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <app-button width="150px" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase"(clicked)="onClose()" text="Close"></app-button>
+      <app-button width="150px" height="35px" variant="danger" fontWeight="700" textTransform="uppercase"(clicked)="onConfirm()" text="Trigger panic"></app-button>
+    </div>
+  </div>
+</div>

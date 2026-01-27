@@ -1,0 +1,242 @@
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-bottom: 5px;
+  margin-left: 12px;
+}
+.ride-preference-section .form-control {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.ride-preference-section .btn {
+  min-width: 100px;
+}
+
+.ride-preference-section .form-select {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 6px 10px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 14px;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'><path d='M0 0l5 6 5-6z' fill='%23fff'/></svg>");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 12px;
+}
+
+.ride-preference-section .form-select:focus,
+.ride-preference-section .form-select:active,
+.ride-preference-section .form-select:focus-visible {
+  background-color: rgba(0,0,0,0.75) !important;
+  color: #fff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ride-preference-section .form-select option {
+  background: #000;
+  color: #fff;
+}
+
+.ride-preference-section select.form-select::-ms-expand {
+  display: none; 
+}
+
+.guest-row {
+  gap: 8px;
+  align-items: center;
+}
+
+.trash-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.add-stop-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #fff;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.ride-preference-section .form-input {
+  margin-bottom: 0; 
+}
+
+.guests-list {
+  margin-top: 6px;
+}
+
+.ride-preference-section .section-label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+.guests-list .trash-btn {
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+}
+
+.guests-list .guest-row {
+  position: relative;
+}
+.guests-list .guest-row app-input-component {
+  flex: 1 1 auto;
+}
+.guests-list .guest-row app-input-component .input {
+  width: calc(100% - 48px) !important; 
+  box-sizing: border-box;
+}
+
+.guests-list .guest-row .trash-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: -6px;
+  align-self: flex-start;
+}
+
+
+.guests-list .guest-row + .guest-row {
+  margin-top: 8px;
+}
+
+.guests-list-empty {
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.custom-switch .form-check-input {
+  width: 50px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 12px;
+  border: none;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.custom-switch .form-check-input::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 2px;
+  left: 2px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.custom-switch .form-check-input:checked {
+  background-color: #333;
+}
+
+.custom-switch .form-check-input:checked::after {
+  transform: translateX(26px);
+}
+
+.custom-switch .form-check-label {
+  margin-left: 12px;
+  font-weight: 500;
+  color: #fff; 
+  user-select: none;
+}
+
+.show-route-btn ::ng-deep .button {
+  background-color: #6c757d !important; 
+  color: #fff !important;
+}
+
+.selected-price {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.selected-price-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 6px;
+}
+.selected-price-value {
+  background: linear-gradient(90deg, rgba(34,197,94,0.15), rgba(14,165,233,0.06));
+  border: 1px solid rgba(34,197,94,0.35);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.route-buttons .final-price-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.route-buttons .back-button-area {
+  display: flex;
+  align-items: center;
+}
+
+/* Improve visibility of datetime-local picker in dark theme */
+.ride-preference-section .schedule-picker .form-control {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 6px 10px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 14px;
+  padding-right: 40px; /* leave space for picker icon */
+}
+
+/* WebKit browsers: tint the calendar icon so it contrasts */
+.ride-preference-section .schedule-picker .form-control::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2) saturate(0.4);
+  opacity: 1;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+/* Make sure on focus the control stays readable */
+.ride-preference-section .schedule-picker .form-control:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(14,165,233,0.08);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* Ensure native clear controls are hidden where needed */
+.ride-preference-section .schedule-picker .form-control::-ms-clear,
+.ride-preference-section .schedule-picker .form-control::-ms-expand {
+  display: none;
+}

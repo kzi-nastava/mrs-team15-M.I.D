@@ -1,0 +1,49 @@
+<div class="px-5 pb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          <th scope="col" class="sortable" (click)="sort('route')">
+            Route <span class="sort-icon">{{ getSortIcon('route') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('startTime')">
+            Start time <span class="sort-icon">{{ getSortIcon('startTime') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('startTime')">
+            End time <span class="sort-icon">{{ getSortIcon('endTime') }}</span>
+          </th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ride of rides; track ride.id) {
+          <tr class="clickable-row" (click)="viewRideDetails(ride)">
+            <td class="fav-cell">
+               <i class="bi" [ngClass]="ride.favorite ? 'bi-star-fill text-warning' : 'bi-star'" (click)="$event.stopPropagation(); requestToggleFavorite(ride)"></i>
+            </td>
+            <td>{{ ride.route }}</td>
+            <td>{{ ride.startTime }}</td>
+            <td>{{ ride.endTime  }}</td>
+            <td (click)="$event.stopPropagation()">
+              @if (canRate(ride)) {
+                <app-button
+                  text="Rate"
+                  variant="primary"
+                  width="auto"
+                  height="auto"
+                  fontWeight="600"
+                  (clicked)="rateRide(ride)">
+                </app-button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+  <!-- favorite modals -->
+  <app-add-favorite-modal #addFav (confirm)="onAddFavoriteConfirmed()" ></app-add-favorite-modal>
+  <app-remove-favorite-modal #removeFav (confirm)="onRemoveFavoriteConfirmed()" ></app-remove-favorite-modal>
+  </div>
+</div>

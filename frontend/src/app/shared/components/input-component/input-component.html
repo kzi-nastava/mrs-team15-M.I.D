@@ -2,8 +2,19 @@
     [type]="type"
     [placeholder]="placeholder"
     [value]="value"
+        (input)="onInput($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
     [style.width]="width || '100%'"
     [style.height]="height"
     [style.border-color]="borderColor"
+    [class.primary]="variant === 'primary'"
+    [class.secondary]="variant === 'secondary'"
     class="input"
 />
+
+<div *ngIf="suggestions && showSuggestions" class="suggestions-dropdown">
+    <ul>
+        <li *ngFor="let s of suggestions" (click)="selectSuggestion(s)">{{ s.display }}</li>
+    </ul>
+</div>

@@ -1,0 +1,31 @@
+.ride-estimation-section{
+    height: 75vh;
+    z-index: 1;
+}
+
+.ride-estimation-form {
+    width: 100%;
+    margin-top: 15vh;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.form-title {
+  text-align: left;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-bottom: 5px;
+  margin-left: 12px;
+}
+
+.estimation-info{
+  margin-top: 10px;
+}
+
+.estimation-info p{
+  margin: 0px 2px;
+  padding: 0px;
+}

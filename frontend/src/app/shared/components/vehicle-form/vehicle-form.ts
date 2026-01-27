@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { InputComponent } from '../input-component/input-component';
 import { FormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-vehicle-form',

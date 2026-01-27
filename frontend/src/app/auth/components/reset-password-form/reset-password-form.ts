@@ -1,15 +1,34 @@
-import { Component } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component'
-import { RouterLink } from '@angular/router'
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'
+import { FromValidator } from '../../../shared/components/form-validator';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { AuthService } from '../../../services/auth.service';
+
 @Component({
   selector: 'app-reset-password-form',
-  imports: [Button, InputComponent, RouterLink],
+  imports: [Button, InputComponent, RouterLink, CommonModule],
   standalone: true, 
   templateUrl: './reset-password-form.html',
   styleUrl: './reset-password-form.css',
 })
-export class ResetPasswordForm {
+
+export class ResetPasswordForm implements OnInit {
+
+  constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.token = this.route.snapshot.paramMap.get('token');
+    if (!this.token) {
+      this.showMessageToast('Invalid activation link.');
+      return;
+    }
+  }
+
+  showMessage = false;
+  message = '';
+  token: string | null = null;
   newPasswordVisible = false;
   confirmPasswordVisible = false;
   togglePassword(type: string) {
@@ -25,5 +44,34 @@ export class ResetPasswordForm {
         inputs[1].type = this.confirmPasswordVisible ? 'text' : 'password';
       }
     }
+  }
+
+  newPassword : string = '';
+  newConfirmedPassword : string = '';
+
+  validator : FromValidator = new FromValidator();
+
+  resetPassword(): void {
+    const data = {newPassword: this.newPassword, confirmNewPassword: this.newConfirmedPassword}
+    this.authService.resetPassword(this.token!, data).subscribe({
+      next: (res) => {
+        this.showMessageToast(res.message);
+        setTimeout(() => { this.router.navigate(['/login']);}, 4000);
+      },
+      error: (err) => {
+        const msg = err.error?.message ?? 'Update of the password failed. Please try again.';
+        this.showMessageToast(msg);
+      }
+    });
+  }
+
+  hasErrors() : boolean {
+    return !!(this.validator.passwordError(this.newPassword) || this.validator.confirmPasswordError(this.newPassword, this.newConfirmedPassword));
+  }
+
+  showMessageToast(message: string): void {
+    this.message = message;
+    this.showMessage = true;
+    this.cdr.detectChanges();
   }
 }
