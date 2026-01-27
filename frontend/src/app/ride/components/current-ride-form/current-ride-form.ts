@@ -8,6 +8,7 @@ import { PanicModal } from '../panic-modal/panic-modal';
 import { RideService } from '../../../services/ride.service';
 import { MapRouteService } from '../../../services/map-route.service';
 import { Subscription, interval } from 'rxjs';
+import { DriverService } from '../../../services/driver.service';
 
 
 export interface CurrentRideDTO {
@@ -34,7 +35,8 @@ export class CurrentRideForm implements OnDestroy {
     private cdr: ChangeDetectorRef,
     private rideService: RideService,
     private mapRouteService: MapRouteService,
-    private router: Router
+    private router: Router,
+    private driverService : DriverService
   ){}
 
   pickupAddress : string = '';
@@ -185,6 +187,7 @@ export class CurrentRideForm implements OnDestroy {
 
     this.rideService.finishRide(this.rideId).subscribe({
       next: (hasNextRide) => {
+        this.driverService.getMyStatus().subscribe();
         if (hasNextRide) {
           this.showMessageToast('Ride marked as completed. Loading next ride...');
           this.fetchCurrentRide();
