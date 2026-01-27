@@ -34,10 +34,8 @@ export class RideOrderingForm implements OnInit {
   dragOverIndex: number | null = null;
 
   // Mocked favorite routes for demo purposes
-  favorites: FavoriteRoute[] = [
-    { id: null, name: 'Home → Work', pickup: '123 Home St', destination: '456 Work Ave', stops: [] },
-    { id: null, name: 'Airport Ride', pickup: 'Home Address', destination: 'Airport Terminal 1', stops: [] },
-  ];
+  favorites: FavoriteRoute[] = [];
+
   selectedFavorite: string | null = null;
   favoriteOpen: boolean = false;
 
@@ -70,6 +68,12 @@ export class RideOrderingForm implements OnInit {
     return index;
   }
 
+  trackByRouteId(index: number, item: FavoriteRoute) {
+  return item.id ?? index;
+  }
+
+  
+
   selectFavorite(name: string) {
     if (name === '') {
       this.selectedFavorite = '';
@@ -99,7 +103,9 @@ export class RideOrderingForm implements OnInit {
                 try {
                   const markers: { lat: number; lng: number; display?: string }[] = [];
                   if (normalized.length > 0) markers.push({ lat: normalized[0].lat, lng: normalized[0].lng, display: this.pickupAddress || r.startAddress || fav.pickup });
+                  if (r.stopLatitudes && r.stopLongitudes && Array.isArray(r.stopLatitudes) && Array.isArray(r.stopLongitudes)) { markers.push(...r.stopLatitudes.map((lat: number, i: number) => ({ lat, lng: r.stopLongitudes[i], display: this.stops[i] || undefined }))); }
                   if (normalized.length > 1) markers.push({ lat: normalized[normalized.length - 1].lat, lng: normalized[normalized.length - 1].lng, display: this.destinationAddress || r.endAddress || fav.destination });
+                  
                   this.mapRouteService.drawMarkers(markers);
                 } catch (e) {
                   console.warn('drawing markers for normalized route failed', e);
@@ -466,12 +472,12 @@ export class RideOrderingForm implements OnInit {
       
       if (!routeDrawn) {
         const points: { lat: number; lng: number; display?: string }[] = [];
-        if (startGeo) points.push({ lat: startGeo.lat, lng: startGeo.lon, display: this.pickupAddress });
+        // Only show intermediate stops here — avoid drawing start/end as markers
         for (const s of stopLatitudes.map((lat, i) => ({ lat, lng: stopLongitudes[i], display: stopAddresses[i] }))) {
           points.push(s as any);
         }
-        if (endGeo) points.push({ lat: endGeo.lat, lng: endGeo.lon, display: this.destinationAddress });
 
+        // Draw only the collected stop markers (may be empty)
         this.mapRouteService.drawMarkers(points);
       }
     } catch (err) {
@@ -504,14 +510,15 @@ export class RideOrderingForm implements OnInit {
 
   private loadFavoriteRoutes() {
     try {
-      
+      console.log('Loading favorite routes from backend');
       this.passengerService.getFavoriteRoutes().subscribe({
         next: (res: any[]) => {
           try {
+            console.log('Favorite routes response', res);
             this.favorites = (res || []).map(r => {
-              const startRaw = r.startAddress ?? r.pickup ?? r.origin ?? '';
-              const endRaw = r.endAddress ?? r.destination ?? r.to ?? '';
-              const stopsArr: any[] = r.stops ?? r.intermediateStops ?? r.stopAddresses ?? [];
+              const startRaw = r.startAddress ??  '';
+              const endRaw = r.endAddress ?? '';
+              const stopsArr: any[] = r.stopAddresses ?? [];
               const hasStartEnd = !!(startRaw && endRaw);
 
               let name: string;
@@ -540,6 +547,7 @@ export class RideOrderingForm implements OnInit {
                 stops: Array.isArray(stopsArr) ? stopsArr : []
               };
             });
+            console.log('Loaded favorite routes', this.favorites);
             try { this.cdr.detectChanges(); } catch(e) {}
           } catch (mapErr) {
             console.warn('Mapping favorite routes failed', mapErr);

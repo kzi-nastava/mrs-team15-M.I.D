@@ -61,7 +61,7 @@ export class DriverRequestsTable implements OnInit {
       role: (u.role || 'driver').toLowerCase(),
       email: u.email || dtoFallback?.email || null,
       address: u.address || dtoFallback?.address || null,
-      avatarUrl: u.profileImage || dtoFallback?.profileImage || 'uploads/default.jpg',
+      avatarUrl: u.profileImage || dtoFallback?.profileImage || 'uploads/default.png',
       activeHours: u.hoursWorkedLast24 ?? dtoFallback?.activeHours ?? 0,
       vehicle,
     };
@@ -89,7 +89,7 @@ export class DriverRequestsTable implements OnInit {
             role: 'driver',
             email: null,
             address: null,
-            avatarUrl: 'uploads/default.jpg',
+            avatarUrl: 'uploads/default.png',
             activeHours: 0,
             vehicle: { licensePlate: null, model: null, seats: null, petFriendly: false, babyFriendly: false },
           },
@@ -154,7 +154,7 @@ export class DriverRequestsTable implements OnInit {
       role: 'driver',
       email: dto.email || null,
       address: dto.address || null,
-      avatarUrl: dto.profileImage || 'uploads/default.jpg',
+      avatarUrl: dto.profileImage || 'uploads/default.png',
       vehicle: {
         licensePlate: dto.licensePlate || null,
         model: dto.vehicleModel || null,

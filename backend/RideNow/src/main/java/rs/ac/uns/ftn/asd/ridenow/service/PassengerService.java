@@ -1,6 +1,5 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
@@ -131,11 +130,12 @@ public class PassengerService {
 
     public Collection<FavoriteRouteResponseDTO> getRoutes(Long userId) {
         RegisteredUser user = registeredUserRepository.getReferenceById(userId);
-        FavoriteRouteResponseDTO dto = new FavoriteRouteResponseDTO();
         Collection<FavoriteRouteResponseDTO> dtos = new ArrayList<>();
         List<FavoriteRoute> routes = user.getFavoriteRoutes();
         for (FavoriteRoute fr : routes) {
             Route route = fr.getRoute();
+            FavoriteRouteResponseDTO dto = new FavoriteRouteResponseDTO();
+
             dto.setRouteId(route.getId());
             dto.setEndAddress(route.getEndLocation().getAddress());
             dto.setStartAddress(route.getStartLocation().getAddress());

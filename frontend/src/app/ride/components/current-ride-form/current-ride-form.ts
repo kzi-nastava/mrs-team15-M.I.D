@@ -209,32 +209,17 @@ export class CurrentRideForm implements OnDestroy {
 
   finalPrice?: number;
   onStopConfirmed(response: any) {
-    if (response.route) {
-      this.estimatedDistanceKm = response.route.distanceKm;
-      this.estimatedDurationMin = response.estimatedDurationMin;
-      this.destinationAddress = formatAddress(response.route.endLocation.address);
-      this.finalPrice = response.price;
-
-      const routePoints = response.route.polylinePoints.map((p: any) => ({ lat: p.latitude, lng: p.longitude }));
+    this.estimatedDistanceKm = response.distanceKm;
+    this.estimatedDurationMin = response.estimatedDurationMin;
+    this.destinationAddress = formatAddress(response.endAddress);
+    this.finalPrice = response.price;
+    
+    if (response.route && Array.isArray(response.route)) {
+      const routePoints = response.route.map((p: any) => ({ lat: p.lat, lng: p.lng }));
       this.mapRouteService.drawRoute(routePoints);
-
-      if (response.route.stopLocations && response.route.stopLocations.length > 0) {
-        const stopPoints = response.route.stopLocations.map((s: any) => ({
-          lat: s.latitude,
-          lng: s.longitude,
-          name: formatAddress(s.address)
-        }));
-        this.mapRouteService.drawMarkers(stopPoints);
-      }
-    } else {
-      // Fallback for old format
-      this.estimatedDistanceKm = response.distanceKm;
-      this.estimatedDurationMin = response.estimatedDurationMin;
-      this.destinationAddress = formatAddress(response.endAddress);
-      this.finalPrice = response.price;
-      this.mapRouteService.drawRoute(response.route);
     }
-    this.showMessageToast(`Ride completed!`);
+    
+    this.showMessageToast(`Ride stopped! Final price: ${this.finalPrice}`);
     this.showStopModal = false;
     this.cdr.detectChanges();
   }

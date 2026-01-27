@@ -173,18 +173,18 @@ export class FindingDriverForm implements OnInit {
   }
 
   accept() {
-    this.router.navigate(['/current-ride']);
+    this.router.navigate(['/upcoming-rides']);
   }
 
   backToRideDetail() {
     // Navigate to the current-ride page and pass the ride info via navigation state
     try {
-      this.router.navigate(['/current-ride'], { state: { ride: this.ride } });
+      this.router.navigate(['/upcoming-rides'], { state: { ride: this.ride } });
     } catch (e) {
       // fallback to previous behavior
       const id = (this.ride as any).id;
       if (id !== undefined && id !== null) {
-        this.router.navigate(['/ride-details', id]);
+        this.router.navigate(['/upcoming-rides', id]);
       } else if (window && window.history && window.history.length > 1) {
         window.history.back();
       } else {
