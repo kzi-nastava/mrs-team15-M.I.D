@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import rs.ac.uns.ftn.asd.ridenow.model.Route;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,4 +17,9 @@ public interface RouteRepository extends JpaRepository<Route, Long> {
             @Param("startAddress") String startAddress,
             @Param("endAddress") String endAddress
     );
+
+    @Query("SELECT DISTINCT r FROM Route r " +
+           "LEFT JOIN FETCH r.stopLocations " +
+           "LEFT JOIN FETCH r.polylinePoints")
+    List<Route> findAllWithCollections();
 }
