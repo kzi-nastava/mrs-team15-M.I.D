@@ -12,6 +12,8 @@ public class StartRideResponseDTO {
     private Long id;
     private String startAddress;
     private String endAddress;
+    private List<Double> stopLats;
+    private List<Double> stopLngs;
     private List<String> passengers;
     private List<RoutePointDTO> route;
     private List<String> passengerImages;
