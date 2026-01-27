@@ -66,6 +66,7 @@ export class CurrentRideForm implements OnDestroy {
 
 
   ngOnInit(): void {
+    this.mapRouteService.clearRoute();
     const role = localStorage.getItem('role');
     if(role == "DRIVER"){
       this.isDriver = true;
@@ -352,5 +353,6 @@ export class CurrentRideForm implements OnDestroy {
       this.trackingSubscription.unsubscribe();
     }
     this.mapRouteService.clearVehicleLocation();
+    this.mapRouteService.clearRoute();
   }
 }
