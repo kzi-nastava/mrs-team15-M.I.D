@@ -133,7 +133,13 @@ public class RideService {
         // Assign selected driver
         ride.setDriver(assigned);
         ride.setStatus(RideStatus.REQUESTED);
-        ride.setScheduledTime(dto.getScheduledTime() != null ? dto.getScheduledTime() : LocalDateTime.now());
+        if (dto.getScheduledTime() == null) {
+            ride.setScheduledTime(LocalDateTime.now().plusMinutes(ETA));
+        }
+        else {
+            ride.setScheduledTime(dto.getScheduledTime());
+            ETA = (int) java.time.Duration.between(LocalDateTime.now(), dto.getScheduledTime()).toMinutes();
+        }
         ride.setDistanceKm(dto.getDistanceKm());
         ride.setPrice(dto.getPriceEstimate());
         // Add passengers to ride
@@ -173,12 +179,11 @@ public class RideService {
             response.setDriverId(assigned.getId());
         }
 
-        // mark driver unavailable and save driver
-        assigned.setAvailable(false);
-        if(assigned.getPendingStatus() != null){
-            assigned.setStatus(assigned.getPendingStatus());
-            assigned.setPendingStatus(null);
+        // mark driver as unavailable
+        if (dto.getScheduledTime() == null) {
+            assigned.setAvailable(false);
         }
+
         driverRepository.save(assigned);
 
         response.setId(ride.getId());
@@ -297,6 +302,7 @@ public class RideService {
             // ignore and continue
         }
         if  (assigned != null) {
+            if ()
             response.setETA(ETA);
             response.setDriverId(assigned.getId());
         }else{
