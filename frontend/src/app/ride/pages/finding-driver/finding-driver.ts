@@ -47,8 +47,7 @@ export class FindingDriver implements AfterViewInit {
         this.mapRouteService.drawRoute(this.order.route);
         // ensure map (which initializes async) receives the route; redraw shortly after
         try { setTimeout(() => { try { this.mapRouteService.drawRoute(this.order.route); } catch(e){} }, 250); } catch(e) {}
-        // Also add start/end markers and separate stop markers (stops are separate from the route polyline)
-        try { setTimeout(() => { try { this.addStartEndMarkersFromOrder(this.order.route); } catch(e){} }, 350); } catch(e) {}
+        // Add separate stop markers (stops are separate from the route polyline; start/end handled by drawRoute)
         try { setTimeout(() => { try { this.addStopMarkersFromOrder(); } catch(e){} }, 450); } catch(e) {}
         return;
       }
@@ -62,7 +61,6 @@ export class FindingDriver implements AfterViewInit {
           try { console.log('FindingDriver ngAfterViewInit - rebuilding route from lat/lng arrays, count=', pts.length); console.log('pts sample', JSON.stringify(pts[0]), JSON.stringify(pts[pts.length-1])); } catch(e) {}
           this.mapRouteService.drawRoute(pts);
           try { setTimeout(() => { try { this.mapRouteService.drawRoute(pts); } catch(e){} }, 250); } catch(e) {}
-          try { setTimeout(() => { try { this.addStartEndMarkersFromOrder(pts); } catch(e){} }, 350); } catch(e) {}
           try { setTimeout(() => { try { this.addStopMarkersFromOrder(); } catch(e){} }, 450); } catch(e) {}
           return;
         } catch (e) {
@@ -90,7 +88,6 @@ export class FindingDriver implements AfterViewInit {
           if (pts.length > 1) {
             this.mapRouteService.drawRoute(pts);
             try { setTimeout(() => { try { this.mapRouteService.drawRoute(pts); } catch(e){} }, 250); } catch(e) {}
-            try { setTimeout(() => { try { this.addStartEndMarkersFromOrder(pts); } catch(e){} }, 350); } catch(e) {}
             try { setTimeout(() => { try { this.addStopMarkersFromOrder(); } catch(e){} }, 450); } catch(e) {}
           } else {
             this.mapRouteService.drawMarkers(pts);
