@@ -61,15 +61,37 @@ export class DriverHistory implements OnInit {
   }
 
   private transformRideData(apiData: RideHistoryResponse[]): Ride[] {
-    return apiData.map((ride, index) => ({
+    return apiData.map((ride, index) => {
+      // Parse startTime and endTime
+      const startTime = new Date(ride.startTime);
+      const endTime = new Date(ride.endTime);
+
+      // Calculate duration in minutes
+      const durationMs = endTime.getTime() - startTime.getTime();
+      const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+      // Format date from startTime (DD/MM/YYYY)
+      const day = String(startTime.getDate()).padStart(2, '0');
+      const month = String(startTime.getMonth() + 1).padStart(2, '0');
+      const year = startTime.getFullYear();
+      const dateStr = `${day}/${month}/${year}`;
+
+      // Format time range (HH:MM - HH:MM)
+      const startHours = String(startTime.getHours()).padStart(2, '0');
+      const startMinutes = String(startTime.getMinutes()).padStart(2, '0');
+      const endHours = String(endTime.getHours()).padStart(2, '0');
+      const endMinutes = String(endTime.getMinutes()).padStart(2, '0');
+      const timeRange = `${startHours}:${startMinutes} - ${endHours}:${endMinutes}`;
+
+      return {
       id: index + 1,
       route: ride.route
         ? `${formatAddress(ride.route.startLocation.address)} → ${formatAddress(ride.route.endLocation.address)}`
         : 'N/A',
       passengers: ride.passengers.join(', '),
-      date: ride.date,
-      duration: ride.durationMinutes > 0 ? `${ride.durationMinutes} min` : 'N/A',
-      timeRange: 'N/A', // Not provided by API
+      date: dateStr,
+      duration: durationMinutes > 0 ? `${durationMinutes} min` : 'N/A',
+      timeRange: timeRange,
       cancelled: ride.cancelled ? (ride.cancelledBy ? `Od strane putnika` : 'Od strane vozača') : null,
       cancelledBy: ride.cancelledBy,
       cost: `${ride.cost.toFixed(0)} RSD`,
@@ -78,7 +100,8 @@ export class DriverHistory implements OnInit {
       rating: ride.rating,
       inconsistencies: ride.inconsistencies,
       routeData: ride.route
-    }));
+    };
+    });
   }
 
   onFilter(filterDate: string): void {

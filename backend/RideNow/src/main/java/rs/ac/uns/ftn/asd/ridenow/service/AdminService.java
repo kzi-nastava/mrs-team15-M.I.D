@@ -32,13 +32,16 @@ public class AdminService {
     private final DriverRequestRepository driverRequestRepository;
     private final VehicleRepository vehicleRepository;
     private final EmailService emailService;
+    private final AuthService authService;
 
     public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
-                        VehicleRepository vehicleRepository, EmailService emailService) {
+                        VehicleRepository vehicleRepository, EmailService emailService,
+                        AuthService authService) {
         this.driverRepository = driverRepository;
         this.driverRequestRepository = driverRequestRepository;
         this.vehicleRepository = vehicleRepository;
         this.emailService = emailService;
+        this.authService = authService;
     }
 
     public List<DriverChangeRequestDTO> getDriverRequests() {
@@ -185,6 +188,7 @@ public class AdminService {
         driver.setPhoneNumber(request.getPhoneNumber());
         driver.setProfileImage(request.getProfileImage() != null ? request.getProfileImage() : "default_profile_image_url");
         driver.setAddress(request.getAddress());
+        driver.setProfileImage(authService.profileImageURL);
         // mark admin-created drivers as inactive until they set their password
         driver.setActive(false);
         driver.setBlocked(false);

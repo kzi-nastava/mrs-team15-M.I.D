@@ -233,7 +233,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (route.length > 0) {
       const start = route[0];
       this.startMarker = L.circleMarker([start.lat, start.lng], {
-        radius: 8,
+        radius: 12,
         color: '#22c55e',
         fillColor: '#22c55e',
         fillOpacity: 0.6
@@ -244,7 +244,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (route.length > 1) {
       const end = route[route.length - 1];
       this.endMarker = L.circleMarker([end.lat, end.lng], {
-        radius: 8,
+        radius: 12,
         color: isAlert ? '#dc2626' : '#ef4444',
         fillColor: isAlert ? '#dc2626' : '#ef4444',
         fillOpacity: 0.6
@@ -310,9 +310,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     route.forEach((p: any) => {
       try {
         const m = L.circleMarker([p.lat, p.lng], {
-          radius: 6,
-          color: '#eab308',
-          fillColor: '#fbbf24',
+          radius: 10,
+          color: '#087dea',
+          fillColor: '#087dea',
           fillOpacity: 0.8,
           weight: 2
         }).bindPopup(p.display || p.name || 'Stop');
