@@ -115,7 +115,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
     @Query("SELECT r FROM Ride r " +
             "WHERE r.driver.id = :driverId " +
-            "AND r.status IN ('ACCEPTED', 'ACTIVE') " +
+            "AND r.status IN ('REQUESTED') " +
             "AND r.scheduledTime BETWEEN :now AND :nextHour " +
             "ORDER BY r.scheduledTime ASC")
     List<Ride> findScheduledRidesForDriverInNextHour(

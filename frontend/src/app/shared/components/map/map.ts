@@ -18,13 +18,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   @Input() centerLng: number = 19.8452;
   @Input() zoom: number = 13;
   @Input() showVehicles: boolean = true;
-  
+
   private map: any;
   private vehicleMarkers: Map<string, any> = new Map();
   private vehiclesSubscription?: Subscription;
   private routeSubscription?: Subscription;
   private markersSubscription?: Subscription;
   private vehicleLocationSubscription?: Subscription;
+  private centerOnVehicleSubscription?: Subscription;
   private driverLocationSubscription?: Subscription;
   private trackedVehicleMarker?: any;
   private driverLocationMarker?: any;
@@ -34,7 +35,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private startMarker?: any;
   private endMarker?: any;
   private markersLayerGroup?: any;
-  
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private vehicleService: VehicleService,
@@ -46,7 +47,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       await this.initMap();
     }
-    
+
     // Simple subscription - just redraw when route data changes
     this.routeSubscription = this.mapRouteService.route$.subscribe(routeData => {
       console.log('Route subscription fired:', routeData);
@@ -54,21 +55,28 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         this.clearAllLayers();
         return;
       }
-      
+
       this.drawRoute(routeData.route, routeData.isAlert || false);
     });
-    
+
     this.markersSubscription = this.mapRouteService.markers$.subscribe(routeData => {
       console.log('Markers subscription fired:', routeData);
       this.drawMarkers(routeData.route, routeData.isAlert || false);
     });
-    
+
     this.vehicleLocationSubscription = this.mapRouteService.vehicleLocation$.subscribe(async location => {
       if (location) {
         const L = await import('leaflet');
         this.updateTrackedVehicle(location.lat, location.lng, L);
       } else {
         this.clearTrackedVehicle();
+      }
+    });
+
+    this.centerOnVehicleSubscription = this.mapRouteService.centerOnVehicle$.subscribe(async shouldCenter => {
+      if (shouldCenter && this.trackedVehicleMarker && this.map) {
+        const latLng = this.trackedVehicleMarker.getLatLng();
+        this.map.setView([latLng.lat, latLng.lng], 15, { animate: true });
       }
     });
 
@@ -89,6 +97,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.vehicleLocationSubscription) {
       this.vehicleLocationSubscription.unsubscribe();
+    }
+    if (this.centerOnVehicleSubscription) {
+      this.centerOnVehicleSubscription.unsubscribe();
     }
     if (this.driverLocationSubscription) {
       this.driverLocationSubscription.unsubscribe();
@@ -112,12 +123,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
-    
+
     if (this.showVehicles) {
       this.vehiclesSubscription = this.vehicleService.vehicles$.subscribe(vehicles => {
         this.updateVehicleMarkers(vehicles, L);
       });
-      
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -245,7 +256,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private clearRouteLayers(): void {
     if (!this.map) return;
-    
+
     if (this.routeLayer) {
       this.map.removeLayer(this.routeLayer);
       this.routeLayer = undefined;
@@ -266,7 +277,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private clearAllLayers(): void {
     this.clearRouteLayers();
-    
+
     // Remove any stray polylines
     try {
       const globalL = (window as any).L;
@@ -288,73 +299,31 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (!this.map || !route || route.length === 0) return;
     const L = (window as any).L || await import('leaflet');
 
-    this.clearRouteLayers();
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Don't clear route layers, just add markers on top
+    if (this.markersLayerGroup) {
+      this.map.removeLayer(this.markersLayerGroup);
+      this.markersLayerGroup = undefined;
+    }
 
-    // start marker
-    if (route.length > 0) {
-      const start = route[0];
-      this.startMarker = L.circleMarker([start.lat, start.lng], {
-        radius: 8,
-        color: '#22c55e',
-        fillColor: '#22c55e',
-        fillOpacity: 0.6
-      }).bindPopup(start.display || start.name || 'Start').addTo(this.map);
-    }
-    
-    // end marker
-    if (route.length > 1) {
-      const end = route[route.length - 1];
-      this.endMarker = L.circleMarker([end.lat, end.lng], {
-        radius: 8,
-        color: isAlert ? '#dc2626' : '#ef4444',
-        fillColor: isAlert ? '#dc2626' : '#ef4444',
-        fillOpacity: 0.6
-      }).bindPopup(end.display || end.name || 'End').addTo(this.map);
-    }
-    
-    // intermediate markers
-    try {
-      const intermediate = route.slice(1, Math.max(1, route.length - 1));
-      if (intermediate && intermediate.length > 0) {
-        this.markersLayerGroup = L.layerGroup();
-        intermediate.forEach((p: any) => {
-          try {
-            const m = L.circleMarker([p.lat, p.lng], {
-              radius: 6,
-              color: '#2563eb',
-              fillColor: '#2563eb',
-              fillOpacity: 0.85
-            }).bindPopup(p.display || p.name || 'Stop');
-            this.markersLayerGroup.addLayer(m);
-          } catch (inner) { 
-            console.warn('failed to add intermediate marker', inner); 
-          }
-        });
-        if (this.markersLayerGroup.getLayers().length > 0) {
-          this.markersLayerGroup.addTo(this.map);
-        }
+    // Draw yellow circle markers for stops
+    this.markersLayerGroup = L.layerGroup();
+    route.forEach((p: any) => {
+      try {
+        const m = L.circleMarker([p.lat, p.lng], {
+          radius: 6,
+          color: '#eab308',
+          fillColor: '#fbbf24',
+          fillOpacity: 0.8,
+          weight: 2
+        }).bindPopup(p.display || p.name || 'Stop');
+        this.markersLayerGroup.addLayer(m);
+      } catch (inner) {
+        console.warn('failed to add stop marker', inner);
       }
-    } catch (e) {
-      console.warn('adding intermediate markers failed', e);
-    }
-    
-    // fit bounds
-    try {
-      const groups: any[] = [];
-      if (this.startMarker) groups.push(this.startMarker);
-      if (this.endMarker) groups.push(this.endMarker);
-      if (this.markersLayerGroup && this.markersLayerGroup.getLayers().length > 0) {
-        groups.push(...this.markersLayerGroup.getLayers());
-      }
-      if (groups.length > 1) {
-        const group = L.featureGroup(groups);
-        this.map.fitBounds(group.getBounds(), { padding: [30, 30] });
-      } else if (this.startMarker) {
-        this.map.setView(this.startMarker.getLatLng(), this.zoom);
-      }
-    } catch (e) {
-      console.warn('fitBounds markers failed', e);
+    });
+
+    if (this.markersLayerGroup.getLayers().length > 0) {
+      this.markersLayerGroup.addTo(this.map);
     }
   }
 
