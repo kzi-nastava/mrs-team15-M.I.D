@@ -25,12 +25,12 @@ export class ProfileForm implements OnInit {
   backendUrl = 'http://localhost:8081';
 
 
-  // ---------------- UI STATE ----------------
+  
   showToast = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
 
-  // ---------------- MODEL ----------------
+  
   user = {
     firstName: '',
     lastName: '',
@@ -56,22 +56,6 @@ export class ProfileForm implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
-  // Get logged-in user's id from localStorage, fallback to DEV id
-  private getCurrentUserId(): number {
-    let userId = 11; // DEV user id
-    try {
-      const raw = localStorage.getItem('user');
-      if (raw) {
-        const parsed = JSON.parse(raw as string);
-        if (parsed && parsed.id) userId = Number(parsed.id);
-      }
-    } catch (e) {
-      // ignore and use DEV id
-    }
-    return userId;
-  }
-
-  // ---------------- INIT ----------------
   ngOnInit(): void {
     this.userService.getUser().subscribe({
       next: (res) => this.mapUser(res),
@@ -82,7 +66,7 @@ export class ProfileForm implements OnInit {
     });
   }
 
-  // ---------------- MAPPING ----------------
+  
   private mapUser(res: any): void {
     this.user.firstName = res.firstName;
     this.user.lastName = res.lastName;
@@ -110,7 +94,7 @@ export class ProfileForm implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // ---------------- VALIDATION ----------------
+  
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
   private licensePlatePattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
@@ -174,7 +158,7 @@ export class ProfileForm implements OnInit {
   }
 
 
-  // ---------------- IMAGE ----------------
+  
   onSelectPhoto(): void {
     this.fileInput.nativeElement.click();
   }
@@ -185,25 +169,25 @@ export class ProfileForm implements OnInit {
       const file = input.files[0];
       this.selectedProfileFile = file;
       const blobUrl = URL.createObjectURL(file);
-      // sanitize blob URL for Angular binding
+      
       this.userAvatar = this.sanitizer.bypassSecurityTrustUrl(blobUrl);
       console.debug('[ProfileForm] selected file:', { name: file.name, type: file.type, size: file.size, blobUrl });
       this.cdr.detectChanges();
     }
   }
 
-  // ---------------- NAV ----------------
+  
   goToChangePassword(): void {
     this.router.navigate(['/change-password']);
   }
 
-  // ---------------- SAVE ----------------
+  
   onSave(): void {
     if (this.hasValidationErrors()) {
       this.showToastMessage('Please fix validation errors.', 'error');
       return;
     }
-    // Build FormData so backend can accept multipart/form-data (including image file)
+    
     const formData = new FormData();
     formData.append('email', this.user.email || '');
     formData.append('firstName', this.user.firstName || '');
@@ -216,7 +200,7 @@ export class ProfileForm implements OnInit {
     }
 
     if (this.user.role === 'driver') {
-      // driver-specific fields
+      
       formData.append('licensePlate', this.user.vehicle.licensePlate ? String(this.user.vehicle.licensePlate).toUpperCase().trim() : '');
       formData.append('vehicleModel', this.user.vehicle.model || '');
       formData.append('numberOfSeats', String(this.user.vehicle.seats || 0));
@@ -236,7 +220,7 @@ export class ProfileForm implements OnInit {
       return;
     }
 
-    // non-driver update
+    
     this.userService.updateUser( formData).subscribe({
       next: () => {
         this.showToastMessage('Profile updated successfully.');
@@ -248,7 +232,7 @@ export class ProfileForm implements OnInit {
     });
   }
 
-  // ---------------- TOAST ----------------
+  
   private showToastMessage(
     message: string,
     type: 'success' | 'error' = 'success'

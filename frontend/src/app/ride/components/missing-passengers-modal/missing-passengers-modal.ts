@@ -9,7 +9,7 @@ declare var bootstrap: any;
   standalone: true,
   imports: [CommonModule, Button],
   templateUrl: './missing-passengers-modal.html',
-  styleUrl: './missing-passengers-modal.css',
+  styleUrls: ['./missing-passengers-modal.css'],
 })
 export class MissingPassengersModal {
   @Output() confirm = new EventEmitter<void>();

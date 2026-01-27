@@ -9,7 +9,7 @@ import { Button } from '../../../shared/components/button/button';
 export interface Ride{
   id: number;
   route: string;
-  // routeId corresponds to backend route identifier (used for favorite toggles)
+  
   routeId?: number | null;
   startTime: string;
   endTime: string;
@@ -45,7 +45,7 @@ export class UserHistoryTable {
   @ViewChild('addFav') addFavModal!: AddFavoriteModal;
   @ViewChild('removeFav') removeFavModal!: RemoveFavoriteModal;
 
-  // ride pending favorite change
+  
   private pendingRide: Ride | null = null;
 
   constructor(private router: Router, private cdr: ChangeDetectorRef, private passengerService: PassengerService) {}
@@ -139,7 +139,7 @@ private applySorting(): void {
   canRate(ride: Ride): boolean {
     if (!ride.endTime || ride.rating) return false;
 
-    // Parse endTime format: "DD-MM-YYYY, HH:MM"
+    
     try {
       const [datePart, timePart] = ride.endTime.split(', ');
       const [day, month, year] = datePart.split('-').map(Number);
@@ -162,7 +162,7 @@ private applySorting(): void {
     const stops = ride.stopAddresses ?? (ride.stopAddress ? [ride.stopAddress] : []);
     let info = { pickup: ride.pickupAddress ?? null, destination: ride.destinationAddress ?? null, stop: stops };
 
-    // If no real route info available, provide mock sample data for preview
+    
     const noPickup = !info.pickup;
     const noDestination = !info.destination;
     const noStops = !info.stop || (Array.isArray(info.stop) && info.stop.length === 0);

@@ -13,7 +13,7 @@
 
   <div class="text-center mb-4">
     <div class="avatar position-relative d-inline-block" (click)="onSelectPhoto()">
-      <img [src]="userAvatar ? userAvatar : 'assets/pfp/default-avatar-icon.jpg'" class="rounded-circle w-100 h-100 object-fit-cover" alt="Profile picture">
+      <img [src]="userAvatar ? userAvatar : backendUrl + 'uploads/default.jpg'" class="rounded-circle w-100 h-100 object-fit-cover" alt="Profile picture">
       <div class="avatar-overlay position-absolute top-0 start-0 w-100 h-100 rounded-circle d-flex justify-content-center align-items-center">
         <i class="bi bi-camera text-white fs-4"></i>
       </div>

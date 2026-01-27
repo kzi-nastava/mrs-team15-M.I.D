@@ -44,10 +44,8 @@ export class RidePreferenceForm {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['selectedVehicleType'] && !this.vehicleType) {
-      // map parent uppercase value to lowercase option values used in this form
       try { this.vehicleType = (this.selectedVehicleType || 'STANDARD').toLowerCase(); } catch(e) {}
     }
-    // ensure minDatetime is set when inputs change (component init)
     try {
       if (!this.minDatetime) this.minDatetime = this._formatLocalDatetime(new Date());
       if (!this.maxDatetime) this.maxDatetime = this._formatLocalDatetime(new Date(Date.now() + 5 * 60 * 60 * 1000));
@@ -75,7 +73,7 @@ export class RidePreferenceForm {
     if (this.scheduledTime && this._isInPast(this.scheduledTime)) {
       this.scheduledTimeError = 'Scheduled time cannot be in the past';
     }
-    // ensure scheduled time is not more than 5 hours ahead
+    // scheduled time is not more than 5 hours ahead
     try {
       if (this.scheduledTime && this.maxDatetime) {
         const sel = new Date(this.scheduledTime).getTime();
@@ -122,7 +120,6 @@ export class RidePreferenceForm {
   }
 
   private _formatLocalDatetime(d: Date) {
-    // returns yyyy-MM-ddTHH:mm (suitable for input[type=datetime-local] min)
     const pad = (n:number) => String(n).padStart(2, '0');
     const year = d.getFullYear();
     const month = pad(d.getMonth() + 1);
