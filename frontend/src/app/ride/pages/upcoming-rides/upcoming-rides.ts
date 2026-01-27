@@ -4,6 +4,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { UpcomingRide } from '../../components/upcoming-rides-table/upcoming-rides-table';
 import { RideService } from '../../../services/ride.service';
 import { DriverService } from '../../../services/driver.service';
+import { formatAddress } from '../../../shared/utils/address.utils';
 
 @Component({
   selector: 'app-upcoming-rides',
@@ -41,8 +42,12 @@ ngOnInit(): void {
 
   ridesObservable.subscribe({
     next: (rides) => {
-      this.allUpcomingRides = rides;
-      this.filteredUpcomingRides = [...rides];
+      // Transform route addresses to shortened format
+      this.allUpcomingRides = rides.map(ride => ({
+        ...ride,
+        route: this.shortenRouteAddresses(ride.route)
+      }));
+      this.filteredUpcomingRides = [...this.allUpcomingRides];
 
       if (rides.length === 0) {
         this.showMessageToast(
@@ -77,6 +82,18 @@ ngOnInit(): void {
     this.showMessage = true;
     this.cdr.detectChanges();
     setTimeout(() => { this.showMessage = false;}, 3000);
+  }
+
+  private shortenRouteAddresses(route: string): string {
+    // Route format is typically "Start Address → End Address"
+    const parts = route.split(' → ');
+    if (parts.length === 2) {
+      const shortStart = formatAddress(parts[0].trim());
+      const shortEnd = formatAddress(parts[1].trim());
+      return `${shortStart} → ${shortEnd}`;
+    }
+    // If format is different, try to shorten anyway
+    return formatAddress(route);
   }
 }
 

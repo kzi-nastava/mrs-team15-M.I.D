@@ -185,7 +185,7 @@ export class StartRideForm implements OnInit, OnChanges {
       const rideId = this.getRideId();
       if (Number.isFinite(rideId)) {
         this.driverService.startRide(rideId).subscribe({
-          next: (res) => { console.log('startRide response:', res); this.router.navigate(['/upcoming-rides']); },
+          next: (res) => { console.log('startRide response:', res); this.router.navigate(['/current-ride']); },
           error: (err) => { console.error('startRide error:', err); this.router.navigate(['/upcoming-rides']); }
         });
       } else {

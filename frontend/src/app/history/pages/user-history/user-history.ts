@@ -4,6 +4,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { CommonModule } from '@angular/common';
 import { Ride } from '../../components/user-history-table/user-history-table';
 import { RideHistoryService, RideHistoryResponse } from '../../../services/ride-history.service';
+import { formatAddress } from '../../../shared/utils/address.utils';
 
 // Raw DTO from backend may include slight shape differences (string cost, driverName, etc.)
 type RawRideHistoryDTO = any;
@@ -54,9 +55,18 @@ export class UserHistory  {
     const idVal = (r as any).id ?? idx;
 
     // route label fallback: prefer route.start/end, then startAddress/endAddress, then id label
-    const routeLabel = (r.route && r.route.startLocation && r.route.endLocation)
-      ? `${r.route.startLocation.address} → ${r.route.endLocation.address}`
-      : ((r.startAddress && r.endAddress) ? `${r.startAddress} → ${r.endAddress}` : `Ride #${idVal}`);
+    let routeLabel = '';
+    if (r.route && r.route.startLocation && r.route.endLocation) {
+      const startAddr = formatAddress(r.route.startLocation.address);
+      const endAddr = formatAddress(r.route.endLocation.address);
+      routeLabel = `${startAddr} → ${endAddr}`;
+    } else if (r.startAddress && r.endAddress) {
+      const startAddr = formatAddress(r.startAddress);
+      const endAddr = formatAddress(r.endAddress);
+      routeLabel = `${startAddr} → ${endAddr}`;
+    } else {
+      routeLabel = `Ride #${idVal}`;
+    }
 
     // start/end time: try parse r.date, fallback to current time
     let startTimeStr = '';
