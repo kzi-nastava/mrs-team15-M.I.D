@@ -12,7 +12,7 @@
                                     </div>
                                     <ul *ngIf="favoriteOpen" class="custom-dropdown-menu">
                                         <li class="custom-dropdown-item" (click)="selectFavorite('')">-- Choose favorite --</li>
-                                        <li *ngFor="let f of favorites" class="custom-dropdown-item" (click)="selectFavorite(f.name)">{{ f.name }}</li>
+                                        <li *ngFor="let f of favorites; trackBy: trackByRouteId" class="custom-dropdown-item" (click)="selectFavorite(f.name)">{{ f.name }}</li>
                                     </ul>
                                 </div>
 

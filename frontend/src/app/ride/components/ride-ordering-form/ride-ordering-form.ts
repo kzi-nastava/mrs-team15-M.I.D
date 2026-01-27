@@ -34,10 +34,8 @@ export class RideOrderingForm implements OnInit {
   dragOverIndex: number | null = null;
 
   // Mocked favorite routes for demo purposes
-  favorites: FavoriteRoute[] = [
-    { id: null, name: 'Home → Work', pickup: '123 Home St', destination: '456 Work Ave', stops: [] },
-    { id: null, name: 'Airport Ride', pickup: 'Home Address', destination: 'Airport Terminal 1', stops: [] },
-  ];
+  favorites: FavoriteRoute[] = [];
+
   selectedFavorite: string | null = null;
   favoriteOpen: boolean = false;
 
@@ -69,6 +67,12 @@ export class RideOrderingForm implements OnInit {
   trackByIndex(index: number, _item: any) {
     return index;
   }
+
+  trackByRouteId(index: number, item: FavoriteRoute) {
+  return item.id ?? index;
+  }
+
+  
 
   selectFavorite(name: string) {
     if (name === '') {
@@ -504,14 +508,15 @@ export class RideOrderingForm implements OnInit {
 
   private loadFavoriteRoutes() {
     try {
-      
+      console.log('Loading favorite routes from backend');
       this.passengerService.getFavoriteRoutes().subscribe({
         next: (res: any[]) => {
           try {
+            console.log('Favorite routes response', res);
             this.favorites = (res || []).map(r => {
-              const startRaw = r.startAddress ?? r.pickup ?? r.origin ?? '';
-              const endRaw = r.endAddress ?? r.destination ?? r.to ?? '';
-              const stopsArr: any[] = r.stops ?? r.intermediateStops ?? r.stopAddresses ?? [];
+              const startRaw = r.startAddress ??  '';
+              const endRaw = r.endAddress ?? '';
+              const stopsArr: any[] = r.stopAddresses ?? [];
               const hasStartEnd = !!(startRaw && endRaw);
 
               let name: string;
@@ -540,6 +545,7 @@ export class RideOrderingForm implements OnInit {
                 stops: Array.isArray(stopsArr) ? stopsArr : []
               };
             });
+            console.log('Loaded favorite routes', this.favorites);
             try { this.cdr.detectChanges(); } catch(e) {}
           } catch (mapErr) {
             console.warn('Mapping favorite routes failed', mapErr);
