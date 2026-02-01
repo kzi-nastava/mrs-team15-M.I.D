@@ -1,155 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="top|center_horizontal">
+    android:paddingBottom="32dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/driver_history_title"
         style="@style/TitleText"
-        android:layout_marginBottom="5dp" />
+        android:layout_marginBottom="5dp"
+        android:layout_gravity="center_horizontal" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/driver_history_subtitle"
         style="@style/SubtitleText"
-        android:layout_marginBottom="30dp"/>
+        android:layout_marginBottom="20dp"
+        android:layout_gravity="center_horizontal"/>
 
-    <!-- Filter Section -->
-    <LinearLayout
+    <!-- Filter Section Card -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:layout_marginBottom="20dp">
+        android:layout_marginBottom="16dp"
+        android:elevation="4dp"
+        app:cardCornerRadius="12dp">
 
-        <EditText
-            android:id="@+id/etDateFilter"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:autofillHints=""
-            android:hint="@string/driver_history_filter_hint"
-            android:inputType="date"
-            android:focusable="false"
-            android:clickable="true"
-            style="@style/TextInput"
-            android:layout_marginTop="10dp"/>
-
-        <Button
-            android:id="@+id/btnApplyFilter"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/driver_history_filter_button"
-            android:layout_marginTop="10dp"
-            style="@style/ButtonPrimary"/>
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <android.widget.Button
-            android:id="@+id/btnClearFilter"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/driver_history_clear_button"
-            android:layout_marginTop="10dp"
-            style="@style/ButtonSecondary"
-            />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Filters"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="12dp" />
 
-    </LinearLayout>
+            <!-- Date Filter Row -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Date Filter"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
+                <EditText
+                    android:id="@+id/etDateFilter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:inputType="none"
+                    android:hint="Select Date (optional)" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Sort Options Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:hint="Sort By"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerSortBy"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:hint="Select Field" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:hint="Order"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/spinnerOrder"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:hint="Order" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnClearFilter"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Clear"
+                    style="@style/ButtonSecondary"/>
+
+                <Button
+                    android:id="@+id/btnApplyFilter"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Apply Filters"
+                    style="@style/ButtonPrimary"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Cards Container -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:scrollbars="none">
 
-        <HorizontalScrollView
+        <LinearLayout
+            android:id="@+id/ridesContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <TableLayout
-                android:id="@+id/tableDriverHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:stretchColumns="*">
+            <!-- Ride cards will be added dynamically here -->
 
-                <!-- Header Row -->
-                <TableRow
-                    android:padding="12dp">
+        </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/headerRoute"
-                        android:text="@string/driver_history_route"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="100dp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:id="@+id/headerPassengers"
-                        android:text="@string/driver_history_passengers"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="120dp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:id="@+id/headerDate"
-                        android:text="@string/driver_history_date"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="90dp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:id="@+id/headerDuration"
-                        android:text="@string/driver_history_duration"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="100dp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:id="@+id/headerCancelled"
-                        android:text="@string/driver_history_cancelled"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="100dp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:id="@+id/headerCost"
-                        android:text="@string/driver_history_cost"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="70dp"
-                        android:gravity="center" />
-
-                    <TextView
-                        android:id="@+id/headerPanicButton"
-                        android:text="@string/driver_history_panic_button"
-                        android:textStyle="bold"
-                        android:padding="8dp"
-                        android:minWidth="100dp"
-                        android:gravity="center" />
-
-                </TableRow>
-
-                <!-- Horizontal line after header -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#CCCCCC" />
-
-                <!-- Horizontal line after each data row -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#CCCCCC" />
-
-            </TableLayout>
-        </HorizontalScrollView>
     </ScrollView>
+
 </LinearLayout>
