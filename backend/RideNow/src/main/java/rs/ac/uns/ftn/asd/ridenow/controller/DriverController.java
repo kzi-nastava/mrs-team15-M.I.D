@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -94,6 +95,7 @@ public class DriverController {
 
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/change-status")
     public ResponseEntity<?> changeDriverStatus(@Valid @RequestBody DriverStatusRequestDTO request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -107,6 +109,7 @@ public class DriverController {
         return ResponseEntity.badRequest().body("Driver does not exists");
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/status")
     public ResponseEntity<?> getDriverStatus() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
