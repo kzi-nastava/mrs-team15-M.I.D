@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/driver/**").permitAll()
                         .requestMatchers("/api/driver/activate-account").permitAll()
                         .requestMatchers("/api/driver/change-request").hasRole("DRIVER")
+                        .requestMatchers("/api/driver/can-start-ride").hasRole("DRIVER")
 
                         .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/rides/{id}/track").hasRole("USER")

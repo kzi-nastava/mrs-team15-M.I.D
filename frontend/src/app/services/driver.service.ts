@@ -32,6 +32,10 @@ export class DriverService {
     return this.http.get<UpcomingRide[]>(`${this.apiURL}/rides`);
   }
 
+  canStartRide(): Observable<{ canStartRide: boolean }> {
+    return this.http.get<{ canStartRide: boolean }>(`${this.apiURL}/can-start-ride`);
+  }
+
   startRide(rideId: number) {
     return this.http.put<any>(`${this.apiURLShort}/rides/${rideId}/start`, {});
   }

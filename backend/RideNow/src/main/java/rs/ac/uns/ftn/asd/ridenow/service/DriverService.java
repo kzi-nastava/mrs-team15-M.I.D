@@ -371,4 +371,15 @@ public class DriverService {
         response.setLicencePlate(vehicle.getLicencePlate());
         return response;
     }
+
+    public DriverCanStartRideResponseDTO canDriverStartRide(Driver driver){
+        DriverCanStartRideResponseDTO response = new DriverCanStartRideResponseDTO();
+        Optional<Ride> rides = rideRepository.findCurrentRideByDriver(driver.getId());
+        if (rides.isPresent()){
+            response.setCanStartRide(false);
+            return response;
+        }
+        response.setCanStartRide(true);
+        return response;
+    }
 }
