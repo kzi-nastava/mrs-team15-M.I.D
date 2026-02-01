@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.CurrentRideDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
@@ -48,6 +49,10 @@ public class AuthService {
     @Autowired
     @Lazy
     private DriverService driverService;
+
+    @Autowired
+    @Lazy
+    private RideService rideService;
 
     @Value("${jwt.expiration}")
     private long expiration;
@@ -140,6 +145,12 @@ public class AuthService {
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
         long expiresAt = System.currentTimeMillis() + expiration;
         LoginResponseDTO responseDTO = new LoginResponseDTO();
+        try{
+            rideService.getCurrentRide(existingUser);
+            responseDTO.setHasCurrentRide(true);
+        } catch (Exception e) {
+            responseDTO.setHasCurrentRide(false);
+        }
         responseDTO.setToken(token);
         responseDTO.setExpiresAt(expiresAt);
         responseDTO.setRole(existingUser.getRole().name());
