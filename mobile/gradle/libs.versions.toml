@@ -14,6 +14,7 @@ materialVersion = "1.13.0"
 navigationFragment = "2.9.6"
 retrofit = "3.0.0"
 glide = "4.15.1"
+osmdroid = "6.1.18"
 
 [libraries]
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
@@ -33,6 +34,7 @@ navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "n
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version.ref = "glide" }
+osmdroid = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

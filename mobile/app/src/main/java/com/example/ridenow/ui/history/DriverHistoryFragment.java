@@ -34,7 +34,9 @@ import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.DriverHistoryResponse;
 import com.example.ridenow.dto.driver.RideHistory;
 import com.example.ridenow.service.DriverService;
+import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
+import com.example.ridenow.util.DateUtils;
 
 import retrofit2.Call;
 
@@ -389,8 +391,9 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
             // Route column
             TextView routeText = new TextView(getContext());
-            String routeDisplay = rideHistory.getRoute().getStartLocation().getAddress() +
-                                " → " + rideHistory.getRoute().getEndLocation().getAddress();
+            String startAddress = AddressUtils.formatAddress(rideHistory.getRoute().getStartLocation().getAddress());
+            String endAddress = AddressUtils.formatAddress(rideHistory.getRoute().getEndLocation().getAddress());
+            String routeDisplay = startAddress + " → " + endAddress;
             routeText.setText(routeDisplay);
             routeText.setGravity(Gravity.CENTER);
             routeText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
@@ -425,7 +428,13 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
             // Date column
             TextView dateText = new TextView(getContext());
-            dateText.setText(rideHistory.getDate());
+            String dateDisplay;
+            if (rideHistory.getStartTime() != null && !rideHistory.getStartTime().trim().isEmpty()) {
+                dateDisplay = DateUtils.formatDateFromISO(rideHistory.getStartTime());
+            } else {
+                dateDisplay = rideHistory.getDate() != null ? rideHistory.getDate() : "N/A";
+            }
+            dateText.setText(dateDisplay);
             dateText.setGravity(Gravity.CENTER);
             dateText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
@@ -441,14 +450,25 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             durationLayout.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
 
             TextView durationText = new TextView(getContext());
-            String durationDisplay = String.format("%.0f min", rideHistory.getDurationMinutes());
+            String durationDisplay;
+            String timeRangeDisplay;
+
+            if (rideHistory.getStartTime() != null && rideHistory.getEndTime() != null &&
+                !rideHistory.getStartTime().trim().isEmpty() && !rideHistory.getEndTime().trim().isEmpty()) {
+
+                long calculatedDuration = DateUtils.calculateDurationMinutes(rideHistory.getStartTime(), rideHistory.getEndTime());
+                durationDisplay = calculatedDuration + " min";
+                timeRangeDisplay = DateUtils.formatTimeRange(rideHistory.getStartTime(), rideHistory.getEndTime());
+            } else {
+                durationDisplay = String.format(Locale.getDefault(), "%.0f min", rideHistory.getDurationMinutes());
+                timeRangeDisplay = String.format(Locale.getDefault(), "~%.0f min estimated", rideHistory.getRoute().getEstimatedTimeMin());
+            }
+
             durationText.setText(durationDisplay);
             durationText.setTextSize(14f);
             durationText.setGravity(Gravity.CENTER);
 
             TextView timeRangeText = new TextView(getContext());
-            // For now, we'll show estimated time as we don't have start/end times in the API
-            String timeRangeDisplay = String.format("~%.0f min estimated", rideHistory.getRoute().getEstimatedTimeMin());
             timeRangeText.setText(timeRangeDisplay);
             timeRangeText.setTextSize(12f);
             timeRangeText.setTextColor(Color.parseColor("#666666"));
@@ -492,7 +512,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
             // Cost column
             TextView costText = new TextView(getContext());
-            String costDisplay = String.format("%.2f RSD", rideHistory.getCost());
+            String costDisplay = String.format(Locale.getDefault(), "%.2f RSD", rideHistory.getCost());
             costText.setText(costDisplay);
             costText.setGravity(Gravity.CENTER);
             costText.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));

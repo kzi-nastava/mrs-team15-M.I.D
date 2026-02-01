@@ -9,6 +9,7 @@ public class Route implements Serializable {
         private Location startLocation;
         private Location endLocation;
         private List<Location> stopLocations;
+        private List<PolylinePoint> polylinePoints;
 
     public double getDistanceKm() { return distanceKm; }
     public void setDistanceKm(double distanceKm) { this.distanceKm = distanceKm; }
@@ -24,5 +25,8 @@ public class Route implements Serializable {
 
     public List<Location> getStopLocations() { return stopLocations; }
     public void setStopLocations(List<Location> stopLocations) { this.stopLocations = stopLocations; }
+
+    public List<PolylinePoint> getPolylinePoints() { return polylinePoints; }
+    public void setPolylinePoints(List<PolylinePoint> polylinePoints) { this.polylinePoints = polylinePoints; }
 
 }
