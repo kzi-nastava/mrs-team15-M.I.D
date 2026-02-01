@@ -13,15 +13,20 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.RideHistory;
+import com.example.ridenow.ui.components.RouteMapView;
+import com.example.ridenow.util.AddressUtils;
+import com.example.ridenow.util.DateUtils;
 
 import java.util.Locale;
 
 public class RideDetailsFragment extends Fragment {
     private RideHistory rideHistory;
+    private RouteMapView routeMapView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (getArguments() != null) {
             rideHistory = (RideHistory) getArguments().getSerializable("ride_history");
         }
@@ -37,6 +42,7 @@ public class RideDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (rideHistory != null) {
+            setupMap(view);
             populateRideDetails(view);
         }
     }
@@ -58,8 +64,9 @@ public class RideDetailsFragment extends Fragment {
         TextView tvVehicleComment = view.findViewById(R.id.tvVehicleComment);
 
         // Populate basic ride information
-        String routeDisplay = rideHistory.getRoute().getStartLocation().getAddress() +
-                            " → " + rideHistory.getRoute().getEndLocation().getAddress();
+        String startAddress = AddressUtils.formatAddress(rideHistory.getRoute().getStartLocation().getAddress());
+        String endAddress = AddressUtils.formatAddress(rideHistory.getRoute().getEndLocation().getAddress());
+        String routeDisplay = startAddress + " → " + endAddress;
         tvRoute.setText("Route: " + routeDisplay);
 
         String passengersDisplay = rideHistory.getPassengers() != null && !rideHistory.getPassengers().isEmpty()
@@ -67,9 +74,28 @@ public class RideDetailsFragment extends Fragment {
                                  : "N/A";
         tvPassengers.setText("Passengers: " + passengersDisplay);
 
-        tvDate.setText("Date: " + rideHistory.getDate());
+        // Format date from startTime if available, otherwise use the existing date field
+        String dateDisplay;
+        if (rideHistory.getStartTime() != null && !rideHistory.getStartTime().trim().isEmpty()) {
+            dateDisplay = DateUtils.formatDateFromISO(rideHistory.getStartTime());
+        } else {
+            dateDisplay = rideHistory.getDate() != null ? rideHistory.getDate() : "N/A";
+        }
+        tvDate.setText("Date: " + dateDisplay);
 
-        String durationDisplay = String.format(Locale.getDefault(), "%.0f min", rideHistory.getDurationMinutes());
+        // Calculate duration and format time range
+        String durationDisplay;
+        if (rideHistory.getStartTime() != null && rideHistory.getEndTime() != null &&
+            !rideHistory.getStartTime().trim().isEmpty() && !rideHistory.getEndTime().trim().isEmpty()) {
+
+            long calculatedDuration = DateUtils.calculateDurationMinutes(rideHistory.getStartTime(), rideHistory.getEndTime());
+            String timeRange = DateUtils.formatTimeRange(rideHistory.getStartTime(), rideHistory.getEndTime());
+
+            durationDisplay = calculatedDuration + " min (" + timeRange + ")";
+        } else {
+            // Fallback to the existing durationMinutes field
+            durationDisplay = String.format(Locale.getDefault(), "%.0f min", rideHistory.getDurationMinutes());
+        }
         tvDuration.setText("Duration: " + durationDisplay);
 
         String cancelledDisplay = rideHistory.isCancelled()
@@ -138,5 +164,42 @@ public class RideDetailsFragment extends Fragment {
         ratingText.setTextColor(Color.parseColor("#666666"));
         ratingText.setPadding(8, 0, 0, 0);
         starContainer.addView(ratingText);
+    }
+
+    private void setupMap(View view) {
+        routeMapView = view.findViewById(R.id.routeMapView);
+
+        if (rideHistory != null && rideHistory.getRoute() != null) {
+            routeMapView.displayRoute(
+                rideHistory.getRoute().getStartLocation(),
+                rideHistory.getRoute().getEndLocation(),
+                rideHistory.getRoute().getStopLocations(),
+                rideHistory.getRoute().getPolylinePoints()
+            );
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (routeMapView != null) {
+            routeMapView.onResume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (routeMapView != null) {
+            routeMapView.onPause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (routeMapView != null) {
+            routeMapView.onDestroy();
+        }
     }
 }

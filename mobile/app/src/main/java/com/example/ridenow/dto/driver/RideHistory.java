@@ -10,6 +10,8 @@ public class RideHistory implements Serializable {
         private Route route;
         private List<String> passengers;
         private String date;
+        private String startTime;
+        private String endTime;
         private Double durationMinutes;
         private Double cost;
         private Boolean cancelled;
@@ -30,13 +32,25 @@ public class RideHistory implements Serializable {
     public String getDate() { return date; }
     public void setDate(String date) { this.date = date; }
 
-    public double getDurationMinutes() { return durationMinutes; }
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
+
+    public String getEndTime() { return endTime; }
+    public void setEndTime(String endTime) { this.endTime = endTime; }
+
+    public double getDurationMinutes() {
+        return durationMinutes != null ? durationMinutes : 0.0;
+    }
     public void setDurationMinutes(double durationMinutes) { this.durationMinutes = durationMinutes; }
 
-    public double getCost() { return cost; }
+    public double getCost() {
+        return cost != null ? cost : 0.0;
+    }
     public void setCost(double cost) { this.cost = cost; }
 
-    public boolean isCancelled() { return cancelled; }
+    public boolean isCancelled() {
+        return cancelled != null ? cancelled : false;
+    }
     public void setCancelled(boolean cancelled) { this.cancelled = cancelled; }
 
     public String getCancelledBy() { return cancelledBy; }
