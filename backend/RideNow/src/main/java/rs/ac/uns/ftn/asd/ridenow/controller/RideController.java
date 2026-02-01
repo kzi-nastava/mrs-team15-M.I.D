@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
@@ -55,6 +56,7 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/stop")
     public ResponseEntity<?> stop (){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -66,6 +68,7 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @PutMapping("/{id}/cancel")
     public ResponseEntity<?> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request) {
         try {
@@ -160,6 +163,7 @@ public class RideController {
         return ResponseEntity.status(201).body(res);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/my-upcoming-rides")
     public List<UpcomingRideDTO> getUpcomingRides() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -167,6 +171,7 @@ public class RideController {
         return rideService.getUpcomingRidesByUser(userId);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/my-current-ride")
     public CurrentRideDTO getCurrentRide(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -177,6 +182,7 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @PostMapping("/panic-alert")
     public ResponseEntity<?> triggerPanicAlert(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
