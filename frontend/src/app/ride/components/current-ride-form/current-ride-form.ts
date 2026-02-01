@@ -71,6 +71,8 @@ export class CurrentRideForm implements OnDestroy {
     if(role == "DRIVER"){
       this.isDriver = true;
       this.isPassenger = false;
+      // Fetch driver status to trigger location tracking
+      this.driverService.getMyStatus().subscribe();
     }else{
       this.isDriver = false;
       this.isPassenger = true;
@@ -161,7 +163,8 @@ export class CurrentRideForm implements OnDestroy {
         this.mapRouteService.drawMarkers(stopPoints);
       }
 
-      if (this.rideId) {
+      // Only passengers should track the ride
+      if (this.rideId && this.isPassenger) {
         this.startTracking(this.rideId);
       }
     },
@@ -213,12 +216,12 @@ export class CurrentRideForm implements OnDestroy {
     this.estimatedDurationMin = response.estimatedDurationMin;
     this.destinationAddress = formatAddress(response.endAddress);
     this.finalPrice = response.price;
-    
+
     if (response.route && Array.isArray(response.route)) {
       const routePoints = response.route.map((p: any) => ({ lat: p.lat, lng: p.lng }));
       this.mapRouteService.drawRoute(routePoints);
     }
-    
+
     this.showMessageToast(`Ride stopped! Final price: ${this.finalPrice}`);
     this.showStopModal = false;
     this.cdr.detectChanges();

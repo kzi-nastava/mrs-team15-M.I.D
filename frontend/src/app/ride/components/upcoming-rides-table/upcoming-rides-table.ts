@@ -161,7 +161,19 @@ private applySorting(): void {
   }
 
   startRide(ride: UpcomingRide): void {
-    // Navigate to the Start Ride page and pass the selected ride data via navigation state
-    this.router.navigate(['/start-ride'], { state: { ride } });
+    this.driverService.canStartRide().subscribe({
+      next: (response) => {
+        if (response.canStartRide) {
+          // Navigate to the Start Ride page and pass the selected ride data via navigation state
+          this.router.navigate(['/start-ride'], { state: { ride } });
+        } else {
+          this.rideCanceled.emit("You have a current ride, cant start ride now");
+        }
+      },
+      error: (err) => {
+        console.error('Error checking if can start ride:', err);
+        this.rideCanceled.emit('Failed to verify ride start eligibility. Please try again.');
+      }
+    });
   }
 }

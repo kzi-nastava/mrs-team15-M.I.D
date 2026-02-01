@@ -141,4 +141,14 @@ public class DriverController {
         }
         return ResponseEntity.badRequest().build();
     }
+
+    @GetMapping("/can-start-ride")
+    public ResponseEntity<DriverCanStartRideResponseDTO> canDriverStartRide() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof Driver driver) {
+            DriverCanStartRideResponseDTO response = driverService.canDriverStartRide(driver);
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().build();
+    }
 }
