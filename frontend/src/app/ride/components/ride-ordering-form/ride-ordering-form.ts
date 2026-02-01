@@ -309,7 +309,7 @@ export class RideOrderingForm implements OnInit {
   }
 
   // Suggestions 
-  private fetchSuggestionsDebounced(query: string, target: 'pickup' | 'destination' | 'stop', index?: number, delay = 250) {
+  private fetchSuggestionsDebounced(query: string, target: 'pickup' | 'destination' | 'stop', index?: number, delay =10) {
     if (this.suggestTimer) clearTimeout(this.suggestTimer);
     this.suggestTimer = setTimeout(() => { this.fetchSuggestions(query, target, index); }, delay);
   }

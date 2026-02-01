@@ -10,6 +10,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.exception.RoutingException;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 
+import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
@@ -187,7 +188,7 @@ public class RideService {
 
         // mark driver as unavailable
         if (dto.getScheduledTime() == null) {
-            assigned.setAvailable(false);
+            assigned.setStatus(DriverStatus.INACTIVE);
         }
 
         driverRepository.save(assigned);
@@ -241,11 +242,20 @@ public class RideService {
         // compute distances from driver current location to ride start
         double startLat = dto.getStartLatitude();
         double startLon = dto.getStartLongitude();
+        List<Driver> availableDrivers;
+        if (now == LocalDateTime.now()) {
+            availableDrivers = matchingDrivers.stream()
+                    .filter(Driver::getAvailable)
+                    .filter(d -> d.getStatus() != null && d.getStatus() == DriverStatus.ACTIVE)
+                    .filter(d -> rideRepository.findScheduledRidesForDriverInNextHour(d.getId(), now, nextHour).isEmpty())
+                    .toList();
 
-        List<Driver> availableDrivers = matchingDrivers.stream()
-                .filter(Driver::getAvailable)
-                .filter(d -> rideRepository.findScheduledRidesForDriverInNextHour(d.getId(), now, nextHour).isEmpty())
-                .toList();
+        }else {
+            availableDrivers = matchingDrivers.stream()
+                    .filter(Driver::getAvailable)
+                    .filter(d -> rideRepository.findScheduledRidesForDriverInNextHour(d.getId(), now, nextHour).isEmpty())
+                    .toList();
+        }
 
         Driver assigned = null;
         int ETA = -1;
@@ -464,6 +474,9 @@ public class RideService {
 
         ride.setStatus(RideStatus.IN_PROGRESS);
         ride.setStartTime(LocalDateTime.now());
+        Driver driver = ride.getDriver();
+        driver.setStatus(DriverStatus.INACTIVE);
+        driverRepository.save(driver);
         rideRepository.save(ride);
     }
 
@@ -641,9 +654,8 @@ public class RideService {
     private void updateRideRoute(String startAddress, String endAddress,
                                  Ride ride) throws Exception {
 
-        double[] startCoordinate = routingService.getGeocode(startAddress);
-        double latStart = startCoordinate[0];
-        double lonStart = startCoordinate[1];
+        double latStart = ride.getRoute().getStartLocation().getLatitude();
+        double lonStart = ride.getRoute().getStartLocation().getLongitude();
 
         double[] endCoordinate = routingService.getGeocode(endAddress);
         double latEnd = endCoordinate[0];
