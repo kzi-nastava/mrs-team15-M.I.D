@@ -508,10 +508,7 @@ public class RideService {
                 throw new Exception("You don't have ride in progress");
             }
             Ride ride = optionalRide.get();
-
             Route route = ride.getRoute();
-
-
             CurrentRideDTO currentRideDTO = new CurrentRideDTO();
             currentRideDTO.setEstimatedDurationMin((int) route.getEstimatedTimeMin());
             currentRideDTO.setRoute(new RouteDTO(route));
