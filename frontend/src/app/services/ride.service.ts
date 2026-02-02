@@ -17,16 +17,16 @@ export class RideService {
 
   constructor(private http: HttpClient) {}
 
-  // Simple geocode using Nominatim (no API key). Returns {lat, lon} or null.
   async geocodeAddress(address: string): Promise<{ lat: number; lon: number } | null> {
     if (!address) return null;
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`
       );
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+      if (data.features && data.features.length > 0) {
+        const coords = data.features[0].geometry.coordinates;
+        return { lat: coords[1], lon: coords[0] }; 
       }
     } catch (e) {
       console.warn('Geocode failed', e);
@@ -57,14 +57,19 @@ export class RideService {
     return lastValueFrom(this.http.post<any>(`${this.apiURL}`, dto));
   }
 
-  estimate(data: { startAddress: string; destinationAddress: string }) {
-    return this.http.get<any>(`${this.apiURL}/estimate`, {
-      params: {
-        startAddress: data.startAddress,
-        destinationAddress: data.destinationAddress
-      }
-    });
-  }
+  estimate(data: { startAddress: string; startLatitude: number; startLongitude: number; endAddress: string; endLatitude: number; endLongitude: number;}) {
+  return this.http.get<any>(`${this.apiURL}/estimate`, {
+    params: {
+      startAddress: data.startAddress,
+      startLatitude: data.startLatitude.toString(),
+      startLongitude: data.startLongitude.toString(),
+      endAddress: data.endAddress,
+      endLatitude: data.endLatitude.toString(),
+      endLongitude: data.endLongitude.toString()
+    }
+  });
+}
+
 
   getMyUpcomingRides(): Observable<UpcomingRide[]> {
     return this.http.get<UpcomingRide[]>(`${this.apiURL}/my-upcoming-rides`);

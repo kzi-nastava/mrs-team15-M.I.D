@@ -39,17 +39,11 @@ public class RideController {
     }
 
     @GetMapping("/estimate")
-    public ResponseEntity<?> estimate(@RequestParam String startAddress, @RequestParam String destinationAddress){
-        try{
-            double[] startCoordinate = routingService.getGeocode(startAddress);
-            double latStart = startCoordinate[0];
-            double lonStart = startCoordinate[1];
-
-            double[] endCoordinate = routingService.getGeocode(destinationAddress);
-            double latEnd = endCoordinate[0];
-            double lonEnd = endCoordinate[1];
-
-            RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+    public ResponseEntity<?> estimate(@RequestParam Double startLatitude, @RequestParam Double startLongitude,
+                                      @RequestParam Double endLatitude, @RequestParam Double endLongitude) {
+        try {
+            RideEstimateResponseDTO response = routingService.getRoute(startLatitude,startLongitude,endLatitude,endLongitude
+            );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
