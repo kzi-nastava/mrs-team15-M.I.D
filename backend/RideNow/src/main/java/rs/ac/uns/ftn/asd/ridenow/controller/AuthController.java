@@ -118,4 +118,18 @@ public class AuthController {
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
     }
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<?> verifyResetCode(@Valid @RequestBody VerifyCodeRequestDTO request) {
+        Optional<ForgotPasswordToken> optionalToken =  forgotPasswordTokenRepository.findByVerificationCodeAndUser_Email(request.getCode(), request.getEmail());
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid code or email"));
+        }
+
+        ForgotPasswordToken forgotPasswordToken = optionalToken.get();
+        if (forgotPasswordToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            authService.handleExpiredForgotPasswordToken(forgotPasswordToken);
+            return ResponseEntity.badRequest().body(Map.of("message", "Code expired. New code sent to your email."));
+        }
+        return ResponseEntity.ok(Map.of("message", "Code verified","token", forgotPasswordToken.getToken()));
+    }
 }

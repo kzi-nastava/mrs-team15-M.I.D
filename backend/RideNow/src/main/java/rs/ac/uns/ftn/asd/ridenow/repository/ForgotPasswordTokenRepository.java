@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ForgotPasswordTokenRepository extends JpaRepository<ForgotPasswordToken, Long> {
     Optional<ForgotPasswordToken> findByToken(String token);
+    Optional<ForgotPasswordToken> findByVerificationCodeAndUser_Email(String code, String email);
 }
