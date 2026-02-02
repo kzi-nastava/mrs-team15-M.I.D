@@ -15,7 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ClientUtils {
     private static final String BASE_URL = "http://10.0.2.2:8081/api/";
-    private static String authToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkcml2ZXIyQGdtYWlsLmNvbSIsImlhdCI6MTc2OTk3NTI2MCwiZXhwIjoxNzY5OTc4ODYwfQ.0E91aAQc7n1eZ_lVbFa5EmzuFr_2_ni8pKxjRjY7n_k";
+    private static String authToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkcml2ZXIyQGdtYWlsLmNvbSIsImlhdCI6MTc3MDA1MzA3MywiZXhwIjoxNzcwMDU2NjczfQ.7IoMxiTQkwWqbkZdKHARpZZF0q5LvXQ5C0q-bi29Q0U";
     private static String role = "DRIVER";
 
     private static OkHttpClient okHttpClient = new OkHttpClient.Builder()
