@@ -68,21 +68,18 @@ public class MainActivity extends AppCompatActivity {
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
-        // Custom navigation listener to handle logout
         navigationView.setNavigationItemSelectedListener(item -> {
             if (item.getItemId() == R.id.nav_logout) {
                 handleLogout();
                 drawerLayout.closeDrawers();
                 return true;
             }
-            // For all other menu items, use default navigation
             boolean handled = NavigationUI.onNavDestinationSelected(item, navController);
             if (handled) {
                 drawerLayout.closeDrawers();
             }
             return handled;
         });
-
         toggle.syncState();
         setupTokenUtils();
     }
@@ -90,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
     private void setupTokenUtils() {
         TokenUtils tokenUtils = ClientUtils.getTokenUtils();
 
-        // Set listeners FIRST
         tokenExpirationService = new TokenExpirationService(this, tokenUtils);
         tokenExpirationService.setTokenExpiredListener(() -> {
             Log.w(TAG, "Token expired, redirecting to login");
@@ -114,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        // THEN start checking
         if (tokenUtils.isLoggedIn()) {
             Log.d(TAG, "User is logged in, starting token expiration checks");
             tokenExpirationService.startTokenExpirationCheck();
@@ -157,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
             public void onLogoutFailure(String error) {
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this, "Logout failed: " + error, Toast.LENGTH_SHORT).show();
-                    onLogout(); // Still clear local data as fallback
+                    onLogout();
                 });
             }
         });

@@ -11,7 +11,6 @@ import com.example.ridenow.util.TokenUtils;
 public class TokenExpirationService {
     private static final String TAG = "TokenExpirationService";
     private static final long CHECK_INTERVAL = 30000;
-
     private final TokenUtils tokenUtils;
     private final Context context;
     private final Handler handler;

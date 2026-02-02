@@ -29,9 +29,7 @@ import retrofit2.Response;
 
 public class LoginFragment extends Fragment {
 
-    public LoginFragment() {
-
-    }
+    public LoginFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -98,15 +96,11 @@ public class LoginFragment extends Fragment {
                                 NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.nav_home);
                             }
                             else{
-                                // Handle error response
                                 String errorMessage = "Login failed";
                                 try {
                                     if (response.errorBody() != null) {
                                         String errorBody = response.errorBody().string();
-                                        // The error is returned as plain text, not JSON
                                         errorMessage = errorBody;
-
-                                        // Remove quotes if present
                                         if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
                                             errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
                                         }
@@ -118,7 +112,6 @@ public class LoginFragment extends Fragment {
                                 Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
                             }
                         }
-
                         @Override
                         public void onFailure(Call<LoginResponseDTO> call, Throwable t) {
                             btnLogin.setEnabled(true);

@@ -11,7 +11,6 @@ public class LoginResponseDTO {
     private boolean hasCurrentRide;
 
     public LoginResponseDTO() {}
-
     public LoginResponseDTO(String token, String role, long expiresAt, boolean hasCurrentRide) {
         this.token = token;
         this.role = role;

@@ -22,20 +22,14 @@ public class LogoutService {
                 if (response.isSuccessful() && response.body() != null) {
                     callback.onLogoutSuccess();
                 } else {
-                    // Handle error response
                     String errorMessage = "Logout failed";
                     try {
                         if (response.errorBody() != null) {
                             String errorBody = response.errorBody().string();
-
-                            // Try to parse as JSON first
                             if (errorBody.contains("\"message\"")) {
-                                // It's JSON, extract message
                                 errorMessage = errorBody;
                             } else {
-                                // It's plain text
                                 errorMessage = errorBody;
-                                // Remove quotes if present
                                 if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
                                     errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
                                 }
@@ -46,7 +40,6 @@ public class LogoutService {
                     } catch (Exception e) {
                         errorMessage = "Logout failed (code: " + response.code() + ")";
                     }
-
                     callback.onLogoutFailure(errorMessage);
                 }
             }
