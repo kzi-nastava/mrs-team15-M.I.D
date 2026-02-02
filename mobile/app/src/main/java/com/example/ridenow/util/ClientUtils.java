@@ -1,5 +1,6 @@
 package com.example.ridenow.util;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -15,8 +16,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ClientUtils {
     private static final String BASE_URL = "http://10.0.2.2:8081/api/";
-    private static String authToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkcml2ZXIyQGdtYWlsLmNvbSIsImlhdCI6MTc3MDA1MzA3MywiZXhwIjoxNzcwMDU2NjczfQ.7IoMxiTQkwWqbkZdKHARpZZF0q5LvXQ5C0q-bi29Q0U";
-    private static String role = "DRIVER";
+    private static TokenUtils tokenUtils;
+    private static UnauthorizedListener unauthorizedListener;
+    public interface UnauthorizedListener {
+        void onUnauthorized();
+    }
 
     private static OkHttpClient okHttpClient = new OkHttpClient.Builder()
             .addInterceptor(new Interceptor() {
@@ -25,14 +29,15 @@ public class ClientUtils {
                 public Response intercept(@NonNull Chain chain) throws IOException {
                     Request.Builder requestBuilder = chain.request().newBuilder();
 
-                    if (authToken != null) {
-                        requestBuilder.addHeader("Authorization", "Bearer " + authToken);
+                    if (tokenUtils != null) {
+                        String token = tokenUtils.getToken();
+                        if (token != null && !token.isEmpty()) {
+                            requestBuilder.addHeader("Authorization", "Bearer " + token);
+                        }
                     }
-
                     return chain.proceed(requestBuilder.build());
                 }
             })
-            // Simple logger interceptor to print request URL and response code to Logcat
             .addInterceptor(new Interceptor() {
                 @NonNull
                 @Override
@@ -41,6 +46,15 @@ public class ClientUtils {
                     Log.i("ClientUtils", "HTTP " + request.method() + " " + request.url());
                     Response response = chain.proceed(request);
                     Log.i("ClientUtils", "Response: code=" + response.code() + " for " + request.url());
+
+                    if (response.code() == 401 && tokenUtils != null) {
+                        Log.w("ClientUtils", "Token expired or invalid, clearing auth data");
+                        tokenUtils.clearAuthData();
+
+                        if (unauthorizedListener != null) {
+                            unauthorizedListener.onUnauthorized();
+                        }
+                    }
                     return response;
                 }
             })
@@ -54,11 +68,64 @@ public class ClientUtils {
             .client(okHttpClient)
             .build();
 
+    public static void init(Context context) {
+        tokenUtils = new TokenUtils(context.getApplicationContext());
+    }
+    public static TokenUtils getTokenUtils() {
+        if (tokenUtils == null) {
+            throw new IllegalStateException("ClientUtils not initialized. Call ClientUtils.init(context) first!");
+        }
+        return tokenUtils;
+    }
+
+    public static void setUnauthorizedListener(UnauthorizedListener listener) {
+        unauthorizedListener = listener;
+    }
+
     public static <T> T getClient(Class<T> service) {
         return retrofit.create(service);
     }
 
-    // Return server root (without the "/api/" suffix) so relative image paths can be resolved
+    @Deprecated
+    public static void setAuthToken(String authToken) {
+        if (tokenUtils != null) {
+            String role = tokenUtils.getRole();
+            long expiresAt = tokenUtils.getExpiresAt();
+            boolean hasCurrentRide = tokenUtils.hasCurrentRide();
+            tokenUtils.saveAuthData(authToken, role, expiresAt, hasCurrentRide);
+        }
+    }
+
+    @Deprecated
+    public static void setRole(String role) {
+        if (tokenUtils != null) {
+            String token = tokenUtils.getToken();
+            long expiresAt = tokenUtils.getExpiresAt();
+            boolean hasCurrentRide = tokenUtils.hasCurrentRide();
+            tokenUtils.saveAuthData(token, role, expiresAt, hasCurrentRide);
+        }
+    }
+
+    @Deprecated
+    public static String getRole() {
+        return tokenUtils != null ? tokenUtils.getRole() : null;
+    }
+
+    @Deprecated
+    public static long getExpiresAt() {
+        return tokenUtils != null ? tokenUtils.getExpiresAt() : 0;
+    }
+
+    @Deprecated
+    public static void setExpiresAt(long expiresAt) {
+        if (tokenUtils != null) {
+            String token = tokenUtils.getToken();
+            String role = tokenUtils.getRole();
+            boolean hasCurrentRide = tokenUtils.hasCurrentRide();
+            tokenUtils.saveAuthData(token, role, expiresAt, hasCurrentRide);
+        }
+    }
+
     public static String getServerBaseUrl() {
         if (BASE_URL.endsWith("/api/") || BASE_URL.endsWith("/api")) {
             return BASE_URL.replace("/api/", "").replace("/api", "");

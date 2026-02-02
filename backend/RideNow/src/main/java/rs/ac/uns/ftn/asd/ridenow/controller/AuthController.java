@@ -44,13 +44,15 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(){
+    public ResponseEntity<LogoutResponseDTO> logout(){
         try{
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             authService.logout(user);
-            return ResponseEntity.ok().build();
+            LogoutResponseDTO response = new LogoutResponseDTO("Logged out successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            LogoutResponseDTO response = new LogoutResponseDTO(e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
