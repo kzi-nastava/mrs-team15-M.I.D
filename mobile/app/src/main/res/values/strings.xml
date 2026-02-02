@@ -11,6 +11,7 @@
     <string name="nav_user_profile">Profile</string>
     <string name="nav_driver_profile">Driver Profile</string>
     <string name="nav_change_password">Change Password</string>
+    <string name="nav_rating">Rating</string>
 
     <!-- login -->
     <string name="login_title">Welcome back</string>
@@ -103,5 +104,13 @@
     <string name="profile_request_changes">Request Changes</string>
     <string name="profile_change_password">Change Password</string>
     <string name="profile_img">Profile Picture</string>
+
+    <!-- rating -->
+    <string name="rating_title">Rate Your Ride</string>
+    <string name="rating_driver_title">Rate the Driver</string>
+    <string name="rating_vehicle_title">Rate the Vehicle</string>
+    <string name="rating_driver_comment_hint">Comment about the driver (optional)</string>
+    <string name="rating_vehicle_comment_hint">Comment about the vehicle (optional)</string>
+    <string name="rating_submit">Submit Rating</string>
 
 </resources>

@@ -31,4 +31,8 @@
     <item
         android:id="@+id/change_password"
         android:title="@string/nav_change_password" />
+
+    <item
+        android:id="@+id/rating"
+        android:title="@string/nav_rating" />
 </menu>
