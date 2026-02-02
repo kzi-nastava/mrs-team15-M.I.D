@@ -103,5 +103,6 @@
     <string name="profile_request_changes">Request Changes</string>
     <string name="profile_change_password">Change Password</string>
     <string name="profile_img">Profile Picture</string>
+    <string name="logout">Logout</string>
 
 </resources>
