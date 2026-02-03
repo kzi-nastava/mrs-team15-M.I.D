@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,17 +21,12 @@ import androidx.fragment.app.Fragment;
 import com.example.ridenow.R;
 import com.example.ridenow.dto.vehicle.VehicleResponse;
 import com.example.ridenow.service.VehicleService;
+import com.example.ridenow.ui.components.RouteMapView;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 
-import org.osmdroid.api.IMapController;
-import org.osmdroid.config.Configuration;
 import org.osmdroid.events.MapEventsReceiver;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
-import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.MapEventsOverlay;
-import org.osmdroid.views.overlay.Marker;
 
 import java.util.List;
 
@@ -39,12 +36,20 @@ import retrofit2.Response;
 
 public class HomeFragment extends Fragment implements MapEventsReceiver {
 
-    private MapView mapView;
+    private static final long VEHICLE_UPDATE_INTERVAL = 10000; // 10 seconds
+
+    private RouteMapView routeMapView;
     private LocationManager locationManager;
     private ActivityResultLauncher<String[]> locationPermissionLauncher;
     private VehicleService vehicleService;
     private TokenUtils tokenUtils;
-    private Marker driverLocationMarker;
+
+    // Vehicle update timer
+    private Handler vehicleUpdateHandler;
+    private Runnable vehicleUpdateRunnable;
+    private double currentCenterLatitude;
+    private double currentCenterLongitude;
+    private boolean isVehicleUpdateActive = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,10 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
 
         // Initialize token utils
         tokenUtils = new TokenUtils(requireContext());
+
+        // Initialize vehicle update handler
+        vehicleUpdateHandler = new Handler(Looper.getMainLooper());
+        setupVehicleUpdateRunnable();
 
         // Setup permission launcher
         locationPermissionLauncher = registerForActivityResult(
@@ -88,21 +97,12 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     }
 
     private void initializeViews(View view) {
-        mapView = view.findViewById(R.id.mapView);
+        routeMapView = view.findViewById(R.id.routeMapView);
     }
 
     private void setupMap() {
-        Configuration.getInstance().setUserAgentValue(requireContext().getPackageName());
-
-        mapView.setTileSource(TileSourceFactory.MAPNIK);
-        mapView.setMultiTouchControls(true);
-
-        IMapController mapController = mapView.getController();
-        mapController.setZoom(12.0);
-
-        // Add map events overlay to detect map movement
-        MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(this);
-        mapView.getOverlays().add(0, mapEventsOverlay);
+        // Set up map events receiver for detecting map movements
+        routeMapView.setMapEventsReceiver(this);
 
         // Default to Belgrade and request user location
         centerMapOnLocation(44.8176, 20.4633);
@@ -149,7 +149,7 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
 
                 // Add driver marker if user is logged in as a driver
                 if (isUserDriver()) {
-                    addDriverLocationMarker(location.getLatitude(), location.getLongitude());
+                    routeMapView.addDriverLocation(location.getLatitude(), location.getLongitude());
                 }
             }
         } catch (SecurityException e) {
@@ -158,12 +158,15 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     }
 
     private void centerMapOnLocation(double latitude, double longitude) {
-        IMapController mapController = mapView.getController();
-        GeoPoint point = new GeoPoint(latitude, longitude);
-        mapController.setCenter(point);
+        routeMapView.centerOnLocation(latitude, longitude);
 
-        // Load vehicles around this location
+        // Store current center coordinates
+        currentCenterLatitude = latitude;
+        currentCenterLongitude = longitude;
+
+        // Load vehicles around this location and start periodic updates
         loadVehiclesAroundLocation(latitude, longitude);
+        startVehicleUpdates();
     }
 
     private void loadVehiclesAroundLocation(double latitude, double longitude) {
@@ -187,36 +190,7 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     }
 
     private void displayVehiclesOnMap(List<VehicleResponse> vehicles) {
-        // Clear existing vehicle markers (but keep the map events overlay and driver marker)
-        mapView.getOverlays().removeIf(overlay ->
-            overlay instanceof Marker && overlay != driverLocationMarker);
-
-        for (VehicleResponse vehicle : vehicles) {
-            if (vehicle.getLocation() != null) {
-                GeoPoint vehiclePoint = new GeoPoint(
-                    vehicle.getLocation().getLatitude(),
-                    vehicle.getLocation().getLongitude()
-                );
-
-                Marker marker = new Marker(mapView);
-                marker.setPosition(vehiclePoint);
-                marker.setTitle("Vehicle: " + vehicle.getLicencePlate());
-                marker.setSnippet(vehicle.getAvailable() ? "Available" : "Not Available");
-
-                // Set different icons based on availability
-                if (vehicle.getAvailable()) {
-                    // Green for available vehicles
-                    marker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_car_available));
-                } else {
-                    // Red for unavailable vehicles
-                    marker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_car_unavailable));
-                }
-
-                mapView.getOverlays().add(marker);
-            }
-        }
-
-        mapView.invalidate();
+        routeMapView.displayVehicles(vehicles);
     }
 
     // MapEventsReceiver interface methods
@@ -228,8 +202,17 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     @Override
     public boolean longPressHelper(GeoPoint p) {
         // When user long presses (moves map), load vehicles for the new center
-        GeoPoint mapCenter = (GeoPoint) mapView.getMapCenter();
-        loadVehiclesAroundLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
+        GeoPoint mapCenter = routeMapView.getMapCenter();
+        if (mapCenter != null) {
+            // Update stored coordinates
+            currentCenterLatitude = mapCenter.getLatitude();
+            currentCenterLongitude = mapCenter.getLongitude();
+
+            loadVehiclesAroundLocation(mapCenter.getLatitude(), mapCenter.getLongitude());
+
+            // Restart vehicle updates with new location
+            startVehicleUpdates();
+        }
         return true;
     }
 
@@ -237,47 +220,71 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
         return tokenUtils != null && tokenUtils.isLoggedIn() && "DRIVER".equals(tokenUtils.getRole());
     }
 
-    private void addDriverLocationMarker(double latitude, double longitude) {
-        // Remove existing driver marker if it exists
-        if (driverLocationMarker != null) {
-            mapView.getOverlays().remove(driverLocationMarker);
-        }
-
-        GeoPoint driverPoint = new GeoPoint(latitude, longitude);
-        driverLocationMarker = new Marker(mapView);
-        driverLocationMarker.setPosition(driverPoint);
-        driverLocationMarker.setTitle("Your Location");
-        driverLocationMarker.setSnippet("Driver");
-
-        // Use a distinctive blue marker for the driver
-        driverLocationMarker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_driver_location));
-
-        // Add the driver marker to the map
-        mapView.getOverlays().add(driverLocationMarker);
-        mapView.invalidate();
-    }
-
     @Override
     public void onResume() {
         super.onResume();
-        if (mapView != null) {
-            mapView.onResume();
+        if (routeMapView != null) {
+            routeMapView.onResume();
+        }
+        // Restart vehicle updates if we have a location
+        if (currentCenterLatitude != 0 && currentCenterLongitude != 0) {
+            startVehicleUpdates();
         }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mapView != null) {
-            mapView.onPause();
+        if (routeMapView != null) {
+            routeMapView.onPause();
         }
+        // Stop vehicle updates to save resources
+        stopVehicleUpdates();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mapView != null) {
-            mapView.onDetach();
+        if (routeMapView != null) {
+            routeMapView.onDestroy();
+        }
+        // Stop vehicle updates and cleanup handler
+        stopVehicleUpdates();
+        if (vehicleUpdateHandler != null) {
+            vehicleUpdateHandler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    private void setupVehicleUpdateRunnable() {
+        vehicleUpdateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isVehicleUpdateActive) {
+                    // Update vehicles for current map center
+                    loadVehiclesAroundLocation(currentCenterLatitude, currentCenterLongitude);
+
+                    // Schedule next update
+                    if (vehicleUpdateHandler != null) {
+                        vehicleUpdateHandler.postDelayed(this, VEHICLE_UPDATE_INTERVAL);
+                    }
+                }
+            }
+        };
+    }
+
+    private void startVehicleUpdates() {
+        stopVehicleUpdates(); // Stop any existing updates first
+
+        isVehicleUpdateActive = true;
+        if (vehicleUpdateHandler != null && vehicleUpdateRunnable != null) {
+            vehicleUpdateHandler.postDelayed(vehicleUpdateRunnable, VEHICLE_UPDATE_INTERVAL);
+        }
+    }
+
+    private void stopVehicleUpdates() {
+        isVehicleUpdateActive = false;
+        if (vehicleUpdateHandler != null && vehicleUpdateRunnable != null) {
+            vehicleUpdateHandler.removeCallbacks(vehicleUpdateRunnable);
         }
     }
 }

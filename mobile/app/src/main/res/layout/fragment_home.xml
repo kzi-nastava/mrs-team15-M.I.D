@@ -5,8 +5,8 @@
     android:layout_height="match_parent">
 
     <!-- Map Container - Full Screen -->
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapView"
+    <com.example.ridenow.ui.components.RouteMapView
+        android:id="@+id/routeMapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
