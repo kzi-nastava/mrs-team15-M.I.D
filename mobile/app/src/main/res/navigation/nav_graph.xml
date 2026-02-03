@@ -68,6 +68,11 @@
         android:label="Rating" />
 
     <fragment
+        android:id="@+id/upcoming_rides"
+        android:name="com.example.ridenow.ui.upcoming.UpcomingRidesFragment"
+        android:label="Upcoming Rides" />
+
+    <fragment
         android:id="@+id/forgot_password_verify_code"
         android:name="com.example.ridenow.ui.auth.ForgotPasswordVerifyCodeFragment"
         android:label="Forgot password verify code fragment">

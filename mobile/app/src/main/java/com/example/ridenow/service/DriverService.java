@@ -1,9 +1,11 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.driver.DriverHistoryResponse;
+import com.example.ridenow.dto.ride.UpcomingRide;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
 
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MultipartBody;
@@ -27,4 +29,7 @@ public interface DriverService {
     @Multipart
     @POST("driver/change-request")
     Call<DriverChangeResponseDTO> requestDriverChange(@PartMap Map<String, RequestBody> partMap, @Part MultipartBody.Part profileImage);
+
+    @GET("driver/rides")
+    Call<List<UpcomingRide>> getUpcomingRides();
 }

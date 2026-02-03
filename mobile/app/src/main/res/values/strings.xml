@@ -12,6 +12,17 @@
     <string name="nav_driver_profile">Driver Profile</string>
     <string name="nav_change_password">Change Password</string>
     <string name="nav_rating">Rating</string>
+    <string name="nav_upcoming_rides">Upcoming Rides</string>
+
+    <!-- upcoming rides -->
+    <string name="upcoming_rides_title">Upcoming Rides</string>
+    <string name="upcoming_rides_subtitle">Manage your scheduled rides</string>
+    <string name="no_upcoming_rides">No upcoming rides scheduled</string>
+    <string name="route">Route</string>
+    <string name="start_time">Start Time</string>
+    <string name="passengers">Passengers</string>
+    <string name="cancel">Cancel</string>
+    <string name="start_ride">Start Ride</string>
 
     <!-- login -->
     <string name="login_title">Welcome back</string>
