@@ -29,6 +29,9 @@
         android:icon="@drawable/ic_person"
         android:title="@string/nav_driver_profile" />
     <item
+        android:id="@+id/driver_requests"
+        android:title="Driver Changes" />
+    <item
         android:id="@+id/change_password"
         android:title="@string/nav_change_password" />
 

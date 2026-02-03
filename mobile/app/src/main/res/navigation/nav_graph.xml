@@ -10,6 +10,23 @@
         android:name="com.example.ridenow.ui.home.HomeFragment"
         android:label="Home" />
 
+    <!-- Driver requests screens (admin) -->
+    <fragment
+        android:id="@+id/driver_requests"
+        android:name="com.example.ridenow.ui.driver.requests.DriverRequestsFragment"
+        android:label="Driver Requests"
+        tools:layout="@layout/fragment_driver_requests" />
+
+    <fragment
+        android:id="@+id/driver_request_detail"
+        android:name="com.example.ridenow.ui.driver.requests.DriverRequestDetailFragment"
+        android:label="Driver Request Detail"
+        tools:layout="@layout/fragment_driver_request_detail" />
+
+    <action
+        android:id="@+id/action_driverRequests_to_requestDetail"
+        app:destination="@id/driver_request_detail" />
+
     <fragment
         android:id="@+id/history"
         android:name="com.example.ridenow.ui.history.DriverHistoryFragment"

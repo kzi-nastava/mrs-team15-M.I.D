@@ -68,7 +68,8 @@ public class AdminService {
             request.setId(entity.getId());
             request.setDriverId(entity.getDriverId());
             request.setId(entity.getId());
-            System.out.println("Id " + entity.getId());
+            request.setMessage(entity.getMessage());
+            request.setAdminResponseDate(entity.getAdminResponseDate());
             requests.add(request);
         }
 
