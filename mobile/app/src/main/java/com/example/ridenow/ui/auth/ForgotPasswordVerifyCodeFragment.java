@@ -84,7 +84,7 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
                     Toast.makeText(getContext(), "Code verified!", Toast.LENGTH_SHORT).show();
                     Bundle bundle = new Bundle();
                     bundle.putString("token", token);
-                    //NavHostFragment.findNavController(ForgotPasswordVerifyCodeFragment.this).navigate(R.id.action_verifyCode_to_resetPassword, bundle);
+                    NavHostFragment.findNavController(ForgotPasswordVerifyCodeFragment.this).navigate(R.id.action_verifyCode_to_resetPassword, bundle);
                 }
                 else{
                     Toast.makeText(getContext(), "Invalid or expired code", Toast.LENGTH_SHORT).show();
