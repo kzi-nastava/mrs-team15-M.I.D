@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
@@ -25,6 +26,8 @@ public class PassengerController {
         this.passengerService = passengerService;
     }
 
+
+    @PreAuthorize("hasRole('USER')")
     @PutMapping("/favorite-routes/{routeId}")
     public ResponseEntity<RouteResponseDTO> addToFavorites(
             @PathVariable Long routeId) {
@@ -33,6 +36,8 @@ public class PassengerController {
         return ResponseEntity.ok(passengerService.addToFavorites(id, routeId));
     }
 
+
+    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/favorite-routes/{routeId}")
     public ResponseEntity<Void> removeFromFavorites(
             @PathVariable Long routeId) {
@@ -42,6 +47,7 @@ public class PassengerController {
         return ResponseEntity.status(204).build();
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/favorite-routes")
     public ResponseEntity<Collection<FavoriteRouteResponseDTO>> getRoutes() {
 
@@ -49,6 +55,8 @@ public class PassengerController {
         return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
     }
 
+
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/favorite-routes/{id}")
     public ResponseEntity<RouteResponseDTO> getRoute(@PathVariable Long id) {
 
@@ -56,6 +64,8 @@ public class PassengerController {
         return ResponseEntity.ok(passengerService.getRoute(user.getId(), id));
     }
 
+
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/ride-history")
     public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
                                                                    @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){

@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
@@ -81,6 +82,7 @@ public class AdminController {
         return ResponseEntity.ok().body(details);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/driver-register")
     public ResponseEntity<RegisterDriverResponseDTO> register(
             @Valid @RequestBody RegisterDriverRequestDTO request) {
@@ -88,12 +90,14 @@ public class AdminController {
         return ResponseEntity.status(201).body(adminService.register(request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/driver-requests")
     public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(adminService.getDriverRequests());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("driver-requests/{requestId}")
     public ResponseEntity<Void> reviewDriverRequest(
             @PathVariable Long requestId,
@@ -105,6 +109,7 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

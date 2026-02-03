@@ -54,7 +54,7 @@ export class RideService {
   }
 
   orderRide(dto: any): Promise<any> {
-    return lastValueFrom(this.http.post<any>(`${this.apiURL}`, dto));
+    return lastValueFrom(this.http.post<any>(`${this.apiURL}/order-ride`, dto));
   }
 
   estimate(data: { startAddress: string; startLatitude: number; startLongitude: number; endAddress: string; endLatitude: number; endLongitude: number;}) {
