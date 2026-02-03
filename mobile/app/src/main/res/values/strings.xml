@@ -13,6 +13,7 @@
     <string name="nav_change_password">Change Password</string>
     <string name="nav_rating">Rating</string>
     <string name="nav_upcoming_rides">Upcoming Rides</string>
+    <string name="nav_current_ride">Current Ride</string>
 
     <!-- upcoming rides -->
     <string name="upcoming_rides_title">Upcoming Rides</string>
@@ -132,5 +133,21 @@
     <string name="verify_code">Verify Code</string>
     <string name="no_code">Didn\'t receive code?</string>
     <string name="resend_code">Resend</string>
+
+    <!-- Current ride -->
+    <string name="current_ride_title">Current Ride</string>
+    <string name="current_ride_from">From: </string>
+    <string name="current_ride_to">To: </string>
+    <string name="current_ride_loading">Loading…</string>
+    <string name="current_ride_report_inconsistency">Report Inconsistency</string>
+    <string name="current_ride_panic">Panic</string>
+
+    <!-- Report inconsistency dialog -->
+    <string name="report_inconsistency_title">Report Inconsistency</string>
+    <string name="report_inconsistency_subtitle">Please describe the issue you experienced during this ride</string>
+    <string name="report_inconsistency_hint">Describe the inconsistency…</string>
+    <string name="report_inconsistency_counter">%1$d/300</string>
+    <string name="report_inconsistency_submit">Submit Report</string>
+    <string name="report_inconsistency_submitting">Submitting…</string>
 
 </resources>

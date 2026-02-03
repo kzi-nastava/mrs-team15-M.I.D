@@ -45,4 +45,8 @@
         android:id="@+id/upcoming_rides"
         android:icon="@drawable/ic_access_time"
         android:title="@string/nav_upcoming_rides" />
+    <item
+        android:id="@+id/current_ride"
+        android:icon="@drawable/ic_car_available"
+        android:title="@string/nav_current_ride" />
 </menu>

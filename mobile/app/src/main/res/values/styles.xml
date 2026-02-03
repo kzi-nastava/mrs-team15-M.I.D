@@ -64,18 +64,10 @@
         <item name="android:fontFamily">@font/inter_medium</item>
     </style>
 
-    <style name="ButtonDanger">
-        <item name="android:backgroundTint">?attr/colorError</item>
-        <item name="android:textColor">?attr/colorOnPrimary</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:fontFamily">@font/inter_medium</item>
-    </style>
-
     <style name="ButtonSecondary">
         <item name="android:textColor">?attr/colorOnPrimary</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:background">@drawable/button_border_bg</item>
+        <item name="android:background">@drawable/button_border_with_bg</item>
     </style>
 
     <style name="ButtonGrey" parent="ButtonPrimary">
