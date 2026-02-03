@@ -158,7 +158,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             case "Route": return "route";
             case "Passengers": return "passengers";
             case "Date": return "date";
-            case "Duration": return "durationMinutes";
+            case "Duration": return "duration";
             case "Cancelled": return "cancelled";
             case "Cost": return "cost";
             case "Panic Button": return "panic";
@@ -212,9 +212,24 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
     }
 
     private void onShakeDetected() {
-        // Trigger date sorting (same as clicking date in old table)
+        // Store current sort by to check if we're already sorting by date
+        String previousSortBy = currentSortBy;
+
+        // Set to date sorting
         currentSortBy = "date";
-        currentSortDir = currentSortDir.equals("asc") ? "desc" : "asc";
+
+        // If we're already sorting by date, toggle direction
+        if ("date".equals(previousSortBy)) {
+            currentSortDir = currentSortDir.equals("asc") ? "desc" : "asc";
+        } else {
+            // If switching from another sort field, default to descending (newest first)
+            currentSortDir = "desc";
+        }
+
+        // Update UI to reflect the change
+        spinnerSortBy.setText("Date", false);
+        spinnerOrder.setText(currentSortDir.equals("asc") ? "Ascending" : "Descending", false);
+
         currentPage = 0;
         loadDriverHistory();
         Toast.makeText(getContext(), "Sorted by date: " + (currentSortDir.equals("asc") ? "Oldest first" : "Newest first"), Toast.LENGTH_SHORT).show();
@@ -270,7 +285,13 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             durationDisplay = calculatedDuration + " min";
             timeRangeDisplay = DateUtils.formatTimeRange(rideHistory.getStartTime(), rideHistory.getEndTime());
         } else {
-            durationDisplay = String.format(Locale.getDefault(), "%.0f min", rideHistory.getDurationMinutes());
+            // Handle estimated duration from API
+            Double duration = rideHistory.getDurationMinutes();
+            if (duration != null && duration > 0) {
+                durationDisplay = String.format(Locale.getDefault(), "%.0f min", duration);
+            } else {
+                durationDisplay = "N/A";
+            }
             timeRangeDisplay = "Estimated duration";
         }
 
@@ -351,12 +372,14 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         params.setMargins(0, dpToPx(16), 0, dpToPx(16));
         loadMoreButton.setLayoutParams(params);
 
-        ridesContainer.addView(loadMoreButton);
-
         loadMoreButton.setOnClickListener(v -> {
+            // Remove the button before loading more data
+            removeLoadMoreButton();
             currentPage++;
             loadDriverHistory();
         });
+
+        ridesContainer.addView(loadMoreButton);
     }
 
     private void removeLoadMoreButton() {
@@ -453,6 +476,9 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
                         // First page, clear existing data
                         allRideData.clear();
                         ridesContainer.removeAllViews();
+                    } else {
+                        // Remove existing load more button before adding new cards
+                        removeLoadMoreButton();
                     }
 
                     List<RideHistory> newRides = historyResponse.getContent();

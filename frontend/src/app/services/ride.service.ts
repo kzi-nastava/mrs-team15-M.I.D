@@ -26,7 +26,7 @@ export class RideService {
       const data = await res.json();
       if (data.features && data.features.length > 0) {
         const coords = data.features[0].geometry.coordinates;
-        return { lat: coords[1], lon: coords[0] }; 
+        return { lat: coords[1], lon: coords[0] };
       }
     } catch (e) {
       console.warn('Geocode failed', e);
@@ -37,7 +37,7 @@ export class RideService {
   estimateRoute(dto: any): Promise<any> {
     return lastValueFrom(this.http.post<any>(`${this.apiURL}/estimate-route`, dto));
   }
-  
+
   estimateRouteGet(data: { startAddress: string; destinationAddress: string; stopAddresses?: string[] }) {
     let params = new HttpParams()
       .set('startAddress', data.startAddress)
@@ -103,7 +103,7 @@ export class RideService {
   finishRide(rideId: number): Observable<boolean> {
     return this.http.post<boolean>(`${this.apiURL}/${rideId}/finish`, {});
   }
-  
+
   trackRide(rideId: number): Observable<{
     location: { latitude: number; longitude: number; address: string | null };
     remainingTimeInMinutes: number;
