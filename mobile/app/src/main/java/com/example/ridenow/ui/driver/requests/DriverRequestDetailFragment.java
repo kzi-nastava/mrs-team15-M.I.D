@@ -250,8 +250,8 @@ public class DriverRequestDetailFragment extends Fragment {
                     adminNotes.setText(notes + "\n\nRequest approved: " + requestId + " on " + now);
                     adminNotes.setEnabled(false);
                     resultTv.setVisibility(View.GONE);
-                    btnApprove.setEnabled(false);
-                    btnReject.setEnabled(false);
+                    btnApprove.setVisibility(View.GONE);
+                    btnReject.setVisibility(View.GONE);
                 }
 
                 @Override
@@ -279,8 +279,8 @@ public class DriverRequestDetailFragment extends Fragment {
                     adminNotes.setText(notes + "\n\nRequest rejected: " + requestId + " on " + now2);
                     adminNotes.setEnabled(false);
                     resultTv.setVisibility(View.GONE);
-                    btnApprove.setEnabled(false);
-                    btnReject.setEnabled(false);
+                    btnApprove.setVisibility(View.GONE);
+                    btnReject.setVisibility(View.GONE);
                 }
 
                 @Override
