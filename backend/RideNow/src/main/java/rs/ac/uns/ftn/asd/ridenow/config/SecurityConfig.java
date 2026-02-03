@@ -30,7 +30,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/login", "/api/auth/register",
                                 "/api/auth/activate", "/api/auth/forgot-password",
-                                "/api/auth/reset-password", "/api/rides/estimate").permitAll()
+                                "/api/auth/reset-password", "/api/rides/estimate", "/api/auth/verify-reset-code").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/admins/**").permitAll()
                         .requestMatchers("/api/admins/driver-register").hasRole("ADMIN")

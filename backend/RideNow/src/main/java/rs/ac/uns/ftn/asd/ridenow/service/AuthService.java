@@ -174,7 +174,8 @@ public class AuthService {
     private ForgotPasswordToken generateForgotPasswordToken(User user) {
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
-        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(token, expiresAt, user);
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
+        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(token, expiresAt, user, code);
         user.setForgotPasswordToken(forgotPasswordToken);
         return forgotPasswordToken;
     }

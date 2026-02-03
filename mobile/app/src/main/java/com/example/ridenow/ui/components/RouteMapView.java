@@ -14,22 +14,28 @@ import androidx.core.content.ContextCompat;
 import com.example.ridenow.R;
 import com.example.ridenow.dto.model.Location;
 import com.example.ridenow.dto.model.PolylinePoint;
+import com.example.ridenow.dto.vehicle.VehicleResponse;
 import com.example.ridenow.util.AddressUtils;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
+import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Reusable MapView component for displaying routes with start, stop, and end markers
+ * Also supports displaying vehicle markers and handling map events
  *
  * This component encapsulates all the complexity of OpenStreetMap integration and provides
  * a simple API for displaying routes throughout the app.
@@ -40,16 +46,23 @@ import java.util.List;
  *    RouteMapView mapView = findViewById(R.id.routeMapView);
  *    mapView.displayRoute(startLocation, endLocation, null, null);
  *
- * 2. Route with stops and detailed polyline:
+ * 2. Display vehicles on map:
+ *    mapView.displayVehicles(vehiclesList);
+ *    mapView.setMapEventsReceiver(mapEventsReceiver);
+ *
+ * 3. Add driver location:
+ *    mapView.addDriverLocation(latitude, longitude);
+ *
+ * 4. Route with stops and detailed polyline:
  *    mapView.displayRoute(startLocation, endLocation, stopsList, polylinePoints);
  *
- * 3. Customized appearance:
+ * 5. Customized appearance:
  *    mapView.setRouteColor(Color.RED);
  *    mapView.setRouteWidth(12.0f);
  *    mapView.setShowMarkers(false); // Hide markers, show only route line
  *    mapView.displayRoute(startLocation, endLocation, stopsList, polylinePoints);
  *
- * 4. In XML layout:
+ * 6. In XML layout:
  *    <com.example.ridenow.ui.components.RouteMapView
  *        android:id="@+id/routeMapView"
  *        android:layout_width="match_parent"
@@ -67,11 +80,19 @@ import java.util.List;
  * - Optional markers with formatted addresses
  * - Support for complex routes with multiple stops
  * - Handles both detailed polyline data and simple point-to-point routes
+ * - Vehicle display with availability status
+ * - Driver location tracking
+ * - Map events handling
  */
 public class RouteMapView extends FrameLayout {
 
     private MapView mapView;
     private boolean isInitialized = false;
+    private MapEventsReceiver mapEventsReceiver;
+
+    // Vehicle tracking
+    private Map<String, Marker> vehicleMarkers = new HashMap<>();
+    private Marker driverLocationMarker;
 
     // Configuration options
     private int routeColor = Color.parseColor("#2196F3"); // Material blue
@@ -113,6 +134,10 @@ public class RouteMapView extends FrameLayout {
         mapView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
+
+        // Set default zoom
+        IMapController mapController = mapView.getController();
+        mapController.setZoom(12.0);
 
         // Handle touch events to prevent parent scrolling interference
         mapView.setOnTouchListener((v, event) -> {
@@ -365,7 +390,119 @@ public class RouteMapView extends FrameLayout {
     public void clearMap() {
         if (mapView != null) {
             mapView.getOverlays().clear();
+            vehicleMarkers.clear();
+            driverLocationMarker = null;
             mapView.invalidate();
         }
+    }
+
+    /**
+     * Display vehicles on the map
+     * @param vehicles List of vehicles to display
+     */
+    public void displayVehicles(List<VehicleResponse> vehicles) {
+        if (vehicles == null) return;
+
+        // Clear existing vehicle markers (but keep driver marker and map events overlay)
+        clearVehicleMarkers();
+
+        for (VehicleResponse vehicle : vehicles) {
+            if (vehicle.getLocation() != null) {
+                addVehicleMarker(vehicle);
+            }
+        }
+
+        mapView.invalidate();
+    }
+
+    /**
+     * Add or update a driver location marker
+     * @param latitude Driver latitude
+     * @param longitude Driver longitude
+     */
+    public void addDriverLocation(double latitude, double longitude) {
+        // Remove existing driver marker if it exists
+        if (driverLocationMarker != null) {
+            mapView.getOverlays().remove(driverLocationMarker);
+        }
+
+        GeoPoint driverPoint = new GeoPoint(latitude, longitude);
+        driverLocationMarker = new Marker(mapView);
+        driverLocationMarker.setPosition(driverPoint);
+        driverLocationMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+        driverLocationMarker.setTitle("Your Location");
+        driverLocationMarker.setSubDescription("Driver");
+        driverLocationMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_driver_location));
+
+        mapView.getOverlays().add(driverLocationMarker);
+        mapView.invalidate();
+    }
+
+    /**
+     * Center the map on a specific location
+     * @param latitude Location latitude
+     * @param longitude Location longitude
+     */
+    public void centerOnLocation(double latitude, double longitude) {
+        IMapController mapController = mapView.getController();
+        GeoPoint point = new GeoPoint(latitude, longitude);
+        mapController.setCenter(point);
+    }
+
+    /**
+     * Set up map events receiver for handling map interactions
+     * @param receiver Map events receiver implementation
+     */
+    public void setMapEventsReceiver(MapEventsReceiver receiver) {
+        this.mapEventsReceiver = receiver;
+        if (mapView != null) {
+            // Remove existing map events overlay if any
+            mapView.getOverlays().removeIf(overlay -> overlay instanceof MapEventsOverlay);
+
+            // Add new map events overlay at the beginning (under other overlays)
+            MapEventsOverlay mapEventsOverlay = new MapEventsOverlay(receiver);
+            mapView.getOverlays().add(0, mapEventsOverlay);
+        }
+    }
+
+    /**
+     * Get the current map center
+     * @return GeoPoint representing the current map center
+     */
+    public GeoPoint getMapCenter() {
+        if (mapView != null) {
+            return (GeoPoint) mapView.getMapCenter();
+        }
+        return null;
+    }
+
+    private void clearVehicleMarkers() {
+        for (Marker marker : vehicleMarkers.values()) {
+            mapView.getOverlays().remove(marker);
+        }
+        vehicleMarkers.clear();
+    }
+
+    private void addVehicleMarker(VehicleResponse vehicle) {
+        GeoPoint vehiclePoint = new GeoPoint(
+            vehicle.getLocation().getLatitude(),
+            vehicle.getLocation().getLongitude()
+        );
+
+        Marker marker = new Marker(mapView);
+        marker.setPosition(vehiclePoint);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+        marker.setTitle("Vehicle: " + vehicle.getLicencePlate());
+        marker.setSubDescription(vehicle.getAvailable() ? "Available" : "Not Available");
+
+        // Set different icons based on availability
+        if (vehicle.getAvailable()) {
+            marker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_car_available));
+        } else {
+            marker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_car_unavailable));
+        }
+
+        vehicleMarkers.put(vehicle.getLicencePlate(), marker);
+        mapView.getOverlays().add(marker);
     }
 }
