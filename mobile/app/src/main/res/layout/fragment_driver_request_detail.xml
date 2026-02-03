@@ -456,4 +456,14 @@
         android:hint="Optional note for the user / audit log"
         android:lines="3" />
 
+    <!-- Inline result message displayed on the page after action -->
+    <TextView
+        android:id="@+id/tvResultMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginBottom="12dp"
+        android:gravity="start" />
+
+
 </LinearLayout>

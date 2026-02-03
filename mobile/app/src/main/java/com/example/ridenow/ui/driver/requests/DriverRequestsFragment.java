@@ -42,7 +42,9 @@ public class DriverRequestsFragment extends Fragment {
 
         DriverRequestsAdapter adapter = new DriverRequestsAdapter(new ArrayList<>(), item -> {
             Bundle args = new Bundle();
-            args.putInt("requestId", item.id);
+            args.putLong("requestId", item.id);
+            args.putString("message", item.message);
+            args.putString("adminResponseDate", item.adminResponseDate);
             args.putString("avatarUrlCur", item.curAvatarUrl);
             args.putString("avatarUrlProp", item.avatarUrl);
             args.putString("firstName", item.firstName);
@@ -75,7 +77,7 @@ public class DriverRequestsFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     List<RequestItem> items = new ArrayList<>();
                     for (com.example.ridenow.dto.admin.DriverChangeRequestDTO d : response.body()) {
-                        int id = (int) d.getRequestId();
+                        long id = d.getId();
                         String name = (d.getFirstName() == null ? "" : d.getFirstName()) + " " + (d.getLastName() == null ? "" : d.getLastName());
                         RequestItem it = new RequestItem(id, name, d.getSubmitDate(), d.getStatus() == null ? "pending" : d.getStatus().toLowerCase(), d.getProfileImage());
                         it.firstName = d.getFirstName();
@@ -90,6 +92,8 @@ public class DriverRequestsFragment extends Fragment {
                         it.petFriendly = d.isPetFriendly();
                         it.babyFriendly = d.isBabyFriendly();
                         it.driverId = d.getDriverId() != null ? d.getDriverId() : -1L;
+                        it.message = d.getMessage();
+                        it.adminResponseDate = d.getAdminResponseDate();
                         items.add(it);
                     }
                     adapter.setItems(items);
@@ -144,7 +148,9 @@ public class DriverRequestsFragment extends Fragment {
     }
 
     static class RequestItem {
-        int id;
+    long id;
+        String message;
+        String adminResponseDate;
         String name;
         String submittedAt;
         String status;
@@ -165,7 +171,7 @@ public class DriverRequestsFragment extends Fragment {
         boolean babyFriendly;
         long driverId; // Added field for driverId
 
-        RequestItem(int id, String name, String submittedAt, String status, String avatarUrl) {
+        RequestItem(long id, String name, String submittedAt, String status, String avatarUrl) {
             this.id = id;
             this.name = name;
             this.submittedAt = submittedAt;

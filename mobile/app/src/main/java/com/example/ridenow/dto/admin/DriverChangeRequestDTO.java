@@ -21,6 +21,15 @@ public class DriverChangeRequestDTO {
 
     public DriverChangeRequestDTO() {}
 
+    private String message;
+    private String adminResponseDate;
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+
+    public String getAdminResponseDate() { return adminResponseDate; }
+    public void setAdminResponseDate(String adminResponseDate) { this.adminResponseDate = adminResponseDate; }
+
     public long getRequestId() { return requestId; }
     public void setRequestId(long requestId) { this.requestId = requestId; }
 

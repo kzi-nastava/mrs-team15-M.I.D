@@ -50,6 +50,10 @@ public class DriverChangeRequestDTO {
 
     private DriverChangesStatus status;
 
+    private String message;
+
+    private Date adminResponseDate;
+
     private Date submitDate;
     
     private Long driverId;

@@ -10,6 +10,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.Date;
+
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
@@ -30,6 +35,7 @@ public class DriverRequestDetailFragment extends Fragment {
         Button btnApprove = view.findViewById(R.id.btnApprove);
         Button btnReject = view.findViewById(R.id.btnReject);
         Button btnBack = view.findViewById(R.id.btnBack);
+        TextView resultTv = view.findViewById(R.id.tvResultMessage);
         EditText adminNotes = view.findViewById(R.id.etAdminNotes);
 
         TextView tvNameCur = view.findViewById(R.id.tvNameCur);
@@ -53,11 +59,11 @@ public class DriverRequestDetailFragment extends Fragment {
         TextView tvBabyCur = view.findViewById(R.id.tvBabyCur);
         TextView tvBabyProp = view.findViewById(R.id.tvBabyProp);
 
-        int requestId = requireArguments() != null ? requireArguments().getInt("requestId", -1) : -1;
+        long requestId = requireArguments() != null ? requireArguments().getLong("requestId", -1L) : -1L;
         String avatarUrlCur = requireArguments() != null ? requireArguments().getString("avatarUrlCur", null) : null;
         String avatarUrlProp = requireArguments() != null ? requireArguments().getString("avatarUrlProp", null) : null;
 
-        requestIdTv.setText(requestId == -1 ? "-" : String.valueOf(requestId));
+        requestIdTv.setText(requestId == -1L ? "-" : String.valueOf(requestId));
 
         ImageView ivAvatarCur = view.findViewById(R.id.ivAvatarCur);
         ImageView ivAvatarProp = view.findViewById(R.id.ivAvatarProp);
@@ -117,6 +123,24 @@ public class DriverRequestDetailFragment extends Fragment {
         tvAddressProp.setText(propAddress);
         tvPetProp.setText(propPet);
         tvBabyProp.setText(propBaby);
+
+        // backend-provided admin message and response date (may be null)
+        String backendMessage = requireArguments() != null ? requireArguments().getString("message", null) : null;
+        String backendResponseDate = requireArguments() != null ? requireArguments().getString("adminResponseDate", null) : null;
+
+        // If request already processed, hide action buttons and show backend message (if any) in admin notes
+        if (status != null && (status.equalsIgnoreCase("approved") || status.equalsIgnoreCase("rejected"))) {
+            // hide buttons
+            btnApprove.setVisibility(View.GONE);
+            btnReject.setVisibility(View.GONE);
+            // show backend message if present, otherwise show simple status
+            String baseMsg = backendMessage != null ? backendMessage : ("Request " + status);
+            String dateStr = backendResponseDate != null ? backendResponseDate : "";
+            String finalSuffix = status.equalsIgnoreCase("approved") ? ("\n\nRequest approved: " + requestId + (dateStr.isEmpty() ? "" : (" on " + dateStr))) : ("\n\nRequest rejected: " + requestId + (dateStr.isEmpty() ? "" : (" on " + dateStr)));
+            adminNotes.setText(baseMsg + finalSuffix);
+            adminNotes.setEnabled(false);
+            resultTv.setVisibility(View.GONE);
+        }
 
         // fetch current (existing) user info from backend when driverId is available
         long driverId = requireArguments() != null ? requireArguments().getLong("driverId", -1L) : -1L;
@@ -218,12 +242,23 @@ public class DriverRequestDetailFragment extends Fragment {
             adminService.reviewDriverRequest(requestId, dto).enqueue(new retrofit2.Callback<Void>() {
                 @Override
                 public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
-                    Toast.makeText(requireContext(), "Approved request " + requestId, Toast.LENGTH_SHORT).show();
+                    View parent = requireActivity().findViewById(android.R.id.content);
+                    Snackbar.make(parent, "Request approved: " + requestId, Snackbar.LENGTH_LONG).show();
+                    // append current timestamp to admin notes like the post-action message
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                    String now = sdf.format(new Date());
+                    adminNotes.setText(notes + "\n\nRequest approved: " + requestId + " on " + now);
+                    adminNotes.setEnabled(false);
+                    resultTv.setVisibility(View.GONE);
+                    btnApprove.setEnabled(false);
+                    btnReject.setEnabled(false);
                 }
 
                 @Override
                 public void onFailure(retrofit2.Call<Void> call, Throwable t) {
-                    Toast.makeText(requireContext(), "Failed to approve request: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    View parent = requireActivity().findViewById(android.R.id.content);
+                    Snackbar.make(parent, "Failed to approve request: " + t.getMessage(), Snackbar.LENGTH_LONG).show();
+                    resultTv.setVisibility(View.GONE);
                 }
             });
         });
@@ -237,12 +272,22 @@ public class DriverRequestDetailFragment extends Fragment {
             adminService.reviewDriverRequest(requestId, dto).enqueue(new retrofit2.Callback<Void>() {
                 @Override
                 public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
-                    Toast.makeText(requireContext(), "Rejected request " + requestId, Toast.LENGTH_SHORT).show();
+                    View parent = requireActivity().findViewById(android.R.id.content);
+                    Snackbar.make(parent, "Request rejected: " + requestId, Snackbar.LENGTH_LONG).show();
+                    SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                    String now2 = sdf2.format(new Date());
+                    adminNotes.setText(notes + "\n\nRequest rejected: " + requestId + " on " + now2);
+                    adminNotes.setEnabled(false);
+                    resultTv.setVisibility(View.GONE);
+                    btnApprove.setEnabled(false);
+                    btnReject.setEnabled(false);
                 }
 
                 @Override
                 public void onFailure(retrofit2.Call<Void> call, Throwable t) {
-                    Toast.makeText(requireContext(), "Failed to reject request: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    View parent = requireActivity().findViewById(android.R.id.content);
+                    Snackbar.make(parent, "Failed to reject request: " + t.getMessage(), Snackbar.LENGTH_LONG).show();
+                    resultTv.setVisibility(View.GONE);
                 }
             });
         });
