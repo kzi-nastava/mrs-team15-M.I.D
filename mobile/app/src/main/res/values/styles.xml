@@ -75,12 +75,22 @@
         <item name="android:textColor">#FF000000</item>
     </style>
 
+    <style name="ButtonApprove" parent="ButtonPrimary">
+        <item name="android:backgroundTint">#2E7D32</item>
+        <item name="android:textColor">#FFFFFFFF</item>
+    </style>
+
     <style name="TitleText">
         <item name="android:fontFamily">@font/inter_semibold</item>
         <item name="android:textSize">32sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">?attr/colorSecondary</item>
         <item name="android:gravity">center</item>
+    </style>
+
+    <style name="ButtonDanger" parent="ButtonPrimary">
+        <item name="android:backgroundTint">#D32F2F</item>
+        <item name="android:textColor">#FFFFFFFF</item>
     </style>
 
     <style name="SubtitleText">
