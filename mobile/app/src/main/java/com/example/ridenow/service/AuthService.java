@@ -1,5 +1,6 @@
 package com.example.ridenow.service;
 
+import com.example.ridenow.dto.auth.ForgotPasswordRequestDTO;
 import com.example.ridenow.dto.auth.LoginRequestDTO;
 import com.example.ridenow.dto.auth.LoginResponseDTO;
 import com.example.ridenow.dto.auth.LogoutResponseDTO;
@@ -13,4 +14,6 @@ public interface AuthService {
     Call<LoginResponseDTO> login(@Body LoginRequestDTO dto);
     @POST("auth/logout")
     Call<LogoutResponseDTO> logout();
+    @POST("auth/forgot-password")
+    Call <Void>forgotPassword(@Body ForgotPasswordRequestDTO dto);
 }
