@@ -12,6 +12,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
 public interface AuthService {
@@ -27,7 +28,7 @@ public interface AuthService {
     @POST("auth/verify-reset-code")
     Call<Map<String, String>> verifyResetCode(@Body VerifyCodeRequestDTO dto);
 
-    @POST("auth/reset-password")
+    @PUT("auth/reset-password")
     Call<Map<String, String>> resetPassword(@Query("token") String token, @Body ResetPasswordRequestDTO dto);
 
 }

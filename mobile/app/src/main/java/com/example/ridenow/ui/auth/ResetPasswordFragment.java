@@ -47,7 +47,7 @@ public class ResetPasswordFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        AuthService authService = ClientUtils.getClient(AuthService.class);
+        authService = ClientUtils.getClient(AuthService.class);
         tvBackToLogin = view.findViewById(R.id.tvBackToLogin);
         tvBackToLogin.setOnClickListener(
                 v -> NavHostFragment.findNavController(this).navigate(R.id.login)
@@ -65,38 +65,66 @@ public class ResetPasswordFragment extends Fragment {
 
     private void resetPassword() {
         String newPassword = etNewPassword.getText() == null ? "" : etNewPassword.getText().toString();
-        String newPasswordConfirmed = etConfirmPassword.getText() == null ? "" : etNewPassword.getText().toString();
+        String newPasswordConfirmed = etConfirmPassword.getText() == null ? "" : etConfirmPassword.getText().toString();
+
         if(newPassword.isEmpty()){
             etNewPassword.setError("New password is required");
             etNewPassword.requestFocus();
             return;
         }
+
         if(newPasswordConfirmed.isEmpty()){
-            etNewPassword.setError("New confirmed password is required");
-            etNewPassword.requestFocus();
+            etConfirmPassword.setError("Confirm password is required");
+            etConfirmPassword.requestFocus();
             return;
         }
+
         if(newPassword.length() < 6){
             etNewPassword.setError("Password must be at least 6 characters");
             etNewPassword.requestFocus();
             return;
         }
+
         if(!newPassword.equals(newPasswordConfirmed)){
-            etNewPassword.setError("Password must be the same");
-            etNewPassword.requestFocus();
+            etConfirmPassword.setError("Passwords must match");
+            etConfirmPassword.requestFocus();
             return;
         }
-        btnResetPassword.setEnabled(true);
+
+        btnResetPassword.setEnabled(false);
+
         ResetPasswordRequestDTO dto = new ResetPasswordRequestDTO(newPassword, newPasswordConfirmed);
         authService.resetPassword(token, dto).enqueue(new Callback<Map<String, String>>() {
             @Override
             public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                btnResetPassword.setEnabled(true);
                 if(response.isSuccessful()){
                     Toast.makeText(getContext(), "Password reset successfully!", Toast.LENGTH_SHORT).show();
                     NavHostFragment.findNavController(ResetPasswordFragment.this).navigate(R.id.login);
                 }
                 else{
-                    Toast.makeText(getContext(), "Error resetting password", Toast.LENGTH_SHORT).show();
+                    String errorMessage = "Error resetting password";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            // Try to extract the message from JSON if possible
+                            if (errorBody.contains("\"message\"")) {
+                                int start = errorBody.indexOf("\"message\":\"") + 11;
+                                int end = errorBody.indexOf("\"", start);
+                                if (start > 10 && end > start) {
+                                    errorMessage = errorBody.substring(start, end);
+                                }
+                            } else {
+                                errorMessage = errorBody;
+                                if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                    errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Error resetting password (code: " + response.code() + ")";
+                    }
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 

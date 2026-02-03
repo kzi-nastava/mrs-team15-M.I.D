@@ -36,7 +36,8 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
     private Button btnVerifyCode;
     private String email;
 
-    public ForgotPasswordVerifyCodeFragment() {}
+    public ForgotPasswordVerifyCodeFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -48,7 +49,7 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        AuthService authService = ClientUtils.getClient(AuthService.class);
+        authService = ClientUtils.getClient(AuthService.class);
         etCode = view.findViewById(R.id.etCode);
         tvResendCodeLink = view.findViewById(R.id.tvResendCode);
         tvBackToLoginLink = view.findViewById(R.id.tvBackToLogin);
@@ -64,7 +65,7 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
 
     private void verifyCode() {
         String code = etCode.getText() == null ? "" : etCode.getText().toString();
-        if(code.isEmpty()){
+        if (code.isEmpty()) {
             etCode.setError("Code is required");
             etCode.requestFocus();
             return;
@@ -74,27 +75,48 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
             etCode.requestFocus();
             return;
         }
-        btnVerifyCode.setEnabled(true);
+
+        btnVerifyCode.setEnabled(false);
         VerifyCodeRequestDTO dto = new VerifyCodeRequestDTO(email, code);
         authService.verifyResetCode(dto).enqueue(new Callback<Map<String, String>>() {
             @Override
             public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
-                if(response.isSuccessful() && response.body() != null){
+                btnVerifyCode.setEnabled(true);
+                if (response.isSuccessful() && response.body() != null) {
                     String token = response.body().get("token");
                     Toast.makeText(getContext(), "Code verified!", Toast.LENGTH_SHORT).show();
                     Bundle bundle = new Bundle();
                     bundle.putString("token", token);
                     NavHostFragment.findNavController(ForgotPasswordVerifyCodeFragment.this).navigate(R.id.action_verifyCode_to_resetPassword, bundle);
-                }
-                else{
-                    Toast.makeText(getContext(), "Invalid or expired code", Toast.LENGTH_SHORT).show();
+                } else {
+                    String errorMessage = "Invalid or expired code";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            if (errorBody.contains("\"message\"")) {
+                                int start = errorBody.indexOf("\"message\":\"") + 11;
+                                int end = errorBody.indexOf("\"", start);
+                                if (start > 10 && end > start) {
+                                    errorMessage = errorBody.substring(start, end);
+                                }
+                            } else {
+                                errorMessage = errorBody;
+                                if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                    errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Verification failed (code: " + response.code() + ")";
+                    }
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Map<String, String>> call, Throwable t) {
                 btnVerifyCode.setEnabled(true);
-                Toast.makeText(getContext(),"Network error: " + t.getMessage(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -106,18 +128,30 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 tvResendCodeLink.setEnabled(true);
-                if(response.isSuccessful()){
-                    Toast.makeText(getContext(),  "New code sent to your email!",Toast.LENGTH_LONG).show();
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "New code sent to your email!", Toast.LENGTH_LONG).show();
                     etCode.setText("");
-                }
-                else{
-                    Toast.makeText(getContext(),"Failed to resend code", Toast.LENGTH_SHORT).show();
+                } else {
+                    String errorMessage = "Failed to resend code";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            errorMessage = errorBody;
+                            if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Failed to resend code (code: " + response.code() + ")";
+                    }
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(getContext(),"Network error: " + t.getMessage(),Toast.LENGTH_SHORT).show();
+                tvResendCodeLink.setEnabled(true);
+                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
