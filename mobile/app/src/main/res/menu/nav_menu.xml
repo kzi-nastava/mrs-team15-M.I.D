@@ -38,4 +38,8 @@
     <item
         android:id="@+id/rating"
         android:title="@string/nav_rating" />
+    <item
+        android:id="@+id/upcoming_rides"
+        android:icon="@drawable/ic_access_time"
+        android:title="@string/nav_upcoming_rides" />
 </menu>

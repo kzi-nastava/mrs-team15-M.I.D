@@ -27,6 +27,7 @@ import com.google.android.material.navigation.NavigationView;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
     private TokenExpirationService tokenExpirationService;
     private NavController navController;
 
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.navigation_view);
+        navigationView = findViewById(R.id.navigation_view);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar, R.string.open_drawer, R.string.close_drawer);
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         });
         toggle.syncState();
         setupTokenUtils();
+        updateMenuVisibility();
     }
 
     private void setupTokenUtils() {
@@ -136,6 +138,42 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Login success, starting token expiration checks");
             tokenExpirationService.startTokenExpirationCheck();
         }
+        updateMenuVisibility();
+    }
+
+    private void updateMenuVisibility() {
+        if (navigationView == null) {
+            return;
+        }
+
+        TokenUtils tokenUtils = ClientUtils.getTokenUtils();
+        boolean isLoggedIn = tokenUtils.isLoggedIn();
+        String userRole = tokenUtils.getRole();
+
+        // Get menu and hide/show items based on user role
+        navigationView.getMenu().findItem(R.id.nav_home).setVisible(true);
+
+        // Authentication related items
+        navigationView.getMenu().findItem(R.id.login).setVisible(!isLoggedIn);
+        navigationView.getMenu().findItem(R.id.registration).setVisible(!isLoggedIn);
+        navigationView.getMenu().findItem(R.id.reset_password).setVisible(!isLoggedIn);
+        navigationView.getMenu().findItem(R.id.nav_logout).setVisible(isLoggedIn);
+
+        // Role-specific items
+        boolean isDriver = "DRIVER".equals(userRole);
+        boolean isUser = "USER".equals(userRole);
+
+        // Driver-only items
+        navigationView.getMenu().findItem(R.id.nav_profile).setVisible(isDriver); // Driver History
+        navigationView.getMenu().findItem(R.id.upcoming_rides).setVisible(isDriver); // Upcoming Rides
+        navigationView.getMenu().findItem(R.id.driver_profile).setVisible(isDriver);
+
+        // User-only items
+        navigationView.getMenu().findItem(R.id.profile).setVisible(isUser);
+
+        // Common logged-in user items
+        navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
+        navigationView.getMenu().findItem(R.id.rating).setVisible(isLoggedIn);
     }
 
     public void handleLogout() {
@@ -164,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
             tokenExpirationService.stopTokenExpirationCheck();
         }
         ClientUtils.getTokenUtils().clearAuthData();
+        updateMenuVisibility();
         if (navController != null) {
             try {
                 navController.navigate(R.id.login);

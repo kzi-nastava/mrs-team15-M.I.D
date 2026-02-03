@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="?attr/colorPrimary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Route Information -->
+        <TextView
+            android:id="@+id/tvRoute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/route"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnPrimary"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- Start Time -->
+        <TextView
+            android:id="@+id/tvStartTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_time"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnPrimary"
+            android:layout_marginTop="8dp"
+            app:drawableStartCompat="@drawable/ic_access_time"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical" />
+
+        <!-- Passengers -->
+        <TextView
+            android:id="@+id/tvPassengers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/passengers"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnPrimary"
+            android:layout_marginTop="4dp"
+            app:drawableStartCompat="@drawable/ic_person_black"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical" />
+
+        <!-- Action buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="end">
+
+            <!-- Cancel button (if cancellable) -->
+            <Button
+                android:id="@+id/btnCancel"
+                style="@style/ButtonDanger"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cancel"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone" />
+
+            <!-- Start button -->
+            <Button
+                android:id="@+id/btnStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/start_ride"
+                style="@style/ButtonPrimary" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -62,4 +62,9 @@
         android:name="com.example.ridenow.ui.rating.RatingFragment"
         android:label="Rating" />
 
+    <fragment
+        android:id="@+id/upcoming_rides"
+        android:name="com.example.ridenow.ui.upcoming.UpcomingRidesFragment"
+        android:label="Upcoming Rides" />
+
 </navigation>

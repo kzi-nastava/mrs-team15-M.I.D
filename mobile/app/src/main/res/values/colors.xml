@@ -19,5 +19,7 @@
     <color name="light_background">#FFFFFFFF</color>
     <color name="light_on_background">#FF000000</color>
 
-    <color name="selection_color">#e5e5e5</color>
+    <color name="selection_color">#FF5e5e5e</color>
+
+    <color name="danger">#FF4343</color>
 </resources>
