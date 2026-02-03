@@ -65,82 +65,186 @@ public class DriverRequestDetailFragment extends Fragment {
         // load avatars if provided
         try {
             if (avatarUrlCur != null && !avatarUrlCur.isEmpty()) {
-                Glide.with(requireContext()).load(avatarUrlCur).placeholder(R.drawable.ic_person).circleCrop().into(ivAvatarCur);
+                String u = avatarUrlCur;
+                if (!u.startsWith("http://") && !u.startsWith("https://")) {
+                    u = com.example.ridenow.util.ClientUtils.getServerBaseUrl() + (u.startsWith("/") ? "" : "/") + u;
+                }
+                Glide.with(requireContext()).load(u).placeholder(R.drawable.ic_person).circleCrop().into(ivAvatarCur);
             }
             if (avatarUrlProp != null && !avatarUrlProp.isEmpty()) {
-                Glide.with(requireContext()).load(avatarUrlProp).placeholder(R.drawable.ic_person).circleCrop().into(ivAvatarProp);
+                String u2 = avatarUrlProp;
+                if (!u2.startsWith("http://") && !u2.startsWith("https://")) {
+                    u2 = com.example.ridenow.util.ClientUtils.getServerBaseUrl() + (u2.startsWith("/") ? "" : "/") + u2;
+                }
+                Glide.with(requireContext()).load(u2).placeholder(R.drawable.ic_person).circleCrop().into(ivAvatarProp);
             }
         } catch (Exception ignored) { }
 
-        // Example placeholder data for original and changed driver (replace with backend model)
-        String curName = "Ana Marković";
-        String propName = "Ana Marković"; // same
-        String curPhone = "0601234567";
-        String propPhone = "0601234567";
-        String curEmail = "ana@example.com";
-        String propEmail = "ana.new@example.com"; // changed example
-        String curLicense = "NS123AB";
-        String propLicense = "NS999ZZ"; // changed example
-        String curModel = "VW Golf";
-        String propModel = "Opel Astra"; // changed example
-        String curVehicleType = "Hatchback";
-        String propVehicleType = "Sedan";
-        String curSeats = "5";
-        String propSeats = "4";
+        // read data passed from list (backend DTO mapped in DriverRequestsFragment)
+        String firstName = requireArguments() != null ? requireArguments().getString("firstName", null) : null;
+        String lastName = requireArguments() != null ? requireArguments().getString("lastName", null) : null;
+        String email = requireArguments() != null ? requireArguments().getString("email", null) : null;
+        String phone = requireArguments() != null ? requireArguments().getString("phone", null) : null;
+        String address = requireArguments() != null ? requireArguments().getString("address", null) : null;
+        String license = requireArguments() != null ? requireArguments().getString("license", null) : null;
+        String model = requireArguments() != null ? requireArguments().getString("model", null) : null;
+        String vehicleType = requireArguments() != null ? requireArguments().getString("vehicleType", null) : null;
+        int seats = requireArguments() != null ? requireArguments().getInt("seats", -1) : -1;
+        boolean pet = requireArguments() != null && requireArguments().getBoolean("pet", false);
+        boolean baby = requireArguments() != null && requireArguments().getBoolean("baby", false);
+        String status = requireArguments() != null ? requireArguments().getString("status", null) : null;
 
-        tvNameCur.setText(curName);
+        String propName = (firstName == null && lastName == null) ? "-" : ((firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName)).trim();
+        String propPhone = phone == null ? "-" : phone;
+        String propEmail = email == null ? "-" : email;
+        String propLicense = license == null ? "-" : license;
+        String propModel = model == null ? "-" : model;
+        String propVehicleType = vehicleType == null ? "-" : vehicleType;
+        String propSeats = seats == -1 ? "-" : String.valueOf(seats);
+
+        // set proposed values immediately
         tvNameProp.setText(propName);
-        tvPhoneCur.setText(curPhone);
         tvPhoneProp.setText(propPhone);
-        tvEmailCur.setText(curEmail);
         tvEmailProp.setText(propEmail);
-        tvLicenseCur.setText(curLicense);
         tvLicenseProp.setText(propLicense);
-        tvModelCur.setText(curModel);
         tvModelProp.setText(propModel);
-        tvVehicleTypeCur.setText(curVehicleType);
         tvVehicleTypeProp.setText(propVehicleType);
-        tvSeatsCur.setText(curSeats);
         tvSeatsProp.setText(propSeats);
 
-        // placeholder address / pet / baby values
-        String curAddress = "Current address 1";
-        String propAddress = "Proposed address 1";
-        String curPet = "No";
-        String propPet = "Yes";
-        String curBaby = "Yes";
-        String propBaby = "Yes";
-
-        tvAddressCur.setText(curAddress);
+        String propAddress = address == null ? "-" : address;
+        String propPet = pet ? "Yes" : "No";
+        String propBaby = baby ? "Yes" : "No";
         tvAddressProp.setText(propAddress);
-        tvPetCur.setText(curPet);
         tvPetProp.setText(propPet);
-        tvBabyCur.setText(curBaby);
         tvBabyProp.setText(propBaby);
 
-        // highlight proposed fields when they differ (light-blue)
-        int changedBg = 0xFFE6EEF8; // #E6EEF8
-        if (!equalsNullSafe(curName, propName)) tvNameProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curPhone, propPhone)) tvPhoneProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curEmail, propEmail)) tvEmailProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curLicense, propLicense)) tvLicenseProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curModel, propModel)) tvModelProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curVehicleType, propVehicleType)) tvVehicleTypeProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curSeats, propSeats)) tvSeatsProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curAddress, propAddress)) tvAddressProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curPet, propPet)) tvPetProp.setBackgroundColor(changedBg);
-        if (!equalsNullSafe(curBaby, propBaby)) tvBabyProp.setBackgroundColor(changedBg);
+        // fetch current (existing) user info from backend when driverId is available
+        long driverId = requireArguments() != null ? requireArguments().getLong("driverId", -1L) : -1L;
+        if (driverId != -1L) {
+            com.example.ridenow.service.AdminService adminService = com.example.ridenow.util.ClientUtils.getClient(com.example.ridenow.service.AdminService.class);
+            adminService.getUserById(driverId).enqueue(new retrofit2.Callback<com.example.ridenow.dto.user.UserResponseDTO>() {
+                @Override
+                public void onResponse(retrofit2.Call<com.example.ridenow.dto.user.UserResponseDTO> call, retrofit2.Response<com.example.ridenow.dto.user.UserResponseDTO> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        com.example.ridenow.dto.user.UserResponseDTO cur = response.body();
+                        String curName = (cur.getFirstName() == null ? "" : cur.getFirstName()) + " " + (cur.getLastName() == null ? "" : cur.getLastName());
+                        String curPhone = cur.getPhoneNumber() == null ? "-" : cur.getPhoneNumber();
+                        String curEmail = cur.getEmail() == null ? "-" : cur.getEmail();
+                        String curLicense = cur.getLicensePlate() == null ? "-" : cur.getLicensePlate();
+                        String curModel = cur.getVehicleModel() == null ? "-" : cur.getVehicleModel();
+                        String curVehicleType = cur.getVehicleType() == null ? "-" : cur.getVehicleType();
+                        String curSeats = cur.getNumberOfSeats() <= 0 ? "-" : String.valueOf(cur.getNumberOfSeats());
+                        String curAddress = cur.getAddress() == null ? "-" : cur.getAddress();
+                        String curPet = cur.isPetFriendly() ? "Yes" : "No";
+                        String curBaby = cur.isBabyFriendly() ? "Yes" : "No";
+
+                        tvNameCur.setText(curName.trim().isEmpty() ? "-" : curName.trim());
+                        tvPhoneCur.setText(curPhone);
+                        tvEmailCur.setText(curEmail);
+                        tvLicenseCur.setText(curLicense);
+                        tvModelCur.setText(curModel);
+                        tvVehicleTypeCur.setText(curVehicleType);
+                        tvSeatsCur.setText(curSeats);
+                        tvAddressCur.setText(curAddress);
+                        tvPetCur.setText(curPet);
+                        tvBabyCur.setText(curBaby);
+
+                        // load current avatar if available
+                        try {
+                            String curImg = cur.getProfileImage();
+                            if (curImg != null && !curImg.isEmpty()) {
+                                String u = curImg;
+                                if (!u.startsWith("http://") && !u.startsWith("https://")) {
+                                    u = com.example.ridenow.util.ClientUtils.getServerBaseUrl() + (u.startsWith("/") ? "" : "/") + u;
+                                }
+                                Glide.with(requireContext()).load(u).placeholder(R.drawable.ic_person).circleCrop().into(ivAvatarCur);
+                            }
+                        } catch (Exception ignored) {}
+
+                        // apply highlighting comparing current vs proposed
+                        int changedBg = 0xFFE6EEF8; // #E6EEF8
+                        if (!equalsNullSafe(tvNameCur.getText().toString(), tvNameProp.getText().toString())) tvNameProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvPhoneCur.getText().toString(), tvPhoneProp.getText().toString())) tvPhoneProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvEmailCur.getText().toString(), tvEmailProp.getText().toString())) tvEmailProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvLicenseCur.getText().toString(), tvLicenseProp.getText().toString())) tvLicenseProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvModelCur.getText().toString(), tvModelProp.getText().toString())) tvModelProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvVehicleTypeCur.getText().toString(), tvVehicleTypeProp.getText().toString())) tvVehicleTypeProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvSeatsCur.getText().toString(), tvSeatsProp.getText().toString())) tvSeatsProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvAddressCur.getText().toString(), tvAddressProp.getText().toString())) tvAddressProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvPetCur.getText().toString(), tvPetProp.getText().toString())) tvPetProp.setBackgroundColor(changedBg);
+                        if (!equalsNullSafe(tvBabyCur.getText().toString(), tvBabyProp.getText().toString())) tvBabyProp.setBackgroundColor(changedBg);
+                    }
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<com.example.ridenow.dto.user.UserResponseDTO> call, Throwable t) {
+                    // leave current values as dashes
+                }
+            });
+        } else {
+            // No driverId available: set current values to dashes and highlight if proposal differs from dash
+            tvNameCur.setText("-");
+            tvPhoneCur.setText("-");
+            tvEmailCur.setText("-");
+            tvLicenseCur.setText("-");
+            tvModelCur.setText("-");
+            tvVehicleTypeCur.setText("-");
+            tvSeatsCur.setText("-");
+            tvAddressCur.setText("-");
+            tvPetCur.setText("-");
+            tvBabyCur.setText("-");
+
+            int changedBg = 0xFFE6EEF8; // #E6EEF8
+            if (!equalsNullSafe("-", tvNameProp.getText().toString())) tvNameProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvPhoneProp.getText().toString())) tvPhoneProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvEmailProp.getText().toString())) tvEmailProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvLicenseProp.getText().toString())) tvLicenseProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvModelProp.getText().toString())) tvModelProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvVehicleTypeProp.getText().toString())) tvVehicleTypeProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvSeatsProp.getText().toString())) tvSeatsProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvAddressProp.getText().toString())) tvAddressProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvPetProp.getText().toString())) tvPetProp.setBackgroundColor(changedBg);
+            if (!equalsNullSafe("-", tvBabyProp.getText().toString())) tvBabyProp.setBackgroundColor(changedBg);
+        }
 
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
 
         btnApprove.setOnClickListener(v -> {
             String notes = adminNotes.getText().toString();
-            Toast.makeText(requireContext(), "Approved request " + requestId + (notes.isEmpty() ? "" : (": " + notes)), Toast.LENGTH_SHORT).show();
+            com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO dto = new com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO();
+            dto.setApproved(true);
+            dto.setMessage(notes);
+            com.example.ridenow.service.AdminService adminService = com.example.ridenow.util.ClientUtils.getClient(com.example.ridenow.service.AdminService.class);
+            adminService.reviewDriverRequest(requestId, dto).enqueue(new retrofit2.Callback<Void>() {
+                @Override
+                public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                    Toast.makeText(requireContext(), "Approved request " + requestId, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                    Toast.makeText(requireContext(), "Failed to approve request: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         btnReject.setOnClickListener(v -> {
             String notes = adminNotes.getText().toString();
-            Toast.makeText(requireContext(), "Rejected request " + requestId + (notes.isEmpty() ? "" : (": " + notes)), Toast.LENGTH_SHORT).show();
+            com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO dto = new com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO();
+            dto.setApproved(false);
+            dto.setMessage(notes);
+            com.example.ridenow.service.AdminService adminService = com.example.ridenow.util.ClientUtils.getClient(com.example.ridenow.service.AdminService.class);
+            adminService.reviewDriverRequest(requestId, dto).enqueue(new retrofit2.Callback<Void>() {
+                @Override
+                public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                    Toast.makeText(requireContext(), "Rejected request " + requestId, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                    Toast.makeText(requireContext(), "Failed to reject request: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         // apply approve button green style programmatically as fallback

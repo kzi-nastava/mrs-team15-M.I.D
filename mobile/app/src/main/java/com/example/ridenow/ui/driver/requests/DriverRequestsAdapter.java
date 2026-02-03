@@ -43,8 +43,12 @@ public class DriverRequestsAdapter extends RecyclerView.Adapter<DriverRequestsAd
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         DriverRequestsFragment.RequestItem it = shown.get(position);
-        holder.tvName.setText(it.name);
-        holder.tvMeta.setText("Request: " + it.id + " • " + it.submittedAt);
+        // prefer current name/email when available
+        String displayName = (it.curName != null && !it.curName.trim().isEmpty()) ? it.curName : (it.name != null ? it.name : "-");
+        String displayEmail = (it.curEmail != null && !it.curEmail.trim().isEmpty()) ? it.curEmail : (it.email != null ? it.email : "-");
+        holder.tvName.setText(displayName);
+        // show current email and submitted date (remove request id)
+        holder.tvMeta.setText(displayEmail + " • " + it.submittedAt);
         holder.tvStatus.setText(it.status == null ? "" : it.status);
 
         // Color status text based on value
@@ -65,11 +69,19 @@ public class DriverRequestsAdapter extends RecyclerView.Adapter<DriverRequestsAd
 
         holder.btnReview.setOnClickListener(v -> listener.onReview(it));
 
-        // Load avatar using Glide if URL present, otherwise show placeholder
+        // Load avatar using Glide: prefer current avatar if available, otherwise proposed
         try {
-            if (it.avatarUrl != null && !it.avatarUrl.isEmpty()) {
+            String imageUrl = null;
+            if (it.curAvatarUrl != null && !it.curAvatarUrl.isEmpty()) imageUrl = it.curAvatarUrl;
+            else if (it.avatarUrl != null && !it.avatarUrl.isEmpty()) imageUrl = it.avatarUrl;
+
+            if (imageUrl != null) {
+                String url = imageUrl;
+                if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                    url = com.example.ridenow.util.ClientUtils.getServerBaseUrl() + (url.startsWith("/") ? "" : "/") + url;
+                }
                 Glide.with(holder.ivAvatar.getContext())
-                        .load(it.avatarUrl)
+                        .load(url)
                         .placeholder(R.drawable.ic_person)
                         .circleCrop()
                         .into(holder.ivAvatar);
@@ -93,6 +105,12 @@ public class DriverRequestsAdapter extends RecyclerView.Adapter<DriverRequestsAd
             }
         }
         notifyDataSetChanged();
+    }
+
+    public void setItems(List<DriverRequestsFragment.RequestItem> items) {
+        all.clear();
+        if (items != null) all.addAll(items);
+        setFilter(null);
     }
 
     static class VH extends RecyclerView.ViewHolder {
