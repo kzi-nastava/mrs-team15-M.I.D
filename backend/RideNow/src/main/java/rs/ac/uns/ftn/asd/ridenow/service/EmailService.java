@@ -55,6 +55,7 @@ public class EmailService {
                         "We received a request to reset your RideNow account password.\n\n" +
                         "To create a new password, click the link below:\n\n" +
                         resetPasswordRoute + token.getToken() + "\n\n" +
+                        "Or use this verification code in the mobile app: " + token.getVerificationCode() + "\n\n" +
                         "If you did not request a password reset, please ignore this email. " +
                         "Your account will remain secure.\n\n" +
                         "Best regards,\n" +
