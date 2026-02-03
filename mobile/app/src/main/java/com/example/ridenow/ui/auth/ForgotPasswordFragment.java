@@ -73,7 +73,7 @@ public class ForgotPasswordFragment extends Fragment {
                     Toast.makeText(getContext(),"Reset code sent to your email!",Toast.LENGTH_LONG).show();
                     Bundle bundle = new Bundle();
                     bundle.putString("email", email);
-//                  NavHostFragment.findNavController(ForgotPasswordFragment.this).navigate(R.id.action_forgotPassword_to_verifyCode, bundle);
+                    NavHostFragment.findNavController(ForgotPasswordFragment.this).navigate(R.id.action_forgotPassword_to_verifyCode, bundle);
                 }
                 else{
                     Toast.makeText(getContext(),"Error: " + response.message(), Toast.LENGTH_SHORT).show();

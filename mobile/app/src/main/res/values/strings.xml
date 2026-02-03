@@ -77,7 +77,7 @@
     <string name="ride_details_rating">Rating: </string>
     <string name="ride_details_inconsistencies_title">Inconsistencies</string>
     <string name="ride_details_inconsistencies">Inconsistencies: </string>
-  
+
     <!-- registration -->
     <string name="registration_title">Join Ride Now and let\'s be on our way</string>
 
@@ -113,5 +113,13 @@
     <string name="rating_driver_comment_hint">Comment about the driver (optional)</string>
     <string name="rating_vehicle_comment_hint">Comment about the vehicle (optional)</string>
     <string name="rating_submit">Submit Rating</string>
+
+    <!-- Forgot password verify code -->
+    <string name="verify_code_title">Enter Verification Code</string>
+    <string name="verify_code_subtitle">We sent a 6-digit code to your email. Enter it below to reset your password.</string>
+    <string name="verification_code">000000</string>
+    <string name="verify_code">Verify Code</string>
+    <string name="no_code">Didn\'t receive code?</string>
+    <string name="resend_code">Resend</string>
 
 </resources>

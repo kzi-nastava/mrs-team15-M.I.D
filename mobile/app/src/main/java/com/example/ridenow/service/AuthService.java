@@ -4,6 +4,9 @@ import com.example.ridenow.dto.auth.ForgotPasswordRequestDTO;
 import com.example.ridenow.dto.auth.LoginRequestDTO;
 import com.example.ridenow.dto.auth.LoginResponseDTO;
 import com.example.ridenow.dto.auth.LogoutResponseDTO;
+import com.example.ridenow.dto.auth.VerifyCodeRequestDTO;
+
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -16,4 +19,6 @@ public interface AuthService {
     Call<LogoutResponseDTO> logout();
     @POST("auth/forgot-password")
     Call <Void>forgotPassword(@Body ForgotPasswordRequestDTO dto);
+    @POST("auth/verify-reset-code")
+    Call <Map<String, String>> verifyResetCode(@Body VerifyCodeRequestDTO dto);
 }

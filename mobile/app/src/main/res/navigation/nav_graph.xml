@@ -62,4 +62,17 @@
         android:name="com.example.ridenow.ui.rating.RatingFragment"
         android:label="Rating" />
 
+    <fragment
+        android:id="@+id/forgot_password_verify_code"
+        android:name="com.example.ridenow.ui.auth.ForgotPasswordVerifyCodeFragment"
+        android:label="Forgot password verify code fragment">
+        <argument
+            android:name="email"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_forgotPassword_to_verifyCode"
+        app:destination="@+id/forgot_password_verify_code"/>
 </navigation>
