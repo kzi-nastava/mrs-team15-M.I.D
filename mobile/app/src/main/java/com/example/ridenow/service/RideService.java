@@ -24,4 +24,7 @@ public interface RideService {
 
     @POST("rides/inconsistency")
     Call<Void> reportInconsistency(@Body InconsistencyRequest inconsistencyRequest);
+
+    @POST("rides/{rideId}/finish")
+    Call<Boolean> finishRide(@Path("rideId") String rideId);
 }

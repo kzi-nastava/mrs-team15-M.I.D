@@ -25,6 +25,10 @@
     <string name="cancel">Cancel</string>
     <string name="start_ride">Start Ride</string>
 
+    <!-- current ride -->
+    <string name="current_ride_stop_ride">Stop Ride</string>
+    <string name="current_ride_mark_completed">Mark Completed</string>
+
     <!-- login -->
     <string name="login_title">Welcome back</string>
     <string name="login_subtitle">Sign in to your Ride Now account</string>
