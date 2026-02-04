@@ -43,11 +43,25 @@
                 android:layout_marginTop="6dp"
                 android:textColor="?attr/colorOnSecondary" />
 
-            <Spinner
-                android:id="@+id/vehicleSpinner"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp" />
+                android:layout_marginTop="6dp">
+
+                <Spinner
+                    android:id="@+id/vehicleSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/ic_arrow_drop_down_white"
+                    android:contentDescription="" />
+
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -59,14 +73,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pet friendly"
-                    android:textColor="?attr/colorOnSecondary" />
+                    android:textColor="?attr/colorOnSecondary"
+                    android:thumbTint="@color/switch_thumb_selector"
+                    android:trackTint="@color/switch_track_selector" />
                 <Switch
                     android:id="@+id/switchBaby"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Baby friendly"
                     android:layout_marginStart="16dp"
-                    android:textColor="?attr/colorOnSecondary" />
+                    android:textColor="?attr/colorOnSecondary"
+                    android:thumbTint="@color/switch_thumb_selector"
+                    android:trackTint="@color/switch_track_selector" />
             </LinearLayout>
 
             <TextView
@@ -82,7 +100,11 @@
                 android:layout_height="wrap_content"
                 android:inputType="datetime"
                 android:hint="Select date and time"
-                style="@style/TextInputOnDark" />
+                style="@style/TextInputOnDark"
+                android:drawableEnd="@drawable/ic_calendar_white"
+                android:drawablePadding="8dp"
+                android:paddingEnd="12dp"
+                android:contentDescription="Open calendar" />
 
             <TextView
                 android:layout_width="wrap_content"

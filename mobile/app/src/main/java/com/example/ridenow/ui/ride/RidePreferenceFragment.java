@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -15,6 +17,9 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,13 +56,46 @@ public class RidePreferenceFragment extends Fragment {
         Button backBtn = view.findViewById(R.id.backBtn);
         Button orderRideBtn = view.findViewById(R.id.orderRideBtn);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
-                new String[]{"", "Standard", "Luxury", "Van"});
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+            R.layout.spinner_item_dark,
+            new String[]{"Select vehicle type", "Standard", "Luxury", "Van"});
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_dark);
         vehicleSpinner.setAdapter(adapter);
+        // Match other inputs: dark background with white border/text
+        vehicleSpinner.setBackgroundResource(R.drawable.edittext_with_bg);
+        vehicleSpinner.setSelection(0);
 
         // add initial guest input
         addGuestInput(guestsContainer);
+
+        // show Date and Time pickers when scheduledTime is clicked
+        scheduledTime.setFocusable(false);
+        scheduledTime.setClickable(true);
+        scheduledTime.setOnClickListener(v -> {
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePicker = new DatePickerDialog(requireContext(), (view1, y, m, d) -> {
+                final Calendar picked = Calendar.getInstance();
+                picked.set(Calendar.YEAR, y);
+                picked.set(Calendar.MONTH, m);
+                picked.set(Calendar.DAY_OF_MONTH, d);
+
+                int hour = c.get(Calendar.HOUR_OF_DAY);
+                int minute = c.get(Calendar.MINUTE);
+
+                TimePickerDialog timePicker = new TimePickerDialog(requireContext(), (view2, h, min) -> {
+                    picked.set(Calendar.HOUR_OF_DAY, h);
+                    picked.set(Calendar.MINUTE, min);
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                    scheduledTime.setText(sdf.format(picked.getTime()));
+                }, hour, minute, true);
+                timePicker.show();
+            }, year, month, day);
+            datePicker.show();
+        });
 
         addGuestBtn.setOnClickListener(v -> addGuestInput(guestsContainer));
 
@@ -105,7 +143,13 @@ public class RidePreferenceFragment extends Fragment {
         LinearLayout row = new LinearLayout(requireContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
 
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        int topMargin = (int) (8 * requireContext().getResources().getDisplayMetrics().density);
+        rowParams.setMargins(0, topMargin, 0, 0);
+        row.setLayoutParams(rowParams);
+
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(0, 0, 8, 0);
         EditText guestInput = new EditText(requireContext());
         guestInput.setHint("Enter guest email");
         guestInput.setLayoutParams(lp);
@@ -119,6 +163,10 @@ public class RidePreferenceFragment extends Fragment {
         removeBtn.setBackgroundResource(android.R.color.transparent);
         removeBtn.setContentDescription("Remove guest");
         removeBtn.setOnClickListener(v -> container.removeView(row));
+
+        LinearLayout.LayoutParams removeLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        removeLp.setMargins(8, 0, 0, 0);
+        removeBtn.setLayoutParams(removeLp);
 
         row.addView(guestInput);
         row.addView(removeBtn);
