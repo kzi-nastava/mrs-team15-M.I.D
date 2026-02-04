@@ -84,6 +84,7 @@ public class DriverController {
         return ResponseEntity.ok(rides);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PostMapping(path = "/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@ModelAttribute DriverChangeRequestDTO request,
                                                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {

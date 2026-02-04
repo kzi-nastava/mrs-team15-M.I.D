@@ -52,9 +52,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/panic-alert").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/rides/estimate-route").hasRole("USER")
                         .requestMatchers("/api/rides/*/start").hasRole( "DRIVER")
-                        .requestMatchers("/api/rides").hasRole( "USER")
 
-                        .requestMatchers("/api/rides/").hasRole("USER")
+                        .requestMatchers("/api/rides/order-ride").hasRole("USER")
                         .requestMatchers("/api/vehicles/").permitAll()
                         .requestMatchers("/api/passengers/favorite-routes").hasRole("USER")
                         .requestMatchers("/api/passengers/favorite-routes/").hasRole("USER")

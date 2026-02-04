@@ -103,6 +103,7 @@ public class RideController {
         return ResponseEntity.ok(nextAvailable);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/{id}/start")
     public ResponseEntity<Void> startRide(@PathVariable Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -113,6 +114,7 @@ public class RideController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/{id}/start")
     public ResponseEntity<StartRideResponseDTO> passangerPickup(@PathVariable Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -124,6 +126,7 @@ public class RideController {
     }
 
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
@@ -137,8 +140,8 @@ public class RideController {
         }
     }
 
-
-    @PostMapping
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/order-ride")
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
         try{

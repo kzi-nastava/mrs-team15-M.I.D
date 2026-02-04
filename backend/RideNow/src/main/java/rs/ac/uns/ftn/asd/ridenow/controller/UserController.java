@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ public class UserController {
         this.userService = userService;
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER', 'ADMIN')")
     @PutMapping("/change-password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequestDTO dto) {
@@ -36,6 +38,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER', 'ADMIN')")
     @GetMapping("")
     public ResponseEntity<UserResponseDTO> getUser() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -43,6 +46,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(user));
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PutMapping(path = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateUser(
             @ModelAttribute UpdateProfileRequestDTO request,
