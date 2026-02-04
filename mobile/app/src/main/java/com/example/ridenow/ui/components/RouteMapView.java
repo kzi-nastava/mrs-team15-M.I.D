@@ -93,6 +93,7 @@ public class RouteMapView extends FrameLayout {
     // Vehicle tracking
     private Map<String, Marker> vehicleMarkers = new HashMap<>();
     private Marker driverLocationMarker;
+    private Marker currentVehicleMarker;
 
     // Configuration options
     private int routeColor = Color.parseColor("#2196F3"); // Material blue
@@ -474,6 +475,46 @@ public class RouteMapView extends FrameLayout {
             return (GeoPoint) mapView.getMapCenter();
         }
         return null;
+    }
+
+    /**
+     * Update vehicle marker for current ride tracking
+     * @param vehicleLocation Current location of the vehicle
+     */
+    public void updateVehicleMarker(Location vehicleLocation) {
+        if (vehicleLocation == null || mapView == null) return;
+
+        GeoPoint vehiclePoint = new GeoPoint(
+            vehicleLocation.getLatitude(),
+            vehicleLocation.getLongitude()
+        );
+
+        // Remove existing vehicle marker if any
+        if (currentVehicleMarker != null) {
+            mapView.getOverlays().remove(currentVehicleMarker);
+        }
+
+        // Create new vehicle marker
+        currentVehicleMarker = new Marker(mapView);
+        currentVehicleMarker.setPosition(vehiclePoint);
+        currentVehicleMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+        currentVehicleMarker.setTitle("Your Vehicle");
+        currentVehicleMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_current_vehicle));
+
+        mapView.getOverlays().add(currentVehicleMarker);
+        mapView.invalidate();
+    }
+
+    /**
+     * Center the map on a specific location
+     * @param location Location to center on
+     */
+    public void centerOnLocation(Location location) {
+        if (location == null || mapView == null) return;
+
+        GeoPoint center = new GeoPoint(location.getLatitude(), location.getLongitude());
+        IMapController mapController = mapView.getController();
+        mapController.animateTo(center);
     }
 
     private void clearVehicleMarkers() {

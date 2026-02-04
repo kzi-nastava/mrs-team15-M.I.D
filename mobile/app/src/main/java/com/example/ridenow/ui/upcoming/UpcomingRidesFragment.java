@@ -13,11 +13,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.ride.UpcomingRide;
+import com.example.ridenow.dto.ride.UpcomingRideResponse;
 import com.example.ridenow.service.DriverService;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
@@ -70,14 +69,14 @@ public class UpcomingRidesFragment extends Fragment {
     private void loadUpcomingRides() {
         showLoading(true);
 
-        Call<List<UpcomingRide>> call = driverService.getUpcomingRides();
-        call.enqueue(new Callback<List<UpcomingRide>>() {
+        Call<List<UpcomingRideResponse>> call = driverService.getUpcomingRides();
+        call.enqueue(new Callback<List<UpcomingRideResponse>>() {
             @Override
-            public void onResponse(@NonNull Call<List<UpcomingRide>> call, @NonNull Response<List<UpcomingRide>> response) {
+            public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    List<UpcomingRide> rides = response.body();
+                    List<UpcomingRideResponse> rides = response.body();
                     displayRides(rides);
                 } else {
                     Log.e(TAG, "Failed to load upcoming rides: " + response.code());
@@ -86,7 +85,7 @@ public class UpcomingRidesFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<UpcomingRide>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Throwable t) {
                 showLoading(false);
                 Log.e(TAG, "Network error loading upcoming rides", t);
                 showError("Network error. Please check your connection.");
@@ -94,7 +93,7 @@ public class UpcomingRidesFragment extends Fragment {
         });
     }
 
-    private void displayRides(List<UpcomingRide> rides) {
+    private void displayRides(List<UpcomingRideResponse> rides) {
         ridesContainer.removeAllViews();
 
         if (rides == null || rides.isEmpty()) {
@@ -106,13 +105,13 @@ public class UpcomingRidesFragment extends Fragment {
         showNoRides(false);
         showRidesContainer(true);
 
-        for (UpcomingRide ride : rides) {
+        for (UpcomingRideResponse ride : rides) {
             View rideCard = createRideCard(ride);
             ridesContainer.addView(rideCard);
         }
     }
 
-    private View createRideCard(UpcomingRide ride) {
+    private View createRideCard(UpcomingRideResponse ride) {
         LayoutInflater inflater = LayoutInflater.from(requireContext());
         View cardView = inflater.inflate(R.layout.item_upcoming_ride, ridesContainer, false);
 
@@ -187,13 +186,13 @@ public class UpcomingRidesFragment extends Fragment {
         return startTime;
     }
 
-    private void handleCancelRide(UpcomingRide ride) {
+    private void handleCancelRide(UpcomingRideResponse ride) {
         // TODO: Implement cancel ride functionality
         Toast.makeText(requireContext(), "Cancel ride functionality will be implemented", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "Cancel ride requested for ID: " + ride.getId());
     }
 
-    private void handleStartRide(UpcomingRide ride) {
+    private void handleStartRide(UpcomingRideResponse ride) {
         // TODO: Implement start ride functionality
         Toast.makeText(requireContext(), "Start ride functionality will be implemented", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "Start ride requested for ID: " + ride.getId());

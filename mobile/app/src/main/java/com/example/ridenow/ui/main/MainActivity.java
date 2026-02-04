@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         boolean isUser = "USER".equals(userRole);
 
         // Driver-only items
-        navigationView.getMenu().findItem(R.id.nav_profile).setVisible(isDriver); // Driver History
+        navigationView.getMenu().findItem(R.id.history).setVisible(isDriver); // Driver History
         navigationView.getMenu().findItem(R.id.upcoming_rides).setVisible(isDriver); // Upcoming Rides
         navigationView.getMenu().findItem(R.id.driver_profile).setVisible(isDriver);
 

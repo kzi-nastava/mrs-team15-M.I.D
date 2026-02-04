@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="42dp"
+    android:height="42dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Circular background -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M12,2 C17.52,2 22,6.48 22,12 C22,17.52 17.52,22 12,22 C6.48,22 2,17.52 2,12 C2,6.48 6.48,2 12,2 Z"/>
+
+    <!-- Car icon inside the circle -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M16.46,7.605C16.36,7.21 16.08,6.95 15.75,6.95H14.2V6.15H9.8V6.95H8.25C7.92,6.95 7.64,7.21 7.54,7.605L6.8,10.2V14.4C6.8,14.55 6.95,14.7 7.1,14.7H7.5C7.65,14.7 7.8,14.55 7.8,14.4V14H16.2V14.4C16.2,14.55 16.35,14.7 16.5,14.7H16.9C17.05,14.7 17.2,14.55 17.2,14.4V10.2L16.46,7.605ZM8.25,12.8C8.03,12.8 7.85,12.62 7.85,12.4S8.03,12 8.25,12S8.65,12.18 8.65,12.4S8.47,12.8 8.25,12.8ZM15.75,12.8C15.53,12.8 15.35,12.62 15.35,12.4S15.53,12 15.75,12S16.15,12.18 16.15,12.4S15.97,12.8 15.75,12.8ZM7.8,10.2L8.25,7.9H15.75L16.2,10.2H7.8Z"/>
+
+</vector>

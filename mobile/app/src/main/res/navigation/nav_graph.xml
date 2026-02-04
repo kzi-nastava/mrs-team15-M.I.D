@@ -90,6 +90,11 @@
         android:label="Upcoming Rides" />
 
     <fragment
+        android:id="@+id/current_ride"
+        android:name="com.example.ridenow.ui.currentride.CurrentRideFragment"
+        android:label="Current Ride" />
+
+    <fragment
         android:id="@+id/forgot_password_verify_code"
         android:name="com.example.ridenow.ui.auth.ForgotPasswordVerifyCodeFragment"
         android:label="Forgot password verify code fragment">

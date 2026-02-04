@@ -1,6 +1,6 @@
 package com.example.ridenow.dto.ride;
 
-public class UpcomingRide {
+public class UpcomingRideResponse {
     private Long id;
     private String route;
     private String startTime;

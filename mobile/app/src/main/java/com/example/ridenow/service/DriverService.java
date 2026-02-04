@@ -1,7 +1,7 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.driver.DriverHistoryResponse;
-import com.example.ridenow.dto.ride.UpcomingRide;
+import com.example.ridenow.dto.ride.UpcomingRideResponse;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
 
@@ -31,5 +31,5 @@ public interface DriverService {
     Call<DriverChangeResponseDTO> requestDriverChange(@PartMap Map<String, RequestBody> partMap, @Part MultipartBody.Part profileImage);
 
     @GET("driver/rides")
-    Call<List<UpcomingRide>> getUpcomingRides();
+    Call<List<UpcomingRideResponse>> getUpcomingRides();
 }
