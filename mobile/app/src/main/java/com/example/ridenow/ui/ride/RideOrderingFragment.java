@@ -22,6 +22,8 @@ import com.example.ridenow.R;
 
 public class RideOrderingFragment extends Fragment {
 
+    private com.example.ridenow.ui.components.RouteMapView routeMapView;
+
     public RideOrderingFragment() {
         // Required empty constructor
     }
@@ -35,9 +37,12 @@ public class RideOrderingFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // RouteMapView lifecycle is managed from the fragment lifecycle methods below
-        RouteMapView routeMapView = view.findViewById(R.id.routeMapView);
+        // initialize map view (follow HomeFragment pattern)
+        routeMapView = view.findViewById(R.id.routeMapView);
+        if (routeMapView != null) {
+            // center on Novi Sad by default
+            routeMapView.centerOnLocation(45.2671, 19.8335);
+        }
 
         EditText pickup = view.findViewById(R.id.pickupAddress);
         EditText destination = view.findViewById(R.id.destinationAddress);
