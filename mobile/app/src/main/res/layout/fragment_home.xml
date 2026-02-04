@@ -35,27 +35,45 @@
                 android:layout_marginBottom="16dp"
                 android:textColor="?attr/colorOnSecondary"/>
 
-            <!-- Start Address -->
-            <EditText
+            <!-- Start Address with AutoComplete -->
+            <AutoCompleteTextView
                 android:id="@+id/startAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:hint="From"
-                app:startIconDrawable="@drawable/ic_location_on"
+                android:completionHint="Select address"
+                android:inputType="text"
+                android:completionThreshold="1"
+                android:dropDownWidth="match_parent"
+                android:dropDownHeight="280dp"
+                android:dropDownVerticalOffset="4dp"
+                android:maxLines="1"
+                android:textSize="16sp"
+                android:padding="14dp"
                 style="@style/TextInputOnDark"
-                android:inputType="text"/>
+                android:imeOptions="actionNext"
+                android:singleLine="true"/>
 
-            <!-- End Address -->
-            <EditText
+            <!-- End Address with AutoComplete -->
+            <AutoCompleteTextView
                 android:id="@+id/endAddressLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="To"
-                app:startIconDrawable="@drawable/ic_location_on"
+                android:completionHint="Select address"
                 android:inputType="text"
-                style="@style/TextInputOnDark" />
+                android:completionThreshold="1"
+                android:dropDownWidth="match_parent"
+                android:dropDownHeight="280dp"
+                android:dropDownVerticalOffset="4dp"
+                android:maxLines="1"
+                android:textSize="16sp"
+                android:padding="14dp"
+                style="@style/TextInputOnDark"
+                android:imeOptions="actionDone"
+                android:singleLine="true"/>
 
             <!-- Estimate Button -->
             <Button
@@ -63,7 +81,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Estimate Ride"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:padding="14dp"/>
 
             <!-- Results Layout -->
             <LinearLayout
@@ -85,23 +105,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:layout_marginBottom="4dp" />
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"
+                    android:textColor="?attr/colorOnSecondary"/>
 
                 <TextView
                     android:id="@+id/tvDuration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:layout_marginBottom="4dp" />
-
-                <TextView
-                    android:id="@+id/tvCost"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
                     android:textStyle="bold"
-                    android:textColor="@color/primary" />
-
+                    android:layout_marginBottom="4dp"
+                    android:textColor="?attr/colorOnSecondary"/>
             </LinearLayout>
 
         </LinearLayout>
