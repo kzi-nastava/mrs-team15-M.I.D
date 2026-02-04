@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
         // Role-specific items
         boolean isDriver = "DRIVER".equals(userRole);
         boolean isUser = "USER".equals(userRole);
+        boolean isAdmin = "ADMIN".equals(userRole);
 
         // Driver-only items
         navigationView.getMenu().findItem(R.id.history).setVisible(isDriver); // Driver History
@@ -170,10 +171,14 @@ public class MainActivity extends AppCompatActivity {
 
         // User-only items
         navigationView.getMenu().findItem(R.id.profile).setVisible(isUser);
+        navigationView.getMenu().findItem(R.id.ride_ordering).setVisible(true);
 
         // Common logged-in user items
         navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
         navigationView.getMenu().findItem(R.id.rating).setVisible(isLoggedIn);
+
+        // Admin-only items
+        navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
     }
 
     public void handleLogout() {

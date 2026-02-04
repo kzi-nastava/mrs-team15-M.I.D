@@ -114,6 +114,19 @@
             android:defaultValue="" />
     </fragment>
 
+    <!-- Ride ordering (user) -->
+    <fragment
+        android:id="@+id/ride_ordering"
+        android:name="com.example.ridenow.ui.ride.RideOrderingFragment"
+        android:label="Order Ride"
+        tools:layout="@layout/fragment_ride_ordering" />
+
+    <fragment
+        android:id="@+id/ride_preference"
+        android:name="com.example.ridenow.ui.ride.RidePreferenceFragment"
+        android:label="Ride Preferences"
+        tools:layout="@layout/fragment_ride_preference" />
+
     <action
         android:id="@+id/action_forgotPassword_to_verifyCode"
         app:destination="@+id/forgot_password_verify_code"/>
