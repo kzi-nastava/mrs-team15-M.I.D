@@ -93,6 +93,7 @@ public class RouteMapView extends FrameLayout {
     // Vehicle tracking
     private Map<String, Marker> vehicleMarkers = new HashMap<>();
     private Marker driverLocationMarker;
+
     private Marker currentVehicleMarker;
 
     // Configuration options
@@ -515,6 +516,34 @@ public class RouteMapView extends FrameLayout {
         GeoPoint center = new GeoPoint(location.getLatitude(), location.getLongitude());
         IMapController mapController = mapView.getController();
         mapController.animateTo(center);
+    }
+
+    /**
+     * Update driver marker for current location tracking
+     * @param driverLocation Current location of the driver
+     */
+    public void updateDriverMarker(Location driverLocation) {
+        if (driverLocation == null || mapView == null) return;
+
+        GeoPoint driverPoint = new GeoPoint(
+            driverLocation.getLatitude(),
+            driverLocation.getLongitude()
+        );
+
+        // Remove existing driver marker if any
+        if (driverLocationMarker != null) {
+            mapView.getOverlays().remove(driverLocationMarker);
+        }
+
+        // Create new driver marker
+        driverLocationMarker = new Marker(mapView);
+        driverLocationMarker.setPosition(driverPoint);
+        driverLocationMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+        driverLocationMarker.setTitle("Your Location");
+        driverLocationMarker.setIcon(ContextCompat.getDrawable(getContext(), R.drawable.ic_driver_location));
+
+        mapView.getOverlays().add(driverLocationMarker);
+        mapView.invalidate();
     }
 
     private void clearVehicleMarkers() {

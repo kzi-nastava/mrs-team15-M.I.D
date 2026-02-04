@@ -1,6 +1,8 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.driver.DriverHistoryResponse;
+import com.example.ridenow.dto.driver.DriverLocationRequest;
+import com.example.ridenow.dto.driver.DriverLocationResponse;
 import com.example.ridenow.dto.ride.UpcomingRideResponse;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
@@ -12,8 +14,10 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
+import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
 import retrofit2.http.POST;
@@ -32,4 +36,7 @@ public interface DriverService {
 
     @GET("driver/rides")
     Call<List<UpcomingRideResponse>> getUpcomingRides();
+
+    @PUT("driver/update-location")
+    Call<DriverLocationResponse> updateDriverLocation(@Body DriverLocationRequest request);
 }
