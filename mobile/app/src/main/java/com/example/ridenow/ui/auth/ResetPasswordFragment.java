@@ -107,7 +107,6 @@ public class ResetPasswordFragment extends Fragment {
                     try {
                         if (response.errorBody() != null) {
                             String errorBody = response.errorBody().string();
-                            // Try to extract the message from JSON if possible
                             if (errorBody.contains("\"message\"")) {
                                 int start = errorBody.indexOf("\"message\":\"") + 11;
                                 int end = errorBody.indexOf("\"", start);

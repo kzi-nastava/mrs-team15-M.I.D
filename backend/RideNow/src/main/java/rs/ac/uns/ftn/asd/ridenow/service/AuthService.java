@@ -86,7 +86,7 @@ public class AuthService {
         return  responseDTO;
     }
 
-    private void sendActivationEmail(User user) {
+    public void sendActivationEmail(User user) {
         ActivationToken oldToken = user.getActivationToken();
         if (oldToken != null) {
             user.setActivationToken(null);
@@ -101,7 +101,9 @@ public class AuthService {
     private ActivationToken generateActivationToken(User user) {
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
         ActivationToken activationToken = new ActivationToken(token, expiresAt, user);
+        activationToken.setVerificationCode(code);
         user.setActivationToken(activationToken);
         return activationToken;
     }

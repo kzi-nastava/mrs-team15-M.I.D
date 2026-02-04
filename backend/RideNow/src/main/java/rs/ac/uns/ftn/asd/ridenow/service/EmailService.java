@@ -23,8 +23,9 @@ public class EmailService {
         mail.setText(
                 "Welcome to RideNow!\n\n" +
                         "Your account is almost ready.\n" +
-                        "Click the link below to activate it:\n\n" +
-                        activationRoute + token.getToken() +
+                        "Click the link below to activate it:\n\n"
+                        + activationRoute + token.getToken() + "\n\n" +
+                        "Or use this verification code in the mobile app: " + token.getVerificationCode() + "\n\n" +
                         "\n\nSee you on the road,\nRideNow Team"
         );
         mailSender.send(mail);

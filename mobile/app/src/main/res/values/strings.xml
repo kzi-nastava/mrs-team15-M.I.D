@@ -150,4 +150,7 @@
     <string name="report_inconsistency_submit">Submit Report</string>
     <string name="report_inconsistency_submitting">Submitting…</string>
 
+    <!-- Activate account verify code -->
+    <string name="activate_account_subtitle">We sent a 6-digit code to your email. Enter it below to activate your account.</string>
+
 </resources>
