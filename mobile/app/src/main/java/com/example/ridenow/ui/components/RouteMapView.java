@@ -399,6 +399,18 @@ public class RouteMapView extends FrameLayout {
     }
 
     /**
+     * Add a temporary marker to the map (useful for showing suggestion selection)
+     */
+    public void addTemporaryMarker(double latitude, double longitude, String title) {
+        if (mapView == null) return;
+        Marker m = createMarker(new GeoPoint(latitude, longitude), title, "", R.drawable.marker_start);
+        mapView.getOverlays().add(m);
+        IMapController mapController = mapView.getController();
+        mapController.setCenter(new GeoPoint(latitude, longitude));
+        mapView.invalidate();
+    }
+
+    /**
      * Display vehicles on the map
      * @param vehicles List of vehicles to display
      */
