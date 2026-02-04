@@ -104,6 +104,16 @@
             android:defaultValue="" />
     </fragment>
 
+    <fragment
+        android:id="@+id/activate_account"
+        android:name="com.example.ridenow.ui.auth.ActivateAccountFragment"
+        android:label="Activate account fragment">
+        <argument
+            android:name="email"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
     <action
         android:id="@+id/action_forgotPassword_to_verifyCode"
         app:destination="@+id/forgot_password_verify_code"/>
@@ -111,4 +121,8 @@
     <action
         android:id="@+id/action_verifyCode_to_resetPassword"
         app:destination="@+id/reset_password"/>
+
+    <action
+        android:id="@+id/registration_to_activate_account"
+        app:destination="@+id/activate_account"/>
 </navigation>

@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ridenow.R;
+import com.example.ridenow.dto.auth.ActivateAccountRequestDTO;
 import com.example.ridenow.dto.auth.ForgotPasswordRequestDTO;
 import com.example.ridenow.dto.auth.VerifyCodeRequestDTO;
 import com.example.ridenow.service.AuthService;
@@ -26,7 +27,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForgotPasswordVerifyCodeFragment extends Fragment {
+public class ActivateAccountFragment extends Fragment {
 
     private EditText etCode;
     private TextView tvResendCodeLink;
@@ -36,18 +37,17 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
     private Button btnVerifyCode;
     private String email;
 
-    public ForgotPasswordVerifyCodeFragment() {}
+    public ActivateAccountFragment() {}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_forgot_password_verify_code, container, false);
+        return inflater.inflate(R.layout.fragment_activate_account, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         authService = ClientUtils.getClient(AuthService.class);
         etCode = view.findViewById(R.id.etCode);
         tvResendCodeLink = view.findViewById(R.id.tvResendCode);
@@ -77,16 +77,13 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
 
         btnVerifyCode.setEnabled(false);
         VerifyCodeRequestDTO dto = new VerifyCodeRequestDTO(email, code);
-        authService.verifyResetCode(dto).enqueue(new Callback<Map<String, String>>() {
+        authService.activateCode(dto).enqueue(new Callback<Map<String, String>>() {
             @Override
             public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
                 btnVerifyCode.setEnabled(true);
                 if (response.isSuccessful() && response.body() != null) {
-                    String token = response.body().get("token");
-                    Toast.makeText(getContext(), "Code verified!", Toast.LENGTH_SHORT).show();
-                    Bundle bundle = new Bundle();
-                    bundle.putString("token", token);
-                    NavHostFragment.findNavController(ForgotPasswordVerifyCodeFragment.this).navigate(R.id.action_verifyCode_to_resetPassword, bundle);
+                    Toast.makeText(getContext(), "Account activated!", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(ActivateAccountFragment.this).navigate(R.id.login);
                 } else {
                     String errorMessage = "Invalid or expired code";
                     try {
@@ -106,7 +103,7 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
                             }
                         }
                     } catch (Exception e) {
-                        errorMessage = "Verification failed (code: " + response.code() + ")";
+                        errorMessage = "Activation failed (code: " + response.code() + ")";
                     }
                     Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
                 }
@@ -122,8 +119,8 @@ public class ForgotPasswordVerifyCodeFragment extends Fragment {
 
     private void resendCode() {
         tvResendCodeLink.setEnabled(false);
-        ForgotPasswordRequestDTO dto = new ForgotPasswordRequestDTO(email);
-        authService.forgotPassword(dto).enqueue(new Callback<Void>() {
+        ActivateAccountRequestDTO dto = new ActivateAccountRequestDTO(email);
+        authService.resendActivationEmail(dto).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 tvResendCodeLink.setEnabled(true);
