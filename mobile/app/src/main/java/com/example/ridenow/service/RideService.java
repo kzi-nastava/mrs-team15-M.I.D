@@ -4,13 +4,17 @@ import com.example.ridenow.dto.rating.RatingRequest;
 import com.example.ridenow.dto.rating.RatingResponse;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
 import com.example.ridenow.dto.ride.InconsistencyRequest;
+import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponse;
+
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface RideService {
     @POST("rides/{rideId}/rate")
@@ -27,4 +31,11 @@ public interface RideService {
 
     @POST("rides/{rideId}/finish")
     Call<Boolean> finishRide(@Path("rideId") String rideId);
+
+    @GET("rides/estimate")
+    Call<RideEstimateResponseDTO> estimate(@Query("startLatitude") Double startLatitude,
+                                           @Query("startLongitude") Double startLongitude,
+                                           @Query("endLatitude") Double endLatitude,
+                                           @Query("endLongitude") Double endLongitude);
+
 }
