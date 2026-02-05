@@ -49,4 +49,5 @@ dependencies {
     implementation libs.glide
     annotationProcessor libs.glide.compiler
     implementation libs.osmdroid
+    implementation libs.material
 }

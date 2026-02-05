@@ -43,7 +43,7 @@ public interface RideService {
                                            @Query("endLongitude") Double endLongitude);
 
     @PUT("rides/{id}/cancel")
-    Call<Map<String, String>> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
+    Call<Void> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
 
     @GET("rides/my-upcoming-rides")
     Call<List<UpcomingRideResponse>>getUpcomingRides();

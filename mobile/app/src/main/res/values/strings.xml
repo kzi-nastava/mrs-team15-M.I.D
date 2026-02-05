@@ -157,4 +157,10 @@
     <!-- Activate account verify code -->
     <string name="activate_account_subtitle">We sent a 6-digit code to your email. Enter it below to activate your account.</string>
 
+    <!-- Ride cancel modal -->
+    <string name="cancel_ride_title">Cancel Ride</string>
+    <string name="cancel_ride_subtitle">Please provide a reason for cancellation:</string>
+    <string name="cancel_reason_label">Reason for cancellation</string>
+    <string name="confirm">Confirm</string>
+
 </resources>
