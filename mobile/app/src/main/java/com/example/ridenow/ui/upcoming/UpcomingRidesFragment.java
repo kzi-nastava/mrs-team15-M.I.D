@@ -18,8 +18,10 @@ import androidx.fragment.app.Fragment;
 import com.example.ridenow.R;
 import com.example.ridenow.dto.ride.UpcomingRideResponse;
 import com.example.ridenow.service.DriverService;
+import com.example.ridenow.service.RideService;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
+import com.example.ridenow.util.TokenUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,10 +42,14 @@ public class UpcomingRidesFragment extends Fragment {
     private LinearLayout ridesContainer;
     private DriverService driverService;
 
+    private RideService rideService;
+    private boolean isUser;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         driverService = ClientUtils.getClient(DriverService.class);
+        rideService = ClientUtils.getClient(RideService.class);
     }
 
     @Nullable
@@ -55,21 +61,54 @@ public class UpcomingRidesFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initializeViews(view);
-        loadUpcomingRides();
+        if(!isUser){
+            loadDriverUpcomingRides();
+        }
+        else{
+            loadUserUpcomingRides();
+        }
     }
 
     private void initializeViews(View view) {
         progressBar = view.findViewById(R.id.progressBar);
         tvNoRides = view.findViewById(R.id.tvNoRides);
         ridesContainer = view.findViewById(R.id.ridesContainer);
+        TokenUtils tokenUtils = ClientUtils.getTokenUtils();
+        String userRole = tokenUtils.getRole();
+        isUser = "USER".equals(userRole);
     }
 
-    private void loadUpcomingRides() {
+    private void loadDriverUpcomingRides() {
         showLoading(true);
 
         Call<List<UpcomingRideResponse>> call = driverService.getUpcomingRides();
+        call.enqueue(new Callback<List<UpcomingRideResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
+                showLoading(false);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<UpcomingRideResponse> rides = response.body();
+                    displayRides(rides);
+                } else {
+                    Log.e(TAG, "Failed to load upcoming rides: " + response.code());
+                    showError("Failed to load upcoming rides");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Throwable t) {
+                showLoading(false);
+                Log.e(TAG, "Network error loading upcoming rides", t);
+                showError("Network error. Please check your connection.");
+            }
+        });
+    }
+    private void loadUserUpcomingRides() {
+        showLoading(true);
+
+        Call<List<UpcomingRideResponse>> call = rideService.getUpcomingRides();
         call.enqueue(new Callback<List<UpcomingRideResponse>>() {
             @Override
             public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
@@ -141,6 +180,10 @@ public class UpcomingRidesFragment extends Fragment {
             btnCancel.setOnClickListener(v -> handleCancelRide(ride));
         } else {
             btnCancel.setVisibility(View.GONE);
+        }
+
+        if(isUser){
+            btnStart.setVisibility(View.GONE);
         }
 
         // Set start button click listener
