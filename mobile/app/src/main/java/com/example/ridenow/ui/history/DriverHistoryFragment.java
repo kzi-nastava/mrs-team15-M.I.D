@@ -32,8 +32,8 @@ import java.util.Locale;
 import java.util.List;
 import java.util.ArrayList;
 import com.example.ridenow.R;
-import com.example.ridenow.dto.driver.DriverHistoryResponse;
-import com.example.ridenow.dto.driver.RideHistory;
+import com.example.ridenow.dto.driver.DriverHistoryResponseDTO;
+import com.example.ridenow.dto.driver.RideHistoryDTO;
 import com.example.ridenow.service.DriverService;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
@@ -71,7 +71,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
     // Service and data
     private DriverService driverService;
-    private List<RideHistory> allRideData;
+    private List<RideHistoryDTO> allRideData;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -235,7 +235,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         Toast.makeText(getContext(), "Sorted by date: " + (currentSortDir.equals("asc") ? "Oldest first" : "Newest first"), Toast.LENGTH_SHORT).show();
     }
 
-    private void createRideCard(RideHistory rideHistory) {
+    private void createRideCard(RideHistoryDTO rideHistory) {
         // Inflate the card layout
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View cardView = inflater.inflate(R.layout.item_ride_card, ridesContainer, false);
@@ -248,6 +248,12 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         TextView tvDuration = cardView.findViewById(R.id.tvDuration);
         TextView tvTimeRange = cardView.findViewById(R.id.tvTimeRange);
         LinearLayout statusContainer = cardView.findViewById(R.id.statusContainer);
+        Button btnRating = cardView.findViewById(R.id.btnRating);
+
+        // Hide rating button for driver history (only show for passenger history)
+        if (btnRating != null) {
+            btnRating.setVisibility(View.GONE);
+        }
 
         // Populate route
         String startAddress = AddressUtils.formatAddress(rideHistory.getRoute().getStartLocation().getAddress());
@@ -308,7 +314,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         ridesContainer.addView(cardView);
     }
 
-    private void addStatusIndicators(LinearLayout statusContainer, RideHistory rideHistory) {
+    private void addStatusIndicators(LinearLayout statusContainer, RideHistoryDTO rideHistory) {
         statusContainer.removeAllViews();
 
         // Check for cancelled status
@@ -456,7 +462,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
         isLoading = true;
 
-        Call<DriverHistoryResponse> call = driverService.getDriverRideHistory(
+        Call<DriverHistoryResponseDTO> call = driverService.getDriverRideHistory(
             currentPage,
             pageSize,
             currentSortBy,
@@ -464,13 +470,13 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             currentDateFilter
         );
 
-        call.enqueue(new retrofit2.Callback<DriverHistoryResponse>() {
+        call.enqueue(new retrofit2.Callback<DriverHistoryResponseDTO>() {
             @Override
-            public void onResponse(retrofit2.Call<DriverHistoryResponse> call, retrofit2.Response<DriverHistoryResponse> response) {
+            public void onResponse(retrofit2.Call<DriverHistoryResponseDTO> call, retrofit2.Response<DriverHistoryResponseDTO> response) {
                 isLoading = false;
 
                 if (response.isSuccessful() && response.body() != null) {
-                    DriverHistoryResponse historyResponse = response.body();
+                    DriverHistoryResponseDTO historyResponse = response.body();
 
                     if (currentPage == 0) {
                         // First page, clear existing data
@@ -481,13 +487,13 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
                         removeLoadMoreButton();
                     }
 
-                    List<RideHistory> newRides = historyResponse.getContent();
+                    List<RideHistoryDTO> newRides = historyResponse.getContent();
 
                     allRideData.addAll(newRides);
                     hasMoreData = !historyResponse.isLast();
 
                     // Add cards for new rides
-                    for (RideHistory ride : newRides) {
+                    for (RideHistoryDTO ride : newRides) {
                         createRideCard(ride);
                     }
 
@@ -499,7 +505,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             }
 
             @Override
-            public void onFailure(retrofit2.Call<DriverHistoryResponse> call, Throwable t) {
+            public void onFailure(retrofit2.Call<DriverHistoryResponseDTO> call, Throwable t) {
                 isLoading = false;
                 Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -507,7 +513,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
     }
 
 
-    private void openRideDetailsFromAPI(RideHistory rideHistory) {
+    private void openRideDetailsFromAPI(RideHistoryDTO rideHistory) {
         Bundle bundle = new Bundle();
         bundle.putSerializable("ride_history", rideHistory);
 

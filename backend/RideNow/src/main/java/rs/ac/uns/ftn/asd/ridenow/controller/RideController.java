@@ -79,12 +79,14 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
         TrackVehicleDTO vehicle = rideService.trackRide(id);
         return ResponseEntity.ok(vehicle);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/inconsistency")
     public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@RequestBody @Valid InconsistencyRequestDTO req){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -94,6 +96,7 @@ public class RideController {
         return ResponseEntity.status(201).body(res);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{id}/finish")
     public ResponseEntity<Boolean> finish(@PathVariable @NotNull @Min(1) Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -154,6 +157,7 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/{rideId}/rate")
     public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long rideId, @Valid @RequestBody RateRequestDTO req) {
         RateResponseDTO res = rideService.makeRating(req, rideId);

@@ -11,7 +11,12 @@
     <item
         android:id="@+id/history"
         android:icon="@drawable/ic_person"
-        android:title="Driver History" />
+        android:title="Ride History" />
+
+    <item
+        android:id="@+id/passenger_history"
+        android:icon="@drawable/ic_person"
+        android:title="Ride History" />
 
     <item
         android:id="@+id/login"
@@ -42,9 +47,7 @@
     <item
         android:id="@+id/nav_logout"
         android:title="@string/logout" />
-    <item
-        android:id="@+id/rating"
-        android:title="@string/nav_rating" />
+
     <item
         android:id="@+id/upcoming_rides"
         android:icon="@drawable/ic_access_time"

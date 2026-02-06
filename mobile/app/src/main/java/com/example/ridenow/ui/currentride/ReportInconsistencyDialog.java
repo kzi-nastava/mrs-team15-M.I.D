@@ -14,7 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.ride.InconsistencyRequest;
+import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.util.ClientUtils;
 
@@ -122,7 +122,7 @@ public class ReportInconsistencyDialog {
         submitButton.setEnabled(false);
         submitButton.setText(R.string.report_inconsistency_submitting);
 
-        InconsistencyRequest request = new InconsistencyRequest(rideId, description);
+        InconsistencyRequestDTO request = new InconsistencyRequestDTO(rideId, description);
 
         Call<Void> call = rideService.reportInconsistency(request);
         call.enqueue(new Callback<Void>() {

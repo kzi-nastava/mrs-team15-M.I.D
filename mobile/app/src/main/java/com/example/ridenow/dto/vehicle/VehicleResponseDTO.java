@@ -1,13 +1,13 @@
 package com.example.ridenow.dto.vehicle;
 
-import com.example.ridenow.dto.model.Location;
+import com.example.ridenow.dto.model.LocationDTO;
 
-public class VehicleResponse {
+public class VehicleResponseDTO {
     private String licencePlate;
-    private Location location;
+    private LocationDTO location;
     private Boolean available;
 
-    public VehicleResponse() {
+    public VehicleResponseDTO() {
     }
 
     public String getLicencePlate() {
@@ -18,11 +18,11 @@ public class VehicleResponse {
         this.licencePlate = licencePlate;
     }
 
-    public Location getLocation() {
+    public LocationDTO getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(LocationDTO location) {
         this.location = location;
     }
 

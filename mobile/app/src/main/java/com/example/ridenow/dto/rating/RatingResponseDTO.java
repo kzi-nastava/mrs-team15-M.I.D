@@ -1,6 +1,6 @@
 package com.example.ridenow.dto.rating;
 
-public class RatingResponse {
+public class RatingResponseDTO {
     private Long id;
     private Integer driverRating;
     private Integer vehicleRating;
@@ -9,7 +9,7 @@ public class RatingResponse {
     private String createdAt;  // Changed from LocalDateTime to String
     private Long rideId;
 
-    public RatingResponse() {
+    public RatingResponseDTO() {
     }
 
     public Long getId() {

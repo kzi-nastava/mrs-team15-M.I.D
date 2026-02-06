@@ -64,6 +64,11 @@
     <!-- driver history -->
     <string name="driver_history_title">Ride History</string>
     <string name="driver_history_subtitle">Review your completed rides</string>
+
+    <!-- passenger history -->
+    <string name="passenger_history_title">My Ride History</string>
+    <string name="passenger_history_subtitle">Review your ride history and rate past rides</string>
+
     <!-- driver history table headers -->
     <string name="driver_history_route">Route</string>
     <string name="driver_history_passengers">Passengers</string>
@@ -129,6 +134,7 @@
     <string name="rating_driver_comment_hint">Comment about the driver (optional)</string>
     <string name="rating_vehicle_comment_hint">Comment about the vehicle (optional)</string>
     <string name="rating_submit">Submit Rating</string>
+    <string name="rate_ride">Rate Ride</string>
 
     <!-- Forgot password verify code -->
     <string name="verify_code_title">Enter Verification Code</string>

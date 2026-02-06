@@ -1,13 +1,13 @@
 package com.example.ridenow.dto.driver;
 
-public class DriverLocationResponse {
+public class DriverLocationResponseDTO {
     private double lat;
     private double lon;
     private String licencePlate;
 
-    public DriverLocationResponse() {}
+    public DriverLocationResponseDTO() {}
 
-    public DriverLocationResponse(double lat, double lon, String licencePlate) {
+    public DriverLocationResponseDTO(double lat, double lon, String licencePlate) {
         this.lat = lat;
         this.lon = lon;
         this.licencePlate = licencePlate;

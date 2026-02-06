@@ -1,9 +1,10 @@
 package com.example.ridenow.service;
 
-import com.example.ridenow.dto.driver.DriverHistoryResponse;
-import com.example.ridenow.dto.driver.DriverLocationRequest;
-import com.example.ridenow.dto.driver.DriverLocationResponse;
-import com.example.ridenow.dto.ride.UpcomingRideResponse;
+import com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO;
+import com.example.ridenow.dto.driver.DriverHistoryResponseDTO;
+import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
+import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
+import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
 
@@ -25,7 +26,7 @@ import retrofit2.http.Query;
 
 public interface DriverService {
     @GET("driver/ride-history")
-    Call<DriverHistoryResponse> getDriverRideHistory(@Query("page") int page, @Query("size") int size, @Query("sortBy") String sortBy, @Query("sortDir") String sortOrder, @Query("date") String date);
+    Call<DriverHistoryResponseDTO> getDriverRideHistory(@Query("page") int page, @Query("size") int size, @Query("sortBy") String sortBy, @Query("sortDir") String sortOrder, @Query("date") String date);
 
     @GET("users")
     Call<UserResponseDTO> getUser();
@@ -35,8 +36,11 @@ public interface DriverService {
     Call<DriverChangeResponseDTO> requestDriverChange(@PartMap Map<String, RequestBody> partMap, @Part MultipartBody.Part profileImage);
 
     @GET("driver/rides")
-    Call<List<UpcomingRideResponse>> getUpcomingRides();
+    Call<List<UpcomingRideResponseDTO>> getUpcomingRides();
 
     @PUT("driver/update-location")
-    Call<DriverLocationResponse> updateDriverLocation(@Body DriverLocationRequest request);
+    Call<DriverLocationResponseDTO> updateDriverLocation(@Body DriverLocationRequestDTO request);
+
+    @GET("driver/can-start-ride")
+    Call<DriverCanStartRideResponseDTO> canStartRide();
 }

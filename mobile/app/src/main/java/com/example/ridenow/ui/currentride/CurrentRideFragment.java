@@ -23,11 +23,11 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.driver.DriverLocationRequest;
-import com.example.ridenow.dto.driver.DriverLocationResponse;
-import com.example.ridenow.dto.model.Location;
+import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
+import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
+import com.example.ridenow.dto.model.LocationDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
-import com.example.ridenow.dto.ride.TrackVehicleResponse;
+import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.service.DriverService;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.ui.components.RouteMapView;
@@ -239,18 +239,18 @@ public class CurrentRideFragment extends Fragment {
     private void trackVehicle() {
         if (currentRide == null || currentRide.getRideId() == null) return;
 
-        Call<TrackVehicleResponse> call = rideService.trackVehicle(currentRide.getRideId().toString());
+        Call<TrackVehicleResponseDTO> call = rideService.trackVehicle(currentRide.getRideId().toString());
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<TrackVehicleResponse> call, @NonNull Response<TrackVehicleResponse> response) {
+            public void onResponse(@NonNull Call<TrackVehicleResponseDTO> call, @NonNull Response<TrackVehicleResponseDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    TrackVehicleResponse trackData = response.body();
+                    TrackVehicleResponseDTO trackData = response.body();
                     updateVehicleLocation(trackData.getLocation());
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<TrackVehicleResponse> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<TrackVehicleResponseDTO> call, @NonNull Throwable t) {
                 // Silently fail for tracking errors to avoid spamming user
             }
         });
@@ -287,17 +287,17 @@ public class CurrentRideFragment extends Fragment {
             final double longitude = location.getLongitude();
 
             // Send location to server
-            DriverLocationRequest request = new DriverLocationRequest(latitude, longitude);
+            DriverLocationRequestDTO request = new DriverLocationRequestDTO(latitude, longitude);
 
-            Call<DriverLocationResponse> call = driverService.updateDriverLocation(request);
+            Call<DriverLocationResponseDTO> call = driverService.updateDriverLocation(request);
             call.enqueue(new Callback<>() {
                 @Override
-                public void onResponse(@NonNull Call<DriverLocationResponse> call, @NonNull Response<DriverLocationResponse> response) {
+                public void onResponse(@NonNull Call<DriverLocationResponseDTO> call, @NonNull Response<DriverLocationResponseDTO> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         Log.d(TAG, "Location updated on server successfully");
 
                         // Update driver marker on map
-                        Location driverLocation = new Location();
+                        LocationDTO driverLocation = new LocationDTO();
                         driverLocation.setLatitude(latitude);
                         driverLocation.setLongitude(longitude);
                         driverLocation.setAddress("Current Location");
@@ -310,7 +310,7 @@ public class CurrentRideFragment extends Fragment {
                 }
 
                 @Override
-                public void onFailure(@NonNull Call<DriverLocationResponse> call, @NonNull Throwable t) {
+                public void onFailure(@NonNull Call<DriverLocationResponseDTO> call, @NonNull Throwable t) {
                     Log.e(TAG, "Failed to update location on server", t);
                 }
             });
@@ -320,7 +320,7 @@ public class CurrentRideFragment extends Fragment {
         }
     }
 
-    private void updateVehicleLocation(Location vehicleLocation) {
+    private void updateVehicleLocation(LocationDTO vehicleLocation) {
         if (vehicleLocation != null) {
             // Add/update vehicle marker on map
             routeMapView.updateVehicleMarker(vehicleLocation);

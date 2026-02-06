@@ -2,7 +2,7 @@ package com.example.ridenow.dto.model;
 
 import java.io.Serializable;
 
-public class Location implements Serializable {
+public class LocationDTO implements Serializable {
     private double latitude;
     private double longitude;
     private String address;

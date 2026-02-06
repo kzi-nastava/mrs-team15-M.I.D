@@ -1,12 +1,12 @@
 package com.example.ridenow.dto.rating;
 
-public class RatingRequest {
+public class RatingRequestDTO {
         private Integer driverRating;
         private Integer vehicleRating;
         private String driverComment;
         private String vehicleComment;
 
-    public RatingRequest(int driverRating, int vehicleRating, String driverComment, String vehicleComment) {
+    public RatingRequestDTO(int driverRating, int vehicleRating, String driverComment, String vehicleComment) {
         this.driverRating = driverRating;
         this.vehicleRating = vehicleRating;
         this.driverComment = driverComment;

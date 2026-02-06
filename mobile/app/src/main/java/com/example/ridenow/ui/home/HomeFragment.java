@@ -29,10 +29,11 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.model.PolylinePoint;
+import com.example.ridenow.dto.model.LocationDTO;
+import com.example.ridenow.dto.model.PolylinePointDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
 import com.example.ridenow.dto.ride.RoutePointDTO;
-import com.example.ridenow.dto.vehicle.VehicleResponse;
+import com.example.ridenow.dto.vehicle.VehicleResponseDTO;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.service.VehicleService;
 import com.example.ridenow.ui.components.RouteMapView;
@@ -663,21 +664,21 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     }
 
     private void displayRouteEstimate(RideEstimateResponseDTO estimate) {
-        List<PolylinePoint> polylinePoints = new ArrayList<>();
+        List<PolylinePointDTO> polylinePoints = new ArrayList<>();
         if (estimate.getRoute() != null) {
             for (RoutePointDTO point : estimate.getRoute()) {
-                PolylinePoint polylinePoint = new PolylinePoint();
+                PolylinePointDTO polylinePoint = new PolylinePointDTO();
                 polylinePoint.setLatitude(point.getLat());
                 polylinePoint.setLongitude(point.getLng());
                 polylinePoints.add(polylinePoint);
             }
         }
-        com.example.ridenow.dto.model.Location startLocation = new com.example.ridenow.dto.model.Location();
+        LocationDTO startLocation = new LocationDTO();
         startLocation.setLatitude(selectedStartLat);
         startLocation.setLongitude(selectedStartLon);
         startLocation.setAddress(selectedStartDisplayName);
 
-        com.example.ridenow.dto.model.Location endLocation = new com.example.ridenow.dto.model.Location();
+        LocationDTO endLocation = new LocationDTO();
         endLocation.setLatitude(selectedEndLat);
         endLocation.setLongitude(selectedEndLon);
         endLocation.setAddress(selectedEndDisplayName);
@@ -777,10 +778,10 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     }
 
     private void loadVehiclesAroundLocation(double latitude, double longitude) {
-        Call<List<VehicleResponse>> call = vehicleService.getAllVehicles(latitude, longitude);
-        call.enqueue(new Callback<List<VehicleResponse>>() {
+        Call<List<VehicleResponseDTO>> call = vehicleService.getAllVehicles(latitude, longitude);
+        call.enqueue(new Callback<List<VehicleResponseDTO>>() {
             @Override
-            public void onResponse(Call<List<VehicleResponse>> call, Response<List<VehicleResponse>> response) {
+            public void onResponse(Call<List<VehicleResponseDTO>> call, Response<List<VehicleResponseDTO>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     displayVehiclesOnMap(response.body());
                 } else {
@@ -789,14 +790,14 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
             }
 
             @Override
-            public void onFailure(Call<List<VehicleResponse>> call, Throwable t) {
+            public void onFailure(Call<List<VehicleResponseDTO>> call, Throwable t) {
                 Log.e("HomeFragment", "Error loading vehicles", t);
                 Toast.makeText(getContext(), "Failed to load vehicles", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void displayVehiclesOnMap(List<VehicleResponse> vehicles) {
+    private void displayVehiclesOnMap(List<VehicleResponseDTO> vehicles) {
         routeMapView.displayVehicles(vehicles);
     }
 

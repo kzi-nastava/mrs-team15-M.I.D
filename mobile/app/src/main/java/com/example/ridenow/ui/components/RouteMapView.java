@@ -12,9 +12,9 @@ import android.widget.FrameLayout;
 import androidx.core.content.ContextCompat;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.model.Location;
-import com.example.ridenow.dto.model.PolylinePoint;
-import com.example.ridenow.dto.vehicle.VehicleResponse;
+import com.example.ridenow.dto.model.LocationDTO;
+import com.example.ridenow.dto.model.PolylinePointDTO;
+import com.example.ridenow.dto.vehicle.VehicleResponseDTO;
 import com.example.ridenow.util.AddressUtils;
 
 import org.osmdroid.api.IMapController;
@@ -184,8 +184,8 @@ public class RouteMapView extends FrameLayout {
      * @param stopLocations List of stop points along the route (can be null or empty)
      * @param polylinePoints Detailed route polyline points (can be null)
      */
-    public void displayRoute(Location startLocation, Location endLocation,
-                           List<Location> stopLocations, List<PolylinePoint> polylinePoints) {
+    public void displayRoute(LocationDTO startLocation, LocationDTO endLocation,
+                             List<LocationDTO> stopLocations, List<PolylinePointDTO> polylinePoints) {
 
         if (startLocation == null || endLocation == null) {
             return;
@@ -205,7 +205,7 @@ public class RouteMapView extends FrameLayout {
         // Add stop points
         List<GeoPoint> stopPoints = new ArrayList<>();
         if (stopLocations != null && !stopLocations.isEmpty()) {
-            for (Location stop : stopLocations) {
+            for (LocationDTO stop : stopLocations) {
                 GeoPoint stopPoint = new GeoPoint(stop.getLatitude(), stop.getLongitude());
                 stopPoints.add(stopPoint);
                 allPoints.add(stopPoint);
@@ -226,13 +226,13 @@ public class RouteMapView extends FrameLayout {
         mapView.invalidate();
     }
 
-    private void drawRouteLine(List<GeoPoint> allPoints, List<PolylinePoint> polylinePoints) {
+    private void drawRouteLine(List<GeoPoint> allPoints, List<PolylinePointDTO> polylinePoints) {
         List<GeoPoint> routePoints;
 
         if (polylinePoints != null && !polylinePoints.isEmpty()) {
             // Use detailed polyline points from API
             routePoints = new ArrayList<>();
-            for (PolylinePoint point : polylinePoints) {
+            for (PolylinePointDTO point : polylinePoints) {
                 routePoints.add(new GeoPoint(point.getLatitude(), point.getLongitude()));
             }
         } else {
@@ -252,7 +252,7 @@ public class RouteMapView extends FrameLayout {
         }
     }
 
-    private void addRouteMarkers(Location startLocation, Location endLocation, List<Location> stopLocations) {
+    private void addRouteMarkers(LocationDTO startLocation, LocationDTO endLocation, List<LocationDTO> stopLocations) {
         // Add start marker
         Marker startMarker = createMarker(
             new GeoPoint(startLocation.getLatitude(), startLocation.getLongitude()),
@@ -265,7 +265,7 @@ public class RouteMapView extends FrameLayout {
         // Add stop markers
         if (stopLocations != null && !stopLocations.isEmpty()) {
             for (int i = 0; i < stopLocations.size(); i++) {
-                Location stop = stopLocations.get(i);
+                LocationDTO stop = stopLocations.get(i);
                 Marker stopMarker = createMarker(
                     new GeoPoint(stop.getLatitude(), stop.getLongitude()),
                     "Stop " + (i + 1) + ": " + AddressUtils.formatAddress(stop.getAddress()),
@@ -414,13 +414,13 @@ public class RouteMapView extends FrameLayout {
      * Display vehicles on the map
      * @param vehicles List of vehicles to display
      */
-    public void displayVehicles(List<VehicleResponse> vehicles) {
+    public void displayVehicles(List<VehicleResponseDTO> vehicles) {
         if (vehicles == null) return;
 
         // Clear existing vehicle markers (but keep driver marker and map events overlay)
         clearVehicleMarkers();
 
-        for (VehicleResponse vehicle : vehicles) {
+        for (VehicleResponseDTO vehicle : vehicles) {
             if (vehicle.getLocation() != null) {
                 addVehicleMarker(vehicle);
             }
@@ -494,7 +494,7 @@ public class RouteMapView extends FrameLayout {
      * Update vehicle marker for current ride tracking
      * @param vehicleLocation Current location of the vehicle
      */
-    public void updateVehicleMarker(Location vehicleLocation) {
+    public void updateVehicleMarker(LocationDTO vehicleLocation) {
         if (vehicleLocation == null || mapView == null) return;
 
         GeoPoint vehiclePoint = new GeoPoint(
@@ -522,7 +522,7 @@ public class RouteMapView extends FrameLayout {
      * Center the map on a specific location
      * @param location Location to center on
      */
-    public void centerOnLocation(Location location) {
+    public void centerOnLocation(LocationDTO location) {
         if (location == null || mapView == null) return;
 
         GeoPoint center = new GeoPoint(location.getLatitude(), location.getLongitude());
@@ -534,7 +534,7 @@ public class RouteMapView extends FrameLayout {
      * Update driver marker for current location tracking
      * @param driverLocation Current location of the driver
      */
-    public void updateDriverMarker(Location driverLocation) {
+    public void updateDriverMarker(LocationDTO driverLocation) {
         if (driverLocation == null || mapView == null) return;
 
         GeoPoint driverPoint = new GeoPoint(
@@ -565,7 +565,7 @@ public class RouteMapView extends FrameLayout {
         vehicleMarkers.clear();
     }
 
-    private void addVehicleMarker(VehicleResponse vehicle) {
+    private void addVehicleMarker(VehicleResponseDTO vehicle) {
         GeoPoint vehiclePoint = new GeoPoint(
             vehicle.getLocation().getLatitude(),
             vehicle.getLocation().getLongitude()

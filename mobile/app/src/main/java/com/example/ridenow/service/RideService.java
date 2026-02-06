@@ -1,16 +1,15 @@
 package com.example.ridenow.service;
 
-import com.example.ridenow.dto.rating.RatingRequest;
-import com.example.ridenow.dto.rating.RatingResponse;
+import com.example.ridenow.dto.rating.RatingRequestDTO;
+import com.example.ridenow.dto.rating.RatingResponseDTO;
 import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
-import com.example.ridenow.dto.ride.InconsistencyRequest;
+import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
-import com.example.ridenow.dto.ride.TrackVehicleResponse;
-import com.example.ridenow.dto.ride.UpcomingRideResponse;
+import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
+import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 
 import java.util.List;
-import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -22,16 +21,16 @@ import retrofit2.http.Query;
 
 public interface RideService {
     @POST("rides/{rideId}/rate")
-    Call<RatingResponse> rateRide(@Path("rideId") String rideId, @Body RatingRequest ratingRequest);
+    Call<RatingResponseDTO> rateRide(@Path("rideId") String rideId, @Body RatingRequestDTO ratingRequest);
 
     @GET("rides/my-current-ride")
     Call<CurrentRideResponse> getCurrentRide();
 
     @GET("rides/{rideId}/track")
-    Call<TrackVehicleResponse> trackVehicle(@Path("rideId") String rideId);
+    Call<TrackVehicleResponseDTO> trackVehicle(@Path("rideId") String rideId);
 
     @POST("rides/inconsistency")
-    Call<Void> reportInconsistency(@Body InconsistencyRequest inconsistencyRequest);
+    Call<Void> reportInconsistency(@Body InconsistencyRequestDTO inconsistencyRequest);
 
     @POST("rides/{rideId}/finish")
     Call<Boolean> finishRide(@Path("rideId") String rideId);
@@ -46,5 +45,5 @@ public interface RideService {
     Call<Void> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
 
     @GET("rides/my-upcoming-rides")
-    Call<List<UpcomingRideResponse>>getUpcomingRides();
+    Call<List<UpcomingRideResponseDTO>>getUpcomingRides();
 }

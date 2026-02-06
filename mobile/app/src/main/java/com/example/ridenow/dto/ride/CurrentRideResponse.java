@@ -1,10 +1,10 @@
 package com.example.ridenow.dto.ride;
 
-import com.example.ridenow.dto.model.Route;
+import com.example.ridenow.dto.model.RouteDTO;
 
 public class CurrentRideResponse {
     private int estimatedDurationMin;
-    private Route route;
+    private RouteDTO route;
     private Long rideId;
 
     public int getEstimatedDurationMin() {
@@ -15,11 +15,11 @@ public class CurrentRideResponse {
         this.estimatedDurationMin = estimatedDurationMin;
     }
 
-    public Route getRoute() {
+    public RouteDTO getRoute() {
         return route;
     }
 
-    public void setRoute(Route route) {
+    public void setRoute(RouteDTO route) {
         this.route = route;
     }
 
