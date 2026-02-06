@@ -1,5 +1,6 @@
 package com.example.ridenow.ui.upcoming;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,16 +17,21 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
+import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponse;
 import com.example.ridenow.service.DriverService;
+import com.example.ridenow.service.RideService;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
+import com.example.ridenow.util.TokenUtils;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -40,10 +46,14 @@ public class UpcomingRidesFragment extends Fragment {
     private LinearLayout ridesContainer;
     private DriverService driverService;
 
+    private RideService rideService;
+    private boolean isUser;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         driverService = ClientUtils.getClient(DriverService.class);
+        rideService = ClientUtils.getClient(RideService.class);
     }
 
     @Nullable
@@ -55,21 +65,54 @@ public class UpcomingRidesFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initializeViews(view);
-        loadUpcomingRides();
+        if(!isUser){
+            loadDriverUpcomingRides();
+        }
+        else{
+            loadUserUpcomingRides();
+        }
     }
 
     private void initializeViews(View view) {
         progressBar = view.findViewById(R.id.progressBar);
         tvNoRides = view.findViewById(R.id.tvNoRides);
         ridesContainer = view.findViewById(R.id.ridesContainer);
+        TokenUtils tokenUtils = ClientUtils.getTokenUtils();
+        String userRole = tokenUtils.getRole();
+        isUser = "USER".equals(userRole);
     }
 
-    private void loadUpcomingRides() {
+    private void loadDriverUpcomingRides() {
         showLoading(true);
 
         Call<List<UpcomingRideResponse>> call = driverService.getUpcomingRides();
+        call.enqueue(new Callback<List<UpcomingRideResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
+                showLoading(false);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<UpcomingRideResponse> rides = response.body();
+                    displayRides(rides);
+                } else {
+                    Log.e(TAG, "Failed to load upcoming rides: " + response.code());
+                    showError("Failed to load upcoming rides");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Throwable t) {
+                showLoading(false);
+                Log.e(TAG, "Network error loading upcoming rides", t);
+                showError("Network error. Please check your connection.");
+            }
+        });
+    }
+    private void loadUserUpcomingRides() {
+        showLoading(true);
+
+        Call<List<UpcomingRideResponse>> call = rideService.getUpcomingRides();
         call.enqueue(new Callback<List<UpcomingRideResponse>>() {
             @Override
             public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
@@ -143,6 +186,10 @@ public class UpcomingRidesFragment extends Fragment {
             btnCancel.setVisibility(View.GONE);
         }
 
+        if(isUser){
+            btnStart.setVisibility(View.GONE);
+        }
+
         // Set start button click listener
         btnStart.setOnClickListener(v -> handleStartRide(ride));
 
@@ -187,9 +234,70 @@ public class UpcomingRidesFragment extends Fragment {
     }
 
     private void handleCancelRide(UpcomingRideResponse ride) {
-        // TODO: Implement cancel ride functionality
-        Toast.makeText(requireContext(), "Cancel ride functionality will be implemented", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "Cancel ride requested for ID: " + ride.getId());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_cancel_ride, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextInputEditText etCancelReason = dialogView.findViewById(R.id.etCancelReason);
+        Button btnCancel = dialogView.findViewById(R.id.btnDialogCancel);
+        Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirm);
+
+        btnCancel.setOnClickListener(v -> {dialog.dismiss();});
+        btnConfirm.setOnClickListener(v -> {
+            String reason = etCancelReason.getText() == null ? "" : etCancelReason.getText().toString().trim();
+            if(!isUser && reason.isEmpty()){
+                etCancelReason.setError("Please provide a reason");
+                Toast.makeText(requireContext(),"Please provide a reason" , Toast.LENGTH_LONG).show();
+
+                return;
+            }
+            dialog.dismiss();
+            performCancelRide(ride.getId(), reason);
+        });
+        dialog.show();
+    }
+
+    private void performCancelRide(Long id, String reason) {
+        showLoading(true);
+        CancelRideRequestDTO dto = new CancelRideRequestDTO(reason);
+        rideService.cancel(id, dto).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                showLoading(false);
+                if(response.isSuccessful()){
+                    Toast.makeText(requireContext(), "Ride cancelled successfully", Toast.LENGTH_SHORT).show();
+                    if (!isUser) {
+                        loadDriverUpcomingRides();
+                    } else {
+                        loadUserUpcomingRides();
+                    }
+                }
+                else{
+                    String errorMessage = "Ride cancellation failed";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            errorMessage = errorBody;
+                            if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Ride cancellation failed (code: " + response.code() + ")";
+                    }
+
+                    Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                showLoading(false);
+                Toast.makeText(requireContext(),"Error: " + t.getMessage(),Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void handleStartRide(UpcomingRideResponse ride) {

@@ -2,17 +2,21 @@ package com.example.ridenow.service;
 
 import com.example.ridenow.dto.rating.RatingRequest;
 import com.example.ridenow.dto.rating.RatingResponse;
+import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
 import com.example.ridenow.dto.ride.InconsistencyRequest;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponse;
+import com.example.ridenow.dto.ride.UpcomingRideResponse;
 
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -38,4 +42,9 @@ public interface RideService {
                                            @Query("endLatitude") Double endLatitude,
                                            @Query("endLongitude") Double endLongitude);
 
+    @PUT("rides/{id}/cancel")
+    Call<Void> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
+
+    @GET("rides/my-upcoming-rides")
+    Call<List<UpcomingRideResponse>>getUpcomingRides();
 }
