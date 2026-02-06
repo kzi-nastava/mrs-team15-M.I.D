@@ -3,11 +3,11 @@ package com.example.ridenow.dto.driver;
 import java.io.Serializable;
 import java.util.List;
 
-import com.example.ridenow.dto.model.Rating;
-import com.example.ridenow.dto.model.Route;
+import com.example.ridenow.dto.model.RatingDTO;
+import com.example.ridenow.dto.model.RouteDTO;
 
-public class RideHistory implements Serializable {
-        private Route route;
+public class RideHistoryDTO implements Serializable {
+        private RouteDTO route;
         private List<String> passengers;
         private String date;
         private String startTime;
@@ -18,13 +18,13 @@ public class RideHistory implements Serializable {
         private String cancelledBy;
         private Boolean panic;
         private String panicBy;
-        private Rating rating;
+        private RatingDTO rating;
         private List<String> inconsistencies;
-    public RideHistory() {}
+    public RideHistoryDTO() {}
 
     // Getters and setters
-    public Route getRoute() { return route; }
-    public void setRoute(Route route) { this.route = route; }
+    public RouteDTO getRoute() { return route; }
+    public void setRoute(RouteDTO route) { this.route = route; }
 
     public List<String> getPassengers() { return passengers; }
     public void setPassengers(List<String> passengers) { this.passengers = passengers; }
@@ -62,8 +62,8 @@ public class RideHistory implements Serializable {
     public String getPanicBy() { return panicBy; }
     public void setPanicBy(String panicBy) { this.panicBy = panicBy; }
 
-    public Rating getRating() { return rating; }
-    public void setRating(Rating rating) { this.rating = rating; }
+    public RatingDTO getRating() { return rating; }
+    public void setRating(RatingDTO rating) { this.rating = rating; }
 
     public List<String> getInconsistencies() { return inconsistencies; }
     public void setInconsistencies(List<String> inconsistencies) { this.inconsistencies = inconsistencies; }

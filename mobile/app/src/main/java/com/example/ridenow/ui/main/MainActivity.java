@@ -171,11 +171,14 @@ public class MainActivity extends AppCompatActivity {
 
         // User-only items
         navigationView.getMenu().findItem(R.id.profile).setVisible(isUser);
-        navigationView.getMenu().findItem(R.id.ride_ordering).setVisible(true);
+        navigationView.getMenu().findItem(R.id.ride_ordering).setVisible(isUser);
+        navigationView.getMenu().findItem(R.id.passenger_history).setVisible(isUser);
 
         // Common logged-in user items
         navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
-        navigationView.getMenu().findItem(R.id.rating).setVisible(isLoggedIn);
+
+        // Non-admin items
+        navigationView.getMenu().findItem(R.id.current_ride).setVisible(isUser || isDriver); // User Management
 
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests

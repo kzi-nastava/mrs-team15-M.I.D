@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
 import com.example.ridenow.dto.ride.CancelRideRequestDTO;
-import com.example.ridenow.dto.ride.UpcomingRideResponse;
+import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.service.DriverService;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.util.AddressUtils;
@@ -31,7 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -86,14 +85,14 @@ public class UpcomingRidesFragment extends Fragment {
     private void loadDriverUpcomingRides() {
         showLoading(true);
 
-        Call<List<UpcomingRideResponse>> call = driverService.getUpcomingRides();
-        call.enqueue(new Callback<List<UpcomingRideResponse>>() {
+        Call<List<UpcomingRideResponseDTO>> call = driverService.getUpcomingRides();
+        call.enqueue(new Callback<List<UpcomingRideResponseDTO>>() {
             @Override
-            public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
+            public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    List<UpcomingRideResponse> rides = response.body();
+                    List<UpcomingRideResponseDTO> rides = response.body();
                     displayRides(rides);
                 } else {
                     Log.e(TAG, "Failed to load upcoming rides: " + response.code());
@@ -102,7 +101,7 @@ public class UpcomingRidesFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Throwable t) {
                 showLoading(false);
                 Log.e(TAG, "Network error loading upcoming rides", t);
                 showError("Network error. Please check your connection.");
@@ -112,14 +111,14 @@ public class UpcomingRidesFragment extends Fragment {
     private void loadUserUpcomingRides() {
         showLoading(true);
 
-        Call<List<UpcomingRideResponse>> call = rideService.getUpcomingRides();
-        call.enqueue(new Callback<List<UpcomingRideResponse>>() {
+        Call<List<UpcomingRideResponseDTO>> call = rideService.getUpcomingRides();
+        call.enqueue(new Callback<List<UpcomingRideResponseDTO>>() {
             @Override
-            public void onResponse(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Response<List<UpcomingRideResponse>> response) {
+            public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    List<UpcomingRideResponse> rides = response.body();
+                    List<UpcomingRideResponseDTO> rides = response.body();
                     displayRides(rides);
                 } else {
                     Log.e(TAG, "Failed to load upcoming rides: " + response.code());
@@ -128,7 +127,7 @@ public class UpcomingRidesFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<UpcomingRideResponse>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Throwable t) {
                 showLoading(false);
                 Log.e(TAG, "Network error loading upcoming rides", t);
                 showError("Network error. Please check your connection.");
@@ -136,7 +135,7 @@ public class UpcomingRidesFragment extends Fragment {
         });
     }
 
-    private void displayRides(List<UpcomingRideResponse> rides) {
+    private void displayRides(List<UpcomingRideResponseDTO> rides) {
         ridesContainer.removeAllViews();
 
         if (rides == null || rides.isEmpty()) {
@@ -148,13 +147,13 @@ public class UpcomingRidesFragment extends Fragment {
         showNoRides(false);
         showRidesContainer(true);
 
-        for (UpcomingRideResponse ride : rides) {
+        for (UpcomingRideResponseDTO ride : rides) {
             View rideCard = createRideCard(ride);
             ridesContainer.addView(rideCard);
         }
     }
 
-    private View createRideCard(UpcomingRideResponse ride) {
+    private View createRideCard(UpcomingRideResponseDTO ride) {
         LayoutInflater inflater = LayoutInflater.from(requireContext());
         View cardView = inflater.inflate(R.layout.item_upcoming_ride, ridesContainer, false);
 
@@ -233,7 +232,7 @@ public class UpcomingRidesFragment extends Fragment {
         return startTime;
     }
 
-    private void handleCancelRide(UpcomingRideResponse ride) {
+    private void handleCancelRide(UpcomingRideResponseDTO ride) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_cancel_ride, null);
@@ -300,10 +299,55 @@ public class UpcomingRidesFragment extends Fragment {
         });
     }
 
-    private void handleStartRide(UpcomingRideResponse ride) {
-        // TODO: Implement start ride functionality
-        Toast.makeText(requireContext(), "Start ride functionality will be implemented", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "Start ride requested for ID: " + ride.getId());
+    private void handleStartRide(UpcomingRideResponseDTO ride) {
+        // Show loading state
+        showLoading(true);
+
+        // Call canStartRide API
+        Call<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> call = driverService.canStartRide();
+        call.enqueue(new Callback<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO>() {
+            @Override
+            public void onResponse(@NonNull Call<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> call,
+                                 @NonNull Response<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> response) {
+                showLoading(false);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO result = response.body();
+
+                    // Check if the driver can start a ride (positive response)
+                    if (result.isCanStart()) {
+                        Log.d(TAG, "Driver can start ride. Navigating to home page...");
+                        Toast.makeText(requireContext(), "Ride started successfully!", Toast.LENGTH_SHORT).show();
+                        navigateToHomePage();
+                    } else {
+                        // Driver cannot start ride
+                        Toast.makeText(requireContext(), "Cannot start ride at this time", Toast.LENGTH_LONG).show();
+                        Log.w(TAG, "Driver cannot start ride");
+                    }
+                } else {
+                    Log.e(TAG, "Failed to check if driver can start ride: " + response.code());
+                    Toast.makeText(requireContext(), "Failed to start ride. Please try again.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> call, @NonNull Throwable t) {
+                showLoading(false);
+                Log.e(TAG, "Network error checking if driver can start ride", t);
+                Toast.makeText(requireContext(), "Network error. Please check your connection.", Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private void navigateToHomePage() {
+        try {
+            androidx.navigation.NavController navController =
+                androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+            navController.navigate(R.id.nav_home);
+        } catch (Exception e) {
+            Log.e(TAG, "Error navigating to home page", e);
+            Toast.makeText(requireContext(), "Navigation error occurred", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showLoading(boolean show) {

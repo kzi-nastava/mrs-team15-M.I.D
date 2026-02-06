@@ -1,9 +1,6 @@
 package com.example.ridenow.ui.rating;
 
 import android.os.Bundle;
-import android.os.Debug;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,16 +9,13 @@ import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.rating.RatingRequest;
-import com.example.ridenow.dto.rating.RatingResponse;
+import com.example.ridenow.dto.rating.RatingRequestDTO;
+import com.example.ridenow.dto.rating.RatingResponseDTO;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.util.ClientUtils;
-
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -97,7 +91,6 @@ public class RatingFragment extends Fragment {
     private void submitRating() {
         float driverRating = driverRatingBar.getRating();
         float vehicleRating = vehicleRatingBar.getRating();
-        rideId = "11";
 
         if (driverRating == 0 || vehicleRating == 0) {
             Toast.makeText(getContext(), "Please rate both driver and vehicle", Toast.LENGTH_SHORT).show();
@@ -113,7 +106,7 @@ public class RatingFragment extends Fragment {
         String vehicleComment = etVehicleComment.getText().toString().trim();
 
         // Create rating request
-        RatingRequest request = new RatingRequest(
+        RatingRequestDTO request = new RatingRequestDTO(
             (int) driverRating,
             (int) vehicleRating,
             driverComment.isEmpty() ? null : driverComment,
@@ -125,10 +118,10 @@ public class RatingFragment extends Fragment {
         btnSubmitRating.setText("Submitting...");
 
         // Make API call
-        Call<RatingResponse> call = rideService.rateRide(rideId, request);
-        call.enqueue(new Callback<RatingResponse>() {
+        Call<RatingResponseDTO> call = rideService.rateRide(rideId, request);
+        call.enqueue(new Callback<RatingResponseDTO>() {
             @Override
-            public void onResponse(Call<RatingResponse> call, Response<RatingResponse> response) {
+            public void onResponse(Call<RatingResponseDTO> call, Response<RatingResponseDTO> response) {
                 btnSubmitRating.setEnabled(true);
                 btnSubmitRating.setText(R.string.rating_submit);
 
@@ -147,7 +140,7 @@ public class RatingFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<RatingResponse> call, Throwable t) {
+            public void onFailure(Call<RatingResponseDTO> call, Throwable t) {
                 btnSubmitRating.setEnabled(true);
                 btnSubmitRating.setText(R.string.rating_submit);
                 Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();

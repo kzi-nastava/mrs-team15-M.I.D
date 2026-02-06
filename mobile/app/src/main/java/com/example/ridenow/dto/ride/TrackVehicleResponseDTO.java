@@ -1,16 +1,16 @@
 package com.example.ridenow.dto.ride;
 
-import com.example.ridenow.dto.model.Location;
+import com.example.ridenow.dto.model.LocationDTO;
 
-public class TrackVehicleResponse {
-    private Location location;
+public class TrackVehicleResponseDTO {
+    private LocationDTO location;
     private Integer remainingTimeInMinutes;
 
-    public Location getLocation() {
+    public LocationDTO getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(LocationDTO location) {
         this.location = location;
     }
 

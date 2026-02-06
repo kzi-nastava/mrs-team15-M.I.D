@@ -161,6 +161,16 @@
 
         </LinearLayout>
 
+        <!-- Rating Button -->
+        <Button
+            android:id="@+id/btnRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/rate_ride"
+            android:layout_marginTop="12dp"
+            style="@style/ButtonPrimary"
+            android:textAllCaps="false" />
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

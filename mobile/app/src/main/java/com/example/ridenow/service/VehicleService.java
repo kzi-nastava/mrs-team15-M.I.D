@@ -1,6 +1,6 @@
 package com.example.ridenow.service;
 
-import com.example.ridenow.dto.vehicle.VehicleResponse;
+import com.example.ridenow.dto.vehicle.VehicleResponseDTO;
 
 import java.util.List;
 
@@ -10,6 +10,6 @@ import retrofit2.http.Query;
 
 public interface VehicleService {
     @GET("vehicles/")
-    Call<List<VehicleResponse>> getAllVehicles(@Query("lat") Double lat, @Query("lon") Double lon);
+    Call<List<VehicleResponseDTO>> getAllVehicles(@Query("lat") Double lat, @Query("lon") Double lon);
 
 }

@@ -36,6 +36,7 @@ public class DriverController {
         this.driverService = driverService;
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/ride-history")
     public ResponseEntity<Page<DriverHistoryItemDTO>> getRideHistory(@RequestParam(defaultValue = "0") int page,
                                                                      @RequestParam(defaultValue = "10") int size,
@@ -75,6 +76,7 @@ public class DriverController {
         };
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/rides")
     public ResponseEntity<List<UpcomingRideDTO>> findRides() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -136,6 +138,7 @@ public class DriverController {
         }
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/update-location")
     public ResponseEntity<DriverLocationResponseDTO> updateDriverLocation(@Valid @RequestBody DriverLocationRequestDTO request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -146,6 +149,7 @@ public class DriverController {
         return ResponseEntity.badRequest().build();
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/can-start-ride")
     public ResponseEntity<DriverCanStartRideResponseDTO> canDriverStartRide() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

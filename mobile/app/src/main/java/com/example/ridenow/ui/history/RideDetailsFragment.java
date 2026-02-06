@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.driver.RideHistory;
+import com.example.ridenow.dto.driver.RideHistoryDTO;
 import com.example.ridenow.ui.components.RouteMapView;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.DateUtils;
@@ -20,7 +20,7 @@ import com.example.ridenow.util.DateUtils;
 import java.util.Locale;
 
 public class RideDetailsFragment extends Fragment {
-    private RideHistory rideHistory;
+    private RideHistoryDTO rideHistory;
     private RouteMapView routeMapView;
 
     @Override
@@ -28,7 +28,7 @@ public class RideDetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            rideHistory = (RideHistory) getArguments().getSerializable("ride_history");
+            rideHistory = (RideHistoryDTO) getArguments().getSerializable("ride_history");
         }
     }
 

@@ -2,7 +2,7 @@ package com.example.ridenow.dto.model;
 
 import java.io.Serializable;
 
-public class Rating implements Serializable {
+public class RatingDTO implements Serializable {
     private Integer driverRating;
     private Integer vehicleRating;
     private String driverComment;

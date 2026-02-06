@@ -1,12 +1,12 @@
 package com.example.ridenow.dto.ride;
 
-public class InconsistencyRequest {
+public class InconsistencyRequestDTO {
     private Long rideId;
     private String description;
 
-    public InconsistencyRequest() {}
+    public InconsistencyRequestDTO() {}
 
-    public InconsistencyRequest(Long rideId, String description) {
+    public InconsistencyRequestDTO(Long rideId, String description) {
         this.rideId = rideId;
         this.description = description;
     }
