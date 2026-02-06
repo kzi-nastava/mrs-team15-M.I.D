@@ -10,6 +10,7 @@ import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -46,4 +47,7 @@ public interface RideService {
 
     @GET("rides/my-upcoming-rides")
     Call<List<UpcomingRideResponseDTO>>getUpcomingRides();
+
+    @POST("rides/panic-alert")
+    Call <Map<String, String>> triggerPanicAlert();
 }

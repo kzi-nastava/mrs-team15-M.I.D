@@ -98,9 +98,12 @@ public class RouteMapView extends FrameLayout {
 
     // Configuration options
     private int routeColor = Color.parseColor("#2196F3"); // Material blue
+
+    private int alertRouteColor = Color.parseColor("#f02d3a");
     private float routeWidth = 8.0f;
     private boolean showMarkers = true;
     private boolean enableZoomControls = false;
+    private  boolean isPanicMode = false;
 
     public RouteMapView(Context context) {
         super(context);
@@ -586,5 +589,13 @@ public class RouteMapView extends FrameLayout {
 
         vehicleMarkers.put(vehicle.getLicencePlate(), marker);
         mapView.getOverlays().add(marker);
+    }
+
+    public void setPanicMode(boolean isPanic){
+        this.isPanicMode = isPanic;
+        this.routeColor = isPanic ? this.alertRouteColor :  Color.parseColor("#2196F3"); ;
+        if(mapView != null){
+            mapView.invalidate();
+        }
     }
 }
