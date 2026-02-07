@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
@@ -34,13 +35,13 @@ public class RatingFragment extends Fragment {
     private String rideId;
     private RideService rideService;
 
-    public static RatingFragment newInstance(String rideId) {
-        RatingFragment fragment = new RatingFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_RIDE_ID, rideId);
-        fragment.setArguments(args);
-        return fragment;
-    }
+//    public static RatingFragment newInstance(String rideId) {
+//        RatingFragment fragment = new RatingFragment();
+//        Bundle args = new Bundle();
+//        args.putString(ARG_RIDE_ID, rideId);
+//        fragment.setArguments(args);
+//        return fragment;
+//    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -115,13 +116,13 @@ public class RatingFragment extends Fragment {
 
         // Disable button during API call
         btnSubmitRating.setEnabled(false);
-        btnSubmitRating.setText("Submitting...");
+        btnSubmitRating.setText(getString(R.string.rating_submitting));
 
         // Make API call
         Call<RatingResponseDTO> call = rideService.rateRide(rideId, request);
-        call.enqueue(new Callback<RatingResponseDTO>() {
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<RatingResponseDTO> call, Response<RatingResponseDTO> response) {
+            public void onResponse(@NonNull Call<RatingResponseDTO> call, @NonNull Response<RatingResponseDTO> response) {
                 btnSubmitRating.setEnabled(true);
                 btnSubmitRating.setText(R.string.rating_submit);
 
@@ -132,7 +133,7 @@ public class RatingFragment extends Fragment {
 
                     // Navigate back or close the fragment
                     if (getActivity() != null) {
-                        getActivity().onBackPressed();
+                        requireActivity().getOnBackPressedDispatcher().onBackPressed();
                     }
                 } else {
                     Toast.makeText(getContext(), "Failed to submit rating. Please try again. Code: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -140,7 +141,7 @@ public class RatingFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<RatingResponseDTO> call, Throwable t) {
+            public void onFailure(@NonNull Call<RatingResponseDTO> call, @NonNull Throwable t) {
                 btnSubmitRating.setEnabled(true);
                 btnSubmitRating.setText(R.string.rating_submit);
                 Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();

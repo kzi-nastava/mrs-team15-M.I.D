@@ -34,9 +34,9 @@ public class ReportInconsistencyDialog {
     private Button submitButton;
     private Button cancelButton;
 
-    private RideService rideService;
-    private Long rideId;
-    private OnInconsistencyReportedListener listener;
+    private final RideService rideService;
+    private final Long rideId;
+    private final OnInconsistencyReportedListener listener;
 
     public ReportInconsistencyDialog(Context context, Long rideId, OnInconsistencyReportedListener listener) {
         this.rideId = rideId;
@@ -50,7 +50,12 @@ public class ReportInconsistencyDialog {
         dialog = new Dialog(context);
         dialog.setCancelable(true);
 
-        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_report_inconsistency, null);
+        android.view.ViewGroup parent = null;
+        if (context instanceof android.app.Activity) {
+            parent = ((android.app.Activity) context).findViewById(android.R.id.content);
+        }
+
+        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_report_inconsistency, parent, false);
         dialog.setContentView(dialogView);
 
         // Configure dialog window
@@ -125,7 +130,7 @@ public class ReportInconsistencyDialog {
         InconsistencyRequestDTO request = new InconsistencyRequestDTO(rideId, description);
 
         Call<Void> call = rideService.reportInconsistency(request);
-        call.enqueue(new Callback<Void>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
@@ -160,9 +165,9 @@ public class ReportInconsistencyDialog {
         }
     }
 
-    public void dismiss() {
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-        }
-    }
+//    public void dismiss() {
+//        if (dialog != null && dialog.isShowing()) {
+//            dialog.dismiss();
+//        }
+//    }
 }

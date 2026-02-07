@@ -30,7 +30,6 @@ import androidx.navigation.Navigation;
 
 import java.util.Locale;
 import java.util.List;
-import java.util.ArrayList;
 import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.DriverHistoryResponseDTO;
 import com.example.ridenow.dto.driver.RideHistoryDTO;
@@ -62,16 +61,14 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
     // Pagination and data management
     private int currentPage = 0;
-    private final int pageSize = 10;
     private boolean isLoading = false;
     private boolean hasMoreData = true;
     private String currentSortBy = "date";
     private String currentSortDir = "desc";
     private String currentDateFilter = null;
 
-    // Service and data
+    // Service
     private DriverService driverService;
-    private List<RideHistoryDTO> allRideData;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -85,9 +82,8 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         btnClearFilter = view.findViewById(R.id.btnClearFilter);
         ridesContainer = view.findViewById(R.id.ridesContainer);
 
-        // Initialize service and data
+        // Initialize service
         driverService = ClientUtils.getClient(DriverService.class);
-        allRideData = new ArrayList<>();
 
         // Setup UI
         setupDropdowns();
@@ -111,28 +107,29 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         String[] sortOptions = {"Route", "Passengers", "Date", "Duration", "Cancelled", "Cost", "Panic Button"};
         ArrayAdapter<String> sortAdapter = createCustomAdapter(sortOptions);
         spinnerSortBy.setAdapter(sortAdapter);
-        spinnerSortBy.setText("Date", false);
+        spinnerSortBy.setText(getString(R.string.driver_history_date), false);
 
         // Order dropdown
-        String[] orderOptions = {"Ascending", "Descending"};
+        String[] orderOptions = {getString(R.string.driver_history_ascending), getString(R.string.driver_history_descending)};
         ArrayAdapter<String> orderAdapter = createCustomAdapter(orderOptions);
         spinnerOrder.setAdapter(orderAdapter);
-        spinnerOrder.setText("Descending", false);
+        spinnerOrder.setText(getString(R.string.driver_history_descending), false);
 
         // Set listeners
-        spinnerSortBy.setOnItemClickListener((parent, view, position, id) -> {
-            currentSortBy = convertSortByToApi(sortOptions[position]);
-        });
+        spinnerSortBy.setOnItemClickListener((parent, view, position, id) ->
+            currentSortBy = convertSortByToApi(sortOptions[position])
+        );
 
-        spinnerOrder.setOnItemClickListener((parent, view, position, id) -> {
-            currentSortDir = position == 0 ? "asc" : "desc";
-        });
+        spinnerOrder.setOnItemClickListener((parent, view, position, id) ->
+            currentSortDir = position == 0 ? "asc" : "desc"
+        );
     }
 
     private ArrayAdapter<String> createCustomAdapter(String[] items) {
-        return new ArrayAdapter<String>(requireContext(), android.R.layout.simple_list_item_1, items) {
+        return new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, items) {
+            @NonNull
             @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
                 TextView textView = (TextView) view;
                 textView.setTextColor(Color.BLACK);
@@ -141,8 +138,9 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
                 return view;
             }
 
+            @NonNull
             @Override
-            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            public View getDropDownView(int position, View convertView, @NonNull ViewGroup parent) {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView textView = (TextView) view;
                 textView.setTextColor(Color.BLACK);
@@ -227,8 +225,8 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         }
 
         // Update UI to reflect the change
-        spinnerSortBy.setText("Date", false);
-        spinnerOrder.setText(currentSortDir.equals("asc") ? "Ascending" : "Descending", false);
+        spinnerSortBy.setText(getString(R.string.driver_history_date), false);
+        spinnerOrder.setText(currentSortDir.equals("asc") ? getString(R.string.driver_history_ascending) : getString(R.string.driver_history_descending), false);
 
         currentPage = 0;
         loadDriverHistory();
@@ -292,8 +290,8 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             timeRangeDisplay = DateUtils.formatTimeRange(rideHistory.getStartTime(), rideHistory.getEndTime());
         } else {
             // Handle estimated duration from API
-            Double duration = rideHistory.getDurationMinutes();
-            if (duration != null && duration > 0) {
+            double duration = rideHistory.getDurationMinutes();
+            if (duration > 0) {
                 durationDisplay = String.format(Locale.getDefault(), "%.0f min", duration);
             } else {
                 durationDisplay = "N/A";
@@ -367,7 +365,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         removeLoadMoreButton();
 
         Button loadMoreButton = new Button(getContext());
-        loadMoreButton.setText("Load More");
+        loadMoreButton.setText(R.string.driver_history_load_more);
         loadMoreButton.setTag("load_more_button");
 
         // Style the button
@@ -405,7 +403,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-            DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(),
+            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
                     R.style.CustomDatePickerDialog,
                     (view, selectedYear, selectedMonth, selectedDay) -> {
                         selectedDate = Calendar.getInstance();
@@ -433,9 +431,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             Toast.makeText(getContext(), "Filters applied", Toast.LENGTH_SHORT).show();
         });
 
-        btnClearFilter.setOnClickListener(v -> {
-            clearFilter();
-        });
+        btnClearFilter.setOnClickListener(v -> clearFilter());
     }
 
 
@@ -446,8 +442,8 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         currentPage = 0; // Reset to first page
 
         // Reset dropdowns to default values
-        spinnerSortBy.setText("Date", false);
-        spinnerOrder.setText("Descending", false);
+        spinnerSortBy.setText(getString(R.string.driver_history_date), false);
+        spinnerOrder.setText(getString(R.string.driver_history_descending), false);
 
         // Reset API parameters
         currentSortBy = "date";
@@ -464,15 +460,15 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
         Call<DriverHistoryResponseDTO> call = driverService.getDriverRideHistory(
             currentPage,
-            pageSize,
+            10, // page size
             currentSortBy,
             currentSortDir,
             currentDateFilter
         );
 
-        call.enqueue(new retrofit2.Callback<DriverHistoryResponseDTO>() {
+        call.enqueue(new retrofit2.Callback<>() {
             @Override
-            public void onResponse(retrofit2.Call<DriverHistoryResponseDTO> call, retrofit2.Response<DriverHistoryResponseDTO> response) {
+            public void onResponse(@NonNull retrofit2.Call<DriverHistoryResponseDTO> call, @NonNull retrofit2.Response<DriverHistoryResponseDTO> response) {
                 isLoading = false;
 
                 if (response.isSuccessful() && response.body() != null) {
@@ -480,7 +476,6 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
 
                     if (currentPage == 0) {
                         // First page, clear existing data
-                        allRideData.clear();
                         ridesContainer.removeAllViews();
                     } else {
                         // Remove existing load more button before adding new cards
@@ -488,8 +483,6 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
                     }
 
                     List<RideHistoryDTO> newRides = historyResponse.getContent();
-
-                    allRideData.addAll(newRides);
                     hasMoreData = !historyResponse.isLast();
 
                     // Add cards for new rides
@@ -505,7 +498,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
             }
 
             @Override
-            public void onFailure(retrofit2.Call<DriverHistoryResponseDTO> call, Throwable t) {
+            public void onFailure(@NonNull retrofit2.Call<DriverHistoryResponseDTO> call, @NonNull Throwable t) {
                 isLoading = false;
                 Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
