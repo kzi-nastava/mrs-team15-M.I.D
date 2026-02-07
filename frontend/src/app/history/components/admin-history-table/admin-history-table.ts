@@ -1,20 +1,27 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { Rating, Route } from '../../../services/history.service';
 
-export interface Ride{
+export interface Ride {
   id: number;
+  routeId: number;
+  favorite: boolean;
   route: string;
-  startTime: string;
-  endTime: string;
+  routeData: Route | null;
   passengers: string;
-  driver: string;
+  date: string;
+  timeRange: string;
+  duration: string;
   cancelled: string | null;
   cancelledBy: string | null;
-  cost: string;
   panicButton: string | null;
   panicBy: string | null;
-  rating?: number | null;
-  inconsistencies?: string[] | null;
+  cost: string;
+  rating: Rating | null;  
+  inconsistencies: string[];
+  startTime: string;
+  endTime: string;
+  driver: string;
 }
 
 type SortColumn = 'route' | 'startTime' | 'endTime' | 'cancelled' | 'cost' | 'panicButton'; 

@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, ViewChild, ChangeDetectorRef, EventEmitter, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { PassengerService } from '../../../services/passenger.service';
 import { CommonModule } from '@angular/common';
@@ -6,31 +6,41 @@ import { AddFavoriteModal } from '../add-favorite-modal/add-favorite-modal';
 import { RemoveFavoriteModal } from '../remove-favorite-modal/remove-favorite-modal';
 import { Button } from '../../../shared/components/button/button';
 
-export interface Ride{
+export interface Ride {
   id: number;
+  routeId: number;
   route: string;
-  
-  routeId?: number | null;
-  startTime: string;
-  endTime: string;
+  routeData: any;  
   passengers: string;
-  driver: string;
+  date: string;
+  timeRange: string;
+  duration: string;
   cancelled: string | null;
   cancelledBy: string | null;
-  cost: string;
   panicButton: string | null;
   panicBy: string | null;
-  rating?: number | null;
-  inconsistencies?: string[] | null;
-  favorite?: boolean;
-  pickupAddress?: string | null;
+  cost: string;
+  rating: { 
+    driverRating: number; 
+    vehicleRating: number; 
+    driverComment: string; 
+    vehicleComment: string; 
+  } | null;  
+  inconsistencies: string[];
+  startTime: string;
+  endTime: string;
+  driver: string;
+  
+  favorite?: boolean;  
+  pickupAddress?: string | null;  
   destinationAddress?: string | null;
-  stopAddress?: string | null;
+  stopAddress?: string | null;  
   stopAddresses?: string[] | null;
+  endTimeTimestamp: number;   
 }
 
+
 type SortColumn = 'route' | 'startTime' | 'endTime' ;
-type SortDirection = 'asc' | 'desc' | '';
 
 @Component({
   selector: 'app-user-history-table',
@@ -44,88 +54,36 @@ export class UserHistoryTable {
 
   @ViewChild('addFav') addFavModal!: AddFavoriteModal;
   @ViewChild('removeFav') removeFavModal!: RemoveFavoriteModal;
-
   
   private pendingRide: Ride | null = null;
 
   constructor(private router: Router, private cdr: ChangeDetectorRef, private passengerService: PassengerService) {}
 
-  @Input()
-  set rides(value: Ride[]) {
-    this._rides = value || [];
-    if (this._rides.length > 0) {
-      this.applySorting();
-    }
-    try { this.cdr.detectChanges(); } catch (e) {}
-  }
-  get rides(): Ride[] {
-    return this._rides;
-  }
+  @Input() rides: Ride[] = [];
+  @Output() sortChange = new EventEmitter<{ column: string; direction: string }>();
 
-  sortColumn: SortColumn | '' = 'startTime';
-  sortDirection: SortDirection = 'asc';
+  currentSortColumn: string = '';
+  currentSortDirection: 'asc' | 'desc' = 'asc';
 
-  ngOnInit(): void {
-    if (this._rides.length > 0) {
-      this.applySorting();
-    }
-  }
-
-  sort(column: SortColumn): void {
-    if (this.sortColumn === column) {
-      if (this.sortDirection === 'asc') {
-        this.sortDirection = 'desc';
-      } else if (this.sortDirection === 'desc') {
-        this.sortDirection = '';
-        this.sortColumn = '';
-        return;
-      }
+  sort(column: string): void {
+    if (this.currentSortColumn === column) {
+      this.currentSortDirection = this.currentSortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
+      this.currentSortColumn = column;
+      this.currentSortDirection = 'asc';
     }
-    this.applySorting();
+    
+    this.sortChange.emit({ 
+      column: this.currentSortColumn, 
+      direction: this.currentSortDirection 
+    });
   }
-
-private applySorting(): void {
-  if (!this.sortColumn || !this.sortDirection) return;
-
-  this._rides.sort((a, b) => {
-    let aValue: any = a[this.sortColumn as SortColumn];
-    let bValue: any = b[this.sortColumn as SortColumn];
-
-    if (this.sortColumn === 'startTime' || this.sortColumn == 'endTime') {
-      const parse = (value: string) => {
-        const [datePart, timePart] = value.split(', ');
-        const [day, month, year] = datePart.split('-').map(Number);
-        const [hour, minute] = timePart.split(':').map(Number);
-        return new Date(year, month - 1, day, hour, minute).getTime();
-      };
-
-      aValue = parse(a.startTime);
-      bValue = parse(b.startTime);
-    }
-
-    else {
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
-    }
-
-    if (aValue < bValue) {
-      return this.sortDirection === 'asc' ? -1 : 1;
-    }
-    if (aValue > bValue) {
-      return this.sortDirection === 'asc' ? 1 : -1;
-    }
-    return 0;
-  });
-}
 
   getSortIcon(column: SortColumn): string {
-    if (this.sortColumn !== column) {
+    if (this.currentSortColumn !== column) {
       return '⇅';
     }
-    return this.sortDirection === 'asc' ? '↑' : '↓';
+    return this.currentSortDirection === 'asc' ? '↑' : '↓';
   }
 
   viewRideDetails(ride: Ride): void {
@@ -136,24 +94,15 @@ private applySorting(): void {
     this.router.navigate(['/rating', ride.id]);
   }
 
-  canRate(ride: Ride): boolean {
-    if (!ride.endTime || ride.rating) return false;
-
-    
-    try {
-      const [datePart, timePart] = ride.endTime.split(', ');
-      const [day, month, year] = datePart.split('-').map(Number);
-      const [hour, minute] = timePart.split(':').map(Number);
-
-      const rideDate = new Date(year, month - 1, day, hour, minute);
-      const now = new Date();
-      const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
-
-      return rideDate >= threeDaysAgo;
-    } catch (e) {
-      return false;
-    }
+canRate(ride: Ride): boolean {
+  if (ride.rating || ride.cancelled) {
+    return false;
   }
+  const now = Date.now();
+  const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+  const timeDiff = now - ride.endTimeTimestamp;
+  return timeDiff <= threeDaysInMs;
+}
 
   // Request toggle: open appropriate modal
   requestToggleFavorite(ride: Ride): void {

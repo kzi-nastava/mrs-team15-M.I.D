@@ -1,20 +1,25 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
+import jakarta.validation.constraints.Min;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RoutePointDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.FavoriteRoute;
-import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
-import rs.ac.uns.ftn.asd.ridenow.model.Route;
-import rs.ac.uns.ftn.asd.ridenow.model.Ride;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
-import rs.ac.uns.ftn.asd.ridenow.repository.RegisteredUserRepository;
-import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
-import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -28,16 +33,19 @@ public class PassengerService {
 
     private final PriceService priceService;
     private final RegisteredUserRepository registeredUserRepository;
-    private final RideRepository rideRepository;
     private final RouteRepository routeRepository;
+
+    @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
+    private HistoryRepository historyRepository;
 
     public PassengerService(PriceService priceService,
                             RegisteredUserRepository registeredUserRepository,
-                            RideRepository rideRepository,
                             RouteRepository routeRepository) {
         this.priceService = priceService;
         this.registeredUserRepository = registeredUserRepository;
-        this.rideRepository = rideRepository;
         this.routeRepository = routeRepository;
     }
 
@@ -151,50 +159,52 @@ public class PassengerService {
         return dtos;
     }
 
-    public List<RideHistoryItemDTO> getRideHistory(Long id, String dateFrom, String dateTo, String sortBy, String sortDirection) {
-        List<RideHistoryItemDTO> history = new ArrayList<>();
-
-        // parse optional date filters (format yyyy-MM-dd). If parsing fails, ignore the filter.
-        LocalDateTime fromDateTime = null;
-        LocalDateTime toDateTime = null;
-        try {
-            if (dateFrom != null && !dateFrom.isBlank()) {
-                LocalDate d = LocalDate.parse(dateFrom);
-                fromDateTime = d.atStartOfDay();
-            }
-        } catch (Exception ignored) {}
-        try {
-            if (dateTo != null && !dateTo.isBlank()) {
-                LocalDate d = LocalDate.parse(dateTo);
-                toDateTime = d.atTime(23, 59, 59);
-            }
-        } catch (Exception ignored) {}
-
-        List<Ride> allRides = rideRepository.findAll();
-
-        for (Ride ride : allRides) {
-            boolean isPassenger = ride.getPassengers().stream()
-                    .anyMatch(p -> p.getUser() != null && p.getUser().getId() != null && p.getUser().getId().equals(id));
-            if (!isPassenger) continue;
-
-            LocalDateTime ref = ride.getScheduledTime() != null ? ride.getScheduledTime() : ride.getStartTime();
-            if (fromDateTime != null && (ref == null || ref.isBefore(fromDateTime))) continue;
-            if (toDateTime != null && (ref == null || ref.isAfter(toDateTime))) continue;
-
+    public Page<RideHistoryItemDTO> getRideHistory(User user, Pageable pageable, Long date) {
+        List<RideHistoryItemDTO> passengerHistory = new ArrayList<>();
+        Page<Ride> passengerRides= getRides(user, pageable, date);
+        for (Ride ride : passengerRides.getContent()) {
             RideHistoryItemDTO dto = new RideHistoryItemDTO();
-            dto.setId(ride.getId());
-            dto.setStartAddress(ride.getRoute() != null && ride.getRoute().getStartLocation() != null ? ride.getRoute().getStartLocation().getAddress() : null);
-            dto.setEndAddress(ride.getRoute() != null && ride.getRoute().getEndLocation() != null ? ride.getRoute().getEndLocation().getAddress() : null);
+            dto.setRoute(new RouteDTO(ride.getRoute()));
             dto.setStartTime(ride.getStartTime());
             dto.setEndTime(ride.getEndTime());
-            dto.setCancelled(ride.getCancelled() != null ? ride.getCancelled() : false);
-            dto.setCancelledBy(ride.getCancelledBy());
             dto.setPrice(ride.getPrice());
-            dto.setPanicTriggered(ride.getPanicAlert() != null);
+            dto.setRideId(ride.getId());
+            dto.setDriver(ride.getDriver() != null ? ride.getDriver().getFirstName() + " " + ride.getDriver().getLastName() : null);
 
-            RegisteredUser user = registeredUserRepository.getReferenceById(id);
+            List<String> passengerNames = new ArrayList<>();
+            for (Passenger p : ride.getPassengers()) {
+                passengerNames.add(p == null ? null : p.getUser().getFirstName() + " " + p.getUser().getLastName());
+            }
+            dto.setPassengers(passengerNames);
+
+            if (ride.getPanicAlert() != null) {
+                dto.setPanic(true);
+                if (ride.getPanicAlert().getPanicBy() != null) {
+                    dto.setPanicBy(ride.getPanicAlert().getPanicBy());
+                }
+            }
+
+            dto.setCancelled(ride.getCancelled());
+            if (ride.getCancelled()) {
+                dto.setCancelledBy(ride.getCancelledBy());
+            }
+
+            if (ratingRepository.findByRide(ride) != null) {
+                dto.setRating(new RatingDTO(ratingRepository.findByRide(ride)));
+            }
+
+            List<Inconsistency> inconsistencies = ride.getInconsistencies();
+            List<String> inconsistencyStrings = new ArrayList<>();
+            if (!inconsistencies.isEmpty()) {
+                for (Inconsistency inconsistency : inconsistencies) {
+                    inconsistencyStrings.add(inconsistency.getDescription());
+                }
+            }
+            dto.setInconsistencies(inconsistencyStrings);
+
+            RegisteredUser registeredUser = registeredUserRepository.getReferenceById(user.getId());
             boolean isFavorite = false;
-            for (FavoriteRoute fr : user.getFavoriteRoutes()) {
+            for (FavoriteRoute fr : registeredUser.getFavoriteRoutes()) {
                 if (fr.getRoute() != null && ride.getRoute() != null && fr.getRoute().getId() != null && ride.getRoute().getId() != null &&
                         fr.getRoute().getId().equals(ride.getRoute().getId())) {
                     isFavorite = true;
@@ -203,21 +213,38 @@ public class PassengerService {
             }
             dto.setFavoriteRoute(isFavorite);
             dto.setRouteId(ride.getRoute() != null ? ride.getRoute().getId() : null);
-            history.add(dto);
-        }
 
-        // Sorting - default by startTime desc
-        if ("date".equalsIgnoreCase(sortBy)) {
-            if ("asc".equalsIgnoreCase(sortDirection)) {
-                history.sort(Comparator.comparing(RideHistoryItemDTO::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())));
-            } else {
-                history.sort(Comparator.comparing(RideHistoryItemDTO::getStartTime, Comparator.nullsLast(Comparator.reverseOrder())));
-            }
-        } else {
-            history.sort(Comparator.comparing(RideHistoryItemDTO::getStartTime, Comparator.nullsLast(Comparator.reverseOrder())));
+            passengerHistory.add(dto);
         }
+        return new PageImpl(passengerHistory, pageable, passengerRides.getTotalElements());
+    }
 
-        return history;
+    private Page<Ride> getRides(User user, Pageable pageable, Long date) {
+        LocalDateTime startOfDay = null;
+        LocalDateTime endOfDay = null;
+
+        if (date != null) {
+            LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(date), ZoneId.systemDefault());
+            startOfDay = dateTime.toLocalDate().atStartOfDay();
+            endOfDay = dateTime.toLocalDate().atTime(23, 59, 59);
+        }
+        return date != null ?
+                findByDriverWithAllRelationsAndDate(user, startOfDay, endOfDay, pageable) :
+                findByDriverWithAllRelations(user, pageable);
+    }
+
+    private Page<Ride> findByDriverWithAllRelations(User user, Pageable pageable) {
+        if (user instanceof Driver) {
+            return historyRepository.findDriverRidesWithAllRelations(user.getId(), pageable);
+        }
+        return historyRepository.findPassengerRidesWithAllRelations(user.getId(), pageable);
+    }
+
+    private Page<Ride> findByDriverWithAllRelationsAndDate(User user, LocalDateTime startOfDay, LocalDateTime endOfDay, Pageable pageable) {
+        if (user instanceof Driver) {
+            return historyRepository.findDriverRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
+        }
+        return historyRepository.findPassengerRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
     }
 
     public RouteResponseDTO getRoute(Long id, Long id1) {

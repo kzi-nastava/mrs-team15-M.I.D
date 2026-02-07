@@ -27,7 +27,10 @@ export interface Rating {
 }
 
 export interface RideHistoryResponse {
+  rideId: number | null;
+  driver: string | null;
   route: Route | null;
+  routeId: number | null;
   passengers: string[];
   startTime: string;
   endTime: string;
@@ -38,6 +41,8 @@ export interface RideHistoryResponse {
   panicBy: string | null;
   rating: Rating | null;
   inconsistencies: string[];
+  favoriteRoute: boolean | null;
+  endTimeTimestamp: number;
 }
 export interface PaginatedRideHistoryResponse {
   content: RideHistoryResponse[];
@@ -71,18 +76,19 @@ export interface PaginatedRideHistoryResponse {
 @Injectable({
   providedIn: 'root'
 })
-export class RideHistoryService {
+export class HistoryService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  getDriverRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string, date?: number): Observable<PaginatedRideHistoryResponse> {
-    let url = `${this.apiUrl}/driver/ride-history?page=${page}&size=${size}`;
+getPassengerRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string, date?: number): Observable<PaginatedRideHistoryResponse> {
+    let url = `${this.apiUrl}/passengers/ride-history?page=${page}&size=${size}`; 
+    
     if (sortBy && sortDir) {
-      url += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+        url += `&sortBy=${sortBy}&sortDir=${sortDir}`;  
     }
     if (date !== undefined && date !== null) {
-      url += `&date=${date}`;
+        url += `&date=${date}`;
     }
     return this.http.get<PaginatedRideHistoryResponse>(url);
-  }
+}
 }
