@@ -3,50 +3,56 @@
     <item
         android:id="@+id/nav_home"
         android:icon="@drawable/ic_home"
-        android:title="Home" />
+        android:title="@string/nav_home" />
     <item
         android:id="@+id/ride_ordering"
         android:icon="@drawable/ic_car_available"
-        android:title="Order Ride" />
+        android:title="@string/nav_order_ride" />
     <item
         android:id="@+id/history"
-        android:icon="@drawable/ic_person"
-        android:title="Ride History" />
+        android:icon="@drawable/ic_history"
+        android:title="@string/nav_ride_history" />
 
     <item
         android:id="@+id/passenger_history"
-        android:icon="@drawable/ic_person"
-        android:title="Ride History" />
+        android:icon="@drawable/ic_history"
+        android:title="@string/nav_ride_history" />
 
     <item
         android:id="@+id/login"
+        android:icon="@drawable/ic_login"
         android:title="@string/nav_login"/>
 
     <item
         android:id="@+id/reset_password"
+        android:icon="@drawable/ic_password"
         android:title="@string/nav_reset_password"/>
 
-    <item
-        android:id="@+id/registration"
-        android:title="@string/nav_registration" />
+<!--    <item-->
+<!--        android:id="@+id/registration"-->
+<!--        android:title="@string/nav_registration" />-->
+<!--    <item-->
+<!--        android:id="@+id/registration"-->
+<!--        android:icon="@drawable/ic_person"-->
+<!--        android:title="@string/nav_registration" />-->
     <item
         android:id="@+id/profile"
-        android:icon="@drawable/ic_person"
+        android:icon="@drawable/ic_profile"
         android:title="@string/nav_user_profile" />
-    <item
-        android:id="@+id/driver_profile"
-        android:icon="@drawable/ic_person"
-        android:title="@string/nav_driver_profile" />
-    <item
-        android:id="@+id/driver_requests"
-        android:title="Driver Changes" />
-    <item
-        android:id="@+id/change_password"
-        android:title="@string/nav_change_password" />
 
     <item
-        android:id="@+id/nav_logout"
-        android:title="@string/logout" />
+        android:id="@+id/driver_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="@string/nav_driver_profile" />
+
+    <item
+        android:id="@+id/driver_requests"
+        android:icon="@drawable/ic_requests"
+        android:title="@string/nav_driver_changes" />
+<!--    <item-->
+<!--        android:id="@+id/change_password"-->
+<!--        android:icon="@drawable/ic_password"-->
+<!--        android:title="@string/nav_change_password" />-->
 
     <item
         android:id="@+id/upcoming_rides"
@@ -56,4 +62,9 @@
         android:id="@+id/current_ride"
         android:icon="@drawable/ic_car_available"
         android:title="@string/nav_current_ride" />
+
+    <item
+        android:id="@+id/nav_logout"
+        android:icon="@drawable/ic_logout"
+        android:title="@string/logout" />
 </menu>

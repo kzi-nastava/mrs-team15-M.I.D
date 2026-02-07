@@ -85,11 +85,11 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     private ListPopupWindow endSuggestionsPopup;
     private SuggestionAdapter startSuggestionsAdapter;
     private SuggestionAdapter endSuggestionsAdapter;
-    private java.util.List<org.json.JSONObject> startSuggestionObjects = new java.util.ArrayList<>();
-    private java.util.List<org.json.JSONObject> endSuggestionObjects = new java.util.ArrayList<>();
+    private final java.util.List<org.json.JSONObject> startSuggestionObjects = new java.util.ArrayList<>();
+    private final java.util.List<org.json.JSONObject> endSuggestionObjects = new java.util.ArrayList<>();
     private String lastStartQuery = "";
     private String lastEndQuery = "";
-    private Handler suggestionHandler = new Handler(Looper.getMainLooper());
+    private final Handler suggestionHandler = new Handler(Looper.getMainLooper());
     private Runnable startPendingRunnable;
     private Runnable endPendingRunnable;
     private EditText activeInput;
@@ -260,7 +260,7 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
     }
 
     private class SuggestionAdapter extends ArrayAdapter<org.json.JSONObject> {
-        private java.util.List<org.json.JSONObject> items;
+        private final java.util.List<org.json.JSONObject> items;
         private String currentQuery;
 
         public SuggestionAdapter(@NonNull android.content.Context ctx, java.util.List<org.json.JSONObject> items) {
@@ -781,7 +781,7 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
         Call<List<VehicleResponseDTO>> call = vehicleService.getAllVehicles(latitude, longitude);
         call.enqueue(new Callback<List<VehicleResponseDTO>>() {
             @Override
-            public void onResponse(Call<List<VehicleResponseDTO>> call, Response<List<VehicleResponseDTO>> response) {
+            public void onResponse(@NonNull Call<List<VehicleResponseDTO>> call, @NonNull Response<List<VehicleResponseDTO>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     displayVehiclesOnMap(response.body());
                 } else {
@@ -790,7 +790,7 @@ public class HomeFragment extends Fragment implements MapEventsReceiver {
             }
 
             @Override
-            public void onFailure(Call<List<VehicleResponseDTO>> call, Throwable t) {
+            public void onFailure(@NonNull Call<List<VehicleResponseDTO>> call, @NonNull Throwable t) {
                 Log.e("HomeFragment", "Error loading vehicles", t);
                 Toast.makeText(getContext(), "Failed to load vehicles", Toast.LENGTH_SHORT).show();
             }

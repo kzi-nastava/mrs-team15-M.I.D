@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
+import com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO;
 import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.service.DriverService;
@@ -32,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -86,7 +88,7 @@ public class UpcomingRidesFragment extends Fragment {
         showLoading(true);
 
         Call<List<UpcomingRideResponseDTO>> call = driverService.getUpcomingRides();
-        call.enqueue(new Callback<List<UpcomingRideResponseDTO>>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
@@ -112,7 +114,7 @@ public class UpcomingRidesFragment extends Fragment {
         showLoading(true);
 
         Call<List<UpcomingRideResponseDTO>> call = rideService.getUpcomingRides();
-        call.enqueue(new Callback<List<UpcomingRideResponseDTO>>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
@@ -243,7 +245,7 @@ public class UpcomingRidesFragment extends Fragment {
         Button btnCancel = dialogView.findViewById(R.id.btnDialogCancel);
         Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirm);
 
-        btnCancel.setOnClickListener(v -> {dialog.dismiss();});
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> {
             String reason = etCancelReason.getText() == null ? "" : etCancelReason.getText().toString().trim();
             if(!isUser && reason.isEmpty()){
@@ -261,9 +263,9 @@ public class UpcomingRidesFragment extends Fragment {
     private void performCancelRide(Long id, String reason) {
         showLoading(true);
         CancelRideRequestDTO dto = new CancelRideRequestDTO(reason);
-        rideService.cancel(id, dto).enqueue(new Callback<Void>() {
+        rideService.cancel(id, dto).enqueue(new Callback<>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 showLoading(false);
                 if(response.isSuccessful()){
                     Toast.makeText(requireContext(), "Ride cancelled successfully", Toast.LENGTH_SHORT).show();
@@ -275,10 +277,9 @@ public class UpcomingRidesFragment extends Fragment {
                 }
                 else{
                     String errorMessage = "Ride cancellation failed";
-                    try {
-                        if (response.errorBody() != null) {
-                            String errorBody = response.errorBody().string();
-                            errorMessage = errorBody;
+                    try(ResponseBody errorBody = response.errorBody()) {
+                        if (errorBody != null) {
+                            errorMessage = errorBody.string();
                             if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
                                 errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
                             }
@@ -292,7 +293,7 @@ public class UpcomingRidesFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                 showLoading(false);
                 Toast.makeText(requireContext(),"Error: " + t.getMessage(),Toast.LENGTH_SHORT).show();
             }
@@ -304,15 +305,15 @@ public class UpcomingRidesFragment extends Fragment {
         showLoading(true);
 
         // Call canStartRide API
-        Call<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> call = driverService.canStartRide();
-        call.enqueue(new Callback<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO>() {
+        Call<DriverCanStartRideResponseDTO> call = driverService.canStartRide();
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> call,
-                                 @NonNull Response<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> response) {
+            public void onResponse(@NonNull Call<DriverCanStartRideResponseDTO> call,
+                                 @NonNull Response<DriverCanStartRideResponseDTO> response) {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO result = response.body();
+                    DriverCanStartRideResponseDTO result = response.body();
 
                     // Check if the driver can start a ride (positive response)
                     if (result.isCanStart()) {

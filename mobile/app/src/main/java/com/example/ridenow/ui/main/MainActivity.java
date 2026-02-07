@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Authentication related items
         navigationView.getMenu().findItem(R.id.login).setVisible(!isLoggedIn);
-        navigationView.getMenu().findItem(R.id.registration).setVisible(!isLoggedIn);
+        //navigationView.getMenu().findItem(R.id.registration).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.reset_password).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.nav_logout).setVisible(isLoggedIn);
 
@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView.getMenu().findItem(R.id.passenger_history).setVisible(isUser);
 
         // Common logged-in user items
-        navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
+        //navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
 
         // Non-admin items
         navigationView.getMenu().findItem(R.id.current_ride).setVisible(isUser || isDriver); // User Management
