@@ -35,6 +35,8 @@ import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 
+import java.util.Map;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -113,14 +115,8 @@ public class CurrentRideFragment extends Fragment {
             }
         });
 
-        panicButton.setOnClickListener(v ->
-            Toast.makeText(getContext(), "Panic Button - To be implemented", Toast.LENGTH_SHORT).show()
-        );
-
-        // Driver button listeners
-        driverPanicButton.setOnClickListener(v ->
-            Toast.makeText(getContext(), "Driver Panic Button - To be implemented", Toast.LENGTH_SHORT).show()
-        );
+        driverPanicButton.setOnClickListener(v -> triggerPanicButton());
+        panicButton.setOnClickListener(v -> triggerPanicButton());
 
         stopRideButton.setOnClickListener(v ->
             Toast.makeText(getContext(), "Stop Ride - To be implemented", Toast.LENGTH_SHORT).show()
@@ -131,6 +127,52 @@ public class CurrentRideFragment extends Fragment {
                 showFinishRideConfirmationDialog();
             } else {
                 Toast.makeText(getContext(), "No active ride found", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void triggerPanicButton() {
+        rideService.triggerPanicAlert().enqueue(new Callback<Map<String, String>>() {
+            @Override
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                panicButton.setEnabled(true);
+                if(response.isSuccessful()){
+                    routeMapView.setPanicMode(true);
+                    if(currentRide != null || currentRide.getRoute() != null){
+                        routeMapView.displayRoute(currentRide.getRoute().getStartLocation(),
+                                currentRide.getRoute().getEndLocation(),
+                                currentRide.getRoute().getStopLocations(),
+                                currentRide.getRoute().getPolylinePoints());
+                    }
+                    Toast.makeText(getContext(), "Panic alert is activated, help is on the way", Toast.LENGTH_LONG).show();
+                }
+                else{
+                    String errorMessage = "Error activating panic alert";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            if (errorBody.contains("\"message\"")) {
+                                int start = errorBody.indexOf("\"message\":\"") + 11;
+                                int end = errorBody.indexOf("\"", start);
+                                if (start > 10 && end > start) {
+                                    errorMessage = errorBody.substring(start, end);
+                                }
+                            } else {
+                                errorMessage = errorBody;
+                                if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                    errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Error activating panic alert (code: " + response.code() + ")";
+                    }
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                panicButton.setEnabled(true);
+                Toast.makeText(getContext(),"Network error: " + t.getMessage(),Toast.LENGTH_SHORT).show();
             }
         });
     }
