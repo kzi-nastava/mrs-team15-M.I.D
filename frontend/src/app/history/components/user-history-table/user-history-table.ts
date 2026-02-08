@@ -19,7 +19,7 @@ export interface Ride {
   cancelledBy: string | null;
   panicButton: string | null;
   panicBy: string | null;
-  cost: string;
+  price: string;
   rating: { 
     driverRating: number; 
     vehicleRating: number; 

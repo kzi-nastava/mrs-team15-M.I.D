@@ -16,7 +16,7 @@ export interface Ride {
   cancelledBy: string | null;
   panicButton: string | null;
   panicBy: string | null;
-  cost: string;
+  price: string;
   rating: Rating | null;  
   inconsistencies: string[];
   startTime: string;
@@ -24,7 +24,7 @@ export interface Ride {
   driver: string;
 }
 
-type SortColumn = 'route' | 'startTime' | 'endTime' | 'cancelled' | 'cost' | 'panicButton'; 
+type SortColumn = 'route' | 'startTime' | 'endTime' | 'cancelled' | 'price' | 'panicButton'; 
 type SortDirection = 'asc' | 'desc' | '';
 
 
@@ -94,9 +94,9 @@ private applySorting(): void {
       bValue = parse(b.startTime);
     }
 
-      else if (this.sortColumn === 'cost') {
-        aValue = parseFloat(a.cost.replace(/[^0-9.-]/g, '')) || 0;
-        bValue = parseFloat(b.cost.replace(/[^0-9.-]/g, '')) || 0;
+      else if (this.sortColumn === 'price') {
+        aValue = parseFloat(a.price.replace(/[^0-9.-]/g, '')) || 0;
+        bValue = parseFloat(b.price.replace(/[^0-9.-]/g, '')) || 0;
       }
 
       else if (aValue === null || aValue === undefined) {

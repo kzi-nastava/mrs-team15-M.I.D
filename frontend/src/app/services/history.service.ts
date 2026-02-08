@@ -34,7 +34,7 @@ export interface RideHistoryResponse {
   passengers: string[];
   startTime: string;
   endTime: string;
-  cost: number;
+  price: number;
   cancelled: boolean;
   cancelledBy: string | null;
   panic: boolean | null;

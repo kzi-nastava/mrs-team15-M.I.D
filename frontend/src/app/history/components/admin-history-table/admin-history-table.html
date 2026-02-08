@@ -15,8 +15,8 @@
           <th scope="col" class="sortable" (click)="sort('cancelled')">
             Cancelled <span class="sort-icon">{{ getSortIcon('cancelled') }}</span>
           </th>
-           <th scope="col" class="sortable" (click)="sort('cost')">
-            Cost <span class="sort-icon">{{ getSortIcon('cost') }}</span>
+           <th scope="col" class="sortable" (click)="sort('price')">
+            Cost <span class="sort-icon">{{ getSortIcon('price') }}</span>
           </th>
           <th scope="col" class="sortable" (click)="sort('panicButton')">
             Panic Button <span class="sort-icon">{{ getSortIcon('panicButton') }}</span>
@@ -40,7 +40,7 @@
                 <span>N/A</span>
               }
             </td>
-            <td>{{ ride.cost }}</td>
+            <td>{{ ride.price }}</td>
             <td>
               @if (ride.panicButton) {
                 <span class="badge bg-danger">{{ ride.panicButton }}</span>

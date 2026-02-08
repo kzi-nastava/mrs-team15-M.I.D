@@ -49,7 +49,7 @@
 
             <div class="detail-item">
               <label class="detail-label">Cost</label>
-              <p class="detail-value fw-bold">{{ ride.cost }}</p>
+              <p class="detail-value fw-bold">{{ ride.price }}</p>
             </div>
             <app-button height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="reorder ride" (clicked)="openReorderModal()"></app-button>
           </div>
@@ -173,7 +173,7 @@
     <div class="alert alert-warning">
       <h4>Ride not found</h4>
       <p>Unable to load ride details. Please try again.</p>
-      <button class="btn btn-primary" (click)="goBack()">Go Back</button>
+      <button class="btn btn-primary">Go Back</button>
     </div>
   }
 </div>

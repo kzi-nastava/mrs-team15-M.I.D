@@ -81,7 +81,7 @@ ngOnInit(): void {
       cancelledBy: ride.cancelledBy,
       panicButton: ride.panic ? `By ${ride.panicBy ?? 'unknown'}` : null,
       panicBy: ride.panicBy, 
-      cost: `${Math.round(ride.cost)} RSD`, 
+      price: `${Math.round(ride.price)} RSD`, 
       rating: ride.rating ?? null, 
       inconsistencies: ride.inconsistencies ?? [],
       startTime: startTime.toLocaleString('sr-RS', { 
