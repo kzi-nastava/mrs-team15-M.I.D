@@ -3,7 +3,9 @@ export class FromValidator {
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
   private namePattern = /^[A-ZČĆŠĐŽ][a-zčćšđž]+$/;
   // Allow any Unicode letter (Latin, Cyrillic, etc.), numbers and common address punctuation
-  private addressPattern = /^[\p{L}0-9\s.,\/\-]{5,}$/u;
+  // Include common Unicode quotation marks and guillemets so names like
+  // Gimnazija „Isidora Sekulić”, Novi Sad validate correctly.
+  private addressPattern = /^[\p{L}0-9\s.,\/\-\u201C\u201D\u201E\u00AB\u00BB"'`]{5,}$/u;
 
   firstNameError(value: string): string | null {
     if (!value) return 'First name is required';

@@ -224,6 +224,13 @@ export class RideOrderingForm implements OnInit {
   destinationSuggestions: Array<any> = [];
   stopSuggestions: Array<Array<any>> = [];
   
+  // suggestion helpers and caching
+  private readonly MIN_QUERY_LENGTH = 3;
+  private readonly SUGGESTION_LIMIT = 5;
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private suggestionCache = new Map<string, { suggestions: any[]; timestamp: number }>();
+  private lastFetchController: AbortController | null = null;
+
   restrictSuggestionsToNoviSad: boolean = true;
 
   onPickupChange(val: string) {
@@ -314,38 +321,62 @@ export class RideOrderingForm implements OnInit {
     this.suggestTimer = setTimeout(() => { this.fetchSuggestions(query, target, index); }, delay);
   }
 
+  private abortOngoingFetch(): void {
+    if (this.lastFetchController) {
+      try { this.lastFetchController.abort(); } catch (e) {}
+      this.lastFetchController = null;
+    }
+  }
+
+  private setSuggestionsForTarget(target: 'pickup' | 'destination' | 'stop', suggestions: any[], index?: number) {
+    if (target === 'pickup') this.pickupSuggestions = suggestions;
+    else if (target === 'destination') this.destinationSuggestions = suggestions;
+    else if (target === 'stop' && typeof index === 'number') {
+      // ensure array length
+      while (this.stopSuggestions.length <= index) this.stopSuggestions.push([]);
+      this.stopSuggestions[index] = suggestions;
+    }
+    try { this.cdr.detectChanges(); } catch (e) {}
+  }
+
   private async fetchSuggestions(query: string, target: 'pickup' | 'destination' | 'stop', index?: number) {
     try {
-      if (!query || query.trim().length < 2) {
+      if (!query || query.trim().length < this.MIN_QUERY_LENGTH) {
         if (target === 'pickup') this.pickupSuggestions = [];
         else if (target === 'destination') this.destinationSuggestions = [];
         else if (target === 'stop' && typeof index === 'number') this.stopSuggestions[index] = [];
         return;
       }
 
-      const hasNumber = /\d/.test(query);
-      let url: string;
-      if (this.restrictSuggestionsToNoviSad && hasNumber) {
-        
-        url = `https://nominatim.openstreetmap.org/search?format=json&street=${encodeURIComponent(query)}&city=Novi%20Sad&countrycodes=rs&addressdetails=1&limit=10`;
-      } else {
-        let q = query;
-        if (this.restrictSuggestionsToNoviSad && !/novi\s*sad/i.test(query)) q = `${query} Novi Sad`;
-        url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&addressdetails=1&limit=10&countrycodes=rs`;
+      const normalizedQuery = query.trim().toLowerCase();
+      const cached = this.suggestionCache.get(normalizedQuery);
+      if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
+        this.setSuggestionsForTarget(target, cached.suggestions, index);
+        return;
       }
-      console.debug('fetchSuggestions ->', url);
-      const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-      const data = await res.json();
-      console.debug('fetchSuggestions response length=', Array.isArray(data) ? data.length : 0);
-      const items = Array.isArray(data) ? data.map((d: any) => ({ display: d.display_name, raw: d })) : [];
 
-      if (target === 'pickup') this.pickupSuggestions = items;
-      else if (target === 'destination') this.destinationSuggestions = items;
-      else if (target === 'stop' && typeof index === 'number') {
-        this.stopSuggestions[index] = items;
+      this.abortOngoingFetch();
+      this.lastFetchController = new AbortController();
+
+      const onQuick = (items: any[]) => {
+        const s = (items || []).slice(0, this.SUGGESTION_LIMIT).map((it: any) => ({ display: it.display, raw: it.raw, lat: it.lat, lng: it.lon }));
+        this.setSuggestionsForTarget(target, s, index);
+      };
+
+      const onFinal = (items: any[]) => {
+        const final = (items || []).slice(0, this.SUGGESTION_LIMIT).map((it: any) => ({ display: it.display, raw: it.raw, lat: it.lat, lng: it.lon }));
+        this.suggestionCache.set(normalizedQuery, { suggestions: final, timestamp: Date.now() });
+        this.setSuggestionsForTarget(target, final, index);
+      };
+
+      try {
+        await this.rideService.fetchParallelSuggestions(query, onQuick, onFinal, this.lastFetchController.signal, this.SUGGESTION_LIMIT, true);
+      } catch (e: any) {
+        if (e && e.name === 'AbortError') return;
+        console.warn('Parallel suggestions failed', e);
       }
-    } catch (e) {
-      console.warn('fetchSuggestions failed', e);
+    } catch (err) {
+      console.warn('fetchSuggestions failed', err);
     }
   }
 

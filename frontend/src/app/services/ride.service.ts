@@ -119,4 +119,72 @@ export class RideService {
   stopRide() {
     return this.http.put(`${this.apiURL}/stop`, null);
   }
+
+  // Photon (Komoot) suggestions helper — returns [{ display, raw, lat, lon }]
+  async fetchPhotonSuggestions(query: string, limit: number = 8, restrictToNoviSad: boolean = false): Promise<Array<{ display: string; raw: any; lat: number; lon: number }>> {
+    if (!query || !query.trim()) return [];
+    try {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=${limit}`;
+      const res = await fetch(url);
+      if (!res.ok) return [];
+      const data = await res.json();
+      if (!data || !Array.isArray(data.features)) return [];
+      const results = data.features.map((f: any) => {
+        const props = f.properties || {};
+        const lat = f.geometry && f.geometry.coordinates ? f.geometry.coordinates[1] : NaN;
+        const lon = f.geometry && f.geometry.coordinates ? f.geometry.coordinates[0] : NaN;
+        let display = '';
+        if (props.name) {
+          display = props.name;
+          if (props.city) display += ', ' + props.city;
+        } else {
+          const street = props.street || props.road || '';
+          const housenumber = props.housenumber || props.house_number || props.hno || '';
+          if (street) {
+            display = street + (housenumber ? ' ' + housenumber : '');
+            if (props.city) display += ', ' + props.city;
+          } else {
+            display = props.label || JSON.stringify(props);
+          }
+        }
+        return { display: display || '', raw: f, lat, lon };
+      }).filter((s: any) => !isNaN(s.lat) && !isNaN(s.lon));
+
+      if (restrictToNoviSad) return results.filter((r: any) => {
+        const lat = r.lat, lon = r.lon;
+        return lat >= 45.2 && lat <= 45.33 && lon >= 19.65 && lon <= 20.0;
+      });
+      return results;
+    } catch (e) {
+      console.warn('fetchPhotonSuggestions failed', e);
+      return [];
+    }
+  }
+
+  // Photon-only parallel suggestions: quick and final are the same (Photon)
+  async fetchParallelSuggestions(
+    query: string,
+    onQuick?: (items: Array<{ display: string; raw: any; lat: number; lon: number }>) => void,
+    onFinal?: (items: Array<{ display: string; raw: any; lat: number; lon: number }>) => void,
+    signal?: AbortSignal,
+    limit: number = 8,
+    restrictToNoviSad: boolean = false
+  ): Promise<Array<{ display: string; raw: any; lat: number; lon: number }>> {
+    if (!query || !query.trim()) {
+      if (onQuick) onQuick([]);
+      if (onFinal) onFinal([]);
+      return [];
+    }
+    try {
+      const photon = await this.fetchPhotonSuggestions(query, limit, restrictToNoviSad);
+      if (onQuick) onQuick(photon);
+      if (onFinal) onFinal(photon);
+      return photon;
+    } catch (e) {
+      console.warn('fetchParallelSuggestions (photon-only) failed', e);
+      if (onQuick) onQuick([]);
+      if (onFinal) onFinal([]);
+      return [];
+    }
+  }
 }
