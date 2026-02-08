@@ -13,6 +13,8 @@ export class PageHeaderComponent {
   @Input() title: string = '';
   @Input() description: string = '';
   @Input() showDateFilter: boolean = false;
+  @Input() searchMode: boolean = false;
+  @Input() searchPlaceholder: string = '';
 
   @Output() filter = new EventEmitter<string>();
   @Output() clearFilter = new EventEmitter<void>();

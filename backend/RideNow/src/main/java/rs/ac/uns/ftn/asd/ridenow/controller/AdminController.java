@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -117,6 +118,34 @@ public class AdminController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users")
+    public ResponseEntity<Page<UserResponseDTO>> getUsers(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.getUsers(search, sortBy, sortDirection, page, size));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/block/{id}")
+    public ResponseEntity<Void> blockUser(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.blockUser(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/unblock/{id}")
+    public ResponseEntity<Void> unblockUser(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.unblockUser(id));
+    }
+
+
+
+    @PreAuthorize("hasRole('Admin')")
     @GetMapping("/price-configs")
     public ResponseEntity<PriceConfigResponseDTO> getPriceConfigs() {
         return ResponseEntity.ok(adminService.getPriceConfigs());

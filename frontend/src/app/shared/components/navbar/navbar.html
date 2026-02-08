@@ -103,6 +103,11 @@
                     <a class="nav-link" routerLink="/driver-requests" (click)="closeMenu()">Driver Changes</a>
                   </li>
                 }
+               @if (role === 'ADMIN') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/admin-users" (click)="closeMenu()">Users</a>
+                </li>
+                }
               </ul>
             </div>
         </div>
