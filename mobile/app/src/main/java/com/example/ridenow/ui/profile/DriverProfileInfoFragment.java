@@ -110,6 +110,8 @@ public class DriverProfileInfoFragment extends Fragment {
 
         // TextView for username (will be updated after loading profile)
         TextView tvUserName = view.findViewById(R.id.tvUserName);
+        // TextView for showing hours worked in last 24h
+        TextView tvHoursLast24 = view.findViewById(R.id.tvHoursLast24);
 
         // Load driver profile from backend
         DriverService driverService = ClientUtils.getClient(DriverService.class);
@@ -157,6 +159,14 @@ public class DriverProfileInfoFragment extends Fragment {
                          String full = (first + " " + last).trim();
                          if (full.isEmpty()) full = getString(R.string.nav_user_profile);
                          tvUserName.setText(full);
+                     }
+
+                     // Update hours worked in last 24h (new)
+                     if (tvHoursLast24 != null) {
+                         double hours = user.getHoursWorkedLast24();
+                         // format to one decimal place
+                         String text = String.format(java.util.Locale.getDefault(), "Active hours last 24h: %.1f", hours);
+                         tvHoursLast24.setText(text);
                      }
                      Log.i("DriverProfile", "Loaded driver profile successfully");
                  } else {

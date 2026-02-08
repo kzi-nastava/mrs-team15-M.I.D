@@ -64,8 +64,8 @@ public class ChangePasswordFragment extends Fragment {
                 etNewPassword.requestFocus();
                 return;
             }
-            if (nw.length() < 8) {
-                etNewPassword.setError("Password must be at least 8 characters");
+            if (nw.length() < 6) {
+                etNewPassword.setError("Password must be at least 6 characters");
                 etNewPassword.requestFocus();
                 return;
             }
