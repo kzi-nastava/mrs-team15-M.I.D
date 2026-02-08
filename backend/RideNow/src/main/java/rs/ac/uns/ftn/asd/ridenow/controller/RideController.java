@@ -79,7 +79,7 @@ public class RideController {
         }
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
         TrackVehicleDTO vehicle = rideService.trackRide(id);
@@ -193,5 +193,12 @@ public class RideController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/active-rides")
+    public ResponseEntity<List<ActiveRideDTO>> getActiveRides() {
+        return ResponseEntity.ok(rideService.getActiveRides());
     }
 }

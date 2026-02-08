@@ -27,6 +27,7 @@ import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 import { ActivationPage } from './auth/pages/activation-page/activation-page';
 import { PricingManagement } from './admin/pages/pricing-management/pricing-management';
+import { ActiveRides } from './admin/pages/active-rides/active-rides';
 
 export const routes: Routes = [
     { path: '', component: Home },         // Default route (home page)
@@ -57,5 +58,6 @@ export const routes: Routes = [
     { path: 'finding-driver', component: FindingDriver },
     { path: 'ride-ordering', component: RideOrdering },
     { path: 'admin-pricing', component: PricingManagement },
+    { path: 'admin-active-rides', component: ActiveRides },
     { path: 'activate/:token', component: ActivationPage }
 ];

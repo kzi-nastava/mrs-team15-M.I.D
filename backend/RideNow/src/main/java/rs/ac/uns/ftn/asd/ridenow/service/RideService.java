@@ -732,4 +732,31 @@ public class RideService {
         responseDTO.setPassengerImages(imageUrls);
         return responseDTO;
     }
+
+    public List<ActiveRideDTO> getActiveRides(){
+        List<Ride> activeRides = rideRepository.findActiveRides();
+        List<ActiveRideDTO> activeRideDTOs = new ArrayList<>();
+        for (Ride ride : activeRides) {
+            ActiveRideDTO dto = new ActiveRideDTO();
+            dto.setRideId(ride.getId());
+            dto.setDriverName(ride.getDriver().getFirstName() + " " + ride.getDriver().getLastName());
+            dto.setStartTime(ride.getStartTime());
+            dto.setRoute(new RouteDTO(ride.getRoute()));
+            List<String> passengerNames = new ArrayList<>();
+            for (Passenger passenger : ride.getPassengers()) {
+                RegisteredUser user = passenger.getUser();
+                passengerNames.add(user.getFirstName() + " " + user.getLastName());
+            }
+            dto.setPassengerNames(String.join(", ", passengerNames));
+            if(ride.getPanicAlert() != null){
+                dto.setPanic(true);
+                dto.setPanicBy(ride.getPanicAlert().getPanicBy());
+            }else{
+                dto.setPanic(false);
+                dto.setPanicBy(null);
+            }
+            activeRideDTOs.add(dto);
+        }
+        return activeRideDTOs;
+    }
 }

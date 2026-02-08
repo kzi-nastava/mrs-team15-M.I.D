@@ -1,5 +1,5 @@
 import { Router } from '@angular/router';
-import { ChangeDetectorRef, Component, ViewChild, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, OnDestroy, Input } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { CommonModule } from '@angular/common';
 import { ReportInconsistencyModal } from '../report-inconsistency-modal/report-inconsistency-modal';
@@ -38,6 +38,7 @@ export interface CurrentRideDTO {
 
 export class CurrentRideForm implements OnDestroy {
   @ViewChild(ReportInconsistencyModal) reportModal!: ReportInconsistencyModal;
+  @Input() rideData: any;
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -59,6 +60,7 @@ export class CurrentRideForm implements OnDestroy {
 
   isDriver: boolean = false;
   isPassenger: boolean = true;
+  isAdmin: boolean = false;
 
   showStopModal: boolean = false;
   showPanicModal: boolean = false;
@@ -67,8 +69,17 @@ export class CurrentRideForm implements OnDestroy {
 
   ngOnInit(): void {
     this.mapRouteService.clearRoute();
+    
+    // Check if accessed from admin panel via navigation state
+    const nav = (this.router as any).getCurrentNavigation && (this.router as any).getCurrentNavigation();
+    const fromAdmin = nav && nav.extras && nav.extras.state && nav.extras.state.fromAdmin;
+    
     const role = localStorage.getItem('role');
-    if(role == "DRIVER"){
+    if(fromAdmin || role === "ADMIN"){
+      this.isAdmin = true;
+      this.isDriver = false;
+      this.isPassenger = false;
+    } else if(role == "DRIVER"){
       this.isDriver = true;
       this.isPassenger = false;
       // Fetch driver status to trigger location tracking
@@ -80,16 +91,16 @@ export class CurrentRideForm implements OnDestroy {
     // If navigation provided ride info in state, initialize from it to avoid extra API call
     try {
       const nav = (this.router as any).getCurrentNavigation && (this.router as any).getCurrentNavigation();
-      const incoming = nav && nav.extras && nav.extras.state && (nav.extras.state.ride || nav.extras.state.order) ? (nav.extras.state.ride || nav.extras.state.order) : (typeof history !== 'undefined' && (history as any).state ? (history as any).state.ride || (history as any).state.order : null);
+      const incoming = this.rideData || (nav && nav.extras && nav.extras.state && (nav.extras.state.ride || nav.extras.state.order) ? (nav.extras.state.ride || nav.extras.state.order) : (typeof history !== 'undefined' && (history as any).state ? (history as any).state.ride || (history as any).state.order : null));
       if (incoming) {
         try {
-          // Handle new route structure
+          // Handle new route structure (from current ride or admin active rides)
           if (incoming.route && incoming.route.startLocation && incoming.route.endLocation) {
             this.pickupAddress = formatAddress(incoming.route.startLocation.address);
             this.destinationAddress = formatAddress(incoming.route.endLocation.address);
             this.estimatedDistanceKm = incoming.route.distanceKm;
-            this.estimatedDurationMin = incoming.estimatedDurationMin;
-            this.rideId = incoming.rideId || undefined;
+            this.estimatedDurationMin = incoming.route.estimatedTimeMin || incoming.estimatedDurationMin;
+            this.rideId = incoming.rideId || incoming.id || undefined;
 
             // Draw route from polylinePoints
             if (incoming.route.polylinePoints && incoming.route.polylinePoints.length > 0) {
@@ -107,12 +118,17 @@ export class CurrentRideForm implements OnDestroy {
               }
             }
           } else {
-            // Fallback for old format
+            // Fallback for old format or admin ActiveRide format
             this.pickupAddress = formatAddress(incoming.startAddress || '');
             this.destinationAddress = formatAddress(incoming.endAddress || '');
             this.estimatedDistanceKm = incoming.distanceKm;
-            this.estimatedDurationMin = incoming.estimatedTimeMinutes || incoming.estimatedDurationMin;
+            this.estimatedDurationMin = incoming.estimatedTimeMinutes || incoming.estimatedDurationMin || incoming.estimatedDuration;
             this.rideId = incoming.id || incoming.rideId || undefined;
+
+            // For admin rides without distanceKm, estimate from duration
+            if (!this.estimatedDistanceKm && this.estimatedDurationMin) {
+              this.estimatedDistanceKm = this.estimatedDurationMin * 0.8; // Rough estimate
+            }
 
             if (incoming.route) {
               try { this.mapRouteService.drawRoute(incoming.route); } catch(e) {}
@@ -135,8 +151,10 @@ export class CurrentRideForm implements OnDestroy {
       console.warn('Checking navigation state for current ride failed', e);
     }
 
-    // fallback: fetch from backend
-    this.fetchCurrentRide();
+    // fallback: fetch from backend (only for non-admin users)
+    if (!this.isAdmin) {
+      this.fetchCurrentRide();
+    }
   }
 
  fetchCurrentRide(): void {
@@ -163,8 +181,8 @@ export class CurrentRideForm implements OnDestroy {
         this.mapRouteService.drawMarkers(stopPoints);
       }
 
-      // Only passengers should track the ride
-      if (this.rideId && this.isPassenger) {
+      // Start tracking for passengers and admin users
+      if (this.rideId && (this.isPassenger || this.isAdmin)) {
         this.startTracking(this.rideId);
       }
     },
@@ -290,7 +308,7 @@ export class CurrentRideForm implements OnDestroy {
     this.rideService.trackRide(rideId).subscribe({
       next: (trackData) => {
         this.remainingTimeMin = trackData.remainingTimeInMinutes;
-        if (this.isPassenger) {
+        if (this.isPassenger || this.isAdmin) {
           this.mapRouteService.updateVehicleLocationAndCenter(
             trackData.location.latitude,
             trackData.location.longitude
@@ -316,7 +334,7 @@ export class CurrentRideForm implements OnDestroy {
       this.rideService.trackRide(rideId).subscribe({
         next: (trackData) => {
           this.remainingTimeMin = trackData.remainingTimeInMinutes;
-          if (this.isPassenger) {
+          if (this.isPassenger || this.isAdmin) {
             this.mapRouteService.updateVehicleLocationAndCenter(
               trackData.location.latitude,
               trackData.location.longitude
