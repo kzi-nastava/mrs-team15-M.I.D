@@ -34,6 +34,33 @@
                 android:layout_marginBottom="12dp"
                 android:textColor="?attr/colorOnSecondary" />
 
+            <LinearLayout
+                android:id="@+id/favoritePicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/favoriteSelected"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="-- Choose favorite --"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:padding="8dp" />
+
+                <ImageButton
+                    android:id="@+id/favoriteToggle"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_favorite"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Favorites" />
+
+            </LinearLayout>
+
             <EditText
                 android:id="@+id/pickupAddress"
                 android:layout_width="match_parent"
