@@ -2,8 +2,14 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.PriceConfigDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
@@ -13,6 +19,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRequestRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.PriceRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 
 import java.sql.Date;
@@ -30,6 +37,9 @@ public class AdminService {
     private final EmailService emailService;
     private final AuthService authService;
     private final PriceRepository priceRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
                         VehicleRepository vehicleRepository, EmailService emailService,
@@ -256,5 +266,25 @@ public class AdminService {
             config.setPricePerKm(priceDTO.getPricePerKm());
             priceRepository.save(config);
         }
+    }
+
+    public Page<UserItemDTO> getNonAdminUsers(Pageable pageable) {
+        List<UserRoles> roles = List.of(UserRoles.DRIVER, UserRoles.USER);
+        Page<User> users = userRepository.findByRoleIn(roles, pageable);
+        List<UserItemDTO> usersDTO = users.getContent().stream()
+                .map(this::mapToUserItemDTO)
+                .toList();
+
+        return new PageImpl<>(usersDTO, pageable, users.getTotalElements());
+    }
+
+    private UserItemDTO mapToUserItemDTO(User user) {
+        UserItemDTO dto = new UserItemDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getFirstName());
+        dto.setSurname(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole().name());
+        return dto;
     }
 }

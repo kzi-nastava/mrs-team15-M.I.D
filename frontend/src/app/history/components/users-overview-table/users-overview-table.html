@@ -1,0 +1,32 @@
+<div class="px-5 pb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col" class="sortable" (click)="sort('name')">
+            Name <span class="sort-icon">{{ getSortIcon('name') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('surname')">
+            Surname <span class="sort-icon">{{ getSortIcon('surname') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('email')">
+            Email <span class="sort-icon">{{ getSortIcon('email') }}</span>
+          </th>
+          <th scope="col" class="sortable" (click)="sort('role')">
+            Role <span class="sort-icon">{{ getSortIcon('role') }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users; track user.id) {
+          <tr class="clickable-row" (click)="viewUserHistory(user)">
+            <td>{{ user.name }}</td>
+            <td>{{ user.surname }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

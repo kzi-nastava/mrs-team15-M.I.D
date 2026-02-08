@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admins/driver-requests/").hasRole("ADMIN")
                         .requestMatchers("/api/admins/price-configs").hasRole("ADMIN")
                         .requestMatchers("/api/admins/users/").hasRole("ADMIN")
+                        .requestMatchers("/api/admins/all-users/").hasRole("ADMIN")
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").permitAll()
                         .requestMatchers("/api/driver/activate-account").permitAll()

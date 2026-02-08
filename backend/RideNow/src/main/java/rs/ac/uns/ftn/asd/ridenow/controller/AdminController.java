@@ -1,6 +1,11 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
@@ -36,37 +42,27 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @GetMapping("/users/{id}/rides")
-    public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@PathVariable Long id,
-           @RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
-           @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){
-        List<RideHistoryItemDTO> rides = new ArrayList<>();
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all-users")
+    public ResponseEntity<Page<UserItemDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "firstName") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
 
-        RideHistoryItemDTO firstRide = new RideHistoryItemDTO();
-        firstRide.setId(1L);
-        firstRide.setStartAddress("Bulevar Oslobođenja 45, Novi Sad");
-        firstRide.setEndAddress("Narodnog fronta 12, Novi Sad");
-        firstRide.setStartTime(LocalDateTime.of(2025, 5, 10, 14, 30));
-        firstRide.setEndTime(LocalDateTime.of(2025, 5, 10, 14, 50));
-        firstRide.setCancelled(false);
-        firstRide.setCancelledBy(null);
-        firstRide.setPrice(520.00);
-        firstRide.setPanicTriggered(false);
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<UserItemDTO> users = adminService.getNonAdminUsers(pageable);
+        return ResponseEntity.ok(users);
+    }
 
-        RideHistoryItemDTO secondRide = new RideHistoryItemDTO();
-        secondRide.setId(2L);
-        secondRide.setStartAddress("Trg slobode 3, Novi Sad");
-        secondRide.setEndAddress("Bulevar Evrope 28, Novi Sad");
-        secondRide.setStartTime(LocalDateTime.of(2025, 5, 11, 9, 15));
-        secondRide.setEndTime(LocalDateTime.of(2025, 5, 11, 9, 40));
-        secondRide.setCancelled(true);
-        secondRide.setCancelledBy("PASSENGER");
-        secondRide.setPrice(0.00);
-        secondRide.setPanicTriggered(false);
-
-        rides.add(firstRide);
-        rides.add(secondRide);
-        return ResponseEntity.ok().body(rides);
+    private String mapSortField(String sortBy) {
+        return switch (sortBy) {
+            case "surname" -> "lastName";
+            case "role" -> "role";
+            case "email" -> "email";
+            default -> "firstName";
+        };
     }
 
     @GetMapping("/rides/{id}")
