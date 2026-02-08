@@ -61,6 +61,12 @@ ngOnInit(): void {
     });
   }
 
+public getDescription(): string {
+  const userName = `${this.selectedUser.name} ${this.selectedUser.surname}`;
+  return `${userName}'s Ride History`;
+}
+
+
  private transformRideData(apiData: RideHistoryResponse[]): Ride[] {
   console.log(apiData);
   return apiData.map((ride) => {
