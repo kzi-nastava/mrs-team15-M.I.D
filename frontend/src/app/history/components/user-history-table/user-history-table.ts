@@ -59,7 +59,13 @@ export class UserHistoryTable {
 
   constructor(private router: Router, private cdr: ChangeDetectorRef, private passengerService: PassengerService) {}
 
-  @Input() rides: Ride[] = [];
+  @Input()
+  set rides(value: Ride[]) {
+    this._rides = value ?? [];
+  }
+  get rides(): Ride[] {
+    return this._rides;
+  }
   @Output() sortChange = new EventEmitter<{ column: string; direction: string }>();
 
   currentSortColumn: string = '';

@@ -175,112 +175,44 @@ export class RideEstimationForm implements OnInit, OnDestroy {
 
       const normalizedQuery = query.trim().toLowerCase();
       const cached = this.suggestionCache.get(normalizedQuery);
-      
       if (cached && (Date.now() - cached.timestamp) < this.CACHE_DURATION) {
-        if (target === 'pickup') {
-          this.pickupSuggestions = cached.suggestions;
-        } else {
-          this.destinationSuggestions = cached.suggestions;
-        }
+        if (target === 'pickup') this.pickupSuggestions = cached.suggestions;
+        else this.destinationSuggestions = cached.suggestions;
         this.cdr.detectChanges();
         return;
       }
 
-      const suggestions = await this.getSuggestionsFromNominatim(query);
-      
-      this.suggestionCache.set(normalizedQuery, {
-        suggestions,
-        timestamp: Date.now()
-      });
-      
-      if (target === 'pickup') {
-        this.pickupSuggestions = suggestions;
-      } else {
-        this.destinationSuggestions = suggestions;
+      this.abortOngoingFetch();
+      this.lastFetchController = new AbortController();
+
+      let finalSuggestions: AddressSuggestion[] = [];
+
+      const onQuick = (items: any[]) => {
+        const s = (items || []).slice(0, this.SUGGESTION_LIMIT).map((it: any) => ({ display: it.display, raw: it.raw, lat: it.lat, lng: it.lon }));
+        if (target === 'pickup') this.pickupSuggestions = s;
+        else this.destinationSuggestions = s;
+        this.cdr.detectChanges();
+      };
+
+      const onFinal = (items: any[]) => {
+        finalSuggestions = (items || []).slice(0, this.SUGGESTION_LIMIT).map((it: any) => ({ display: it.display, raw: it.raw, lat: it.lat, lng: it.lon }));
+        this.suggestionCache.set(normalizedQuery, { suggestions: finalSuggestions, timestamp: Date.now() });
+        if (target === 'pickup') this.pickupSuggestions = finalSuggestions;
+        else this.destinationSuggestions = finalSuggestions;
+        this.cdr.detectChanges();
+      };
+
+      try {
+        await this.rideService.fetchParallelSuggestions(query, onQuick, onFinal, this.lastFetchController.signal, this.SUGGESTION_LIMIT, true);
+      } catch (e: any) {
+        if (e && e.name === 'AbortError') return;
+        console.warn('Parallel suggestions failed', e);
       }
-      
-      this.cdr.detectChanges();
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        return;
-      }
+      if (error && error.name === 'AbortError') return;
       console.error('Failed to fetch suggestions:', error);
       this.clearSuggestions(target);
     }
-  }
-
-  private async getSuggestionsFromNominatim(query: string): Promise<AddressSuggestion[]> {
-    const hasNumber = /\d/.test(query);
-    const url = this.buildNominatimUrl(query, hasNumber);
-    
-    this.abortOngoingFetch();
-    this.lastFetchController = new AbortController();
-    
-    const response = await fetch(url, {
-      signal: this.lastFetchController.signal,
-      headers: {
-        'User-Agent': 'RideApp/1.0'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Nominatim request failed: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!Array.isArray(data)) {
-      return [];
-    }
-
-    const suggestions = data
-      .filter(item => this.isInNoviSadArea(parseFloat(item.lat), parseFloat(item.lon)))
-      .map(item => ({
-        display: this.formatAddressDisplay(item),
-        raw: item,
-        lat: parseFloat(item.lat),
-        lng: parseFloat(item.lon)
-      }));
-
-    const uniqueSuggestions: AddressSuggestion[] = [];
-    const seen = new Set<string>();
-    
-    for (const suggestion of suggestions) {
-      const normalized = suggestion.display.toLowerCase();
-      if (!seen.has(normalized)) {
-        seen.add(normalized);
-        uniqueSuggestions.push(suggestion);
-      }
-      
-      if (uniqueSuggestions.length >= this.SUGGESTION_LIMIT) {
-        break;
-      }
-    }
-
-    return uniqueSuggestions;
-  }
-
-  private buildNominatimUrl(query: string, hasNumber: boolean): string {
-    const baseUrl = 'https://nominatim.openstreetmap.org/search';
-    const params = new URLSearchParams({
-      format: 'json',
-      addressdetails: '1',
-      limit: '20',
-      countrycodes: 'rs',
-      'accept-language': 'sr-Latn,en'
-    });
-
-    if (hasNumber) {
-      params.append('street', query);
-      params.append('city', 'Novi Sad');
-    } else {
-      const searchQuery = /novi\s*sad/i.test(query) 
-        ? query 
-        : `${query}, Novi Sad`;
-      params.append('q', searchQuery);
-    }
-
-    return `${baseUrl}?${params.toString()}`;
   }
 
   private isInNoviSadArea(lat: number, lng: number): boolean {
