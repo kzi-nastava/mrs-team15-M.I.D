@@ -123,6 +123,21 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/block/{id}")
+    public ResponseEntity<Void> blockUser(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.blockUser(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/unblock/{id}")
+    public ResponseEntity<Void> unblockUser(@PathVariable Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.unblockUser(id));
+    }
+
+
 
     @PreAuthorize("hasRole('Admin')")
     @GetMapping("/price-configs")

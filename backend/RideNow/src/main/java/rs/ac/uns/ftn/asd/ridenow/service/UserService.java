@@ -147,4 +147,20 @@ public class UserService {
         }
         return result;
     }
+
+    public Void blockUser(Long id) {
+        User user = userRepository.findById(id).get();
+
+        user.setBlocked(true);
+        userRepository.save(user);
+        return null;
+    }
+
+    public Void unblockUser(Long id) {
+        User user = userRepository.findById(id).get();
+
+        user.setBlocked(false);
+        userRepository.save(user);
+        return null;
+    }
 }
