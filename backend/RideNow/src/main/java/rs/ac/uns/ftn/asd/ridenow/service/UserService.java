@@ -13,6 +13,8 @@ import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -135,5 +137,14 @@ public class UserService {
         }
         User user = opt.get();
         return getUser(user);
+    }
+
+    public List<UserResponseDTO> getUsers() {
+        List<UserResponseDTO>  result  = new ArrayList<UserResponseDTO>();
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            result.add(getUser(user));
+        }
+        return result;
     }
 }

@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header';
+import { Button } from '../../../shared/components/button/button';
 import { AdminService } from '../../../services/admin.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +18,7 @@ export interface AdminUser {
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [PageHeaderComponent, CommonModule, FormsModule],
+  imports: [PageHeaderComponent, CommonModule, FormsModule, Button],
   templateUrl: './users.html',
   styleUrl: './users.css',
 })

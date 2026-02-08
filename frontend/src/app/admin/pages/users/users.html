@@ -63,17 +63,9 @@
     </table>
   </div>
 
-  <nav aria-label="Page navigation" *ngIf="totalPages > 1">
-    <ul class="pagination justify-content-center">
-      <li class="page-item" [class.disabled]="currentPage === 1">
-        <a class="page-link" (click)="changePage(currentPage - 1)">Previous</a>
-      </li>
-      <li class="page-item" *ngFor="let p of pages" [class.active]="currentPage === p">
-        <a class="page-link" (click)="changePage(p)">{{ p }}</a>
-      </li>
-      <li class="page-item" [class.disabled]="currentPage === totalPages">
-        <a class="page-link" (click)="changePage(currentPage + 1)">Next</a>
-      </li>
-    </ul>
-  </nav>
+  <div *ngIf="totalPages > 1" class="d-flex justify-content-center align-items-center gap-3 mb-3">
+    <app-button text="←" variant="primary" height="30px" width="40px" [disabled]="currentPage === 1" (clicked)="changePage(currentPage - 1)"></app-button>
+    <span class="text-muted"> page {{ currentPage }} of {{ totalPages }} ({{ filteredUsers.length }} total users)</span>
+    <app-button text="→" variant="primary" height="30px" width="40px" [disabled]="currentPage === totalPages" (clicked)="changePage(currentPage + 1)"></app-button>
+  </div>
 </section>

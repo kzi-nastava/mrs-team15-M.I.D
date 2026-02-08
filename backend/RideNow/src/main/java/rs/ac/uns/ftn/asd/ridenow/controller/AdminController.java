@@ -116,6 +116,14 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users")
+    public ResponseEntity<List<UserResponseDTO>> getUsers() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.getUsers());
+    }
+
+
     @PreAuthorize("hasRole('Admin')")
     @GetMapping("/price-configs")
     public ResponseEntity<PriceConfigResponseDTO> getPriceConfigs() {
