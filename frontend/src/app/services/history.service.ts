@@ -136,4 +136,15 @@ getUsers(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string) 
     }
     return this.http.get<PaginatedUsersResponse>(url);
   }
+
+  getAdminRideHistory(id: number, page: number = 0, size: number = 8, sortBy?: string, sortDir?: string, date?: number): Observable<PaginatedRideHistoryResponse> {
+    let url = `${this.apiUrl}/admins/ride-history?id=${id}&page=${page}&size=${size}`;
+    if (sortBy && sortDir) {
+      url += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+    }
+    if(date !== undefined && date !== null) {
+      url += `&date=${date}`;
+    }
+    return this.http.get<PaginatedRideHistoryResponse>(url);
+  }
 }
