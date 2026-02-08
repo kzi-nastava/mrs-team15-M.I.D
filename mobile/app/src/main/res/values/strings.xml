@@ -145,6 +145,9 @@
     <string name="profile_img">Profile Picture</string>
     <string name="logout">Logout</string>
 
+    <!-- active hours -->
+    <string name="hours_last_24">Active hours last 24h: %1$.1f</string>
+
     <!-- rating -->
     <string name="rating_title">Rate Your Ride</string>
     <string name="rating_driver_title">Rate the Driver</string>
