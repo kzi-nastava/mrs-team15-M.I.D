@@ -116,4 +116,16 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @PreAuthorize("hasRole('Admin')")
+    @GetMapping("/price-configs")
+    public ResponseEntity<PriceConfigResponseDTO> getPriceConfigs() {
+        return ResponseEntity.ok(adminService.getPriceConfigs());
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @PutMapping("/price-configs")
+    public ResponseEntity<Void> updatePriceConfigs(@Valid @RequestBody PriceConfigRequestDTO request) {
+        adminService.updatePriceConfigs(request);
+        return ResponseEntity.ok().build();
+    }
 }
