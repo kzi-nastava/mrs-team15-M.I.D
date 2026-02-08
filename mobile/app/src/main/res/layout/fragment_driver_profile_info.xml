@@ -50,6 +50,17 @@
             android:text="@string/nav_user_profile"
             android:textSize="28sp" />
 
+        <!-- New TextView to show active hours in last 24h -->
+        <TextView
+            android:id="@+id/tvHoursLast24"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginBottom="12dp"
+            android:text="@string/hours_last_24"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
         <EditText
             android:id="@+id/etFirstName"
             style="@style/TextInput"
