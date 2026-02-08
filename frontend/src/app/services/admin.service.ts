@@ -40,7 +40,10 @@ export class AdminService {
 
   unblockUser(id: number): Observable<any> {
     return this.http.put(`${this.apiURL}/unblock/${id}`, null);
-  getPriceConfigurations(): Observable<any> {
+
+  }
+
+    getPriceConfigurations(): Observable<any> {
     console.log('AdminService.getPriceConfigurations() called');
     console.log('GET request URL:', `${this.apiURL}/price-configs`);
     return this.http.get(`${this.apiURL}/price-configs`);

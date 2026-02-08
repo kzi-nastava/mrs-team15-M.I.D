@@ -1,0 +1,56 @@
+/* Custom badge colors for vehicle types */
+.badge-standard {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+.badge-luxury {
+  background-color: #6f42c1;
+  color: #ffffff;
+}
+
+.badge-van {
+  background-color: #198754;
+  color: #ffffff;
+}
+
+/* Card hover effect */
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Ensure equal height cards */
+.card.h-100 {
+  height: 100%;
+}
+
+/* Custom styling for better visual hierarchy */
+.form-label.fw-semibold {
+  color: #495057;
+}
+
+.form-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Example calculation section styling */
+.bg-light.rounded {
+  border-left: 4px solid #0d6efd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .d-flex.justify-content-end.gap-2 {
+    flex-direction: column;
+  }
+  
+  .d-flex.justify-content-end.gap-2 .btn {
+    width: 100%;
+  }
+}

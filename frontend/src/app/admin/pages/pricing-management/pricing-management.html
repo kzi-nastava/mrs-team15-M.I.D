@@ -1,0 +1,122 @@
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-8">
+      <app-page-header title="Vehicle Pricing Management" subtitle="Configure base prices and per-kilometer rates for different vehicle types"></app-page-header>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="d-flex flex-column align-items-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted">Loading price configurations...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ error }}
+      </div>
+
+      <!-- Success Message -->
+      <div *ngIf="success" class="alert alert-success d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        {{ success }}
+      </div>
+
+      <!-- Price Configuration Cards -->
+      <div *ngIf="!loading" class="row g-4 mb-4">
+        <div *ngFor="let config of priceConfigs" class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">{{ getVehicleTypeDisplayName(config.vehicleType) }}</h5>
+              <span class="badge" [class]="'badge-' + config.vehicleType.toLowerCase()">
+                {{ config.vehicleType }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label for="basePrice-{{ config.vehicleType }}" class="form-label fw-semibold">Base Price (RSD)</label>
+                <div class="input-group">
+                  <input
+                    type="number"
+                    id="basePrice-{{ config.vehicleType }}"
+                    class="form-control"
+                    [(ngModel)]="config.basePrice"
+                    (ngModelChange)="onPriceChange('basePrice', $event, config)"
+                    min="0"
+                    max="10000"
+                    step="10"
+                    placeholder="Enter base price"
+                  />
+                  <span class="input-group-text">RSD</span>
+                </div>
+                <div class="form-text">Fixed charge for starting the ride</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="pricePerKm-{{ config.vehicleType }}" class="form-label fw-semibold">Price per Kilometer (RSD)</label>
+                <div class="input-group">
+                  <input
+                    type="number"
+                    id="pricePerKm-{{ config.vehicleType }}"
+                    class="form-control"
+                    [(ngModel)]="config.pricePerKm"
+                    (ngModelChange)="onPriceChange('pricePerKm', $event, config)"
+                    min="0"
+                    max="10000"
+                    step="5"
+                    placeholder="Enter price per km"
+                  />
+                  <span class="input-group-text">RSD/km</span>
+                </div>
+                <div class="form-text">Rate charged for each kilometer traveled</div>
+              </div>
+
+              <div class="bg-light rounded p-3">
+                <h6 class="fw-semibold mb-2">Example Cost (5km ride)</h6>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Base price:</span>
+                  <span>{{ config.basePrice }} RSD</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span>Distance (5km):</span>
+                  <span>{{ config.pricePerKm * 5 }} RSD</span>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex justify-content-between fw-bold">
+                  <span>Total:</span>
+                  <span>{{ config.basePrice + (config.pricePerKm * 5) }} RSD</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div *ngIf="!loading" class="d-flex justify-content-end gap-2 pt-3 border-top">
+        <app-button
+          text="Reset Changes"
+          variant="secondary"
+          fontWeight="500"
+          [disabled]="saving"
+          (clicked)="resetChanges()"
+        ></app-button>
+        
+        <app-button
+          [text]="saving ? 'Saving...' : 'Save Configuration'"
+          variant="primary"
+            fontWeight="500"
+          [disabled]="saving"
+          (clicked)="saveChanges()"
+        ></app-button>
+      </div>
+
+      <!-- Changes Indicator -->
+      <div *ngIf="hasChanges() && !loading" class="alert alert-warning d-flex align-items-center mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span>You have unsaved changes</span>
+      </div>
+    </div>
+  </div>
+</div>
