@@ -20,6 +20,10 @@ export class AdminService {
     return this.http.get(`${this.apiURL}/users/${id}`);
   }
 
+  getAllUsers(): Observable<any> {
+    return this.http.get(`${this.apiURL}/users`);
+  }
+
   reviewDriverRequest(requestId: number | string, dto: any): Observable<any> {
     return this.http.put(`${this.apiURL}/driver-requests/${requestId}`, dto);
   }
