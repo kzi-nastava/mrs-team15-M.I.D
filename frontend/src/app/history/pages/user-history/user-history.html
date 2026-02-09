@@ -2,4 +2,10 @@
     title="Ride history" description="Review your completed rides"
     [showDateFilter]="true" (filter)="onFilter($event)" (clearFilter)="onClearFilter()">
 </app-page-header>
-<app-user-history-table [rides]="filteredRides"></app-user-history-table>
+<app-user-history-table [rides]="filteredRides" (sortChange)="onSort($event)"></app-user-history-table>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+  <app-button text="←" variant="primary" height="30px" width="40px" [disabled]="isFirstPage" (clicked)="goToPreviousPage()"></app-button>
+  <span class="text-muted"> page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total rides)</span>
+  <app-button text="→" variant="primary"  height="30px" width="40px" [disabled]="isLastPage" (clicked)="goToNextPage()"></app-button>
+</div>

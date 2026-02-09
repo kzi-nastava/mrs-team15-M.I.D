@@ -13,6 +13,13 @@ import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -74,6 +81,7 @@ public class UserService {
         dto.setPhoneNumber(user.getPhoneNumber());
         dto.setProfileImage(user.getProfileImage());
         dto.setActive(user.isActive());
+        dto.setBlocked(user.isBlocked());
 
         if (user instanceof Driver driver) {
             Vehicle vehicle = driver.getVehicle();
@@ -135,5 +143,87 @@ public class UserService {
         }
         User user = opt.get();
         return getUser(user);
+    }
+
+    public Page<UserResponseDTO> getUsers(String search, String sortBy, String sortDirection, int page, int size) {
+        // If no search and simple sort, leverage repository pageable
+        Sort sort = Sort.unsorted();
+        if (sortBy != null && !sortBy.isBlank()) {
+            Sort.Direction d = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+            // Map field names for entity where needed
+            String prop = switch (sortBy) {
+                case "firstName" -> "firstName";
+                case "lastName" -> "lastName";
+                case "email" -> "email";
+                case "role" -> "role";
+                default -> sortBy;
+            };
+            sort = Sort.by(d, prop);
+        }
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), sort);
+
+        List<User> usersList;
+        long totalElements;
+
+        if (search == null || search.isBlank()) {
+            var pageRes = userRepository.findAll(pageable);
+            usersList = pageRes.getContent();
+            totalElements = pageRes.getTotalElements();
+        } else {
+            // fallback: filter in-memory then page
+            String q = search.trim().toLowerCase();
+            List<User> filtered = userRepository.findAll().stream().filter(u -> {
+                if (u.getRole() != null && u.getRole().toString().toLowerCase().contains(q)) return true;
+                if (u.getEmail() != null && u.getEmail().toLowerCase().contains(q)) return true;
+                if (u.getFirstName() != null && u.getFirstName().toLowerCase().contains(q)) return true;
+                if (u.getLastName() != null && u.getLastName().toLowerCase().contains(q)) return true;
+                if (u.getPhoneNumber() != null && u.getPhoneNumber().toLowerCase().contains(q)) return true;
+                return false;
+            }).collect(java.util.stream.Collectors.toList());
+            // apply sort if requested
+            if (sort.isSorted()) {
+                java.util.Comparator<User> comp = (a, b) -> 0;
+                if ("blocked".equals(sortBy)) {
+                    comp = java.util.Comparator.comparing(User::isBlocked);
+                } else if ("email".equals(sortBy)) {
+                    comp = java.util.Comparator.comparing(u -> u.getEmail() == null ? "" : u.getEmail(), String.CASE_INSENSITIVE_ORDER);
+                } else if ("firstName".equals(sortBy)) {
+                    comp = java.util.Comparator.comparing(u -> u.getFirstName() == null ? "" : u.getFirstName(), String.CASE_INSENSITIVE_ORDER);
+                } else if ("lastName".equals(sortBy)) {
+                    comp = java.util.Comparator.comparing(u -> u.getLastName() == null ? "" : u.getLastName(), String.CASE_INSENSITIVE_ORDER);
+                } else if ("role".equals(sortBy)) {
+                    comp = java.util.Comparator.comparing(u -> u.getRole() == null ? "" : u.getRole().toString(), String.CASE_INSENSITIVE_ORDER);
+                }
+                if (sort.isSorted() && comp != null) {
+                    if (sort.stream().findFirst().get().isDescending()) comp = comp.reversed();
+                    filtered.sort(comp);
+                }
+            }
+            totalElements = filtered.size();
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), filtered.size());
+            if (start > end) usersList = List.of(); else usersList = filtered.subList(start, end);
+        }
+
+        List<UserResponseDTO> content = new ArrayList<>();
+        for (User user : usersList) content.add(getUser(user));
+
+        return new PageImpl<>(content, pageable, totalElements);
+    }
+
+    public Void blockUser(Long id) {
+        User user = userRepository.findById(id).get();
+
+        user.setBlocked(true);
+        userRepository.save(user);
+        return null;
+    }
+
+    public Void unblockUser(Long id) {
+        User user = userRepository.findById(id).get();
+
+        user.setBlocked(false);
+        userRepository.save(user);
+        return null;
     }
 }

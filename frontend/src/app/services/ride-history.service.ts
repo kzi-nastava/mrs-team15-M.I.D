@@ -39,7 +39,6 @@ export interface RideHistoryResponse {
   rating: Rating | null;
   inconsistencies: string[];
 }
-
 export interface PaginatedRideHistoryResponse {
   content: RideHistoryResponse[];
   pageable: {
@@ -85,16 +84,5 @@ export class RideHistoryService {
       url += `&date=${date}`;
     }
     return this.http.get<PaginatedRideHistoryResponse>(url);
-  }
-
-  // Fetch ride history for the authenticated passenger.
-  // Backend: PassengerController @GetMapping("/ride-history")
-  getPassengerRideHistory(dateFrom?: string, dateTo?: string, sortBy?: string, sortDirection?: string): Observable<RideHistoryResponse[]> {
-    let params: any = {};
-    if (dateFrom) params.dateFrom = dateFrom;
-    if (dateTo) params.dateTo = dateTo;
-    if (sortBy) params.sortBy = sortBy;
-    if (sortDirection) params.sortDirection = sortDirection;
-    return this.http.get<RideHistoryResponse[]>(`${this.apiUrl}/passengers/ride-history`, { params });
   }
 }

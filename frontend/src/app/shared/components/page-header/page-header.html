@@ -6,11 +6,21 @@
     </div>
     @if (showDateFilter) {
       <div class="d-flex flex-column flex-sm-row gap-2">
-        <input
-          type="date"
-          class="form-control"
-          [(ngModel)]="filterDate"
-          style="min-width: 200px;"/>
+        @if (!searchMode) {
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="filterDate"
+            style="min-width: 200px;"/>
+        }
+        @else {
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="filterDate"
+            placeholder="{{ searchPlaceholder || 'Search' }}"
+            style="min-width: 200px;"/>
+        }
         <button
           class="btn btn-primary border-black bg-black text-white"
           style="min-width: 150px;"

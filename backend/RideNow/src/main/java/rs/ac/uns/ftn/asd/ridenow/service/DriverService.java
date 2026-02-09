@@ -30,6 +30,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import static rs.ac.uns.ftn.asd.ridenow.util.AddressUtil.formatAddress;
+
 @Service
 public class DriverService {
     private final RideRepository rideRepository;
@@ -217,42 +219,7 @@ public class DriverService {
         return response;
     }
 
-    private String formatAddress(String fullAddress) {
-        if (fullAddress == null || fullAddress.trim().isEmpty()) {
-            return fullAddress;
-        }
 
-        String[] parts = fullAddress.split(",");
-        if (parts.length < 1) {
-            return fullAddress; // Return original if not enough parts
-        }
-
-        StringBuilder formattedAddress = new StringBuilder();
-
-        // Check if first part contains a number (house number)
-        String firstPart = parts[0].trim();
-        Pattern numberPattern = Pattern.compile("\\d+");
-        boolean hasHouseNumber = numberPattern.matcher(firstPart).find();
-
-        if (hasHouseNumber) {
-            // If there's a house number, append it and then the street (second part)
-            formattedAddress.append(firstPart).append(" ");
-            if (parts.length > 1) {
-                formattedAddress.append(parts[1].trim());
-            }
-        } else {
-            // If no house number, the first part is the street
-            formattedAddress.append(firstPart);
-        }
-
-        // Add city (6th from behind, which is parts.length - 6)
-        int cityIndex = parts.length - 6;
-        if (cityIndex >= 0 && cityIndex < parts.length) {
-            formattedAddress.append(", ").append(parts[cityIndex].trim());
-        }
-
-        return formattedAddress.toString();
-    }
 
     public List<UpcomingRideDTO> findScheduledRides(Long driverId) {
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
@@ -369,6 +336,17 @@ public class DriverService {
         response.setLat(request.getLat());
         response.setLon(request.getLon());
         response.setLicencePlate(vehicle.getLicencePlate());
+        return response;
+    }
+
+    public DriverCanStartRideResponseDTO canDriverStartRide(Driver driver){
+        DriverCanStartRideResponseDTO response = new DriverCanStartRideResponseDTO();
+        Optional<Ride> rides = rideRepository.findCurrentRideByDriver(driver.getId());
+        if (rides.isPresent()){
+            response.setCanStartRide(false);
+            return response;
+        }
+        response.setCanStartRide(true);
         return response;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +36,7 @@ public class DriverController {
         this.driverService = driverService;
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/ride-history")
     public ResponseEntity<Page<DriverHistoryItemDTO>> getRideHistory(@RequestParam(defaultValue = "0") int page,
                                                                      @RequestParam(defaultValue = "10") int size,
@@ -74,6 +76,7 @@ public class DriverController {
         };
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/rides")
     public ResponseEntity<List<UpcomingRideDTO>> findRides() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -83,6 +86,7 @@ public class DriverController {
         return ResponseEntity.ok(rides);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PostMapping(path = "/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@ModelAttribute DriverChangeRequestDTO request,
                                                                        @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws IOException {
@@ -94,6 +98,7 @@ public class DriverController {
 
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/change-status")
     public ResponseEntity<?> changeDriverStatus(@Valid @RequestBody DriverStatusRequestDTO request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -107,6 +112,7 @@ public class DriverController {
         return ResponseEntity.badRequest().body("Driver does not exists");
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/status")
     public ResponseEntity<?> getDriverStatus() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -132,11 +138,23 @@ public class DriverController {
         }
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/update-location")
     public ResponseEntity<DriverLocationResponseDTO> updateDriverLocation(@Valid @RequestBody DriverLocationRequestDTO request) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user instanceof Driver driver) {
             DriverLocationResponseDTO response = driverService.updateDriverLocation(driver, request);
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PreAuthorize("hasRole('DRIVER')")
+    @GetMapping("/can-start-ride")
+    public ResponseEntity<DriverCanStartRideResponseDTO> canDriverStartRide() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user instanceof Driver driver) {
+            DriverCanStartRideResponseDTO response = driverService.canDriverStartRide(driver);
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.badRequest().build();

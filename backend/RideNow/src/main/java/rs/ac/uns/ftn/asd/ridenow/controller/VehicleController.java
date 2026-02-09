@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.UpdateVehicleRequest;
 import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.VehicleResponseDTO;
@@ -30,6 +31,7 @@ public class VehicleController {
         return ResponseEntity.ok(vehicles);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/update-location/{licencePlate}")
     public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable @NotNull @NotEmpty String licencePlate, @Valid @RequestBody UpdateVehicleRequest req) {
         VehicleResponseDTO res = vehicleService.updateVehicleLocation(licencePlate, req.getLat(), req.getLon());

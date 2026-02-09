@@ -12,18 +12,23 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.driver.RideHistory;
+import com.example.ridenow.dto.driver.RideHistoryDTO;
+import com.example.ridenow.ui.components.RouteMapView;
+import com.example.ridenow.util.AddressUtils;
+import com.example.ridenow.util.DateUtils;
 
 import java.util.Locale;
 
 public class RideDetailsFragment extends Fragment {
-    private RideHistory rideHistory;
+    private RideHistoryDTO rideHistory;
+    private RouteMapView routeMapView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (getArguments() != null) {
-            rideHistory = (RideHistory) getArguments().getSerializable("ride_history");
+            rideHistory = (RideHistoryDTO) getArguments().getSerializable("ride_history");
         }
     }
 
@@ -37,6 +42,7 @@ public class RideDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         if (rideHistory != null) {
+            setupMap(view);
             populateRideDetails(view);
         }
     }
@@ -58,37 +64,64 @@ public class RideDetailsFragment extends Fragment {
         TextView tvVehicleComment = view.findViewById(R.id.tvVehicleComment);
 
         // Populate basic ride information
-        String routeDisplay = rideHistory.getRoute().getStartLocation().getAddress() +
-                            " → " + rideHistory.getRoute().getEndLocation().getAddress();
-        tvRoute.setText("Route: " + routeDisplay);
+        String startAddress = AddressUtils.formatAddress(rideHistory.getRoute().getStartLocation().getAddress());
+        String endAddress = AddressUtils.formatAddress(rideHistory.getRoute().getEndLocation().getAddress());
+        String routeDisplay = startAddress + " → " + endAddress;
+        tvRoute.setText(getString(R.string.ride_details_route, routeDisplay));
 
         String passengersDisplay = rideHistory.getPassengers() != null && !rideHistory.getPassengers().isEmpty()
                                  ? String.join(", ", rideHistory.getPassengers())
-                                 : "N/A";
-        tvPassengers.setText("Passengers: " + passengersDisplay);
+                                 : getString(R.string.ride_details_na);
+        tvPassengers.setText(getString(R.string.ride_details_passengers, passengersDisplay));
 
-        tvDate.setText("Date: " + rideHistory.getDate());
+        // Format date from startTime if available, otherwise use the existing date field
+        String dateDisplay;
+        if (rideHistory.getStartTime() != null && !rideHistory.getStartTime().trim().isEmpty()) {
+            dateDisplay = DateUtils.formatDateFromISO(rideHistory.getStartTime());
+        } else {
+            dateDisplay = rideHistory.getDate() != null ? rideHistory.getDate() : getString(R.string.ride_details_na);
+        }
+        tvDate.setText(getString(R.string.ride_details_date, dateDisplay));
 
-        String durationDisplay = String.format(Locale.getDefault(), "%.0f min", rideHistory.getDurationMinutes());
-        tvDuration.setText("Duration: " + durationDisplay);
+        // Calculate duration and format time range
+        String durationDisplay;
+        if (rideHistory.getStartTime() != null && rideHistory.getEndTime() != null &&
+            !rideHistory.getStartTime().trim().isEmpty() && !rideHistory.getEndTime().trim().isEmpty()) {
+
+            long calculatedDuration = DateUtils.calculateDurationMinutes(rideHistory.getStartTime(), rideHistory.getEndTime());
+            String timeRange = DateUtils.formatTimeRange(rideHistory.getStartTime(), rideHistory.getEndTime());
+
+            durationDisplay = getString(R.string.ride_details_duration_with_time, calculatedDuration, timeRange);
+        } else {
+            // Fallback to the existing durationMinutes field
+            durationDisplay = String.format(Locale.getDefault(), getString(R.string.ride_details_duration_simple), rideHistory.getDurationMinutes());
+        }
+        tvDuration.setText(getString(R.string.ride_details_duration, durationDisplay));
 
         String cancelledDisplay = rideHistory.isCancelled()
-                                ? (rideHistory.getCancelledBy() != null ? rideHistory.getCancelledBy() : "Yes")
-                                : "No";
-        tvCancelled.setText("Cancelled: " + cancelledDisplay);
+                                ? (rideHistory.getCancelledBy() != null ? rideHistory.getCancelledBy() : getString(R.string.ride_details_yes))
+                                : getString(R.string.ride_details_no);
+        tvCancelled.setText(getString(R.string.ride_details_cancelled, cancelledDisplay));
 
-        String costDisplay = String.format(Locale.getDefault(), "%.2f RSD", rideHistory.getCost());
-        tvCost.setText("Cost: " + costDisplay);
+        String costDisplay = String.format(Locale.getDefault(), getString(R.string.ride_details_cost_format), rideHistory.getCost());
+        tvCost.setText(getString(R.string.ride_details_cost, costDisplay));
 
-        String panicDisplay = (rideHistory.getPanic() != null && rideHistory.getPanic())
-                            ? (rideHistory.getPanicBy() != null ? "Yes - " + rideHistory.getPanicBy() : "Yes")
-                            : "No";
-        tvPanicButton.setText("Panic Button: " + panicDisplay);
+        String panicDisplay;
+        if (rideHistory.getPanic() != null && rideHistory.getPanic()) {
+            if (rideHistory.getPanicBy() != null) {
+                panicDisplay = getString(R.string.ride_details_panic_with_person, rideHistory.getPanicBy());
+            } else {
+                panicDisplay = getString(R.string.ride_details_yes);
+            }
+        } else {
+            panicDisplay = getString(R.string.ride_details_no);
+        }
+        tvPanicButton.setText(getString(R.string.ride_details_panic_button, panicDisplay));
 
         String inconsistenciesDisplay = rideHistory.getInconsistencies() != null && !rideHistory.getInconsistencies().isEmpty()
                                       ? String.join(", ", rideHistory.getInconsistencies())
-                                      : "None";
-        tvInconsistencies.setText("Inconsistencies: " + inconsistenciesDisplay);
+                                      : getString(R.string.ride_details_none);
+        tvInconsistencies.setText(getString(R.string.ride_details_inconsistencies, inconsistenciesDisplay));
 
         // Handle ratings
         if (rideHistory.getRating() != null) {
@@ -96,20 +129,20 @@ public class RideDetailsFragment extends Fragment {
             createStarRating(llDriverStars, rideHistory.getRating().getDriverRating());
             String driverComment = rideHistory.getRating().getDriverComment();
             tvDriverComment.setText(driverComment != null && !driverComment.trim().isEmpty()
-                ? driverComment : "No comment provided");
+                ? driverComment : getString(R.string.ride_details_no_comment));
 
             // Vehicle rating
             createStarRating(llVehicleStars, rideHistory.getRating().getVehicleRating());
             String vehicleComment = rideHistory.getRating().getVehicleComment();
             tvVehicleComment.setText(vehicleComment != null && !vehicleComment.trim().isEmpty()
-                ? vehicleComment : "No comment provided");
+                ? vehicleComment : getString(R.string.ride_details_no_comment));
         } else {
             // No rating available
             createStarRating(llDriverStars, 0);
-            tvDriverComment.setText("No rating available");
+            tvDriverComment.setText(getString(R.string.ride_details_no_ratings));
 
             createStarRating(llVehicleStars, 0);
-            tvVehicleComment.setText("No rating available");
+            tvVehicleComment.setText(getString(R.string.ride_details_no_ratings));
         }
     }
 
@@ -133,10 +166,47 @@ public class RideDetailsFragment extends Fragment {
 
         // Add rating number next to stars
         TextView ratingText = new TextView(getContext());
-        ratingText.setText(" (" + rating + "/5)");
+        ratingText.setText(getString(R.string.ride_details_star_rating, rating));
         ratingText.setTextSize(14);
         ratingText.setTextColor(Color.parseColor("#666666"));
         ratingText.setPadding(8, 0, 0, 0);
         starContainer.addView(ratingText);
+    }
+
+    private void setupMap(View view) {
+        routeMapView = view.findViewById(R.id.routeMapView);
+
+        if (rideHistory != null && rideHistory.getRoute() != null) {
+            routeMapView.displayRoute(
+                rideHistory.getRoute().getStartLocation(),
+                rideHistory.getRoute().getEndLocation(),
+                rideHistory.getRoute().getStopLocations(),
+                rideHistory.getRoute().getPolylinePoints()
+            );
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (routeMapView != null) {
+            routeMapView.onResume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (routeMapView != null) {
+            routeMapView.onPause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (routeMapView != null) {
+            routeMapView.onDestroy();
+        }
     }
 }

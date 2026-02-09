@@ -24,6 +24,8 @@
         <!-- Navigation bar colors -->
         <item name="android:navigationBarColor">@color/light_surface</item>
         <item name="android:windowLightNavigationBar">true</item>
+
+        <item name="colorError">@color/danger</item>
     </style>
 
     <style name="Theme.RideNow" parent="Base.Theme.RideNow" >

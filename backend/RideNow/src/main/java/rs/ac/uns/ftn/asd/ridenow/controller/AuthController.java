@@ -44,13 +44,15 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(){
+    public ResponseEntity<LogoutResponseDTO> logout(){
         try{
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             authService.logout(user);
-            return ResponseEntity.ok().build();
+            LogoutResponseDTO response = new LogoutResponseDTO("Logged out successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            LogoutResponseDTO response = new LogoutResponseDTO(e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
@@ -115,5 +117,54 @@ public class AuthController {
         user.setActivationToken(null);
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<?> verifyResetCode(@Valid @RequestBody VerifyCodeRequestDTO request) {
+        Optional<ForgotPasswordToken> optionalToken =  forgotPasswordTokenRepository.findByVerificationCodeAndUser_Email(request.getCode(), request.getEmail());
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid code or email"));
+        }
+
+        ForgotPasswordToken forgotPasswordToken = optionalToken.get();
+        if (forgotPasswordToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            authService.handleExpiredForgotPasswordToken(forgotPasswordToken);
+            return ResponseEntity.badRequest().body(Map.of("message", "Code expired. New code sent to your email."));
+        }
+        return ResponseEntity.ok(Map.of("message", "Code verified","token", forgotPasswordToken.getToken()));
+    }
+
+    @PutMapping("/activate-code")
+    public ResponseEntity<?> activateCode(@Valid @RequestBody VerifyCodeRequestDTO request) {
+        Optional<ActivationToken> optionalToken = activationTokenRepository.findByVerificationCodeAndUser_Email(request.getCode(), request.getEmail());
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
+        }
+
+        ActivationToken activationToken = optionalToken.get();
+        if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            authService.handleExpiredActivationToken(activationToken);
+            return ResponseEntity.badRequest().body(Map.of("message", "Token expired. New activation link sent to your email."));
+        }
+
+        User user = activationToken.getUser();
+        user.setActive(true);
+        user.setActivationToken(null);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
+    }
+
+    @PostMapping("/resend-activation-email")
+    public ResponseEntity<?> resendActivationEmail(@Valid @RequestBody ActivateAccountRequestDTO request) {
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        User user = optionalUser.get();
+        if (user.isActive()) {
+            return ResponseEntity.badRequest().body("Account is already activated");
+        }
+        authService.sendActivationEmail(user);
+        return ResponseEntity.ok().build();
     }
 }

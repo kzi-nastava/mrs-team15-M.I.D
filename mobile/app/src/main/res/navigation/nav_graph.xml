@@ -10,13 +10,35 @@
         android:name="com.example.ridenow.ui.home.HomeFragment"
         android:label="Home" />
 
+    <!-- Driver requests screens (admin) -->
     <fragment
-        android:id="@+id/nav_profile"
+        android:id="@+id/driver_requests"
+        android:name="com.example.ridenow.ui.driver.requests.DriverRequestsFragment"
+        android:label="Driver Requests"
+        tools:layout="@layout/fragment_driver_requests" />
+
+    <fragment
+        android:id="@+id/driver_request_detail"
+        android:name="com.example.ridenow.ui.driver.requests.DriverRequestDetailFragment"
+        android:label="Driver Request Detail"
+        tools:layout="@layout/fragment_driver_request_detail" />
+
+    <action
+        android:id="@+id/action_driverRequests_to_requestDetail"
+        app:destination="@id/driver_request_detail" />
+
+    <fragment
+        android:id="@+id/history"
         android:name="com.example.ridenow.ui.history.DriverHistoryFragment"
         android:label="Profile" />
         <action
             android:id="@+id/action_driverHistory_to_rideDetails"
             app:destination="@id/rideDetailsFragment" />
+
+    <fragment
+        android:id="@+id/passenger_history"
+        android:name="com.example.ridenow.ui.history.PassengerHistoryFragment"
+        android:label="My Rides" />
 
     <fragment
         android:id="@+id/login"
@@ -31,7 +53,12 @@
     <fragment
         android:id="@+id/reset_password"
         android:name="com.example.ridenow.ui.auth.ResetPasswordFragment"
-        android:label="@string/nav_reset_password"/>
+        android:label="@string/nav_reset_password">
+        <argument
+            android:name="token"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
 
     <fragment
         android:id="@+id/rideDetailsFragment"
@@ -57,4 +84,63 @@
         android:name="com.example.ridenow.ui.profile.DriverProfileInfoFragment"
         android:label="DriverProfileInfoFragment" />
 
+    <fragment
+        android:id="@+id/rating"
+        android:name="com.example.ridenow.ui.rating.RatingFragment"
+        android:label="Rating" />
+
+    <fragment
+        android:id="@+id/upcoming_rides"
+        android:name="com.example.ridenow.ui.upcoming.UpcomingRidesFragment"
+        android:label="Upcoming Rides" />
+
+    <fragment
+        android:id="@+id/current_ride"
+        android:name="com.example.ridenow.ui.currentride.CurrentRideFragment"
+        android:label="Current Ride" />
+
+    <fragment
+        android:id="@+id/forgot_password_verify_code"
+        android:name="com.example.ridenow.ui.auth.ForgotPasswordVerifyCodeFragment"
+        android:label="Forgot password verify code fragment">
+        <argument
+            android:name="email"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/activate_account"
+        android:name="com.example.ridenow.ui.auth.ActivateAccountFragment"
+        android:label="Activate account fragment">
+        <argument
+            android:name="email"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <!-- Ride ordering (user) -->
+    <fragment
+        android:id="@+id/ride_ordering"
+        android:name="com.example.ridenow.ui.ride.RideOrderingFragment"
+        android:label="Order Ride"
+        tools:layout="@layout/fragment_ride_ordering" />
+
+    <fragment
+        android:id="@+id/ride_preference"
+        android:name="com.example.ridenow.ui.ride.RidePreferenceFragment"
+        android:label="Ride Preferences"
+        tools:layout="@layout/fragment_ride_preference" />
+
+    <action
+        android:id="@+id/action_forgotPassword_to_verifyCode"
+        app:destination="@+id/forgot_password_verify_code"/>
+
+    <action
+        android:id="@+id/action_verifyCode_to_resetPassword"
+        app:destination="@+id/reset_password"/>
+
+    <action
+        android:id="@+id/registration_to_activate_account"
+        app:destination="@+id/activate_account"/>
 </navigation>

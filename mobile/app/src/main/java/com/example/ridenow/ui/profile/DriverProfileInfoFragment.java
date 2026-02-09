@@ -110,6 +110,8 @@ public class DriverProfileInfoFragment extends Fragment {
 
         // TextView for username (will be updated after loading profile)
         TextView tvUserName = view.findViewById(R.id.tvUserName);
+        // TextView for showing hours worked in last 24h
+        TextView tvHoursLast24 = view.findViewById(R.id.tvHoursLast24);
 
         // Load driver profile from backend
         DriverService driverService = ClientUtils.getClient(DriverService.class);
@@ -128,11 +130,12 @@ public class DriverProfileInfoFragment extends Fragment {
                     if (etVehicleSeats != null) etVehicleSeats.setText(String.valueOf(user.getNumberOfSeats()));
                     if (cbBabyFriendly != null) cbBabyFriendly.setChecked(user.isBabyFriendly());
                     if (cbPetFriendly != null) cbPetFriendly.setChecked(user.isPetFriendly());
-                    // vehicle type selection
+                    // vehicle type selection - map server enum (e.g. "STANDARD") to display values (e.g. "Standard")
                     if (spVehicleType != null && user.getVehicleType() != null) {
+                        String display = serverToDisplayVehicleType(user.getVehicleType());
                         ArrayAdapter adapter = (ArrayAdapter) spVehicleType.getAdapter();
                         if (adapter != null) {
-                            int pos = adapter.getPosition(user.getVehicleType());
+                            int pos = adapter.getPosition(display);
                             if (pos >= 0) spVehicleType.setSelection(pos);
                         }
                     }
@@ -156,6 +159,14 @@ public class DriverProfileInfoFragment extends Fragment {
                          String full = (first + " " + last).trim();
                          if (full.isEmpty()) full = getString(R.string.nav_user_profile);
                          tvUserName.setText(full);
+                     }
+
+                     // Update hours worked in last 24h (new)
+                     if (tvHoursLast24 != null) {
+                         double hours = user.getHoursWorkedLast24();
+                         // format to one decimal place
+                         String text = String.format(java.util.Locale.getDefault(), "Active hours last 24h: %.1f", hours);
+                         tvHoursLast24.setText(text);
                      }
                      Log.i("DriverProfile", "Loaded driver profile successfully");
                  } else {
@@ -187,7 +198,19 @@ public class DriverProfileInfoFragment extends Fragment {
             if (etEmail != null) partMap.put("email", createPartFromString(etEmail.getText().toString()));
             if (etLicensePlate != null) partMap.put("licensePlate", createPartFromString(etLicensePlate.getText().toString()));
             if (etVehicleModel != null) partMap.put("vehicleModel", createPartFromString(etVehicleModel.getText().toString()));
-            if (etVehicleSeats != null) partMap.put("vehicleSeats", createPartFromString(etVehicleSeats.getText().toString()));
+            // backend expects field name `numberOfSeats`
+            if (etVehicleSeats != null) partMap.put("numberOfSeats", createPartFromString(etVehicleSeats.getText().toString()));
+            // vehicle type - map display to server enum name
+            if (spVehicleType != null) {
+                Object sel = spVehicleType.getSelectedItem();
+                if (sel != null) {
+                    String serverVal = displayToServerVehicleType(sel.toString());
+                    partMap.put("vehicleType", createPartFromString(serverVal));
+                }
+            }
+            // booleans
+            if (cbBabyFriendly != null) partMap.put("babyFriendly", createPartFromString(String.valueOf(cbBabyFriendly.isChecked())));
+            if (cbPetFriendly != null) partMap.put("petFriendly", createPartFromString(String.valueOf(cbPetFriendly.isChecked())));
             // Prepare image part if user selected an image
             MultipartBody.Part imagePart = null;
             if (selectedImageUri != null) {
@@ -268,5 +291,23 @@ public class DriverProfileInfoFragment extends Fragment {
 
     private static String nonNull(String s) {
         return s == null ? "" : s;
+    }
+
+    private static String serverToDisplayVehicleType(String server) {
+        if (server == null) return "";
+        switch (server.toUpperCase()) {
+            case "STANDARD": return "Standard";
+            case "LUXURY": return "Luxury";
+            case "VAN": return "Van";
+            default:
+                String s = server.toLowerCase();
+                return s.substring(0,1).toUpperCase() + s.substring(1);
+        }
+    }
+
+    private static String displayToServerVehicleType(String display) {
+        if (display == null) return "";
+        String d = display.trim().toLowerCase();
+        return display.toUpperCase();
     }
 }

@@ -18,6 +18,7 @@ public class UserResponseDTO {
     private String address;
     private String phoneNumber;
     private String profileImage;
+    private boolean blocked;
 
     private String licensePlate;
     private String vehicleModel;

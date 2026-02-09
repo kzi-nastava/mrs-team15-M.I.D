@@ -1,0 +1,9 @@
+#message{
+  margin-top:3%;
+}
+
+.users-table { padding: 0 1rem; }
+.users-table table th { font-weight: 600; }
+
+.search-box input.form-control { min-width: 280px; }
+.pagination .page-link { cursor: pointer; }

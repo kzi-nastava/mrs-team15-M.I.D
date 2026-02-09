@@ -4,6 +4,7 @@
     <string name="close_drawer">Close navigation drawer</string>
 
     <!-- nav -->
+    <string name="nav_home">Home</string>
     <string name="nav_login">Login</string>
     <string name="nav_forgot_password">Forgot password</string>
     <string name="nav_reset_password">Reset password</string>
@@ -11,6 +12,26 @@
     <string name="nav_user_profile">Profile</string>
     <string name="nav_driver_profile">Driver Profile</string>
     <string name="nav_change_password">Change Password</string>
+    <string name="nav_rating">Rating</string>
+    <string name="nav_upcoming_rides">Upcoming Rides</string>
+    <string name="nav_current_ride">Current Ride</string>
+    <string name="nav_order_ride">Order Ride</string>
+    <string name="nav_ride_history">Ride History</string>
+    <string name="nav_driver_changes">Driver Changes</string>
+
+    <!-- upcoming rides -->
+    <string name="upcoming_rides_title">Upcoming Rides</string>
+    <string name="upcoming_rides_subtitle">Manage your scheduled rides</string>
+    <string name="no_upcoming_rides">No upcoming rides scheduled</string>
+    <string name="route">Route</string>
+    <string name="start_time">Start Time</string>
+    <string name="passengers">Passengers</string>
+    <string name="cancel">Cancel</string>
+    <string name="start_ride">Start Ride</string>
+
+    <!-- current ride -->
+    <string name="current_ride_stop_ride">Stop Ride</string>
+    <string name="current_ride_mark_completed">Mark Completed</string>
 
     <!-- login -->
     <string name="login_title">Welcome back</string>
@@ -29,7 +50,7 @@
     <string name="login">Log in</string>
     <string name="sign_up">Sign up</string>
     <string name="back_to_login">Back to login</string>
-    <string name="send_reset_link">send reset link</string>
+    <string name="send_code">send code</string>
     <string name="new_password">New password</string>
     <string name="confirm_password">Confirm password</string>
     <string name="confirm_new_password">Confirm new password</string>
@@ -47,6 +68,11 @@
     <!-- driver history -->
     <string name="driver_history_title">Ride History</string>
     <string name="driver_history_subtitle">Review your completed rides</string>
+
+    <!-- passenger history -->
+    <string name="passenger_history_title">My Ride History</string>
+    <string name="passenger_history_subtitle">Review your ride history and rate past rides</string>
+
     <!-- driver history table headers -->
     <string name="driver_history_route">Route</string>
     <string name="driver_history_passengers">Passengers</string>
@@ -59,24 +85,38 @@
     <string name="driver_history_filter_hint">Select date (dd/mm/yyyy)</string>
     <string name="driver_history_filter_button">Apply</string>
     <string name="driver_history_clear_button">Clear</string>
+    <string name="driver_history_ascending">Ascending</string>
+    <string name="driver_history_descending">Descending</string>
+    <string name="driver_history_load_more">Load More</string>
 
     <!-- ride details -->
     <string name="ride_details_title">Ride Details</string>
     <string name="ride_details_map">Route Map</string>
     <string name="ride_details_ride_information">Ride Information</string>
-    <string name="ride_details_route">Route: </string>
-    <string name="ride_details_passengers">Passengers: </string>
-    <string name="ride_details_date">Date: </string>
-    <string name="ride_details_duration">Duration: </string>
-    <string name="ride_details_cost">Cost: </string>
+    <string name="ride_details_route">Route: %1$s</string>
+    <string name="ride_details_passengers">Passengers: %1$s</string>
+    <string name="ride_details_date">Date: %1$s</string>
+    <string name="ride_details_duration">Duration: %1$s</string>
+    <string name="ride_details_cost">Cost: %1$s</string>
     <string name="ride_details_status">Status</string>
-    <string name="ride_details_cancelled">Cancelled: </string>
-    <string name="ride_details_panic_button">Panic Button: </string>
+    <string name="ride_details_cancelled">Cancelled: %1$s</string>
+    <string name="ride_details_panic_button">Panic Button: %1$s</string>
     <string name="ride_details_rating_title">Rating</string>
-    <string name="ride_details_rating">Rating: </string>
+    <string name="ride_details_rating">Rating: %1$s</string>
     <string name="ride_details_inconsistencies_title">Inconsistencies</string>
-    <string name="ride_details_inconsistencies">Inconsistencies: </string>
-  
+    <string name="ride_details_inconsistencies">Inconsistencies: %1$s</string>
+    <string name="ride_details_no_ratings">No rating available</string>
+    <string name="ride_details_duration_with_time">%1$d min (%2$s)</string>
+    <string name="ride_details_duration_simple">%.0f min</string>
+    <string name="ride_details_cost_format">%.2f RSD</string>
+    <string name="ride_details_panic_with_person">Yes - %1$s</string>
+    <string name="ride_details_star_rating">(%1$d/5)</string>
+    <string name="ride_details_yes">Yes</string>
+    <string name="ride_details_no">No</string>
+    <string name="ride_details_na">N/A</string>
+    <string name="ride_details_none">None</string>
+    <string name="ride_details_no_comment">No comment provided</string>
+
     <!-- registration -->
     <string name="registration_title">Join Ride Now and let\'s be on our way</string>
 
@@ -103,5 +143,52 @@
     <string name="profile_request_changes">Request Changes</string>
     <string name="profile_change_password">Change Password</string>
     <string name="profile_img">Profile Picture</string>
+    <string name="logout">Logout</string>
+
+    <!-- active hours -->
+    <string name="hours_last_24">Active hours last 24h: %1$.1f</string>
+
+    <!-- rating -->
+    <string name="rating_title">Rate Your Ride</string>
+    <string name="rating_driver_title">Rate the Driver</string>
+    <string name="rating_vehicle_title">Rate the Vehicle</string>
+    <string name="rating_driver_comment_hint">Comment about the driver (optional)</string>
+    <string name="rating_vehicle_comment_hint">Comment about the vehicle (optional)</string>
+    <string name="rating_submit">Submit Rating</string>
+    <string name="rate_ride">Rate Ride</string>
+    <string name="rating_submitting">Submitting…</string>
+
+    <!-- Forgot password verify code -->
+    <string name="verify_code_title">Enter Verification Code</string>
+    <string name="verify_code_subtitle">We sent a 6-digit code to your email. Enter it below to reset your password.</string>
+    <string name="verification_code">000000</string>
+    <string name="verify_code">Verify Code</string>
+    <string name="no_code">Didn\'t receive code?</string>
+    <string name="resend_code">Resend</string>
+
+    <!-- Current ride -->
+    <string name="current_ride_title">Current Ride</string>
+    <string name="current_ride_from">From: </string>
+    <string name="current_ride_to">To: </string>
+    <string name="current_ride_loading">Loading…</string>
+    <string name="current_ride_report_inconsistency">Report Inconsistency</string>
+    <string name="current_ride_panic">Panic</string>
+
+    <!-- Report inconsistency dialog -->
+    <string name="report_inconsistency_title">Report Inconsistency</string>
+    <string name="report_inconsistency_subtitle">Please describe the issue you experienced during this ride</string>
+    <string name="report_inconsistency_hint">Describe the inconsistency…</string>
+    <string name="report_inconsistency_counter">%1$d/300</string>
+    <string name="report_inconsistency_submit">Submit Report</string>
+    <string name="report_inconsistency_submitting">Submitting…</string>
+
+    <!-- Activate account verify code -->
+    <string name="activate_account_subtitle">We sent a 6-digit code to your email. Enter it below to activate your account.</string>
+
+    <!-- Ride cancel modal -->
+    <string name="cancel_ride_title">Cancel Ride</string>
+    <string name="cancel_ride_subtitle">Please provide a reason for cancellation:</string>
+    <string name="cancel_reason_label">Reason for cancellation</string>
+    <string name="confirm">Confirm</string>
 
 </resources>

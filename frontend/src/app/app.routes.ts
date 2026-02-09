@@ -19,12 +19,14 @@ import { Rating } from './ride/pages/rating/rating';
 import { UserHistory } from './history/pages/user-history/user-history';
 import { UpcomingRides } from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
+import { AdminUsers } from './admin/pages/users/users';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
 import { CurrentRide } from './ride/pages/current-ride/current-ride';
 import { StartRide } from './ride/pages/start-ride/start-ride';
 import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 import { ActivationPage } from './auth/pages/activation-page/activation-page';
+import { PricingManagement } from './admin/pages/pricing-management/pricing-management';
 
 export const routes: Routes = [
     { path: '', component: Home },         // Default route (home page)
@@ -48,10 +50,12 @@ export const routes: Routes = [
     { path: 'rating/:id', component: Rating },
     { path: 'upcoming-rides', component: UpcomingRides },
     { path: 'admin-history', component: AdminHistory },
+    { path: 'admin-users', component: AdminUsers },
     { path: 'history-ride-details/:id', component: HistoryRideDetails },
     { path: 'current-ride', component: CurrentRide },
     { path: 'start-ride', component: StartRide },
     { path: 'finding-driver', component: FindingDriver },
     { path: 'ride-ordering', component: RideOrdering },
+    { path: 'admin-pricing', component: PricingManagement },
     { path: 'activate/:token', component: ActivationPage }
 ];

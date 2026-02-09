@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
@@ -38,23 +39,18 @@ public class RideController {
     }
 
     @GetMapping("/estimate")
-    public ResponseEntity<?> estimate(@RequestParam String startAddress, @RequestParam String destinationAddress){
-        try{
-            double[] startCoordinate = routingService.getGeocode(startAddress);
-            double latStart = startCoordinate[0];
-            double lonStart = startCoordinate[1];
-
-            double[] endCoordinate = routingService.getGeocode(destinationAddress);
-            double latEnd = endCoordinate[0];
-            double lonEnd = endCoordinate[1];
-
-            RideEstimateResponseDTO response = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+    public ResponseEntity<?> estimate(@RequestParam Double startLatitude, @RequestParam Double startLongitude,
+                                      @RequestParam Double endLatitude, @RequestParam Double endLongitude) {
+        try {
+            RideEstimateResponseDTO response = routingService.getRoute(startLatitude,startLongitude,endLatitude,endLongitude
+            );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/stop")
     public ResponseEntity<?> stop (){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -66,6 +62,7 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @PutMapping("/{id}/cancel")
     public ResponseEntity<?> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request) {
         try {
@@ -82,12 +79,14 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
         TrackVehicleDTO vehicle = rideService.trackRide(id);
         return ResponseEntity.ok(vehicle);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/inconsistency")
     public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@RequestBody @Valid InconsistencyRequestDTO req){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -97,6 +96,7 @@ public class RideController {
         return ResponseEntity.status(201).body(res);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{id}/finish")
     public ResponseEntity<Boolean> finish(@PathVariable @NotNull @Min(1) Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -106,6 +106,7 @@ public class RideController {
         return ResponseEntity.ok(nextAvailable);
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/{id}/start")
     public ResponseEntity<Void> startRide(@PathVariable Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -116,6 +117,7 @@ public class RideController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/{id}/start")
     public ResponseEntity<StartRideResponseDTO> passangerPickup(@PathVariable Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -127,6 +129,7 @@ public class RideController {
     }
 
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
@@ -140,8 +143,8 @@ public class RideController {
         }
     }
 
-
-    @PostMapping
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/order-ride")
     public ResponseEntity<OrderRideResponseDTO> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
         try{
@@ -154,12 +157,14 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/{rideId}/rate")
     public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long rideId, @Valid @RequestBody RateRequestDTO req) {
         RateResponseDTO res = rideService.makeRating(req, rideId);
         return ResponseEntity.status(201).body(res);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/my-upcoming-rides")
     public List<UpcomingRideDTO> getUpcomingRides() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -167,6 +172,7 @@ public class RideController {
         return rideService.getUpcomingRidesByUser(userId);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/my-current-ride")
     public CurrentRideDTO getCurrentRide(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -177,6 +183,7 @@ public class RideController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @PostMapping("/panic-alert")
     public ResponseEntity<?> triggerPanicAlert(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

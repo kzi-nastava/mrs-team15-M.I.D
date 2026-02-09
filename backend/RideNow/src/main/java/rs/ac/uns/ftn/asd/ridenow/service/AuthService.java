@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.CurrentRideDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
@@ -49,6 +50,10 @@ public class AuthService {
     @Lazy
     private DriverService driverService;
 
+    @Autowired
+    @Lazy
+    private RideService rideService;
+
     @Value("${jwt.expiration}")
     private long expiration;
 
@@ -81,7 +86,7 @@ public class AuthService {
         return  responseDTO;
     }
 
-    private void sendActivationEmail(User user) {
+    public void sendActivationEmail(User user) {
         ActivationToken oldToken = user.getActivationToken();
         if (oldToken != null) {
             user.setActivationToken(null);
@@ -96,7 +101,9 @@ public class AuthService {
     private ActivationToken generateActivationToken(User user) {
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
         ActivationToken activationToken = new ActivationToken(token, expiresAt, user);
+        activationToken.setVerificationCode(code);
         user.setActivationToken(activationToken);
         return activationToken;
     }
@@ -131,6 +138,10 @@ public class AuthService {
         if(!existingUser.isActive()){
             throw  new Exception("Account is not active. Please activate your account via email.");
         }
+        if(existingUser.isBlocked()){
+            throw   new Exception("Account is blocked. You cannot login again.");
+        }
+
         if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
             throw new Exception("Invalid credentials");
         }
@@ -140,6 +151,12 @@ public class AuthService {
         String token = jwtUtil.generateJWTToken(requestDTO.getEmail());
         long expiresAt = System.currentTimeMillis() + expiration;
         LoginResponseDTO responseDTO = new LoginResponseDTO();
+        try{
+            rideService.getCurrentRide(existingUser);
+            responseDTO.setHasCurrentRide(true);
+        } catch (Exception e) {
+            responseDTO.setHasCurrentRide(false);
+        }
         responseDTO.setToken(token);
         responseDTO.setExpiresAt(expiresAt);
         responseDTO.setRole(existingUser.getRole().name());
@@ -163,7 +180,8 @@ public class AuthService {
     private ForgotPasswordToken generateForgotPasswordToken(User user) {
         String token = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
-        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(token, expiresAt, user);
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
+        ForgotPasswordToken forgotPasswordToken = new ForgotPasswordToken(token, expiresAt, user, code);
         user.setForgotPasswordToken(forgotPasswordToken);
         return forgotPasswordToken;
     }

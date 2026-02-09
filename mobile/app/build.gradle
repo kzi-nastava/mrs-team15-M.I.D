@@ -48,4 +48,6 @@ dependencies {
     implementation libs.logging.interceptor
     implementation libs.glide
     annotationProcessor libs.glide.compiler
+    implementation libs.osmdroid
+    implementation libs.material
 }

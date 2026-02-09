@@ -7,11 +7,8 @@
             <h5 class="mb-0">Route Map</h5>
           </div>
           <div class="card-body p-0">
-            <div class="map-container">
-              <div class="map-placeholder">
-                <i class="bi bi-geo-alt-fill"></i>
-                <p class="text-muted mt-2">Map will be integrated here</p>
-              </div>
+            <div class="map-container overflow-hidden">
+              <div id="rideMap" class="h-100 w-100"></div>
             </div>
           </div>
         </div>
@@ -52,7 +49,7 @@
 
             <div class="detail-item">
               <label class="detail-label">Cost</label>
-              <p class="detail-value fw-bold">{{ ride.cost }}</p>
+              <p class="detail-value fw-bold">{{ ride.price }}</p>
             </div>
             <app-button height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="reorder ride" (clicked)="openReorderModal()"></app-button>
           </div>
@@ -101,22 +98,52 @@
               <h5 class="mb-0">Rating</h5>
             </div>
             <div class="card-body">
-              <div class="detail-item">
+              <div class="detail-item mb-4">
+                <label class="detail-label">Driver Rating</label>
                 <div class="rating-display">
                   <span class="rating-stars">
                     @for (star of [1, 2, 3, 4, 5]; track star) {
-                      @if (star <= (ride.rating || 0)) {
+                      @if (star <= (ride.rating.driverRating || 0)) {
                         <i class="bi bi-star-fill text-warning"></i>
-                      } @else if (star - 0.5 <= (ride.rating || 0)) {
+                      } @else if (star - 0.5 <= (ride.rating.driverRating || 0)) {
                         <i class="bi bi-star-half text-warning"></i>
                       } @else {
                         <i class="bi bi-star text-warning"></i>
                       }
                     }
                   </span>
-                  <span class="rating-value ms-2">{{ ride.rating }}/5</span>
+                  <span class="rating-value ms-2">{{ ride.rating.driverRating }}/5</span>
                 </div>
               </div>
+              @if (ride.rating.driverComment) {
+                <div class="detail-item mb-4">
+                  <p class="detail-value">{{ ride.rating.driverComment }}</p>
+                </div>
+              }
+
+              <hr class="my-3">
+              <div class="detail-item mb-4">
+                <label class="detail-label">Vehicle Rating</label>
+                <div class="rating-display">
+                  <span class="rating-stars">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      @if (star <= (ride.rating.vehicleRating || 0)) {
+                        <i class="bi bi-star-fill text-warning"></i>
+                      } @else if (star - 0.5 <= (ride.rating.vehicleRating || 0)) {
+                        <i class="bi bi-star-half text-warning"></i>
+                      } @else {
+                        <i class="bi bi-star text-warning"></i>
+                      }
+                    }
+                  </span>
+                  <span class="rating-value ms-2">{{ ride.rating.vehicleRating }}/5</span>
+                </div>
+              </div>
+              @if (ride.rating.vehicleComment) {
+                <div class="detail-item">
+                  <p class="detail-value">{{ ride.rating.vehicleComment }}</p>
+                </div>
+              }
             </div>
           </div>
         }
@@ -146,7 +173,7 @@
     <div class="alert alert-warning">
       <h4>Ride not found</h4>
       <p>Unable to load ride details. Please try again.</p>
-      <button class="btn btn-primary" (click)="goBack()">Go Back</button>
+      <button class="btn btn-primary">Go Back</button>
     </div>
   }
 </div>

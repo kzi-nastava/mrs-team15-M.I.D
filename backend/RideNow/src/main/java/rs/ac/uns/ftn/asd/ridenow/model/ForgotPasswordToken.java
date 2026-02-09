@@ -20,13 +20,17 @@ public class ForgotPasswordToken {
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(nullable = false)
+    private String verificationCode;
+
     @OneToOne(mappedBy = "forgotPasswordToken")
     private User user;
 
-    public ForgotPasswordToken(String token, LocalDateTime expiresAt, User user) {
+    public ForgotPasswordToken(String token, LocalDateTime expiresAt, User user, String verificationCode) {
         this.token = token;
         this.expiresAt = expiresAt;
         this.user = user;
+        this.verificationCode = verificationCode;
     }
 
     public ForgotPasswordToken() {

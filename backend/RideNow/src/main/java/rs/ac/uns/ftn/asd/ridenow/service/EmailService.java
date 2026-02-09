@@ -23,8 +23,9 @@ public class EmailService {
         mail.setText(
                 "Welcome to RideNow!\n\n" +
                         "Your account is almost ready.\n" +
-                        "Click the link below to activate it:\n\n" +
-                        activationRoute + token.getToken() +
+                        "Click the link below to activate it:\n\n"
+                        + activationRoute + token.getToken() + "\n\n" +
+                        "Or use this verification code in the mobile app: " + token.getVerificationCode() + "\n\n" +
                         "\n\nSee you on the road,\nRideNow Team"
         );
         mailSender.send(mail);
@@ -55,6 +56,7 @@ public class EmailService {
                         "We received a request to reset your RideNow account password.\n\n" +
                         "To create a new password, click the link below:\n\n" +
                         resetPasswordRoute + token.getToken() + "\n\n" +
+                        "Or use this verification code in the mobile app: " + token.getVerificationCode() + "\n\n" +
                         "If you did not request a password reset, please ignore this email. " +
                         "Your account will remain secure.\n\n" +
                         "Best regards,\n" +

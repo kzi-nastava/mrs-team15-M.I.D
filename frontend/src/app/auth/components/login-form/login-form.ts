@@ -53,9 +53,17 @@ export class LoginForm {
             setTimeout(() => { this.router.navigate(['/admin-history']); }, 1000);
             return;
           case 'DRIVER':
+            if(response.hasCurrentRide){
+              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);   
+              return;
+            }
             setTimeout(() => { this.router.navigate(['/upcoming-rides']); }, 1000);
             return;
             case 'USER':
+            if(response.hasCurrentRide){
+              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);   
+              return;
+            }
             setTimeout(() => { this.router.navigate(['/ride-ordering']); }, 1000);
             return;
         }

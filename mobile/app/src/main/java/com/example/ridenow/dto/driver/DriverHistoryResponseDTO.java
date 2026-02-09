@@ -2,8 +2,8 @@ package com.example.ridenow.dto.driver;
 
 import java.util.List;
 
-public class DriverHistoryResponse {
-    private List<RideHistory> content;
+public class DriverHistoryResponseDTO {
+    private List<RideHistoryDTO> content;
     private boolean last;
     private int totalElements;
     private int totalPages;
@@ -14,11 +14,11 @@ public class DriverHistoryResponse {
     private boolean empty;
 
     // Constructors
-    public DriverHistoryResponse() {}
+    public DriverHistoryResponseDTO() {}
 
     // Getters and setters
-    public List<RideHistory> getContent() { return content; }
-    public void setContent(List<RideHistory> content) { this.content = content; }
+    public List<RideHistoryDTO> getContent() { return content; }
+    public void setContent(List<RideHistoryDTO> content) { this.content = content; }
 
     public boolean isLast() { return last; }
     public void setLast(boolean last) { this.last = last; }

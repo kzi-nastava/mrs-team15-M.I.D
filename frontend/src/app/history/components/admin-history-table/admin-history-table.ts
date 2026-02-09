@@ -1,23 +1,30 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { Rating, Route } from '../../../services/history.service';
 
-export interface Ride{
+export interface Ride {
   id: number;
+  routeId: number;
+  favorite: boolean;
   route: string;
-  startTime: string;
-  endTime: string;
+  routeData: Route | null;
   passengers: string;
-  driver: string;
+  date: string;
+  timeRange: string;
+  duration: string;
   cancelled: string | null;
   cancelledBy: string | null;
-  cost: string;
   panicButton: string | null;
   panicBy: string | null;
-  rating?: number | null;
-  inconsistencies?: string[] | null;
+  price: string;
+  rating: Rating | null;  
+  inconsistencies: string[];
+  startTime: string;
+  endTime: string;
+  driver: string;
 }
 
-type SortColumn = 'route' | 'startTime' | 'endTime' | 'cancelled' | 'cost' | 'panicButton'; 
+type SortColumn = 'route' | 'startTime' | 'endTime' | 'cancelled' | 'price' | 'panicButton'; 
 type SortDirection = 'asc' | 'desc' | '';
 
 
@@ -87,9 +94,9 @@ private applySorting(): void {
       bValue = parse(b.startTime);
     }
 
-      else if (this.sortColumn === 'cost') {
-        aValue = parseFloat(a.cost.replace(/[^0-9.-]/g, '')) || 0;
-        bValue = parseFloat(b.cost.replace(/[^0-9.-]/g, '')) || 0;
+      else if (this.sortColumn === 'price') {
+        aValue = parseFloat(a.price.replace(/[^0-9.-]/g, '')) || 0;
+        bValue = parseFloat(b.price.replace(/[^0-9.-]/g, '')) || 0;
       }
 
       else if (aValue === null || aValue === undefined) {

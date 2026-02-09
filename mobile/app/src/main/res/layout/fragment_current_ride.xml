@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Map taking full screen -->
+    <com.example.ridenow.ui.components.RouteMapView
+        android:id="@+id/routeMapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Overlay form at the top -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="top"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="?attr/colorSecondary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/current_ride_title"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"
+                android:textColor="?attr/colorOnSecondary" />
+
+            <!-- Start Address -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/current_ride_from"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/startAddressText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/current_ride_loading"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <!-- End Address -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/current_ride_to"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/endAddressText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/current_ride_loading"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <!-- Buttons for Users (Passengers) -->
+            <LinearLayout
+                android:id="@+id/userButtonsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:weightSum="2"
+                android:visibility="visible">
+
+                <Button
+                    android:id="@+id/reportInconsistencyButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/current_ride_report_inconsistency"
+                    android:layout_marginEnd="8dp"
+                    style="@style/ButtonSecondary"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/panicButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/current_ride_panic"
+                    android:layout_marginStart="8dp"
+                    style="@style/ButtonDanger"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <!-- Buttons for Drivers -->
+            <LinearLayout
+                android:id="@+id/driverButtonsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:visibility="gone">
+
+                <!-- First row: Panic and Stop Ride -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:weightSum="2"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/driverPanicButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/current_ride_panic"
+                        android:layout_marginEnd="8dp"
+                        style="@style/ButtonDanger"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/stopRideButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/current_ride_stop_ride"
+                        android:layout_marginStart="8dp"
+                        style="@style/ButtonSecondary"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+                <!-- Second row: Mark as Completed -->
+                <Button
+                    android:id="@+id/markCompletedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/current_ride_mark_completed"
+                    style="@style/ButtonSecondary"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>

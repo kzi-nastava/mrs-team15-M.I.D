@@ -1,0 +1,154 @@
+package com.example.ridenow.ui.auth;
+
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.ridenow.R;
+import com.example.ridenow.dto.auth.ActivateAccountRequestDTO;
+import com.example.ridenow.dto.auth.ForgotPasswordRequestDTO;
+import com.example.ridenow.dto.auth.VerifyCodeRequestDTO;
+import com.example.ridenow.service.AuthService;
+import com.example.ridenow.util.ClientUtils;
+
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class ActivateAccountFragment extends Fragment {
+
+    private EditText etCode;
+    private TextView tvResendCodeLink;
+    private TextView tvBackToLoginLink;
+    private AuthService authService;
+
+    private Button btnVerifyCode;
+    private String email;
+
+    public ActivateAccountFragment() {}
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_activate_account, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        authService = ClientUtils.getClient(AuthService.class);
+        etCode = view.findViewById(R.id.etCode);
+        tvResendCodeLink = view.findViewById(R.id.tvResendCode);
+        tvBackToLoginLink = view.findViewById(R.id.tvBackToLogin);
+        btnVerifyCode = view.findViewById(R.id.btnVerifyCode);
+        email = getArguments() != null ? getArguments().getString("email") : "";
+
+        tvResendCodeLink.setOnClickListener(v -> resendCode());
+        btnVerifyCode.setOnClickListener(v -> verifyCode());
+        tvBackToLoginLink.setOnClickListener(
+                v -> NavHostFragment.findNavController(this).navigate(R.id.login)
+        );
+    }
+
+    private void verifyCode() {
+        String code = etCode.getText() == null ? "" : etCode.getText().toString();
+        if (code.isEmpty()) {
+            etCode.setError("Code is required");
+            etCode.requestFocus();
+            return;
+        }
+        if (code.length() != 6) {
+            etCode.setError("Please enter a 6-digit code");
+            etCode.requestFocus();
+            return;
+        }
+
+        btnVerifyCode.setEnabled(false);
+        VerifyCodeRequestDTO dto = new VerifyCodeRequestDTO(email, code);
+        authService.activateCode(dto).enqueue(new Callback<Map<String, String>>() {
+            @Override
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                btnVerifyCode.setEnabled(true);
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(getContext(), "Account activated!", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(ActivateAccountFragment.this).navigate(R.id.login);
+                } else {
+                    String errorMessage = "Invalid or expired code";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            if (errorBody.contains("\"message\"")) {
+                                int start = errorBody.indexOf("\"message\":\"") + 11;
+                                int end = errorBody.indexOf("\"", start);
+                                if (start > 10 && end > start) {
+                                    errorMessage = errorBody.substring(start, end);
+                                }
+                            } else {
+                                errorMessage = errorBody;
+                                if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                    errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Activation failed (code: " + response.code() + ")";
+                    }
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                btnVerifyCode.setEnabled(true);
+                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void resendCode() {
+        tvResendCodeLink.setEnabled(false);
+        ActivateAccountRequestDTO dto = new ActivateAccountRequestDTO(email);
+        authService.resendActivationEmail(dto).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                tvResendCodeLink.setEnabled(true);
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "New code sent to your email!", Toast.LENGTH_LONG).show();
+                    etCode.setText("");
+                } else {
+                    String errorMessage = "Failed to resend code";
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorBody = response.errorBody().string();
+                            errorMessage = errorBody;
+                            if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                                errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                            }
+                        }
+                    } catch (Exception e) {
+                        errorMessage = "Failed to resend code (code: " + response.code() + ")";
+                    }
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                tvResendCodeLink.setEnabled(true);
+                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+}

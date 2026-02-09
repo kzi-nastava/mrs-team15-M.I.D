@@ -4,19 +4,15 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.AdminChangesReviewRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.DriverChangeRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.admin.RegisterDriverResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.model.Driver;
-import rs.ac.uns.ftn.asd.ridenow.model.DriverRequest;
-import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
-import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.PriceConfigDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRequestRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.PriceRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 
 import java.sql.Date;
@@ -33,15 +29,17 @@ public class AdminService {
     private final VehicleRepository vehicleRepository;
     private final EmailService emailService;
     private final AuthService authService;
+    private final PriceRepository priceRepository;
 
     public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
                         VehicleRepository vehicleRepository, EmailService emailService,
-                        AuthService authService) {
+                        AuthService authService, PriceRepository priceRepository) {
         this.driverRepository = driverRepository;
         this.driverRequestRepository = driverRequestRepository;
         this.vehicleRepository = vehicleRepository;
         this.emailService = emailService;
         this.authService = authService;
+        this.priceRepository = priceRepository;
     }
 
     public List<DriverChangeRequestDTO> getDriverRequests() {
@@ -68,7 +66,8 @@ public class AdminService {
             request.setId(entity.getId());
             request.setDriverId(entity.getDriverId());
             request.setId(entity.getId());
-            System.out.println("Id " + entity.getId());
+            request.setMessage(entity.getMessage());
+            request.setAdminResponseDate(entity.getAdminResponseDate());
             requests.add(request);
         }
 
@@ -229,5 +228,33 @@ public class AdminService {
         response.setPetFriendly(saved.getVehicle() != null && saved.getVehicle().isPetFriendly());
 
         return response;
+    }
+
+    public PriceConfigResponseDTO getPriceConfigs() {
+        PriceConfigResponseDTO response = new PriceConfigResponseDTO();
+        List<PriceConfigDTO> prices = new ArrayList<>();
+
+        // load all price configs
+        List<PriceConfig> entities = priceRepository.findAll();
+        for (PriceConfig entity : entities) {
+            PriceConfigDTO price = new PriceConfigDTO();
+            price.setVehicleType(entity.getVehicleType());
+            price.setBasePrice(entity.getBasePrice());
+            price.setPricePerKm(entity.getPricePerKm());
+            prices.add(price);
+        }
+
+        response.setPrices(prices);
+        return response;
+    }
+
+    public void updatePriceConfigs(PriceConfigRequestDTO request) {
+        for (PriceConfigDTO priceDTO : request.getPrices()) {
+            PriceConfig config = priceRepository.findByVehicleType(priceDTO.getVehicleType())
+                    .orElseThrow(() -> new IllegalArgumentException("PriceConfig not found for vehicle type: " + priceDTO.getVehicleType()));
+            config.setBasePrice(priceDTO.getBasePrice());
+            config.setPricePerKm(priceDTO.getPricePerKm());
+            priceRepository.save(config);
+        }
     }
 }

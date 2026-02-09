@@ -23,10 +23,14 @@ public class ActivationToken {
     @OneToOne(mappedBy = "activationToken")
     private User user;
 
+    @Column(nullable = false)
+    private String verificationCode;
+
     public ActivationToken(String token, LocalDateTime expiresAt, User user) {
         this.token = token;
         this.expiresAt = expiresAt;
         this.user = user;
+        this.verificationCode = "000000";
     }
 
     public ActivationToken() {
