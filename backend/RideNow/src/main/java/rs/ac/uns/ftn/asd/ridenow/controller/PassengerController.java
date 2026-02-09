@@ -10,19 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/passengers")

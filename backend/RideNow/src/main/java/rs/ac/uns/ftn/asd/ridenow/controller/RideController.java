@@ -201,4 +201,15 @@ public class RideController {
     public ResponseEntity<List<ActiveRideDTO>> getActiveRides() {
         return ResponseEntity.ok(rideService.getActiveRides());
     }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PostMapping("/reorder-ride")
+    public ResponseEntity<?> reorderRide(@RequestBody ReorderRideRequestDTO request) {
+        try {
+            rideService.reorderRide(request);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
