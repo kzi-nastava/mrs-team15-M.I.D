@@ -738,6 +738,11 @@ public class RideService {
         if (optionalRide.isEmpty()) {
             throw new Exception("Ride does not exist");
         }
+
+        if (request.getScheduledTime() != null && request.getScheduledTime().isBefore(LocalDateTime.now())) {
+            throw new Exception("Scheduled time must be in the future");
+        }
+
         String email = "";
         Ride ride = optionalRide.get();
         List<Passenger> passengers = ride.getPassengers();
@@ -751,7 +756,7 @@ public class RideService {
             throw new Exception("User does not exist");
         }
         RegisteredUser registeredUser = optionalRegisteredUser.get();
-        OrderRideRequestDTO dto = buildOrderRequestFromRide(registeredUser,ride, request);
+        OrderRideRequestDTO dto = buildOrderRequestFromRide(registeredUser, ride, request);
 
         orderRide(dto, email);
     }
@@ -839,16 +844,11 @@ public class RideService {
             dto.setRouteLongitudes(routeLongitudes);
         }
 
-        if (request != null && request.getScheduledTime() != null) {
+        if (request != null) {
             dto.setScheduledTime(request.getScheduledTime());
         }
 
-        List<FavoriteRoute> favoriteRoutes = registeredUser.getFavoriteRoutes();
-        for(FavoriteRoute favoriteRoute : favoriteRoutes){
-            if(favoriteRoute.getRoute().getId().equals(ride.getRoute().getId())){
-                dto.setFavoriteRouteId(favoriteRoute.getRoute().getId());
-            }
-        }
+        dto.setFavoriteRouteId(ride.getRoute().getId());
         return dto;
     }
 }
