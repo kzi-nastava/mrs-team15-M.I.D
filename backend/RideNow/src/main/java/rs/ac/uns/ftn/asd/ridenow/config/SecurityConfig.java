@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admins/users/").hasRole("ADMIN")
                         .requestMatchers("/api/admins/all-users/").hasRole("ADMIN")
                         .requestMatchers("/api/admins/ride-history").hasRole("ADMIN")
+                        .requestMatchers("api/rides/active-rides").hasRole("ADMIN")
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").permitAll()
                         .requestMatchers("/api/driver/activate-account").permitAll()
@@ -48,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admins/**").permitAll()
 
                         .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/rides/{id}/track").hasRole("USER")
+                        .requestMatchers("/api/rides/{id}/track").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/rides/my-current-ride").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/auth/logout").hasAnyRole("ADMIN", "USER", "DRIVER")
                         .requestMatchers("/api/rides/my-upcoming-rides").hasRole("USER")

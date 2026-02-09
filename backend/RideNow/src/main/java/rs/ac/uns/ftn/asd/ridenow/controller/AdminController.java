@@ -15,6 +15,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.ride.ActiveRideDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
@@ -160,9 +161,7 @@ public class AdminController {
         return ResponseEntity.ok(userService.unblockUser(id));
     }
 
-
-
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/price-configs")
     public ResponseEntity<PriceConfigResponseDTO> getPriceConfigs() {
         return ResponseEntity.ok(adminService.getPriceConfigs());
