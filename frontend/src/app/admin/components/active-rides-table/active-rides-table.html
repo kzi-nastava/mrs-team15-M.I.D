@@ -1,0 +1,43 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th scope="col">Ride ID</th>
+        <th scope="col">Route</th>
+        <th scope="col">Passengers</th>
+        <th scope="col">Driver</th>
+        <th scope="col">Duration</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (ride of rides; track ride.rideId) {
+        <tr class="clickable-row" [class.table-warning]="ride.panic" (click)="onRideClick(ride)">
+          <td class="fw-semibold">#{{ ride.rideId }}</td>
+          <td>{{ formatRoute(ride) }}</td>
+          <td>{{ ride.passengerNames }}</td>
+          <td>{{ ride.driverName }}</td>
+          <td>
+            <div class="fw-semibold">{{ getDurationText(ride.startTime, ride).elapsed }}</div>
+            <small class="text-muted">{{ getDurationText(ride.startTime, ride).estimated }}</small>
+          </td>
+          <td>
+            @if (ride.panic) {
+              <span class="badge bg-danger">{{ getPanicText(ride.panic, ride.panicBy) }}</span>
+            } @else {
+              <span class="badge bg-success">Normal</span>
+            }
+          </td>
+        </tr>
+      }
+      @if (rides.length === 0) {
+        <tr>
+          <td colspan="6" class="text-center py-4 text-muted">
+            <i class="bi bi-car-front me-2"></i>
+            No active rides at this time
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,93 @@
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <app-page-header 
+        title="Active Rides" 
+        subtitle="Monitor all currently ongoing rides in real-time">
+      </app-page-header>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="d-flex flex-column align-items-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted">Loading active rides...</p>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ error }}
+        <div class="ms-auto">
+          <app-button
+            [text]="refreshing ? 'Retrying...' : 'Retry'"
+            variant="danger"
+            height="32px"
+            width="auto"
+            [disabled]="refreshing"
+            (clicked)="onRefresh()">
+          </app-button>
+        </div>
+      </div>
+
+      <!-- Active Rides Table -->
+      <div *ngIf="!loading && !error">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="col-md-4 col-lg-3">
+            <app-input-component
+              type="text"
+              placeholder="Search by driver name..."
+              [value]="searchQuery"
+              (valueChange)="onSearchChange($event)"
+              borderColor="#6c757d"
+              variant="primary"
+              height="32px">
+            </app-input-component>
+          </div>
+          <div class="d-flex gap-2">
+            <app-button
+              *ngIf="searchQuery"
+              text="Clear"
+              variant="secondary"
+              fontWeight="500"
+              height="32px"
+              width="auto"
+              (clicked)="clearSearch()">
+            </app-button>
+            <app-button
+              [text]="refreshing ? 'Refreshing...' : 'Refresh'"
+              variant="ghost"
+              fontWeight="500"
+              height="32px"
+              width="auto"
+              [disabled]="refreshing"
+              (clicked)="onRefresh()">
+            </app-button>
+          </div>
+        </div>
+
+        <!-- Table Component -->
+        <app-active-rides-table [rides]="filteredRides"></app-active-rides-table>
+
+        <!-- No Active Rides -->
+        <div *ngIf="filteredRides.length === 0 && activeRides.length > 0" class="text-center py-5">
+          <i class="bi bi-search display-4 text-muted mb-3"></i>
+          <h5 class="text-muted">No rides found</h5>
+          <p class="text-muted">No rides match your search criteria for "{{ searchQuery }}".</p>
+          <app-button
+            text="Clear Search"
+            variant="outline"
+            (clicked)="clearSearch()">
+          </app-button>
+        </div>
+
+        <!-- No Active Rides at all -->
+        <div *ngIf="activeRides.length === 0" class="text-center py-5">
+          <i class="bi bi-car-front display-4 text-muted mb-3"></i>
+          <h5 class="text-muted">No Active Rides</h5>
+          <p class="text-muted">There are currently no ongoing rides.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

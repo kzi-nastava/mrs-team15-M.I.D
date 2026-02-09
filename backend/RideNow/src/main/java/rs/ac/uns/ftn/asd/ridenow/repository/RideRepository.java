@@ -169,6 +169,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             nativeQuery = true)
     Optional<Ride> findCurrentRideByDriver(@Param("driverId") Long driverId);
 
-
-
+    @Query("SELECT r FROM Ride r " +
+            "WHERE r.status = 'IN_PROGRESS'")
+    List<Ride> findActiveRides();
 }
