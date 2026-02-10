@@ -1,5 +1,4 @@
-package service;
-
+package rs.ac.uns.ftn.asd.ridenow.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

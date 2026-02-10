@@ -1,5 +1,4 @@
-package repository;
-
+package rs.ac.uns.ftn.asd.ridenow.repository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @ContextConfiguration(classes = RideNowApplication.class)
 @DisplayName("RideRepository - stopRide() Tests")
-public class StopRideRepository {
+public class StopRideRepositoryTest {
 
     @Autowired
     private RideRepository rideRepository;
