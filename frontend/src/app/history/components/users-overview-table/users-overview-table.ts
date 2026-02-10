@@ -1,26 +1,31 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router } from '@angular/router';
-import { Ride } from '../user-history-table/user-history-table';
 
+export interface User{
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+  role: string;
+}
 
-type SortColumn = 'route' | 'startTime' | 'endTime' | 'cancelled' | 'price' | 'panic'; 
+type SortColumn = 'name' | 'surname' | 'email'| 'role' ;
 
 @Component({
-  selector: 'app-admin-history-table',
+  selector: 'app-users-overview-table',
   imports: [],
-  templateUrl: './admin-history-table.html',
-  styleUrl: './admin-history-table.css',
+  templateUrl: './users-overview-table.html',
+  styleUrl: './users-overview-table.css',
 })
-export class AdminHistoryTable {
-  private _rides : Ride[] = []
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
-
-  @Input() rides: Ride[] = [];
+export class UsersOverviewTable {
+  @Input() users: User[] = [];
   @Output() sortChange = new EventEmitter<{ column: string; direction: string }>();
 
   currentSortColumn: string = '';
   currentSortDirection: 'asc' | 'desc' = 'asc';
+
+  constructor(private router: Router) {}
 
   sort(column: string): void {
     if (this.currentSortColumn === column) {
@@ -29,7 +34,7 @@ export class AdminHistoryTable {
       this.currentSortColumn = column;
       this.currentSortDirection = 'asc';
     }
-    
+
     this.sortChange.emit({ 
       column: this.currentSortColumn, 
       direction: this.currentSortDirection 
@@ -43,7 +48,7 @@ export class AdminHistoryTable {
     return this.currentSortDirection === 'asc' ? '↑' : '↓';
   }
 
-  viewRideDetails(ride: Ride): void {
-    this.router.navigate(['/history-ride-details', ride.id], { state: { ride } });
+  viewUserHistory(user: User): void {
+    this.router.navigate(['/admin-history', user.id], { state: { user } });
   }
 }

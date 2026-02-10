@@ -68,9 +68,6 @@
                 <p class="detail-value">
                   <span class="badge bg-danger">{{ ride.cancelled }}</span>
                 </p>
-                @if (ride.cancelledBy) {
-                  <small class="text-muted">By: {{ ride.cancelledBy }}</small>
-                }
               } @else {
                 <p class="detail-value text-muted">No</p>
               }
@@ -82,9 +79,6 @@
                 <p class="detail-value">
                   <span class="badge bg-danger">{{ ride.panicButton }}</span>
                 </p>
-                @if (ride.panicBy) {
-                  <small class="text-muted">By: {{ ride.panicBy }}</small>
-                }
               } @else {
                 <p class="detail-value text-muted">No incidents</p>
               }

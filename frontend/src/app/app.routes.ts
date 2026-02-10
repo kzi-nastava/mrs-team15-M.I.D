@@ -26,6 +26,7 @@ import { StartRide } from './ride/pages/start-ride/start-ride';
 import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 import { ActivationPage } from './auth/pages/activation-page/activation-page';
+import { AdminHistoryOverview } from './history/pages/admin-history-overview/admin-history-overview';
 import { PricingManagement } from './admin/pages/pricing-management/pricing-management';
 import { ActiveRides } from './admin/pages/active-rides/active-rides';
 
@@ -50,7 +51,7 @@ export const routes: Routes = [
     { path: 'ride-estimation', component: RideEstimation },
     { path: 'rating/:id', component: Rating },
     { path: 'upcoming-rides', component: UpcomingRides },
-    { path: 'admin-history', component: AdminHistory },
+    { path: 'admin-history/:id', component: AdminHistory },
     { path: 'admin-users', component: AdminUsers },
     { path: 'history-ride-details/:id', component: HistoryRideDetails },
     { path: 'current-ride', component: CurrentRide },
@@ -58,6 +59,7 @@ export const routes: Routes = [
     { path: 'finding-driver', component: FindingDriver },
     { path: 'ride-ordering', component: RideOrdering },
     { path: 'admin-pricing', component: PricingManagement },
+    {path: 'admin-history-overview', component: AdminHistoryOverview}
     { path: 'admin-active-rides', component: ActiveRides },
     { path: 'activate/:token', component: ActivationPage }
 ];

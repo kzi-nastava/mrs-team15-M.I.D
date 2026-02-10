@@ -2,8 +2,16 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.PriceConfigDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
@@ -13,10 +21,14 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRequestRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.PriceRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.*;
 
 import java.sql.Date;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +42,15 @@ public class AdminService {
     private final EmailService emailService;
     private final AuthService authService;
     private final PriceRepository priceRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RatingRepository ratingRepository;
+
+    @Autowired
+    private  HistoryRepository historyRepository;
 
     public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
                         VehicleRepository vehicleRepository, EmailService emailService,
@@ -256,5 +277,100 @@ public class AdminService {
             config.setPricePerKm(priceDTO.getPricePerKm());
             priceRepository.save(config);
         }
+    }
+
+    public Page<UserItemDTO> getNonAdminUsers(Pageable pageable) {
+        List<UserRoles> roles = List.of(UserRoles.DRIVER, UserRoles.USER);
+        Page<User> users = userRepository.findByRoleIn(roles, pageable);
+        List<UserItemDTO> usersDTO = users.getContent().stream()
+                .map(this::mapToUserItemDTO)
+                .toList();
+
+        return new PageImpl<>(usersDTO, pageable, users.getTotalElements());
+    }
+
+    private UserItemDTO mapToUserItemDTO(User user) {
+        UserItemDTO dto = new UserItemDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getFirstName());
+        dto.setSurname(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole().name());
+        return dto;
+    }
+
+    public Page<AdminRideHistoryItemDTO> getRideHistory(User user, Pageable pageable, Long date) {
+        List<AdminRideHistoryItemDTO> history = new ArrayList<>();
+        Page<Ride> rides = getRides(user, pageable, date);
+        for (Ride ride : rides.getContent()) {
+            AdminRideHistoryItemDTO dto = new AdminRideHistoryItemDTO();
+            dto.setRoute(new RouteDTO(ride.getRoute()));
+            dto.setStartTime(ride.getStartTime());
+            dto.setEndTime(ride.getEndTime());
+            dto.setPrice(ride.getPrice());
+            dto.setRideId(ride.getId());
+            dto.setDriver(ride.getDriver() != null ? ride.getDriver().getFirstName() + " " + ride.getDriver().getLastName() : null);
+
+            List<String> passengerNames = new ArrayList<>();
+            for (Passenger p : ride.getPassengers()) {
+                passengerNames.add(p == null ? null : p.getUser().getFirstName() + " " + p.getUser().getLastName());
+            }
+            dto.setPassengers(passengerNames);
+
+            if (ride.getPanicAlert() != null) {
+                dto.setPanic(true);
+                if (ride.getPanicAlert().getPanicBy() != null) {
+                    dto.setPanicBy(ride.getPanicAlert().getPanicBy());
+                }
+            }
+            dto.setCancelled(ride.getCancelled());
+            if (ride.getCancelled()) {
+                dto.setCancelledBy(ride.getCancelledBy());
+            }
+
+            if (ratingRepository.findByRide(ride) != null) {
+                dto.setRating(new RatingDTO(ratingRepository.findByRide(ride)));
+            }
+
+            List<Inconsistency> inconsistencies = ride.getInconsistencies();
+            List<String> inconsistencyStrings = new ArrayList<>();
+            if (!inconsistencies.isEmpty()) {
+                for (Inconsistency inconsistency : inconsistencies) {
+                    inconsistencyStrings.add(inconsistency.getDescription());
+                }
+            }
+            dto.setInconsistencies(inconsistencyStrings);
+            dto.setRouteId(ride.getRoute() != null ? ride.getRoute().getId() : null);
+            history.add(dto);
+        }
+        return new PageImpl(history, pageable, rides.getTotalElements());
+    }
+
+    private Page<Ride> getRides(User user, Pageable pageable, Long date) {
+        LocalDateTime startOfDay = null;
+        LocalDateTime endOfDay = null;
+
+        if (date != null) {
+            LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(date), ZoneId.systemDefault());
+            startOfDay = dateTime.toLocalDate().atStartOfDay();
+            endOfDay = dateTime.toLocalDate().atTime(23, 59, 59);
+        }
+        return date != null ?
+                findWithAllRelationsAndDate(user, startOfDay, endOfDay, pageable) :
+                findWithAllRelations(user, pageable);
+    }
+
+    private Page<Ride> findWithAllRelations(User user, Pageable pageable) {
+        if (user instanceof Driver) {
+            return historyRepository.findDriverRidesWithAllRelations(user.getId(), pageable);
+        }
+        return historyRepository.findPassengerRidesWithAllRelations(user.getId(), pageable);
+    }
+
+    private Page<Ride> findWithAllRelationsAndDate(User user, LocalDateTime startOfDay, LocalDateTime endOfDay, Pageable pageable) {
+        if (user instanceof Driver) {
+            return historyRepository.findDriverRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
+        }
+        return historyRepository.findPassengerRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
     }
 }

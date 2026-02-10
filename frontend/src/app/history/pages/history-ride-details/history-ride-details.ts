@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Ride } from '../../components/admin-history-table/admin-history-table';
+import { Ride } from '../../components/user-history-table/user-history-table';
 import { Button } from '../../../shared/components/button/button';
 import { ReorderRideModal } from '../../components/reorder-ride-modal/reorder-ride-modal';
 import { formatAddress } from '../../../shared/utils/address.utils';
@@ -60,10 +60,10 @@ export class HistoryRideDetails implements OnInit, AfterViewInit, OnDestroy {
   
       // Use polylinePoints from the route data if available
       const routeCoordinates: [number, number][] = routeData.polylinePoints && routeData.polylinePoints.length > 0
-        ? routeData.polylinePoints.map(point => [point.latitude, point.longitude] as [number, number])
+        ? routeData.polylinePoints.map((point: { latitude: number; longitude: number; }) => [point.latitude, point.longitude] as [number, number])
         : [
             [routeData.startLocation.latitude, routeData.startLocation.longitude],
-            ...routeData.stopLocations.map(stop => [stop.latitude, stop.longitude] as [number, number]),
+            ...routeData.stopLocations.map((stop: { latitude: number; longitude: number; }) => [stop.latitude, stop.longitude] as [number, number]),
             [routeData.endLocation.latitude, routeData.endLocation.longitude]
           ];
   
@@ -100,7 +100,7 @@ export class HistoryRideDetails implements OnInit, AfterViewInit, OnDestroy {
   
       // Add stop location markers
       if (routeData.stopLocations && routeData.stopLocations.length > 0) {
-        routeData.stopLocations.forEach((stop, index) => {
+        routeData.stopLocations.forEach((stop: { latitude: number; longitude: number; address: string; }, index: number) => {
           const stopIcon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background-color: #ffc107; width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
