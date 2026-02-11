@@ -15,6 +15,12 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn (name = "user_id", nullable = false)
+    private User user;
+
+    private Boolean taken = false;
+
     @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Message> messages = new ArrayList<>();
 
