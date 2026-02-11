@@ -72,10 +72,11 @@
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/current-ride" (click)="closeMenu()">Current ride</a>
                 </li>
-                }
-                @if (role === 'USER' ) {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/user-chat" (click)="closeMenu()">Live Support</a>
                 </li>
                 }
                 @if (role === 'ADMIN') {
@@ -93,19 +94,24 @@
                   <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
                 </li>
                 }
-                @if (role === 'ADMIN') {
+               @if (role === 'ADMIN') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/driver-registration" (click)="closeMenu()">Driver Registration</a>
                 </li>
-                }
-                @if (role === 'ADMIN') {
-                  <li class="nav-item">
+                <li class="nav-item">
                     <a class="nav-link" routerLink="/driver-requests" (click)="closeMenu()">Driver Changes</a>
                   </li>
-                }
-               @if (role === 'ADMIN') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/admin-users" (click)="closeMenu()">Users</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/admin-active-rides" (click)="closeMenu()">Active Rides</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/admin-pricing" (click)="closeMenu()">Price Configuration</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/admin-chats" (click)="closeMenu()">Chats</a>
                 </li>
                 }
               </ul>
