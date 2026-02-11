@@ -125,4 +125,11 @@
         <item name="android:drawablePadding">10dp</item>
         <item name="android:drawableEnd">@drawable/visibility_24px</item>
     </style>
+
+    <style name="CardViewStyle">
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
 </resources>

@@ -171,6 +171,10 @@
     <string name="current_ride_from">From: </string>
     <string name="current_ride_to">To: </string>
     <string name="current_ride_loading">Loading…</string>
+    <string name="current_ride_eta">ETA:</string>
+    <string name="current_ride_calculating">Calculating…</string>
+    <string name="current_ride_minutes_remaining">%1$d min remaining</string>
+    <string name="current_ride_arriving_soon">Arriving soon</string>
     <string name="current_ride_report_inconsistency">Report Inconsistency</string>
     <string name="current_ride_panic">Panic</string>
 
@@ -190,5 +194,27 @@
     <string name="cancel_ride_subtitle">Please provide a reason for cancellation:</string>
     <string name="cancel_reason_label">Reason for cancellation</string>
     <string name="confirm">Confirm</string>
+
+    <!-- Active Rides -->
+    <string name="active_rides_title">Active Rides</string>
+    <string name="search_by_driver_name">Search by driver name</string>
+    <string name="ride_id_label">Ride ID:</string>
+    <string name="route_label">Route</string>
+    <string name="driver_label">Driver:</string>
+    <string name="passengers_label">Passengers</string>
+    <string name="start_time_label">Started:</string>
+    <string name="panic_alert">PANIC ALERT!</string>
+    <string name="panic_alert_by">PANIC ALERT! - %1$s</string>
+    <string name="no_active_rides">No active rides</string>
+    <string name="no_active_rides_description">There are currently no active rides in the system</string>
+    <string name="nav_active_rides">Active Rides</string>
+    <string name="route_unavailable">Route information unavailable</string>
+    <string name="no_passengers">No passengers</string>
+    <string name="start_time_unavailable">Start time not available</string>
+    <string name="route_format">%1$s → %2$s</string>
+    <string name="date_time_format">%1$s at %2$s</string>
+    <string name="loading_default">Loading...</string>
+    <string name="loading_route">Loading route...</string>
+    <string name="sample_ride_id">12345</string>
 
 </resources>

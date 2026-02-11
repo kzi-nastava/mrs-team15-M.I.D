@@ -182,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
+        navigationView.getMenu().findItem(R.id.active_rides).setVisible(isAdmin); // Active Rides
     }
 
     public void handleLogout() {

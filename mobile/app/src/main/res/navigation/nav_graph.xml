@@ -132,6 +132,13 @@
         android:label="Ride Preferences"
         tools:layout="@layout/fragment_ride_preference" />
 
+    <!-- Active rides (admin) -->
+    <fragment
+        android:id="@+id/active_rides"
+        android:name="com.example.ridenow.ui.activrides.ActiveRidesFragment"
+        android:label="Active Rides"
+        tools:layout="@layout/fragment_active_rides" />
+
     <action
         android:id="@+id/action_forgotPassword_to_verifyCode"
         app:destination="@+id/forgot_password_verify_code"/>
