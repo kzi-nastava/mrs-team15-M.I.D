@@ -33,6 +33,7 @@ public class SecurityConfig {
                                 "/api/auth/reset-password", "/api/rides/estimate", "/api/auth/verify-reset-code",
                                 "api/auth/activate-code", "api/auth/resend-activation-email").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/chat/websocket/**").permitAll()
                         .requestMatchers("/api/admins/driver-register").hasRole("ADMIN")
                         .requestMatchers("/api/admins/driver-requests").hasRole("ADMIN")
                         .requestMatchers("/api/admins/driver-requests/").hasRole("ADMIN")
@@ -69,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/chats/user").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/chats/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/chats/message/{id}").hasAnyRole("USER", "DRIVER", "ADMIN")
+                        .requestMatchers("/api/chats/{id}/close").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )

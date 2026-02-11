@@ -39,7 +39,15 @@ public class ChatController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ChatWithMessagesResponseDTO> getChatById(@PathVariable Long id) {
+        chatService.changeTakenStatus(id, true);
         return ResponseEntity.ok(chatService.getChatById(id));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/close")
+    public ResponseEntity<Void> closeChat(@PathVariable Long id) {
+        chatService.changeTakenStatus(id, false);
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DRIVER')")
