@@ -18,7 +18,7 @@
 <header class="navbar navbar-light mb-1">
       <div class="container-fluid px-5">
         @if (role === 'ADMIN') {
-          <a class="navbar-brand fw-bold fs-4" routerLink="/admin-history" (click)="closeMenu()">Ride Now</a>
+          <a class="navbar-brand fw-bold fs-4" routerLink="/admin-history-overview" (click)="closeMenu()">Ride Now</a>
         }
         @else if (role === 'DRIVER') {
           <a class="navbar-brand fw-bold fs-4" routerLink="/upcoming-rides" (click)="closeMenu()">Ride Now</a>
@@ -80,7 +80,7 @@
                 }
                 @if (role === 'ADMIN') {
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/admin-history" (click)="closeMenu()">Ride History</a>
+                  <a class="nav-link" routerLink="/admin-history-overview" (click)="closeMenu()">Ride History Overview</a>
                 </li>
                 }
                 @if (!isLoggedIn) {

@@ -50,7 +50,7 @@ export class LoginForm {
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
         switch(response.role) {
           case 'ADMIN':
-            setTimeout(() => { this.router.navigate(['/admin-history']); }, 1000);
+            setTimeout(() => { this.router.navigate(['/admin-history-overview']); }, 1000);
             return;
           case 'DRIVER':
             if(response.hasCurrentRide){

@@ -1,6 +1,11 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverStatusResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.ActiveRideDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Administrator;
@@ -16,6 +22,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.service.AdminService;
 import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
 import rs.ac.uns.ftn.asd.ridenow.service.UserService;
@@ -23,6 +30,7 @@ import rs.ac.uns.ftn.asd.ridenow.service.UserService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admins")
@@ -32,56 +40,65 @@ public class AdminController {
     private final UserService userService;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     public AdminController(AdminService adminService, UserService userService) {
         this.userService = userService;
         this.adminService = adminService;
     }
 
-    @GetMapping("/users/{id}/rides")
-    public ResponseEntity<List<RideHistoryItemDTO>> getRideHistory(@PathVariable Long id,
-           @RequestParam(required = false) String dateFrom, @RequestParam(required = false) String dateTo,
-           @RequestParam(required = false) String sortBy, @RequestParam(required = false) String sortDirection){
-        List<RideHistoryItemDTO> rides = new ArrayList<>();
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all-users")
+    public ResponseEntity<Page<UserItemDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "firstName") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
 
-        RideHistoryItemDTO firstRide = new RideHistoryItemDTO();
-        firstRide.setId(1L);
-        firstRide.setStartAddress("Bulevar Oslobođenja 45, Novi Sad");
-        firstRide.setEndAddress("Narodnog fronta 12, Novi Sad");
-        firstRide.setStartTime(LocalDateTime.of(2025, 5, 10, 14, 30));
-        firstRide.setEndTime(LocalDateTime.of(2025, 5, 10, 14, 50));
-        firstRide.setCancelled(false);
-        firstRide.setCancelledBy(null);
-        firstRide.setPrice(520.00);
-        firstRide.setPanicTriggered(false);
-
-        RideHistoryItemDTO secondRide = new RideHistoryItemDTO();
-        secondRide.setId(2L);
-        secondRide.setStartAddress("Trg slobode 3, Novi Sad");
-        secondRide.setEndAddress("Bulevar Evrope 28, Novi Sad");
-        secondRide.setStartTime(LocalDateTime.of(2025, 5, 11, 9, 15));
-        secondRide.setEndTime(LocalDateTime.of(2025, 5, 11, 9, 40));
-        secondRide.setCancelled(true);
-        secondRide.setCancelledBy("PASSENGER");
-        secondRide.setPrice(0.00);
-        secondRide.setPanicTriggered(false);
-
-        rides.add(firstRide);
-        rides.add(secondRide);
-        return ResponseEntity.ok().body(rides);
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapSortField(sortBy));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<UserItemDTO> users = adminService.getNonAdminUsers(pageable);
+        return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/rides/{id}")
-    public ResponseEntity<RideDetailsDTO> getRideDetails(@PathVariable Long id){
-        RideDetailsDTO details = new RideDetailsDTO();
-        details.setRideId(1L);
-        details.setRoute("Bulevar Oslobođenja 45 → Narodnog fronta 12, Novi Sad");
-        details.setDriver("Marko Marković");
-        details.setPassenger("Ana Anić");
-        details.setPrice(520.00);
-        details.setPanicTriggered(false);
-        details.setInconsistencies(null);
-        details.setRating(4.8);
-        return ResponseEntity.ok().body(details);
+    private String mapSortField(String sortBy) {
+        return switch (sortBy) {
+            case "surname" -> "lastName";
+            case "role" -> "role";
+            case "email" -> "email";
+            default -> "firstName";
+        };
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/ride-history")
+    public ResponseEntity<Page<AdminRideHistoryItemDTO>> getRideHistory(@RequestParam Long id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
+                                                                   @RequestParam(defaultValue = "date") String sortBy, @RequestParam(defaultValue = "desc") String sortDir,
+                                                                   @RequestParam(required = false) @Min(0) Long date) {
+
+        Optional<User> optionalUser = userRepository.findById(id);
+        if(optionalUser.isEmpty()){
+            return ResponseEntity.badRequest().build();
+        }
+        User user = optionalUser.get();
+        Page<AdminRideHistoryItemDTO> history;
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), mapHistorySortField(sortBy));
+        Pageable pageable = PageRequest.of(page, size, sort);
+        history = adminService.getRideHistory(user, pageable, date);
+        return ResponseEntity.ok(history);
+    }
+
+    private String mapHistorySortField(String sortBy) {
+        return switch (sortBy) {
+            case "route" -> "route.startLocation.address";
+            case "startTime" -> "startTime";
+            case "endTime" -> "endTime";
+            case "cancelled" -> "cancelled";
+            case "price" -> "price";
+            case "panic" -> "panicAlert";
+            default -> "scheduledTime";
+        };
     }
 
     @PreAuthorize("hasRole('ADMIN')")

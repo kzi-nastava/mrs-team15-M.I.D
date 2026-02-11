@@ -87,7 +87,7 @@ public class RideService {
 
             response.setDistanceKm(estimate.getDistanceKm());
             response.setEstimatedTimeMinutes(estimate.getEstimatedDurationMin());
-            response.setRoute(estimate.getRoute()); 
+            response.setRoute(estimate.getRoute());
 
             // calculate a price estimate for all vehicle types
             double price = priceService.calculatePrice(VehicleType.STANDARD, estimate.getDistanceKm());
@@ -129,7 +129,7 @@ public class RideService {
 
             response = getBestDriver(dto, vehicleType, prev30, next30);
 
-        }else{
+        } else {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime nextHour = now.plusHours(1);
             response = getBestDriver(dto, vehicleType, now, nextHour);
@@ -182,7 +182,7 @@ public class RideService {
             ride.setRoute(route);
             ride = rideRepository.save(ride);
             response.setDriverId(assigned.getId());
-        }else{
+        } else {
             ride.setRoute(route);
             ride = rideRepository.save(ride);
             response.setDriverId(assigned.getId());
@@ -276,7 +276,7 @@ public class RideService {
                             assigned = d;
                             ETA = (int) est.getEstimatedDurationMin();
                         }
-                    } catch (Exception ex){
+                    } catch (Exception ex) {
                         // skip driver on errors
                     }
                 }
@@ -315,16 +315,16 @@ public class RideService {
         } catch (Exception e) {
             // ignore and continue
         }
-        if  (assigned != null) {
+        if (assigned != null) {
             response.setETA(ETA);
             response.setDriverId(assigned.getId());
-        }else{
+        } else {
             response.setDriverId(null);
         }
         return response;
     }
 
-    private Route makeRoute(OrderRideRequestDTO dto){
+    private Route makeRoute(OrderRideRequestDTO dto) {
         Route route;
         if (dto.getFavoriteRouteId() == null) {
             // create new route
@@ -558,7 +558,7 @@ public class RideService {
         }
 
         Passenger passenger = optionalPassenger.get();
-        if(passenger.getRole() != PassengerRole.CREATOR){
+        if (passenger.getRole() != PassengerRole.CREATOR) {
             throw new Exception("Only the creator can cancel the ride");
         }
 
@@ -735,6 +735,34 @@ public class RideService {
         return responseDTO;
     }
 
+    public void reorderRide(ReorderRideRequestDTO request) throws Exception {
+        Optional<Ride> optionalRide = rideRepository.findById(request.getRideId());
+        if (optionalRide.isEmpty()) {
+            throw new Exception("Ride does not exist");
+        }
+
+        if (request.getScheduledTime() != null && request.getScheduledTime().isBefore(LocalDateTime.now())) {
+            throw new Exception("Scheduled time must be in the future");
+        }
+
+        String email = "";
+        Ride ride = optionalRide.get();
+        List<Passenger> passengers = ride.getPassengers();
+        for (Passenger passenger : passengers) {
+            if (passenger.getRole() == PassengerRole.CREATOR) {
+                email = passenger.getUser().getEmail();
+            }
+        }
+        Optional<RegisteredUser> optionalRegisteredUser = registeredUserRepository.findByEmail(email);
+        if (optionalRegisteredUser.isEmpty()){
+            throw new Exception("User does not exist");
+        }
+        RegisteredUser registeredUser = optionalRegisteredUser.get();
+        OrderRideRequestDTO dto = buildOrderRequestFromRide(registeredUser, ride, request);
+
+        orderRide(dto, email);
+    }
+
     public List<ActiveRideDTO> getActiveRides(){
         List<Ride> activeRides = rideRepository.findActiveRides();
         List<ActiveRideDTO> activeRideDTOs = new ArrayList<>();
@@ -760,5 +788,69 @@ public class RideService {
             activeRideDTOs.add(dto);
         }
         return activeRideDTOs;
+    }
+
+    private OrderRideRequestDTO buildOrderRequestFromRide(RegisteredUser registeredUser, Ride ride, ReorderRideRequestDTO request) {
+        OrderRideRequestDTO dto = new OrderRideRequestDTO();
+
+        dto.setStartAddress(ride.getRoute().getStartLocation().getAddress());
+        dto.setStartLatitude(ride.getRoute().getStartLocation().getLatitude());
+        dto.setStartLongitude(ride.getRoute().getStartLocation().getLongitude());
+
+        dto.setEndAddress(ride.getRoute().getEndLocation().getAddress());
+        dto.setEndLatitude(ride.getRoute().getEndLocation().getLatitude());
+        dto.setEndLongitude(ride.getRoute().getEndLocation().getLongitude());
+
+        List<Location> stopLocations = ride.getRoute().getStopLocations();
+        if (stopLocations != null && !stopLocations.isEmpty()) {
+            List<String> stopAddresses = new ArrayList<>();
+            List<Double> stopLatitudes = new ArrayList<>();
+            List<Double> stopLongitudes = new ArrayList<>();
+
+            for (Location stopLocation : stopLocations) {
+                stopAddresses.add(stopLocation.getAddress());
+                stopLatitudes.add(stopLocation.getLatitude());
+                stopLongitudes.add(stopLocation.getLongitude());
+            }
+
+            dto.setStopAddresses(stopAddresses);
+            dto.setStopLatitudes(stopLatitudes);
+            dto.setStopLongitudes(stopLongitudes);
+        }
+
+        dto.setVehicleType(ride.getDriver().getVehicle().getType().name());
+        dto.setBabyFriendly(ride.getDriver().getVehicle().isChildFriendly());
+        dto.setPetFriendly(ride.getDriver().getVehicle().isPetFriendly());
+
+        List<String> linkedPassengers = new ArrayList<>();
+        for (Passenger passenger : ride.getPassengers()) {
+            if (passenger.getRole() != PassengerRole.CREATOR) {
+                linkedPassengers.add(passenger.getUser().getEmail());
+            }
+        }
+        dto.setLinkedPassengers(linkedPassengers);
+
+        dto.setDistanceKm(ride.getDistanceKm());
+        dto.setEstimatedTimeMinutes((int) ride.getRoute().getEstimatedTimeMin());
+        dto.setPriceEstimate(ride.getPrice());
+
+        if (ride.getRoute().getPolylinePoints() != null) {
+            List<Double> routeLatitudes = new ArrayList<>();
+            List<Double> routeLongitudes = new ArrayList<>();
+
+            for (PolylinePoint point : ride.getRoute().getPolylinePoints()) {
+                routeLatitudes.add(point.getLatitude());
+                routeLongitudes.add(point.getLongitude());
+            }
+            dto.setRouteLattitudes(routeLatitudes);
+            dto.setRouteLongitudes(routeLongitudes);
+        }
+
+        if (request != null) {
+            dto.setScheduledTime(request.getScheduledTime());
+        }
+
+        dto.setFavoriteRouteId(ride.getRoute().getId());
+        return dto;
     }
 }

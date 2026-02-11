@@ -73,6 +73,43 @@ export interface PaginatedRideHistoryResponse {
   empty: boolean;
 }
 
+export interface UserResponse {
+  id: number | null;
+  name: string | null;
+  surname: string | null;
+  role: string | null;
+  email: string | null;
+}
+
+export interface PaginatedUsersResponse {
+  content: UserResponse[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  last: boolean;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  numberOfElements: number;
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  empty: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -91,4 +128,23 @@ getPassengerRideHistory(page: number = 0, size: number = 8, sortBy?: string, sor
     }
     return this.http.get<PaginatedRideHistoryResponse>(url);
 }
+
+getUsers(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string) : Observable<PaginatedUsersResponse> {
+    let url = `${this.apiUrl}/admins/all-users?page=${page}&size=${size}`; 
+    if (sortBy && sortDir) {
+        url += `&sortBy=${sortBy}&sortDir=${sortDir}`;  
+    }
+    return this.http.get<PaginatedUsersResponse>(url);
+  }
+
+  getAdminRideHistory(id: number, page: number = 0, size: number = 8, sortBy?: string, sortDir?: string, date?: number): Observable<PaginatedRideHistoryResponse> {
+    let url = `${this.apiUrl}/admins/ride-history?id=${id}&page=${page}&size=${size}`;
+    if (sortBy && sortDir) {
+      url += `&sortBy=${sortBy}&sortDir=${sortDir}`;
+    }
+    if(date !== undefined && date !== null) {
+      url += `&date=${date}`;
+    }
+    return this.http.get<PaginatedRideHistoryResponse>(url);
+  }
 }
