@@ -25,15 +25,9 @@ import java.util.stream.Collectors;
 @Service
 public class RideService {
 
-    @Autowired
-    private RoutingService routingService;
-
-    @Autowired
-    private PanicAlertRepository panicAlertRepository;
-
-    @Autowired
-    private PriceService priceService;
-
+    private final RoutingService routingService;
+    private final PanicAlertRepository panicAlertRepository;
+    private final PriceService priceService;
     private final RouteRepository routeRepository;
     private final RideRepository rideRepository;
     private final DriverRepository driverRepository;
@@ -42,7 +36,15 @@ public class RideService {
     private final PassengerRepository passengerRepository;
     private final RegisteredUserRepository registeredUserRepository;
 
-    public RideService(RouteRepository routeRepository, RideRepository rideRepository, DriverRepository driverRepository, RatingRepository ratingRepository, InconsistencyRepository inconsistencyRepository, PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository) {
+    public RideService(RoutingService routingService,PanicAlertRepository panicAlertRepository,
+            PriceService priceService,RouteRepository routeRepository,
+            RideRepository rideRepository, DriverRepository driverRepository,
+            RatingRepository ratingRepository, InconsistencyRepository inconsistencyRepository,
+            PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository) {
+
+        this.routingService = routingService;
+        this.panicAlertRepository = panicAlertRepository;
+        this.priceService = priceService;
         this.routeRepository = routeRepository;
         this.rideRepository = rideRepository;
         this.driverRepository = driverRepository;
