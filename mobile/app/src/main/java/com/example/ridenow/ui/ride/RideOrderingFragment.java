@@ -38,6 +38,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import android.util.Log;
+import android.view.animation.LinearInterpolator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,8 @@ public class RideOrderingFragment extends Fragment {
     private boolean hasSelectedEnd = false;
     private double selectedStartLat, selectedStartLon;
     private double selectedEndLat, selectedEndLon;
+
+    private ArrayList<PolylinePointDTO> selectedPolylinePoints;
     private String selectedStartDisplayName;
     private String selectedEndDisplayName;
 
@@ -87,6 +90,9 @@ public class RideOrderingFragment extends Fragment {
     private java.util.List<Double> stopLatitudesSelected = new java.util.ArrayList<>();
     private java.util.List<Double> stopLongitudesSelected = new java.util.ArrayList<>();
     private java.util.List<String> stopDisplayNames = new java.util.ArrayList<>();
+
+    private boolean isFormRaised = false; // tracks whether form is shifted to reveal map
+    private View formCard;
 
     public RideOrderingFragment() {
         // Required empty constructor
@@ -273,6 +279,7 @@ public class RideOrderingFragment extends Fragment {
         passengerService = ClientUtils.getClient(PassengerService.class);
 
         // UI fields
+        formCard = view.findViewById(R.id.formCard);
         pickupInput = view.findViewById(R.id.pickupAddress);
         destinationInput = view.findViewById(R.id.destinationAddress);
         favoriteSelected = view.findViewById(R.id.favoriteSelected);
@@ -390,21 +397,49 @@ public class RideOrderingFragment extends Fragment {
         favoritesPopup.setAdapter(favoritesAdapter);
         favoritesPopup.setModal(true);
         favoritesPopup.setOnItemClickListener((parent, itemView, position, id) -> {
-            if (position >= 0 && position < favoriteObjects.size()) {
-                FavoriteRouteResponseDTO fav = favoriteObjects.get(position);
+
+            // ➜ Ako je kliknuto "None"
+            if (position == 0) {
+
+                clearAllInputs();
+
+                favoritesPopup.dismiss();
+                return;
+            }
+
+            // Inače je pravi favorit (offset -1 jer je 0 rezervisan za None)
+            int realIndex = position - 1;
+
+            if (realIndex >= 0 && realIndex < favoriteObjects.size()) {
+                FavoriteRouteResponseDTO fav = favoriteObjects.get(realIndex);
                 applyFavoriteRoute(fav);
             }
+
             favoritesPopup.dismiss();
+        });
+
+
+        // make arrow rotate when popup shows/dismisses
+        favoritesPopup.setOnDismissListener(() -> {
+            // rotate back
+            try { favoriteToggle.animate().rotation(0).setDuration(200).setInterpolator(new LinearInterpolator()).start(); } catch (Exception ignored) {}
         });
 
         android.view.View.OnClickListener favToggle = v -> {
             if (favoritesPopup.isShowing()) {
                 favoritesPopup.dismiss();
             } else {
+                // anchor to the favoriteSelected text (so popup can be wide and show the full route text)
                 favoritesPopup.setAnchorView(favoriteSelected);
-                favoritesPopup.setWidth(favoriteSelected.getWidth());
+                // choose a width that fits most of the screen so the full route string is visible
+                int screenW = requireContext().getResources().getDisplayMetrics().widthPixels;
+                int margin = dpToPx(32);
+                int popupW = Math.max(dpToPx(260), screenW - margin);
+                favoritesPopup.setWidth(popupW);
                 favoritesPopup.setHeight(dpToPx(200));
                 favoritesPopup.show();
+                // rotate arrow down
+                try { favoriteToggle.animate().rotation(180).setDuration(200).setInterpolator(new LinearInterpolator()).start(); } catch (Exception ignored) {}
             }
         };
         favoriteToggle.setOnClickListener(favToggle);
@@ -421,7 +456,90 @@ public class RideOrderingFragment extends Fragment {
         attachSuggestionHandlers(pickupInput);
         attachSuggestionHandlers(destinationInput);
 
+        // Map tap: always lower the form so the map becomes visible
+        if (routeMapView != null) {
+            routeMapView.setOnClickListener(v -> {
+                try {
+                    if (formCard != null) {
+                        formCard.animate().translationY(0).setDuration(250).setInterpolator(new LinearInterpolator()).withEndAction(() -> {
+                            try {
+                                formCard.setTranslationZ(0f);
+                                formCard.setElevation(dpToPx(8));
+                                formCard.bringToFront();
+                                formCard.setClickable(true);
+                                formCard.setFocusable(true);
+                                if (chooseRouteBtn != null) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
+                            } catch (Exception ignored) {}
+                        }).start();
+                        isFormRaised = false;
+                    }
+                } catch (Exception ignored) {}
+            });
+        }
+
+        if (formCard != null) {
+
+            formCard.post(() -> {   // čeka da se layout izmeri
+                formCard.setOnClickListener(v -> {
+
+                    int parentHeight = ((View) formCard.getParent()).getHeight();
+                    int formHeight = formCard.getHeight();
+
+                    // Koliko želiš da ostane vidljivo (npr 100dp)
+                    int visiblePart = dpToPx(100);
+
+                    // Maksimalno spuštanje
+                    int shiftDown = parentHeight - visiblePart;
+
+                    // Ali nikad više od visine forme
+                    shiftDown = Math.min(shiftDown, formHeight - visiblePart);
+
+                    if (isFormRaised) {
+                        // SPUSTI DOLE (da ostane malo vidljivo)
+                        formCard.animate()
+                                .translationY(shiftDown)
+                                .setDuration(300)
+                                .setInterpolator(new LinearInterpolator())
+                                .start();
+
+                        isFormRaised = false;
+
+                    } else {
+                        // VRATI GORE
+                        formCard.animate()
+                                .translationY(0)
+                                .setDuration(300)
+                                .setInterpolator(new LinearInterpolator())
+                                .start();
+
+                        isFormRaised = true;
+                    }
+                });
+            });
+        }
+
+
+
+
+        // replace the existing showRouteBtn click handler section
         showRouteBtn.setOnClickListener(v -> {
+            // When Show Route is clicked, ensure the form is lowered so the map is visible
+            try {
+                if (formCard != null) {
+                    formCard.animate().translationY(0).setDuration(250).setInterpolator(new LinearInterpolator()).withEndAction(() -> {
+                        try {
+                            formCard.setTranslationZ(0f);
+                            formCard.setElevation(dpToPx(8));
+                            formCard.bringToFront();
+                            formCard.setClickable(true);
+                            formCard.setFocusable(true);
+                            if (chooseRouteBtn != null) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
+                        } catch (Exception ignored) {}
+                    }).start();
+                    isFormRaised = false;
+                }
+            } catch (Exception ignored) {}
+
             // validate selected points
             if (!hasSelectedStart) {
                 pickupInput.setError("Please select a valid pickup address from suggestions");
@@ -437,6 +555,7 @@ public class RideOrderingFragment extends Fragment {
                 Toast.makeText(getContext(), "Start and end addresses must be different", Toast.LENGTH_SHORT).show();
                 return;
             }
+
 
             showRouteBtn.setEnabled(false);
             showRouteBtn.setText("Loading...");
@@ -584,22 +703,36 @@ public class RideOrderingFragment extends Fragment {
                 Toast.makeText(requireContext(), "Please select pickup and destination from suggestions", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // build bundle with primitive route info
+
             Bundle bundle = new Bundle();
+            // Start & End
             bundle.putDouble("startLat", selectedStartLat);
             bundle.putDouble("startLon", selectedStartLon);
+            bundle.putString("startAddress", selectedStartDisplayName);
+
             bundle.putDouble("endLat", selectedEndLat);
             bundle.putDouble("endLon", selectedEndLon);
-            bundle.putString("startAddress", selectedStartDisplayName);
             bundle.putString("endAddress", selectedEndDisplayName);
 
+            // Polyline flattening: lat/lon parovi
+            ArrayList<Double> polylineCoords = new ArrayList<>();
+            if (selectedPolylinePoints != null) {
+                for (PolylinePointDTO point : selectedPolylinePoints) {
+                    polylineCoords.add(point.getLatitude());
+                    polylineCoords.add(point.getLongitude());
+                }
+            }
+            bundle.putSerializable("polylineCoords", polylineCoords);
+
             try {
-                Navigation.findNavController(requireActivity(), com.example.ridenow.R.id.nav_host_fragment)
-                        .navigate(com.example.ridenow.R.id.ride_preference, bundle);
+                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
+                        .navigate(R.id.ride_preference, bundle);
             } catch (Exception e) {
                 Toast.makeText(requireContext(), "Navigation error", Toast.LENGTH_SHORT).show();
             }
         });
+
+
     }
 
     @Override
@@ -730,10 +863,12 @@ public class RideOrderingFragment extends Fragment {
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
                 conn.setRequestMethod("GET");
+
+                conn.setRequestMethod("GET");
                 int code = conn.getResponseCode();
                 if (code == 200) {
                     java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new java.lang.StringBuilder();
                     String line;
                     while ((line = br.readLine()) != null) sb.append(line);
                     br.close();
@@ -786,7 +921,10 @@ public class RideOrderingFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     favoriteObjects.clear();
                     favoriteObjects.addAll(response.body());
+
                     java.util.List<String> names = new java.util.ArrayList<>();
+
+                    names.add("None");
                     for (FavoriteRouteResponseDTO f : favoriteObjects) {
                         String n = f.getStartAddress() + " → " + f.getEndAddress();
                         names.add(n);
@@ -794,6 +932,9 @@ public class RideOrderingFragment extends Fragment {
                     favoritesAdapter.clear();
                     favoritesAdapter.addAll(names);
                     favoritesAdapter.notifyDataSetChanged();
+
+                    // ensure popup uses the latest adapter instance (so items are Strings showing start → end)
+                    try { favoritesPopup.setAdapter(favoritesAdapter); } catch (Exception ignored) {}
                 }
             }
 
@@ -913,10 +1054,12 @@ public class RideOrderingFragment extends Fragment {
                             endLoc.setLongitude(selectedEndLon);
                             endLoc.setAddress(selectedEndDisplayName);
 
+                            selectedPolylinePoints = (ArrayList<PolylinePointDTO>) polylinePoints;
                             if (routeMapView != null) {
                                 routeMapView.clearMap();
                                 routeMapView.displayRoute(startLoc, endLoc, null, polylinePoints);
                             }
+
 
                             // show estimates if available
                             try {
@@ -965,4 +1108,51 @@ public class RideOrderingFragment extends Fragment {
             }
         }
     }
+    private void clearAllInputs() {
+
+        // reset tekstualna polja
+        if (pickupInput != null) pickupInput.setText("");
+        if (destinationInput != null) destinationInput.setText("");
+
+        View root = getView();
+        if (root != null) {
+            LinearLayout sc = root.findViewById(R.id.stopsContainer);
+            if (sc != null) {
+                sc.removeAllViews();
+            }
+        }
+
+        // reset liste
+        hasSelectedStart = false;
+        hasSelectedEnd = false;
+
+        selectedStartLat = 0;
+        selectedStartLon = 0;
+        selectedEndLat = 0;
+        selectedEndLon = 0;
+
+        selectedStartDisplayName = null;
+        selectedEndDisplayName = null;
+
+        hasSelectedStop.clear();
+        stopLatitudesSelected.clear();
+        stopLongitudesSelected.clear();
+        stopDisplayNames.clear();
+
+        // reset favorite label
+        favoriteSelected.setText("Choose favorite");
+        currentSelectedFavoriteId = null;
+        currentSelectedFavoriteName = null;
+
+        // sakrij rezultate
+        if (resultsLayout != null) {
+            resultsLayout.setVisibility(View.GONE);
+        }
+
+        // očisti mapu
+        if (routeMapView != null) {
+            routeMapView.clearMap();
+        }
+    }
+
 }

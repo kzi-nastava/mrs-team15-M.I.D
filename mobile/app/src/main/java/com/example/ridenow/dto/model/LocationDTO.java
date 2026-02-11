@@ -7,6 +7,14 @@ public class LocationDTO implements Serializable {
     private double longitude;
     private String address;
 
+    public LocationDTO() {}
+
+    public LocationDTO(double startLat, double startLon, String startAddress) {
+        this.latitude = startLat;
+        this.longitude = startLon;
+        this.address = startAddress;
+    }
+
     public double getLatitude() { return latitude; }
     public void setLatitude(double latitude) { this.latitude = latitude; }
 
