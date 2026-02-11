@@ -48,7 +48,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/driver/change-request").hasRole("DRIVER")
                         .requestMatchers("/api/driver/can-start-ride").hasRole("DRIVER")
                         .requestMatchers("/api/admins/**").permitAll()
-
                         .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/rides/{id}/track").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/rides/my-current-ride").hasAnyRole("USER", "DRIVER")
@@ -58,7 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/panic-alert").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/rides/estimate-route").hasRole("USER")
                         .requestMatchers("/api/rides/*/start").hasRole( "DRIVER")
-
+                        .requestMatchers("/api/rides/reorder-ride").hasAnyRole("USER", "ADMINf")
                         .requestMatchers("/api/rides/order-ride").hasRole("USER")
                         .requestMatchers("/api/vehicles/").permitAll()
                         .requestMatchers("/api/passengers/favorite-routes").hasRole("USER")

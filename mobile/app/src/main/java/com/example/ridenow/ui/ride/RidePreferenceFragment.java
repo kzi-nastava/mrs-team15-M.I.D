@@ -10,6 +10,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import androidx.core.content.ContextCompat;
+
+import com.example.ridenow.dto.model.LocationDTO;
+import com.example.ridenow.dto.model.PolylinePointDTO;
 import com.example.ridenow.ui.components.RouteMapView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -18,7 +21,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -30,9 +35,16 @@ import com.example.ridenow.R;
 public class RidePreferenceFragment extends Fragment {
 
     private com.example.ridenow.ui.components.RouteMapView routeMapView;
+    private boolean isFormRaised = false;
+    private View formCard;
 
     public RidePreferenceFragment() {
         // Required empty constructor
+    }
+
+    private int dpToPx(int dp) {
+        float density = requireContext().getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
     }
 
     @Nullable
@@ -45,12 +57,40 @@ public class RidePreferenceFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // initialize map view (follow HomeFragment pattern)
         routeMapView = view.findViewById(R.id.routeMapView);
+
         if (routeMapView != null) {
-            // center on Novi Sad by default
-            routeMapView.centerOnLocation(45.2671, 19.8335);
+            Bundle args = getArguments();
+            if (args != null) {
+                // Start & End
+                LocationDTO start = new LocationDTO(
+                        args.getDouble("startLat"),
+                        args.getDouble("startLon"),
+                        args.getString("startAddress")
+                );
+                LocationDTO end = new LocationDTO(
+                        args.getDouble("endLat"),
+                        args.getDouble("endLon"),
+                        args.getString("endAddress")
+                );
+
+                // Polyline reconstruction
+                ArrayList<Double> polylineCoords = (ArrayList<Double>) args.getSerializable("polylineCoords");
+                List<PolylinePointDTO> polylinePoints = new ArrayList<>();
+                if (polylineCoords != null && polylineCoords.size() % 2 == 0) {
+                    for (int i = 0; i < polylineCoords.size(); i += 2) {
+                        polylinePoints.add(new PolylinePointDTO(polylineCoords.get(i), polylineCoords.get(i+1)));
+                    }
+                }
+
+                // Display route with markers
+                routeMapView.setShowMarkers(true);
+                routeMapView.displayRoute(start, end, null, polylinePoints);
+            }
         }
+
+
+        formCard = view.findViewById(R.id.formCard);
 
         Spinner vehicleSpinner = view.findViewById(R.id.vehicleSpinner);
         Switch switchPet = view.findViewById(R.id.switchPet);
@@ -110,6 +150,69 @@ public class RidePreferenceFragment extends Fragment {
         orderRideBtn.setOnClickListener(v -> {
             Toast.makeText(requireContext(), "Ride ordered", Toast.LENGTH_SHORT).show();
         });
+
+        if (routeMapView != null && formCard != null) {
+
+            routeMapView.setOnClickListener(v -> {
+
+                int parentHeight = ((View) formCard.getParent()).getHeight();
+                int formHeight = formCard.getHeight();
+                int visiblePart = dpToPx(100);
+
+                int shiftDown = parentHeight - visiblePart;
+                shiftDown = Math.min(shiftDown, formHeight - visiblePart);
+
+                formCard.animate()
+                        .translationY(shiftDown)
+                        .setDuration(300)
+                        .start();
+
+                isFormRaised = true;
+            });
+        }
+
+
+        // clicking the card now toggles between raised and lowered
+        if (formCard != null) {
+
+            formCard.post(() -> {   // čeka da se layout izmeri
+
+                formCard.setOnClickListener(v -> {
+
+                    int parentHeight = ((View) formCard.getParent()).getHeight();
+                    int formHeight = formCard.getHeight();
+
+                    // Koliko želiš da ostane vidljivo kada se spusti (npr 100dp)
+                    int visiblePart = dpToPx(100);
+
+                    // Koliko maksimalno može da se spusti
+                    int shiftDown = parentHeight - visiblePart;
+
+                    // Osiguranje da ne ode skroz van
+                    shiftDown = Math.min(shiftDown, formHeight - visiblePart);
+
+                    if (isFormRaised) {
+
+                        formCard.animate()
+                                .translationY(0)
+                                .setDuration(300)
+                                .start();
+
+                        isFormRaised = false;
+
+                    } else {
+
+                        formCard.animate()
+                                .translationY(shiftDown)
+                                .setDuration(300)
+                                .start();
+
+                        isFormRaised = true;
+                    }
+                });
+            });
+        }
+
 
         // placeholder price
         finalPrice.setText("");
@@ -178,5 +281,12 @@ public class RidePreferenceFragment extends Fragment {
         row.addView(removeBtn);
 
         container.addView(row);
+    }
+    public void showRouteOnMap(LocationDTO start, LocationDTO end,
+                               @Nullable List<LocationDTO> stops,
+                               @NonNull List<PolylinePointDTO> polylinePoints) {
+
+        routeMapView.setShowMarkers(true); // Markeri su uključeni
+        routeMapView.displayRoute(start, end, stops, polylinePoints);
     }
 }

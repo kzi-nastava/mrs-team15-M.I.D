@@ -7,13 +7,16 @@
     <com.example.ridenow.ui.components.RouteMapView
         android:id="@+id/routeMapView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true" />
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/formCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:layout_gravity="top"
+        android:layout_gravity="bottom"
         app:cardCornerRadius="12dp"
         app:cardElevation="8dp">
 
@@ -33,6 +36,33 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"
                 android:textColor="?attr/colorOnSecondary" />
+
+            <LinearLayout
+                android:id="@+id/favoritePicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/favoriteSelected"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="-- Choose favorite --"
+                    android:textColor="?attr/colorOnSecondary"
+                    android:padding="8dp" />
+
+                <ImageButton
+                    android:id="@+id/favoriteToggle"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_dropdown_arrow"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Favorites" />
+
+            </LinearLayout>
 
             <EditText
                 android:id="@+id/pickupAddress"

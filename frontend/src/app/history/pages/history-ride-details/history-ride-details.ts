@@ -1,10 +1,11 @@
-import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, OnDestroy, OnInit, PLATFORM_ID, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Ride } from '../../components/user-history-table/user-history-table';
 import { Button } from '../../../shared/components/button/button';
 import { ReorderRideModal } from '../../components/reorder-ride-modal/reorder-ride-modal';
 import { formatAddress } from '../../../shared/utils/address.utils';
+import { RideService } from '../../../services/ride.service';
 
 @Component({
   selector: 'app-history-ride-details',
@@ -22,6 +23,8 @@ export class HistoryRideDetails implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private cdr: ChangeDetectorRef,
+    private rideService : RideService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -141,11 +144,47 @@ export class HistoryRideDetails implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onBookNow(): void {
-    this.showReorderModal = false;
-  }
+  this.rideService.reorderRide(this.id, null).subscribe({
+    next: () => {
+      this.showMessageToast('Ride reordered successfully');
+      this.showReorderModal = false;
+    },
+    error: (err) => {
+      if (typeof err.error === 'string') {
+        this.showMessageToast(err.error);
+      } else {
+        this.showMessageToast('Failed to reorder ride. Please try again.');
+      }
+    }
+  });
+}
 
-  onScheduleForLater(data: { date: string; time: string }): void {
-    alert('Scheduled for: ' + data.date + ' at ' + data.time);
-    this.showReorderModal = false;
+onScheduleForLater(data: { date: string; time: string }): void {
+  const scheduledDateTime = `${data.date}T${data.time}:00`;
+
+  this.rideService.reorderRide(this.id, scheduledDateTime).subscribe({
+    next: () => {
+      this.showMessageToast('Ride scheduled successfully');
+      this.showReorderModal = false;
+    },
+    error: (err) => {
+      if (typeof err.error === 'string') {
+        this.showMessageToast(err.error);
+      } else {
+        this.showMessageToast('Failed to schedule ride. Please try again.');
+      }
+    }
+  });
+}
+
+
+  message = '';
+  showMessage = false;
+
+  showMessageToast(message: string): void {
+    this.message = message;
+    this.showMessage = true;
+    this.cdr.detectChanges();
+    setTimeout(() => { this.showMessage = false;}, 3000);
   }
 }
