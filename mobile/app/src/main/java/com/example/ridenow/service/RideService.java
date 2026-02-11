@@ -8,6 +8,7 @@ import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
+import com.example.ridenow.dto.ride.EstimateRouteRequestDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,9 @@ public interface RideService {
                                            @Query("startLongitude") Double startLongitude,
                                            @Query("endLatitude") Double endLatitude,
                                            @Query("endLongitude") Double endLongitude);
+
+    @POST("rides/estimate-route")
+    Call<RideEstimateResponseDTO> estimateRoute(@Body EstimateRouteRequestDTO request);
 
     @PUT("rides/{id}/cancel")
     Call<Void> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
