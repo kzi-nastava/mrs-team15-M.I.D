@@ -54,6 +54,10 @@
         android:id="@+id/active_rides"
         android:icon="@drawable/ic_active_rides"
         android:title="@string/nav_active_rides" />
+    <item
+        android:id="@+id/price_configs"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_price_configs" />
 <!--    <item-->
 <!--        android:id="@+id/change_password"-->
 <!--        android:icon="@drawable/ic_password"-->

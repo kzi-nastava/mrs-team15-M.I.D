@@ -127,9 +127,25 @@
     </style>
 
     <style name="CardViewStyle">
-        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="cardBackgroundColor">?attr/colorPrimary</item>
         <item name="cardCornerRadius">12dp</item>
         <item name="cardElevation">4dp</item>
-        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+
+    <style name="InputFieldStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">?attr/colorPrimary</item>
+        <item name="hintTextColor">?attr/colorOnSurface</item>
+        <item name="android:textColorHint">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="PrimaryButtonStyle" parent="ButtonPrimary">
+        <item name="android:backgroundTint">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="SecondaryButtonStyle" parent="ButtonSecondary">
+        <item name="android:background">@drawable/button_border_with_bg</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 </resources>
