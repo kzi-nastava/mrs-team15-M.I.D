@@ -54,9 +54,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    List<Message> messages = new ArrayList<>();
-
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "activation_token_id")
     private ActivationToken activationToken;
@@ -91,13 +88,6 @@ public class User {
         if(notification != null && !notifications.contains(notification)){
             notifications.add(notification);
             notification.assignUser(this);
-        }
-    }
-
-    public void addMessage(Message message) {
-        if(message != null && !messages.contains(message)) {
-            messages.add(message);
-            message.setSender(this);
         }
     }
 }

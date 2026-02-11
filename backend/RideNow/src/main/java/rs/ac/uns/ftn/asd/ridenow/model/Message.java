@@ -15,8 +15,7 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    @Lob
+    @Column(nullable = false, length = 1000)
     private String content;
 
     @Column(nullable = false)
@@ -27,13 +26,12 @@ public class Message {
     @JoinColumn(name= "chat_id", nullable = false)
     Chat chat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn (name = "user_id", nullable = false)
-    User sender;
+    @Column(nullable = false)
+    private Boolean userSender;
 
-    public Message(String content, Chat chat, User sender) {
+    public Message(String content, Chat chat, Boolean userSender) {
         this.content = content;
-        this.sender = sender;
+        this.userSender = userSender;
         this.assignChat(chat);
     }
 

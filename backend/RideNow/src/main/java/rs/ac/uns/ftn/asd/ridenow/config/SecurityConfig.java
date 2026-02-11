@@ -64,6 +64,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/passengers/ride-history").hasRole("USER")
                         .requestMatchers("/api/driver/update-location").hasRole("DRIVER")
 
+                        .requestMatchers("/api/chats/").hasRole("ADMIN")
+                        .requestMatchers("/api/chats/user").hasAnyRole("USER", "DRIVER")
+                        .requestMatchers("/api/chats/{id}").hasRole("ADMIN")
+                        .requestMatchers("/api/chats/message/{id}").hasAnyRole("USER", "DRIVER", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
