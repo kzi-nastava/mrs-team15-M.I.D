@@ -187,4 +187,9 @@ export class RideService {
       return [];
     }
   }
+
+  reorderRide(rideId: number, scheduledTime: string | null): Observable<any> {
+    const request = {rideId: rideId, scheduledTime: scheduledTime};
+    return this.http.post(`${this.apiURL}/reorder-ride`, request);
+  }
 }
