@@ -1,9 +1,12 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import rs.ac.uns.ftn.asd.ridenow.model.Message;
 
 import java.time.LocalDateTime;
 
+@Getter @Setter
 public class MessageDTO {
     private String content;
     private Boolean userSender;

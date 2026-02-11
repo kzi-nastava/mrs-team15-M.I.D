@@ -23,6 +23,7 @@ public class ChatController {
     @Autowired
     private ChatService chatService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<List<ChatResponseDTO>> getAllChats() {
         return ResponseEntity.ok(chatService.getAllChats());
@@ -42,7 +43,7 @@ public class ChatController {
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DRIVER')")
-    @PostMapping("/{id}")
+    @PostMapping("/message/{id}")
     public ResponseEntity<MessageResponseDTO> sendMessage(@PathVariable Long id, @Valid @RequestBody MessageRequestDTO request){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserRoles role = user.getRole();
