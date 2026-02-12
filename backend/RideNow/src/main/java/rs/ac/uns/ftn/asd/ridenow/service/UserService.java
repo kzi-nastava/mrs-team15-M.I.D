@@ -1,8 +1,10 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
+import jakarta.validation.constraints.Min;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
@@ -225,5 +227,11 @@ public class UserService {
         user.setBlocked(false);
         userRepository.save(user);
         return null;
+    }
+
+    public ReportResponseDTO getReport(@Min(0) Long startDate, @Min(0) Long endDate, Long id) {
+        ReportResponseDTO response =  new ReportResponseDTO();
+
+        return response;
     }
 }
