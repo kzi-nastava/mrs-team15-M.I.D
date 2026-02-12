@@ -29,22 +29,17 @@ export class ChatService {
   }
 
   /**
-   * Get chat by ID (Admin only)
+   * Mark chat as taken (Admin only)
    */
-  getChatById(id: number): Observable<Chat> {
-    return this.http.get<Chat>(`${this.apiUrl}/${id}`);
+  markChatAsTaken(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, {});
   }
 
   /**
    * Get user's chat (creates if doesn't exist) (User/Driver only)
-   */
-  getUserChat(): Observable<Chat> {
-    return this.http.get<Chat>(`${this.apiUrl}/user`);
-  }
+*/ getUserChat(): Observable<Chat> { return this.http.post<Chat>(`${this.apiUrl}/user`, {}); } /** * Send message via REST API */
 
-  /**
-   * Send message via REST API
-   */
+
   sendMessageRest(chatId: number, content: string): Observable<Message> {
     const request: SendMessageRequest = { content };
     return this.http.post<Message>(`${this.apiUrl}/message/${chatId}`, request);
@@ -54,7 +49,7 @@ export class ChatService {
    * Close chat (Admin only) - marks chat as available for other admins
    */
   closeChat(chatId: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${chatId}/close`, {});
+    return this.http.put<void>(`${this.apiUrl}/${chatId}/close`, {});
   }
 
   // WebSocket Methods

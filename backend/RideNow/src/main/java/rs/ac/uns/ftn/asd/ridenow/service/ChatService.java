@@ -10,8 +10,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import rs.ac.uns.ftn.asd.ridenow.dto.chat.ChatResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.chat.ChatWithMessagesResponseDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.chat.MessageRequestDTO;
-import rs.ac.uns.ftn.asd.ridenow.dto.chat.MessageResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.MessageDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Chat;
 import rs.ac.uns.ftn.asd.ridenow.model.Message;
@@ -53,27 +51,13 @@ public class ChatService {
         }).toList();
     }
 
-    public ChatWithMessagesResponseDTO getChatByUser(User user) {
+    public ChatResponseDTO openChatByUser(User user) {
         Optional<Chat> chatOpt = chatRepository.findByUser(user);
         Chat chat;
         chat = chatOpt.orElseGet(() -> createChat(user));
-        return makeChatResponse(chat);
-    }
-
-    public ChatWithMessagesResponseDTO getChatById(Long id) {
-        Optional<Chat> chatOpt = chatRepository.findById(id);
-        if (chatOpt.isEmpty()) {
-            throw new IllegalArgumentException("Chat not found with id: " + id);
-        }
-        return makeChatResponse(chatOpt.get());
-    }
-
-    @NonNull
-    private ChatWithMessagesResponseDTO makeChatResponse(Chat chat) {
-        ChatWithMessagesResponseDTO response = new ChatWithMessagesResponseDTO();
+        ChatResponseDTO response = new ChatResponseDTO();
         response.setId(chat.getId());
         response.setUser(chat.getUser().getFirstName() + " " + chat.getUser().getLastName());
-        response.setMessages(chat.getMessages().stream().map(MessageDTO::new).toList());
         return response;
     }
 
@@ -83,23 +67,6 @@ public class ChatService {
         chat.setTaken(false);
         chat.setMessages(new ArrayList<>());
         return chatRepository.save(chat);
-    }
-
-    public MessageResponseDTO sendMessage(Long chatId, MessageRequestDTO request, UserRoles role) {
-        Message message = new Message();
-        Optional<Chat> chatOpt = chatRepository.findById(chatId);
-        if (chatOpt.isEmpty()) {
-            throw new IllegalArgumentException("Chat not found with id: " + chatId);
-        }
-        message.setChat(chatOpt.get());
-        message.setContent(request.getContent());
-        message.setTimestamp(LocalDateTime.now());
-        message.setUserSender(role != UserRoles.ADMIN);
-        Message savedMessage = messageRepository.save(message);
-        MessageResponseDTO response = new MessageResponseDTO();
-        response.setContent(savedMessage.getContent());
-        response.setId(savedMessage.getId());
-        return response;
     }
 
     public void changeTakenStatus(Long chatId, Boolean taken) {
@@ -184,15 +151,6 @@ public class ChatService {
         User user = userOpt.get();
         boolean isAdmin = user.getRole() == UserRoles.ADMIN;
         boolean isOwner = chat.getUser().getId().equals(userId);
-
-        System.out.println("=== Chat Access Validation ===");
-        System.out.println("Chat ID: " + chatId);
-        System.out.println("Chat Owner ID: " + chat.getUser().getId());
-        System.out.println("Requesting User ID: " + userId);
-        System.out.println("Requesting User Email: " + user.getEmail());
-        System.out.println("Is Admin: " + isAdmin);
-        System.out.println("Is Owner: " + isOwner);
-        System.out.println("=============================");
 
         if (!isAdmin && !isOwner) {
             throw new IllegalArgumentException("Access denied to chat " + chatId);

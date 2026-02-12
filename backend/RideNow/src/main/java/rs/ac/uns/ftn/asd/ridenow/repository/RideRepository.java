@@ -125,7 +125,9 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
 
 
-    @Query("SELECT r FROM Ride r " +
+    @Query("SELECT DISTINCT r FROM Ride r " +
+            "LEFT JOIN FETCH r.passengers p " +
+            "LEFT JOIN FETCH p.user " +
             "WHERE r.driver = :driver AND r.status = 'REQUESTED'")
     List<Ride> findScheduledRidesByDriver(@Param("driver") Driver driver);
 

@@ -50,4 +50,6 @@ dependencies {
     annotationProcessor libs.glide.compiler
     implementation libs.osmdroid
     implementation libs.material
+    // WebSocket for chat
+    implementation "com.squareup.okhttp3:okhttp:4.11.0"
 }
