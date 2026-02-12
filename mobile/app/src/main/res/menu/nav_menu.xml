@@ -49,6 +49,11 @@
         android:id="@+id/driver_requests"
         android:icon="@drawable/ic_requests"
         android:title="@string/nav_driver_changes" />
+
+    <item
+        android:id="@+id/active_rides"
+        android:icon="@drawable/ic_active_rides"
+        android:title="@string/nav_active_rides" />
     <item
         android:id="@+id/price_configs"
         android:icon="@drawable/ic_settings"
