@@ -31,4 +31,6 @@
     <color name="border_color">#E0E0E0</color>
     <color name="success">#4CAF50</color>
     <color name="error">#F44336</color>
+    <color name="error_background">#FFEBEE</color>
+    <color name="success_background">#E8F5E8</color>
 </resources>

@@ -35,6 +35,7 @@
     <string name="no_chats_available">No support chats available</string>
     <string name="chat_taken">Chat taken</string>
     <string name="chat_available">Available</string>
+    <string name="nav_price_configs">Price Configuration</string>
 
     <!-- upcoming rides -->
     <string name="upcoming_rides_title">Upcoming Rides</string>
@@ -207,5 +208,24 @@
     <string name="cancel_ride_subtitle">Please provide a reason for cancellation:</string>
     <string name="cancel_reason_label">Reason for cancellation</string>
     <string name="confirm">Confirm</string>
+
+    <!-- Price Configuration -->
+    <string name="price_config_title">Price Configuration</string>
+    <string name="price_config_subtitle">Configure pricing for different vehicle types</string>
+    <string name="price_config_base_price">Base Price (RSD)</string>
+    <string name="price_config_price_per_km">Price per Kilometer (RSD)</string>
+    <string name="price_config_save_changes">Save Changes</string>
+    <string name="price_config_loading">Loading price configurations…</string>
+    <string name="price_config_saving">Saving changes…</string>
+    <string name="price_config_success">Price configurations updated successfully</string>
+    <string name="price_config_error">Failed to load price configurations. Please try again.</string>
+    <string name="price_config_save_error">Failed to save price configurations. Please try again.</string>
+    <string name="price_config_validation_error">Please enter valid values (0–10000 RSD)</string>
+    <string name="price_config_no_changes">No changes to save</string>
+    <string name="vehicle_type_standard">Standard Vehicle</string>
+    <string name="vehicle_type_luxury">Luxury Vehicle</string>
+    <string name="vehicle_type_van">Van</string>
+    <string name="base_price_hint">Enter base price in RSD</string>
+    <string name="price_per_km_hint">Enter price per kilometer in RSD</string>
 
 </resources>

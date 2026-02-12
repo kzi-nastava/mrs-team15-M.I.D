@@ -187,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Live support for logged-in non-admin users
         navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
+        navigationView.getMenu().findItem(R.id.price_configs).setVisible(isAdmin); // Price Configuration
     }
 
     public void handleLogout() {
