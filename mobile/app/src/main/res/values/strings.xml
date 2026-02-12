@@ -18,6 +18,23 @@
     <string name="nav_order_ride">Order Ride</string>
     <string name="nav_ride_history">Ride History</string>
     <string name="nav_driver_changes">Driver Changes</string>
+    <string name="nav_live_support">Live Support</string>
+    <string name="nav_admin_chats">Support Chats</string>
+
+    <!-- Chat strings -->
+    <string name="chat_title">Live Support</string>
+    <string name="chat_connecting">Connecting to support…</string>
+    <string name="chat_connected">Connected to support</string>
+    <string name="chat_disconnected">Disconnected from support</string>
+    <string name="chat_type_message">Type your message…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_support">Support</string>
+    <string name="chat_error">Error: %s</string>
+    <string name="admin_chats_title">Support Chats</string>
+    <string name="admin_chats_subtitle">Manage customer support conversations</string>
+    <string name="no_chats_available">No support chats available</string>
+    <string name="chat_taken">Chat taken</string>
+    <string name="chat_available">Available</string>
     <string name="nav_price_configs">Price Configuration</string>
 
     <!-- upcoming rides -->

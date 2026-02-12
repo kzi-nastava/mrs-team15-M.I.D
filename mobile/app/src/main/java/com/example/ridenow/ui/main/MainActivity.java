@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -182,6 +183,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
+        navigationView.getMenu().findItem(R.id.admin_chats).setVisible(isAdmin); // Support Chats
+
+        // Live support for logged-in non-admin users
+        navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
         navigationView.getMenu().findItem(R.id.active_rides).setVisible(isAdmin); // Active Rides
         navigationView.getMenu().findItem(R.id.price_configs).setVisible(isAdmin); // Price Configuration
     }
@@ -208,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onLogout() {
         Log.d(TAG, "Logging out user");
+
         if (tokenExpirationService != null) {
             tokenExpirationService.stopTokenExpirationCheck();
         }
@@ -217,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 navController.navigate(R.id.login);
             } catch (Exception e) {
-                Log.e(TAG, "Error navigating to login on logout", e);
+                Log.e(TAG, "Error navigating to login during logout", e);
             }
         }
     }

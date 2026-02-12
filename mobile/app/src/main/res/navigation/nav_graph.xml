@@ -156,4 +156,21 @@
     <action
         android:id="@+id/registration_to_activate_account"
         app:destination="@+id/activate_account"/>
+
+    <!-- Chat support fragments -->
+    <fragment
+        android:id="@+id/live_support"
+        android:name="com.example.ridenow.ui.chat.ChatFragment"
+        android:label="Live Support"
+        tools:layout="@layout/fragment_chat" />
+
+    <fragment
+        android:id="@+id/admin_chats"
+        android:name="com.example.ridenow.ui.chat.AdminChatsFragment"
+        android:label="Support Chats"
+        tools:layout="@layout/fragment_admin_chats" />
+
+    <action
+        android:id="@+id/action_adminChats_to_chat"
+        app:destination="@id/live_support" />
 </navigation>
