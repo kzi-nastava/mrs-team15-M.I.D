@@ -436,9 +436,6 @@ public class RideService {
         List<Ride> scheduledRides = rideRepository.findScheduledRidesForDriverInNextHour(
                 driverId, now, nextHour);
 
-        System.out.println("################################################################################");
-        System.out.println(scheduledRides.size());
-
         if (scheduledRides.isEmpty()) {
             // mark driver as available again
             Driver driver = ride.getDriver();
@@ -455,6 +452,7 @@ public class RideService {
 
         Ride nextRide = scheduledRides.get(0);
         nextRide.setStatus(RideStatus.IN_PROGRESS);
+        nextRide.setStartTime(LocalDateTime.now());
         rideRepository.save(nextRide);
 
         return true;
