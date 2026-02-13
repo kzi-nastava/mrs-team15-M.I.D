@@ -18,6 +18,7 @@ import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
 import { UserHistory } from './history/pages/user-history/user-history';
 import { PassangerReport } from './reports/pages/passanger-report/passanger-report';
+import { DriverReport } from './reports/pages/driver-report/driver-report';
 import { UpcomingRides } from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { AdminUsers } from './admin/pages/users/users';
@@ -52,6 +53,7 @@ export const routes: Routes = [
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory },
     { path: 'passanger-report', component: PassangerReport },
+    { path: 'driver-report', component: DriverReport },
     { path: 'home', component: Home },
     { path: 'ride-estimation', component: RideEstimation },
     { path: 'rating/:id', component: Rating },
