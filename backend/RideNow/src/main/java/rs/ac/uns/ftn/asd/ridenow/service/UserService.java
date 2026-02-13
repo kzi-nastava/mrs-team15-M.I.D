@@ -10,19 +10,27 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
+import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
+import rs.ac.uns.ftn.asd.ridenow.model.Ride;
+import rs.ac.uns.ftn.asd.ridenow.model.Passenger;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.RegisteredUserRepository;
 
 import java.io.IOException;
+import java.time.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -32,11 +40,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final RideRepository rideRepository;
+    private final RegisteredUserRepository registeredUserRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthService authService) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthService authService,
+                       RideRepository rideRepository, RegisteredUserRepository registeredUserRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
+        this.rideRepository = rideRepository;
+        this.registeredUserRepository = registeredUserRepository;
     }
 
     public void changePassword(Long userId, ChangePasswordRequestDTO dto) {
@@ -230,7 +243,110 @@ public class UserService {
     }
 
     public ReportResponseDTO getReport(@Min(0) Long startDate, @Min(0) Long endDate, Long id) {
-        ReportResponseDTO response =  new ReportResponseDTO();
+        ReportResponseDTO response = new ReportResponseDTO();
+
+        // Determine date range: if null, use very wide range
+        LocalDateTime start = (startDate == null) ? LocalDateTime.of(1970,1,1,0,0) : LocalDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.systemDefault());
+        LocalDateTime end = (endDate == null) ? LocalDateTime.of(3000,1,1,0,0) : LocalDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.systemDefault());
+
+        // prepare per-day maps
+        Map<LocalDate, Integer> ridesPerDay = new HashMap<>();
+        Map<LocalDate, Double> kmPerDay = new HashMap<>();
+        Map<LocalDate, Double> moneyPerDay = new HashMap<>();
+
+        double totalKm = 0.0;
+        double totalMoney = 0.0;
+        int totalRides = 0;
+
+        // load user
+        Optional<User> optUser = userRepository.findById(id);
+        if (optUser.isEmpty()) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        User user = optUser.get();
+
+        List<Ride> rides = new ArrayList<>();
+
+        if (user instanceof Driver) {
+            // driver: use rideRepository.findByDriver
+            Driver driver = (Driver) user;
+            // fetch all rides for driver, then filter by date and status
+            List<Ride> driverRides = rideRepository.findByDriver(driver);
+            rides = driverRides.stream().filter(r -> r.getScheduledTime() != null &&
+                    !r.getScheduledTime().isBefore(start) && !r.getScheduledTime().isAfter(end) &&
+                    (r.getStatus() != null) && (r.getStatus().toString().equals("FINISHED") || r.getStatus().toString().equals("CANCELLED")))
+                    .collect(Collectors.toList());
+        } else {
+            // registered user (passenger): find rides where they participated
+            RegisteredUser reg = registeredUserRepository.findById(id).orElse(null);
+            if (reg != null) {
+                for (Passenger p : reg.getRideParticipation()) {
+                    Ride r = p.getRide();
+                    if (r == null) continue;
+                    LocalDateTime st = r.getScheduledTime();
+                    if (st == null) continue;
+                    if (st.isBefore(start) || st.isAfter(end)) continue;
+                    if (r.getStatus() == null) continue;
+                    String status = r.getStatus().toString();
+                    if (!("FINISHED".equals(status) || "CANCELLED".equals(status))) continue;
+                    rides.add(r);
+                }
+            }
+        }
+
+        // Aggregate by day of scheduledTime
+        for (Ride r : rides) {
+            LocalDateTime st = r.getScheduledTime();
+            if (st == null) continue;
+            LocalDate day = st.toLocalDate();
+
+            // rides count
+            ridesPerDay.put(day, ridesPerDay.getOrDefault(day, 0) + 1);
+            totalRides++;
+
+            // km
+            double km = r.getDistanceKm();
+            kmPerDay.put(day, kmPerDay.getOrDefault(day, 0.0) + km);
+            totalKm += km;
+
+            // money: for passenger - price they paid? Ride.price is total ride price; for passengers might be split, but no split logic present, so for passengers treat as their own ride price if they are creator? Simpler: sum ride.price for passenger role CREATOR, else 0.
+            double money = 0.0;
+            if (user instanceof Driver) {
+                // driver earned ride.price
+                money = r.getPrice();
+            } else {
+                // passenger: only count if they are CREATOR (paid full price)
+                for (Passenger p : r.getPassengers()) {
+                    if (p.getUser() != null && p.getUser().getId() != null && p.getUser().getId().equals(id)) {
+                        try {
+                            if (p.getRole() != null && p.getRole().toString().equals("CREATOR")) {
+                                money = r.getPrice();
+                            }
+                        } catch (Exception ex) {
+                            // ignore
+                        }
+                        break;
+                    }
+                }
+            }
+            moneyPerDay.put(day, moneyPerDay.getOrDefault(day, 0.0) + money);
+            totalMoney += money;
+        }
+
+        // compute averages over number of days in range that have at least one entry OR over days span? Requirements ask for "kumulativna suma za opseg kao i prosek" - interpret as sum for the range and average per-day over days-with-data
+        int daysWithData = ridesPerDay.size() > 0 ? ridesPerDay.size() : 1;
+
+        response.setRidesPerDay(ridesPerDay);
+        response.setKmPerDay(kmPerDay);
+        response.setMoneyPerDay(moneyPerDay);
+
+        response.setSumRides(totalRides);
+        response.setSumKM(totalKm);
+        response.setSumMoney(totalMoney);
+
+        response.setAvgRides((int) Math.round((double) totalRides / daysWithData));
+        response.setAvgKM(totalKm / daysWithData);
+        response.setAvgMoney(totalMoney / daysWithData);
 
         return response;
     }
