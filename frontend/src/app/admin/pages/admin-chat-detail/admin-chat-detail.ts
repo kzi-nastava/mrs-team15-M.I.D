@@ -78,8 +78,8 @@ export class AdminChatDetail implements OnInit, OnDestroy {
       return;
     }
 
-    // First, call getChatById to mark the chat as taken
-    this.chatService.getChatById(this.chatId).subscribe({
+    // First, mark the chat as taken
+    this.chatService.markChatAsTaken(this.chatId).subscribe({
       next: () => {
         // After marking as taken, connect to WebSocket
         this.chatService.connectToChat(this.chatId!, token);

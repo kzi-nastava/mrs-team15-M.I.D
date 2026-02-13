@@ -49,6 +49,15 @@
         android:id="@+id/driver_requests"
         android:icon="@drawable/ic_requests"
         android:title="@string/nav_driver_changes" />
+
+    <item
+        android:id="@+id/active_rides"
+        android:icon="@drawable/ic_active_rides"
+        android:title="@string/nav_active_rides" />
+    <item
+        android:id="@+id/price_configs"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_price_configs" />
 <!--    <item-->
 <!--        android:id="@+id/change_password"-->
 <!--        android:icon="@drawable/ic_password"-->
@@ -62,6 +71,16 @@
         android:id="@+id/current_ride"
         android:icon="@drawable/ic_car_available"
         android:title="@string/nav_current_ride" />
+
+    <item
+        android:id="@+id/live_support"
+        android:icon="@drawable/ic_support"
+        android:title="@string/nav_live_support" />
+
+    <item
+        android:id="@+id/admin_chats"
+        android:icon="@drawable/ic_chat"
+        android:title="@string/nav_admin_chats" />
 
     <item
         android:id="@+id/nav_logout"

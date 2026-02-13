@@ -2,6 +2,10 @@ package com.example.ridenow.service;
 
 import com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO;
 import com.example.ridenow.dto.admin.DriverChangeRequestDTO;
+import com.example.ridenow.dto.admin.PriceConfigRequestDTO;
+import com.example.ridenow.dto.admin.PriceConfigResponseDTO;
+import com.example.ridenow.dto.user.UserResponseDTO;
+
 import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -18,6 +22,11 @@ public interface AdminService {
     Call<Void> reviewDriverRequest(@Path("requestId") long requestId, @Body AdminChangesReviewRequestDTO dto);
 
     @GET("/api/admins/users/{id}")
-    Call<com.example.ridenow.dto.user.UserResponseDTO> getUserById(@Path("id") long id);
+    Call<UserResponseDTO> getUserById(@Path("id") long id);
 
+    @GET("/api/admins/price-configs")
+    Call<PriceConfigResponseDTO> getPriceConfig();
+
+    @PUT("/api/admins/price-configs")
+    Call<Void> updatePriceConfig(@Body PriceConfigRequestDTO dto);
 }

@@ -18,6 +18,24 @@
     <string name="nav_order_ride">Order Ride</string>
     <string name="nav_ride_history">Ride History</string>
     <string name="nav_driver_changes">Driver Changes</string>
+    <string name="nav_live_support">Live Support</string>
+    <string name="nav_admin_chats">Support Chats</string>
+
+    <!-- Chat strings -->
+    <string name="chat_title">Live Support</string>
+    <string name="chat_connecting">Connecting to support…</string>
+    <string name="chat_connected">Connected to support</string>
+    <string name="chat_disconnected">Disconnected from support</string>
+    <string name="chat_type_message">Type your message…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_support">Support</string>
+    <string name="chat_error">Error: %s</string>
+    <string name="admin_chats_title">Support Chats</string>
+    <string name="admin_chats_subtitle">Manage customer support conversations</string>
+    <string name="no_chats_available">No support chats available</string>
+    <string name="chat_taken">Chat taken</string>
+    <string name="chat_available">Available</string>
+    <string name="nav_price_configs">Price Configuration</string>
 
     <!-- upcoming rides -->
     <string name="upcoming_rides_title">Upcoming Rides</string>
@@ -171,6 +189,10 @@
     <string name="current_ride_from">From: </string>
     <string name="current_ride_to">To: </string>
     <string name="current_ride_loading">Loading…</string>
+    <string name="current_ride_eta">ETA:</string>
+    <string name="current_ride_calculating">Calculating…</string>
+    <string name="current_ride_minutes_remaining">%1$d min remaining</string>
+    <string name="current_ride_arriving_soon">Arriving soon</string>
     <string name="current_ride_report_inconsistency">Report Inconsistency</string>
     <string name="current_ride_panic">Panic</string>
 
@@ -190,5 +212,45 @@
     <string name="cancel_ride_subtitle">Please provide a reason for cancellation:</string>
     <string name="cancel_reason_label">Reason for cancellation</string>
     <string name="confirm">Confirm</string>
+
+    <!-- Active Rides -->
+    <string name="active_rides_title">Active Rides</string>
+    <string name="search_by_driver_name">Search by driver name</string>
+    <string name="ride_id_label">Ride ID:</string>
+    <string name="route_label">Route</string>
+    <string name="driver_label">Driver:</string>
+    <string name="passengers_label">Passengers</string>
+    <string name="start_time_label">Started:</string>
+    <string name="panic_alert">PANIC ALERT!</string>
+    <string name="panic_alert_by">PANIC ALERT! - %1$s</string>
+    <string name="no_active_rides">No active rides</string>
+    <string name="no_active_rides_description">There are currently no active rides in the system</string>
+    <string name="nav_active_rides">Active Rides</string>
+    <string name="route_unavailable">Route information unavailable</string>
+    <string name="no_passengers">No passengers</string>
+    <string name="start_time_unavailable">Start time not available</string>
+    <string name="route_format">%1$s → %2$s</string>
+    <string name="date_time_format">%1$s at %2$s</string>
+    <string name="loading_default">Loading...</string>
+    <string name="loading_route">Loading route...</string>
+    <string name="sample_ride_id">12345</string>
+    <!-- Price Configuration -->
+    <string name="price_config_title">Price Configuration</string>
+    <string name="price_config_subtitle">Configure pricing for different vehicle types</string>
+    <string name="price_config_base_price">Base Price (RSD)</string>
+    <string name="price_config_price_per_km">Price per Kilometer (RSD)</string>
+    <string name="price_config_save_changes">Save Changes</string>
+    <string name="price_config_loading">Loading price configurations…</string>
+    <string name="price_config_saving">Saving changes…</string>
+    <string name="price_config_success">Price configurations updated successfully</string>
+    <string name="price_config_error">Failed to load price configurations. Please try again.</string>
+    <string name="price_config_save_error">Failed to save price configurations. Please try again.</string>
+    <string name="price_config_validation_error">Please enter valid values (0–10000 RSD)</string>
+    <string name="price_config_no_changes">No changes to save</string>
+    <string name="vehicle_type_standard">Standard Vehicle</string>
+    <string name="vehicle_type_luxury">Luxury Vehicle</string>
+    <string name="vehicle_type_van">Van</string>
+    <string name="base_price_hint">Enter base price in RSD</string>
+    <string name="price_per_km_hint">Enter price per kilometer in RSD</string>
 
 </resources>
