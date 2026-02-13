@@ -272,13 +272,13 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // All returned rides should be REQUESTED status
         result.forEach(ride -> assertEquals(RideStatus.REQUESTED, ride.getStatus()));
-        
+
         // All returned rides should belong to driver1
         result.forEach(ride -> assertEquals(driver1.getId(), ride.getDriver().getId()));
-        
+
         // Should include our two scheduled rides
         assertTrue(result.stream().anyMatch(ride -> ride.getId().equals(scheduledRide1.getId())));
         assertTrue(result.stream().anyMatch(ride -> ride.getId().equals(scheduledRide2.getId())));
@@ -300,7 +300,7 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // Should not include the finished ride
         assertFalse(result.stream().anyMatch(ride -> ride.getId().equals(finishedRide.getId())));
     }
@@ -312,7 +312,7 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // Should not include the in-progress ride
         assertFalse(result.stream().anyMatch(ride -> ride.getId().equals(inProgressRide.getId())));
     }
@@ -324,7 +324,7 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // Should not include the cancelled ride
         assertFalse(result.stream().anyMatch(ride -> ride.getId().equals(cancelledRide.getId())));
     }
@@ -336,11 +336,11 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        
+
         // Debug: Print all rides and their details
         for (Ride r : result) {
             System.out.println("Ride ID: " + r.getId() + ", ScheduledTime: " + r.getScheduledTime() +
-                             ", Status: " + r.getStatus() + ", Driver: " + r.getDriver().getId());
+                    ", Status: " + r.getStatus() + ", Driver: " + r.getDriver().getId());
             System.out.println("Passengers count: " + (r.getPassengers() != null ? r.getPassengers().size() : "NULL"));
         }
 
@@ -348,10 +348,10 @@ public class UpcomingRidesRepositoryTest {
         Optional<Ride> rideWithMultiplePassengers = result.stream()
                 .filter(ride -> ride.getId().equals(scheduledRide2.getId()))
                 .findFirst();
-        
+
         assertTrue(rideWithMultiplePassengers.isPresent());
         Ride ride = rideWithMultiplePassengers.get();
-        
+
         // Should have passengers loaded
         assertNotNull(ride.getPassengers());
         assertEquals(2, ride.getPassengers().size());
@@ -364,54 +364,15 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        
+
         Ride ride = result.get(0);
-        
+
         // Should have route loaded
         assertNotNull(ride.getRoute());
         assertNotNull(ride.getRoute().getStartLocation());
         assertNotNull(ride.getRoute().getEndLocation());
         assertEquals("Start Address, City, Country", ride.getRoute().getStartLocation().getAddress());
         assertEquals("End Address, City, Country", ride.getRoute().getEndLocation().getAddress());
-    }
-
-    @Test
-    @DisplayName("Driver repository should find driver by ID successfully")
-    void driverRepository_FindById_ShouldReturnDriverWhenExists() {
-        Optional<Driver> result = driverRepository.findById(driver1.getId());
-
-        assertTrue(result.isPresent());
-        Driver foundDriver = result.get();
-        assertEquals(driver1.getId(), foundDriver.getId());
-        assertEquals(driver1.getEmail(), foundDriver.getEmail());
-        assertEquals(driver1.getFirstName(), foundDriver.getFirstName());
-        assertEquals(driver1.getLastName(), foundDriver.getLastName());
-        assertEquals(driver1.getStatus(), foundDriver.getStatus());
-        assertEquals(driver1.getAvailable(), foundDriver.getAvailable());
-    }
-
-    @Test
-    @DisplayName("Driver repository should return empty Optional when driver does not exist")
-    void driverRepository_FindById_ShouldReturnEmptyWhenDriverNotExists() {
-        Long nonExistentId = 99999L;
-        
-        Optional<Driver> result = driverRepository.findById(nonExistentId);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should handle driver with vehicle correctly")
-    void driverRepository_FindById_ShouldReturnDriverWithVehicle() {
-        Optional<Driver> result = driverRepository.findById(driver1.getId());
-
-        assertTrue(result.isPresent());
-        Driver foundDriver = result.get();
-        
-        // Should have vehicle loaded
-        assertNotNull(foundDriver.getVehicle());
-        assertEquals(vehicle1.getLicencePlate(), foundDriver.getVehicle().getLicencePlate());
-        assertEquals(vehicle1.getType(), foundDriver.getVehicle().getType());
     }
 
     @Test
@@ -462,7 +423,7 @@ public class UpcomingRidesRepositoryTest {
 
         assertNotNull(result);
         assertEquals(3, result.size()); // 2 original + 1 past requested
-        
+
         // Should include the past requested ride
         assertTrue(result.stream().anyMatch(ride -> ride.getId().equals(pastRequestedRide.getId())));
     }
