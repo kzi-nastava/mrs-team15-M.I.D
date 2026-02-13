@@ -93,7 +93,18 @@
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/profile" (click)="closeMenu()">Profile</a>
                 </li>
+              }
+                @if (role === 'USER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/passanger-report" (click)="closeMenu()">Reports</a>
+                </li>
                 }
+                @if (role === 'DRIVER') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/driver-report" (click)="closeMenu()">Reports</a>
+                </li>
+                }
+                
                @if (role === 'ADMIN') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/driver-registration" (click)="closeMenu()">Driver Registration</a>
@@ -112,6 +123,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/admin-chats" (click)="closeMenu()">Chats</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/admin-report" (click)="closeMenu()">Reports</a>
                 </li>
                 }
               </ul>

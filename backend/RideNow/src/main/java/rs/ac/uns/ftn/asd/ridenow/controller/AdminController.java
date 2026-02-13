@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
@@ -161,5 +162,19 @@ public class AdminController {
     public ResponseEntity<Void> updatePriceConfigs(@Valid @RequestBody PriceConfigRequestDTO request) {
         adminService.updatePriceConfigs(request);
         return ResponseEntity.ok().build();
+    }
+
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/report")
+    public ResponseEntity<AdminReportResponseDTO> getReportGet(
+            @RequestParam(required = false) Long startDate,
+            @RequestParam(required = false) Long endDate,
+            @RequestParam(required = false, defaultValue = "false") boolean drivers,
+            @RequestParam(required = false, defaultValue = "false") boolean users,
+            @RequestParam(required = false) String personId
+    ) {
+        return ResponseEntity.ok(adminService.getReport(startDate,endDate,drivers,users,personId));
     }
 }

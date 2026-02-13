@@ -24,6 +24,7 @@ import rs.ac.uns.ftn.asd.ridenow.repository.PriceRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 
 import java.sql.Date;
 import java.time.Instant;
@@ -51,6 +52,9 @@ public class AdminService {
 
     @Autowired
     private  HistoryRepository historyRepository;
+
+    @Autowired
+    private UserService userService;
 
     public AdminService(DriverRepository driverRepository, DriverRequestRepository driverRequestRepository,
                         VehicleRepository vehicleRepository, EmailService emailService,
@@ -373,4 +377,147 @@ public class AdminService {
         }
         return historyRepository.findPassengerRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
     }
+
+    public AdminReportResponseDTO getReport(Long startDateReq, Long endDateReq, boolean drivers, boolean users,String userIdReq) {
+
+        AdminReportResponseDTO response = new AdminReportResponseDTO();
+
+        // determine selected users
+        List<User> selectedUsers = new ArrayList<>();
+        // if a specific personId provided, try to parse and load that user
+        if (userIdReq != null && !userIdReq.isBlank()) {
+            try {
+                Long pid = Long.parseLong(userIdReq);
+                var opt = userRepository.findById(pid);
+                if (opt.isEmpty()) throw new IllegalArgumentException("User not found with id: " + pid);
+                selectedUsers.add(opt.get());
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException("Invalid personId: " + userIdReq);
+            }
+        } else {
+            // collect users by role flags
+            List<User> all = userRepository.findAll();
+            for (User u : all) {
+                if (u.getRole() == null) continue;
+                if (drivers && u.getRole().toString().equals("DRIVER")) selectedUsers.add(u);
+                if (users && u.getRole().toString().equals("USER")) selectedUsers.add(u);
+            }
+        }
+
+        // If no users selected, return empty response
+        if (selectedUsers.isEmpty()) {
+            response.setRidesPerDay(java.util.Collections.emptyMap());
+            response.setKmPerDay(java.util.Collections.emptyMap());
+            response.setMoneyPerDay(java.util.Collections.emptyMap());
+            response.setSumRides(0);
+            response.setSumKM(0.0);
+            response.setSumMoney(0.0);
+            response.setAvgRides(0);
+            response.setAvgKM(0.0);
+            response.setAvgMoney(0.0);
+            response.setStartDate(null);
+            response.setEndDate(null);
+            response.setDrivers(drivers);
+            response.setUsers(users);
+            response.setPerson(userIdReq);
+            return response;
+        }
+
+        // Determine default start/end if not provided: use earliest scheduledTime across relevant rides, end = now
+        LocalDateTime defaultEnd = LocalDateTime.now();
+        LocalDateTime end = (endDateReq == null) ? defaultEnd : LocalDateTime.ofInstant(Instant.ofEpochMilli(endDateReq), ZoneId.systemDefault());
+
+        LocalDateTime defaultStart = defaultEnd;
+        boolean foundAny = false;
+        for (User u : selectedUsers) {
+            // fetch all relevant rides for this user (no date filter)
+            Page<Ride> page = findWithAllRelations(u, Pageable.unpaged());
+            for (Ride r : page.getContent()) {
+                if (r.getScheduledTime() == null) continue;
+                if (!foundAny) {
+                    defaultStart = r.getScheduledTime();
+                    foundAny = true;
+                } else {
+                    if (r.getScheduledTime().isBefore(defaultStart)) defaultStart = r.getScheduledTime();
+                }
+            }
+        }
+
+        LocalDateTime start = (startDateReq == null) ? defaultStart : LocalDateTime.ofInstant(Instant.ofEpochMilli(startDateReq), ZoneId.systemDefault());
+
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException("startDate must be before or equal to endDate");
+        }
+
+        // per-day maps
+        java.util.Map<java.time.LocalDate, Integer> ridesPerDay = new java.util.HashMap<>();
+        java.util.Map<java.time.LocalDate, Double> kmPerDay = new java.util.HashMap<>();
+        java.util.Map<java.time.LocalDate, Double> moneyPerDay = new java.util.HashMap<>();
+
+        double totalKm = 0.0;
+        double totalMoney = 0.0;
+        int totalRides = 0;
+
+        // For each selected user, fetch their rides in date range and aggregate
+        long startMillis = start.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        long endMillis = end.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+         for (User u : selectedUsers) {
+             ReportResponseDTO userReport = userService.getReport(startMillis, endMillis, u.getId());
+             if (userReport == null) continue;
+
+            // aggregate totals
+            totalRides += userReport.getSumRides();
+            totalKm += userReport.getSumKM();
+            totalMoney += userReport.getSumMoney();
+
+            // aggregate per-day maps
+            if (userReport.getRidesPerDay() != null) {
+                for (var e : userReport.getRidesPerDay().entrySet()) {
+                    java.time.LocalDate day = e.getKey();
+                    int cnt = e.getValue() == null ? 0 : e.getValue();
+                    ridesPerDay.put(day, ridesPerDay.getOrDefault(day, 0) + cnt);
+                }
+            }
+            if (userReport.getKmPerDay() != null) {
+                for (var e : userReport.getKmPerDay().entrySet()) {
+                    java.time.LocalDate day = e.getKey();
+                    double km = e.getValue() == null ? 0.0 : e.getValue();
+                    kmPerDay.put(day, kmPerDay.getOrDefault(day, 0.0) + km);
+                }
+            }
+            if (userReport.getMoneyPerDay() != null) {
+                for (var e : userReport.getMoneyPerDay().entrySet()) {
+                    java.time.LocalDate day = e.getKey();
+                    double m = e.getValue() == null ? 0.0 : e.getValue();
+                    moneyPerDay.put(day, moneyPerDay.getOrDefault(day, 0.0) + m);
+                }
+            }
+        }
+
+        // days in range inclusive
+        long daysInRange = java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate()) + 1;
+        if (daysInRange <= 0) daysInRange = 1;
+
+        response.setRidesPerDay(ridesPerDay);
+        response.setKmPerDay(kmPerDay);
+        response.setMoneyPerDay(moneyPerDay);
+
+        response.setSumRides(totalRides);
+        response.setSumKM(totalKm);
+        response.setSumMoney(totalMoney);
+
+        response.setAvgRides((int) Math.round((double) totalRides / (double) daysInRange));
+        response.setAvgKM(totalKm / (double) daysInRange);
+        response.setAvgMoney(totalMoney / (double) daysInRange);
+
+        response.setStartDate(java.time.LocalDate.from(start));
+        response.setEndDate(java.time.LocalDate.from(end));
+
+        response.setDrivers(drivers);
+        response.setUsers(users);
+        response.setPerson(userIdReq);
+
+        return response;
+    }
 }
+

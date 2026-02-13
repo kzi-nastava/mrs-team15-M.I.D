@@ -62,4 +62,17 @@ export class AdminService {
     console.log('GET request URL:', activeRidesUrl);
     return this.http.get(activeRidesUrl);
   }
+
+  // Calls backend GET /report with query parameters.
+  getReport(params: { startDate?: number | null; endDate?: number | null; drivers?: boolean; users?: boolean; personId?: string | number | null }): Observable<any> {
+    const url = `${this.apiURL}/report`;
+    const httpParams: any = {};
+    if (params.startDate != null) httpParams.startDate = String(params.startDate);
+    if (params.endDate != null) httpParams.endDate = String(params.endDate);
+    if (params.drivers != null) httpParams.drivers = String(params.drivers);
+    if (params.users != null) httpParams.users = String(params.users);
+    if (params.personId != null) httpParams.personId = String(params.personId);
+    console.log('AdminService.getReport() called, URL:', url, 'params:', httpParams);
+    return this.http.get(url, { params: httpParams });
+  }
 }

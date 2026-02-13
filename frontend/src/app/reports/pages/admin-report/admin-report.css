@@ -1,0 +1,13 @@
+.admin-report .card { max-width: 900px; margin-top: 16px; }
+.report-output { background: #f8f9fa; padding: 12px; border-radius: 4px; max-height: 400px; overflow:auto; }
+
+/* Make report action button black */
+.btn-report {
+	background-color: #000 !important;
+	color: #fff !important;
+	border: none !important;
+}
+.btn-report:hover {
+	background-color: #222 !important;
+	color: #fff !important;
+}

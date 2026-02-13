@@ -26,4 +26,11 @@ export class UserService {
     return this.http.put(`${this.apiURL}/change-password`, data, { observe: 'response' });
   }
 
+  getReport(startDate?: number | null, endDate?: number | null): Observable<any> {
+    const params: any = {};
+    if (startDate != null) params.startDate = startDate;
+    if (endDate != null) params.endDate = endDate;
+    return this.http.get(`${this.apiURL}/report`, { params });
+  }
+
 }

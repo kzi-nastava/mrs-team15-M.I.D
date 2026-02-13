@@ -1,7 +1,9 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
@@ -59,6 +63,14 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
+    @GetMapping("/report")
+    public ResponseEntity<ReportResponseDTO> getReport(@RequestParam(required = false) @Min(0) Long startDate,
+                                                       @RequestParam(required = false) @Min(0) Long endDate) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.getReport(startDate, endDate, user.getId()));
     }
 
 

@@ -17,6 +17,8 @@ import { Home } from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
 import { UserHistory } from './history/pages/user-history/user-history';
+import { PassangerReport } from './reports/pages/passanger-report/passanger-report';
+import { DriverReport } from './reports/pages/driver-report/driver-report';
 import { UpcomingRides } from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { AdminUsers } from './admin/pages/users/users';
@@ -28,6 +30,7 @@ import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 import { ActivationPage } from './auth/pages/activation-page/activation-page';
 import { AdminHistoryOverview } from './history/pages/admin-history-overview/admin-history-overview';
 import { PricingManagement } from './admin/pages/pricing-management/pricing-management';
+import { AdminReport } from './reports/pages/admin-report/admin-report';
 import { ActiveRides } from './admin/pages/active-rides/active-rides';
 import { AdminChats } from './admin/pages/admin-chats/admin-chats';
 import { AdminChatDetail } from './admin/pages/admin-chat-detail/admin-chat-detail';
@@ -50,6 +53,8 @@ export const routes: Routes = [
     { path: 'driver-rides', component: DriverAppointedRides },
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory },
+    { path: 'passanger-report', component: PassangerReport },
+    { path: 'driver-report', component: DriverReport },
     { path: 'home', component: Home },
     { path: 'ride-estimation', component: RideEstimation },
     { path: 'rating/:id', component: Rating },
@@ -62,6 +67,7 @@ export const routes: Routes = [
     { path: 'finding-driver', component: FindingDriver },
     { path: 'ride-ordering', component: RideOrdering },
     { path: 'admin-pricing', component: PricingManagement },
+    { path: 'admin-report', component: AdminReport },
     {path: 'admin-history-overview', component: AdminHistoryOverview},
     { path: 'admin-active-rides', component: ActiveRides },
     { path: 'admin-chats', component: AdminChats },
