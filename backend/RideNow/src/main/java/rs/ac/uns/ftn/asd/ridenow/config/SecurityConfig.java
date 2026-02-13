@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admins/users/").hasRole("ADMIN")
                         .requestMatchers("/api/admins/all-users/").hasRole("ADMIN")
                         .requestMatchers("/api/admins/ride-history").hasRole("ADMIN")
+                        .requestMatchers("/api/admins/report").hasRole("ADMIN")
                         .requestMatchers("api/rides/active-rides").hasRole("ADMIN")
                         .requestMatchers("/api/rides/inconsistency").hasRole("USER")
                         .requestMatchers("/api/driver/**").permitAll()

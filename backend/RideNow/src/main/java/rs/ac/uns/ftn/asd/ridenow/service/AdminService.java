@@ -378,29 +378,29 @@ public class AdminService {
         return historyRepository.findPassengerRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
     }
 
-    public AdminReportResponseDTO getReport(@Valid AdminReportRequestDTO request) {
+    public AdminReportResponseDTO getReport(Long startDateReq, Long endDateReq, boolean drivers, boolean users,String userIdReq) {
 
         AdminReportResponseDTO response = new AdminReportResponseDTO();
 
         // determine selected users
         List<User> selectedUsers = new ArrayList<>();
         // if a specific personId provided, try to parse and load that user
-        if (request.getPersonId() != null && !request.getPersonId().isBlank()) {
+        if (userIdReq != null && !userIdReq.isBlank()) {
             try {
-                Long pid = Long.parseLong(request.getPersonId());
+                Long pid = Long.parseLong(userIdReq);
                 var opt = userRepository.findById(pid);
                 if (opt.isEmpty()) throw new IllegalArgumentException("User not found with id: " + pid);
                 selectedUsers.add(opt.get());
             } catch (NumberFormatException ex) {
-                throw new IllegalArgumentException("Invalid personId: " + request.getPersonId());
+                throw new IllegalArgumentException("Invalid personId: " + userIdReq);
             }
         } else {
             // collect users by role flags
             List<User> all = userRepository.findAll();
             for (User u : all) {
                 if (u.getRole() == null) continue;
-                if (request.isDrivers() && u.getRole().toString().equals("DRIVER")) selectedUsers.add(u);
-                if (request.isUsers() && u.getRole().toString().equals("USER")) selectedUsers.add(u);
+                if (drivers && u.getRole().toString().equals("DRIVER")) selectedUsers.add(u);
+                if (users && u.getRole().toString().equals("USER")) selectedUsers.add(u);
             }
         }
 
@@ -417,15 +417,15 @@ public class AdminService {
             response.setAvgMoney(0.0);
             response.setStartDate(null);
             response.setEndDate(null);
-            response.setDrivers(request.isDrivers());
-            response.setUsers(request.isUsers());
-            response.setPerson(request.getPersonId());
+            response.setDrivers(drivers);
+            response.setUsers(users);
+            response.setPerson(userIdReq);
             return response;
         }
 
         // Determine default start/end if not provided: use earliest scheduledTime across relevant rides, end = now
         LocalDateTime defaultEnd = LocalDateTime.now();
-        LocalDateTime end = (request.getEndDate() == null) ? defaultEnd : LocalDateTime.ofInstant(Instant.ofEpochMilli(request.getEndDate()), ZoneId.systemDefault());
+        LocalDateTime end = (endDateReq == null) ? defaultEnd : LocalDateTime.ofInstant(Instant.ofEpochMilli(endDateReq), ZoneId.systemDefault());
 
         LocalDateTime defaultStart = defaultEnd;
         boolean foundAny = false;
@@ -443,7 +443,7 @@ public class AdminService {
             }
         }
 
-        LocalDateTime start = (request.getStartDate() == null) ? defaultStart : LocalDateTime.ofInstant(Instant.ofEpochMilli(request.getStartDate()), ZoneId.systemDefault());
+        LocalDateTime start = (startDateReq == null) ? defaultStart : LocalDateTime.ofInstant(Instant.ofEpochMilli(startDateReq), ZoneId.systemDefault());
 
         if (start.isAfter(end)) {
             throw new IllegalArgumentException("startDate must be before or equal to endDate");
@@ -513,9 +513,9 @@ public class AdminService {
         response.setStartDate(java.time.LocalDate.from(start));
         response.setEndDate(java.time.LocalDate.from(end));
 
-        response.setDrivers(request.isDrivers());
-        response.setUsers(request.isUsers());
-        response.setPerson(request.getPersonId());
+        response.setDrivers(drivers);
+        response.setUsers(users);
+        response.setPerson(userIdReq);
 
         return response;
     }

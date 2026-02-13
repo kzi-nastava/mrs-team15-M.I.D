@@ -331,7 +331,7 @@ public class UserService {
             kmPerDay.put(day, kmPerDay.getOrDefault(day, 0.0) + km);
             totalKm += km;
 
-            // money: for passenger - price they paid? Ride.price is total ride price; for passengers might be split, but no split logic present, so for passengers treat as their own ride price if they are creator
+            // money: passengers spent money only if they are the creator of the ride
             double money = 0.0;
             if (user instanceof Driver) {
                 money = r.getPrice();

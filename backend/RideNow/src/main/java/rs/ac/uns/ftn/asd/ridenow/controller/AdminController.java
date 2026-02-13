@@ -164,10 +164,17 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/report")
-    public ResponseEntity<AdminReportResponseDTO> getReport(@Valid @RequestBody AdminReportRequestDTO request) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(adminService.getReport(request));
+    public ResponseEntity<AdminReportResponseDTO> getReportGet(
+            @RequestParam(required = false) Long startDate,
+            @RequestParam(required = false) Long endDate,
+            @RequestParam(required = false, defaultValue = "false") boolean drivers,
+            @RequestParam(required = false, defaultValue = "false") boolean users,
+            @RequestParam(required = false) String personId
+    ) {
+        return ResponseEntity.ok(adminService.getReport(startDate,endDate,drivers,users,personId));
     }
 }

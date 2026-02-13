@@ -1,0 +1,52 @@
+<div class="container mt-3">
+  <h3>Admin report</h3>
+
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <label>Start date</label>
+      <input class="form-control" type="date" [(ngModel)]="startDateStr" />
+    </div>
+    <div class="col-md-3">
+      <label>End date</label>
+      <input class="form-control" type="date" [(ngModel)]="endDateStr" />
+    </div>
+    <div class="col-md-3">
+      <label>Scope</label>
+      <select class="form-select" [(ngModel)]="scope">
+        <option value="ALL_DRIVERS">All drivers</option>
+        <option value="ALL_USERS">All users</option>
+        <option value="SINGLE_USER">Specific user</option>
+      </select>
+    </div>
+    <div class="col-md-3" *ngIf="scope === 'SINGLE_USER'" style="position:relative;">
+      <label>User</label>
+      <input class="form-control" type="text" [(ngModel)]="selectedUserDisplay" (ngModelChange)="onUserInputChange($event)" placeholder="Search user by name or email" autocomplete="off" />
+      <div *ngIf="userSearchLoading" class="small text-muted mt-1">Searching...</div>
+      <ul *ngIf="userSearchResults.length > 0" class="list-group position-absolute" style="z-index:200; width:100%">
+        <li class="list-group-item list-group-item-action" *ngFor="let u of userSearchResults" (click)="selectUser(u)">
+          <div><strong>{{ u.fullName || u.name || u.email }}</strong></div>
+          <div class="small text-muted">{{ u.email || u.username || u.id }}</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-3 align-self-end">
+      <button class="btn btn-report" (click)="loadReport()" [disabled]="loading">{{ loading ? 'Loading...' : 'Load report' }}</button>
+    </div>
+  </div>
+
+  <div *ngIf="message" class="alert alert-info">{{ message }}</div>
+
+  <app-report-tabs
+    [ridesSum]="ridesSum"
+    [ridesAvg]="ridesAvg"
+    [kmSum]="kmSum"
+    [kmAvg]="kmAvg"
+    [moneySum]="moneySum"
+    [moneyAvg]="moneyAvg"
+    [isDriver]="false"
+  ></app-report-tabs>
+  <div class="tab-content mt-3">
+
