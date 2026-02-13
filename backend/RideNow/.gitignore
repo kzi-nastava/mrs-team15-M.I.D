@@ -38,3 +38,6 @@ build/
 # Uploaded pictures - ignore everything except default.png
 /uploads/*
 !/uploads/default.png
+
+# Ignore ChromeDriver
+chromedriver.exe
