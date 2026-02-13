@@ -21,4 +21,7 @@ public class ReportResponseDTO {
     private Map<LocalDate, Integer> ridesPerDay;
     private Map<LocalDate, Double> kmPerDay;
     private Map<LocalDate, Double> moneyPerDay;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
 }

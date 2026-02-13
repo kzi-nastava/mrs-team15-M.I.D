@@ -70,7 +70,7 @@ public class UserController {
     public ResponseEntity<ReportResponseDTO> getReport(@RequestParam(required = false) @Min(0) Long startDate,
                                                        @RequestParam(required = false) @Min(0) Long endDate) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
+        System.out.println("Report");
 
         return ResponseEntity.ok(userService.getReport(startDate, endDate, user.getId()));
     }

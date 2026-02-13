@@ -14,7 +14,6 @@ import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.Ride;
 import rs.ac.uns.ftn.asd.ridenow.model.Passenger;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
-import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RegisteredUserRepository;
 
@@ -245,9 +244,59 @@ public class UserService {
     public ReportResponseDTO getReport(@Min(0) Long startDate, @Min(0) Long endDate, Long id) {
         ReportResponseDTO response = new ReportResponseDTO();
 
-        // Determine date range: if null, use very wide range
-        LocalDateTime start = (startDate == null) ? LocalDateTime.of(1970,1,1,0,0) : LocalDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.systemDefault());
-        LocalDateTime end = (endDate == null) ? LocalDateTime.of(3000,1,1,0,0) : LocalDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.systemDefault());
+        // load user
+        Optional<User> optUser = userRepository.findById(id);
+        if (optUser.isEmpty()) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        User user = optUser.get();
+
+        // prepare list of all relevant rides (status FINISHED or CANCELLED) for determining defaults
+        List<Ride> allRelevantRides = new ArrayList<>();
+        if (user instanceof Driver) {
+            Driver driver = (Driver) user;
+            List<Ride> driverRides = rideRepository.findByDriver(driver);
+            allRelevantRides = driverRides.stream()
+                    .filter(r -> r.getScheduledTime() != null && r.getStatus() != null)
+                    .filter(r -> {
+                        String s = r.getStatus().toString();
+                        return "FINISHED".equals(s) || "CANCELLED".equals(s);
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            RegisteredUser reg = registeredUserRepository.findById(id).orElse(null);
+            if (reg != null) {
+                for (Passenger p : reg.getRideParticipation()) {
+                    Ride r = p.getRide();
+                    if (r == null) continue;
+                    if (r.getScheduledTime() == null || r.getStatus() == null) continue;
+                    String s = r.getStatus().toString();
+                    if ("FINISHED".equals(s) || "CANCELLED".equals(s)) {
+                        allRelevantRides.add(r);
+                    }
+                }
+            }
+        }
+
+        // Determine date range: default end = now, default start = date of oldest relevant ride (if exists) or today
+        LocalDateTime defaultEnd = LocalDateTime.now();
+        LocalDateTime end = (endDate == null) ? defaultEnd : LocalDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.systemDefault());
+
+        LocalDateTime defaultStart;
+        if (!allRelevantRides.isEmpty()) {
+            // find earliest scheduledTime
+            LocalDateTime earliest = allRelevantRides.stream().map(Ride::getScheduledTime).min(LocalDateTime::compareTo).orElse(defaultEnd);
+            defaultStart = earliest;
+        } else {
+            // no rides -> default to today
+            defaultStart = defaultEnd;
+        }
+        LocalDateTime start = (startDate == null) ? defaultStart : LocalDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.systemDefault());
+
+        // validate range
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException("startDate must be before or equal to endDate");
+        }
 
         // prepare per-day maps
         Map<LocalDate, Integer> ridesPerDay = new HashMap<>();
@@ -258,41 +307,14 @@ public class UserService {
         double totalMoney = 0.0;
         int totalRides = 0;
 
-        // load user
-        Optional<User> optUser = userRepository.findById(id);
-        if (optUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found with id: " + id);
-        }
-        User user = optUser.get();
-
-        List<Ride> rides = new ArrayList<>();
-
-        if (user instanceof Driver) {
-            // driver: use rideRepository.findByDriver
-            Driver driver = (Driver) user;
-            // fetch all rides for driver, then filter by date and status
-            List<Ride> driverRides = rideRepository.findByDriver(driver);
-            rides = driverRides.stream().filter(r -> r.getScheduledTime() != null &&
-                    !r.getScheduledTime().isBefore(start) && !r.getScheduledTime().isAfter(end) &&
-                    (r.getStatus() != null) && (r.getStatus().toString().equals("FINISHED") || r.getStatus().toString().equals("CANCELLED")))
-                    .collect(Collectors.toList());
-        } else {
-            // registered user (passenger): find rides where they participated
-            RegisteredUser reg = registeredUserRepository.findById(id).orElse(null);
-            if (reg != null) {
-                for (Passenger p : reg.getRideParticipation()) {
-                    Ride r = p.getRide();
-                    if (r == null) continue;
+        // Now filter rides to the requested/derived date range
+        List<Ride> rides = allRelevantRides.stream()
+                .filter(r -> {
                     LocalDateTime st = r.getScheduledTime();
-                    if (st == null) continue;
-                    if (st.isBefore(start) || st.isAfter(end)) continue;
-                    if (r.getStatus() == null) continue;
-                    String status = r.getStatus().toString();
-                    if (!("FINISHED".equals(status) || "CANCELLED".equals(status))) continue;
-                    rides.add(r);
-                }
-            }
-        }
+                    if (st == null) return false;
+                    return (!st.isBefore(start)) && (!st.isAfter(end));
+                })
+                .collect(Collectors.toList());
 
         // Aggregate by day of scheduledTime
         for (Ride r : rides) {
@@ -309,13 +331,11 @@ public class UserService {
             kmPerDay.put(day, kmPerDay.getOrDefault(day, 0.0) + km);
             totalKm += km;
 
-            // money: for passenger - price they paid? Ride.price is total ride price; for passengers might be split, but no split logic present, so for passengers treat as their own ride price if they are creator? Simpler: sum ride.price for passenger role CREATOR, else 0.
+            // money: for passenger - price they paid? Ride.price is total ride price; for passengers might be split, but no split logic present, so for passengers treat as their own ride price if they are creator
             double money = 0.0;
             if (user instanceof Driver) {
-                // driver earned ride.price
                 money = r.getPrice();
             } else {
-                // passenger: only count if they are CREATOR (paid full price)
                 for (Passenger p : r.getPassengers()) {
                     if (p.getUser() != null && p.getUser().getId() != null && p.getUser().getId().equals(id)) {
                         try {
@@ -333,8 +353,9 @@ public class UserService {
             totalMoney += money;
         }
 
-        // compute averages over number of days in range that have at least one entry OR over days span? Requirements ask for "kumulativna suma za opseg kao i prosek" - interpret as sum for the range and average per-day over days-with-data
-        int daysWithData = ridesPerDay.size() > 0 ? ridesPerDay.size() : 1;
+        // compute averages over all calendar days in the inclusive range
+        long daysInRange = java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate()) + 1;
+        if (daysInRange <= 0) daysInRange = 1;
 
         response.setRidesPerDay(ridesPerDay);
         response.setKmPerDay(kmPerDay);
@@ -344,10 +365,12 @@ public class UserService {
         response.setSumKM(totalKm);
         response.setSumMoney(totalMoney);
 
-        response.setAvgRides((int) Math.round((double) totalRides / daysWithData));
-        response.setAvgKM(totalKm / daysWithData);
-        response.setAvgMoney(totalMoney / daysWithData);
+        response.setAvgRides((int) Math.round((double) totalRides / (double) daysInRange));
+        response.setAvgKM(totalKm / (double) daysInRange);
+        response.setAvgMoney(totalMoney / (double) daysInRange);
 
+        response.setStartDate(LocalDate.from(start));
+        response.setEndDate(LocalDate.from(end));
         return response;
     }
 }
