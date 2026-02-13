@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
@@ -49,7 +50,7 @@ public class RideHistorySeeder {
     }
 
     public void seedUsers() {
-        User admin = new User();
+        Administrator admin = new Administrator();
         admin.setFirstName("Admin");
         admin.setLastName("Admin");
         admin.setEmail("admin@gmail.com");
@@ -61,7 +62,7 @@ public class RideHistorySeeder {
         admin.setBlocked(false);
         userRepository.save(admin);
 
-        User testUser = new User();
+        RegisteredUser testUser = new RegisteredUser();
         testUser.setFirstName("User");
         testUser.setLastName("User");
         testUser.setEmail("user@gmail.com");
@@ -74,7 +75,7 @@ public class RideHistorySeeder {
         userRepository.save(testUser);
 
         for (int i = 1; i <= 5; i++) {
-            User user = new User();
+            RegisteredUser user = new RegisteredUser();
             user.setFirstName("User" + i);
             user.setLastName("User" + i);
             user.setEmail("user" + i + "@gmail.com");
@@ -88,7 +89,7 @@ public class RideHistorySeeder {
         }
 
         for (int i = 1; i <= 3; i++) {
-            User driver = new User();
+            Driver driver = new Driver();
             driver.setFirstName("Driver" + i);
             driver.setLastName("Driver" + i);
             driver.setEmail("driver" + i + "@gmail.com");
@@ -98,6 +99,10 @@ public class RideHistorySeeder {
             driver.setPhoneNumber("+381640000000");
             driver.setAddress("Driver Street " + i);
             driver.setBlocked(false);
+            driver.setAvailable(true);
+            driver.setRating(5.0);
+            driver.setWorkingHoursLast24(0.0);
+            driver.setStatus(DriverStatus.ACTIVE);
             userRepository.save(driver);
         }
     }
@@ -129,11 +134,9 @@ public class RideHistorySeeder {
         }
     }
     public void seedRides() {
-        User testUser = userRepository.findByEmail("user@gmail.com").orElseThrow(() -> new RuntimeException("Test user not found"));
-
-        User driver1 = userRepository.findByEmail("driver1@gmail.com").orElseThrow(() -> new RuntimeException("Driver1 not found"));
-
-        User driver2 = userRepository.findByEmail("driver2@gmail.com").orElseThrow(() -> new RuntimeException("Driver2 not found"));
+        RegisteredUser testUser = (RegisteredUser) userRepository.findByEmail("user@gmail.com").orElseThrow(() -> new RuntimeException("Test user not found"));
+        Driver driver1 = (Driver) userRepository.findByEmail("driver1@gmail.com").orElseThrow(() -> new RuntimeException("Driver1 not found"));
+        Driver driver2 = (Driver) userRepository.findByEmail("driver2@gmail.com").orElseThrow(() -> new RuntimeException("Driver2 not found"));
 
         List<User> otherUsers = userRepository.findByRole(UserRoles.USER);
         List<Route> routes = routeRepository.findAll();
@@ -142,13 +145,19 @@ public class RideHistorySeeder {
 
         for (int i = 0; i < 35; i++) {
             Route route = routes.get(random.nextInt(routes.size()));
-            User driver = (i % 2 == 0) ? driver1 : driver2;
+            Driver driver = (i % 2 == 0) ? driver1 : driver2;
             Ride ride = new Ride();
             ride.setRoute(route);
-            ride.setDriver((Driver) driver);
+            ride.setDriver(driver);
             ride.setDistanceKm(route.getDistanceKm());
 
-            LocalDateTime rideDate = now.minusDays(random.nextInt(60));
+            LocalDateTime rideDate;
+            if (i < 5) {
+                rideDate = now.minusHours(i);
+            } else {
+                rideDate = now.minusDays(random.nextInt(60) + 1);
+            }
+
             ride.setScheduledTime(rideDate);
             ride.setStartTime(rideDate);
             ride.setEndTime(rideDate.plusMinutes((long) (route.getEstimatedTimeMin() + random.nextInt(10))));
@@ -175,11 +184,11 @@ public class RideHistorySeeder {
             passengerRepository.save(passenger);
 
             if (random.nextDouble() < 0.3 && !otherUsers.isEmpty()) {
-                User additionalUser = otherUsers.get(random.nextInt(otherUsers.size()));
+                RegisteredUser additionalUser = (RegisteredUser) otherUsers.get(random.nextInt(otherUsers.size()));
                 if (!additionalUser.equals(testUser)) {
                     Passenger additionalPassenger = new Passenger();
                     additionalPassenger.setRide(ride);
-                    additionalPassenger.setUser((RegisteredUser) additionalUser);
+                    additionalPassenger.setUser(additionalUser);
                     additionalPassenger.setRole(PassengerRole.PASSENGER);
                     passengerRepository.save(additionalPassenger);
                 }
