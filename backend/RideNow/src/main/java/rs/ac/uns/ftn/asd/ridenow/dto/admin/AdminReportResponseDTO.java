@@ -1,5 +1,31 @@
 package rs.ac.uns.ftn.asd.ridenow.dto.admin;
 
-public class AdminReportResponseDTO {
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDate;
+import java.util.Map;
+
+@Setter
+@Getter
+public class AdminReportResponseDTO {
+    private int sumRides;
+    private int avgRides;
+
+    private double sumKM;
+    private double avgKM;
+
+    private double sumMoney;
+    private double avgMoney;
+
+    private Map<LocalDate, Integer> ridesPerDay;
+    private Map<LocalDate, Double> kmPerDay;
+    private Map<LocalDate, Double> moneyPerDay;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+    private boolean drivers;
+    private boolean users;
+    private String person;
 }
