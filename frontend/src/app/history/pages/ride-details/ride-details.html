@@ -107,7 +107,7 @@
               <div class="detail-item mb-4">
                 <label class="detail-label">Driver Rating</label>
                 <div class="rating-display">
-                  <span class="rating-stars">
+                  <span class="rating-stars" data-test="driver-rating-stars">
                     @for (star of [1, 2, 3, 4, 5]; track star) {
                       @if (star <= (ride.rating.driverRating || 0)) {
                         <i class="bi bi-star-fill text-warning"></i>
@@ -118,14 +118,14 @@
                       }
                     }
                   </span>
-                  <span class="rating-value ms-2">{{ ride.rating.driverRating }}/5</span>
+                  <span class="rating-value ms-2" data-test="driver-rating-value">{{ ride.rating.driverRating }}/5</span>
                 </div>
               </div>
 
               <!-- Driver Comment -->
               @if (ride.rating.driverComment) {
                 <div class="detail-item mb-4">
-                  <p class="detail-value">{{ ride.rating.driverComment }}</p>
+                  <p class="detail-value" data-test="driver-comment">{{ ride.rating.driverComment }}</p>
                 </div>
               }
 
@@ -135,7 +135,7 @@
               <div class="detail-item mb-4">
                 <label class="detail-label">Vehicle Rating</label>
                 <div class="rating-display">
-                  <span class="rating-stars">
+                  <span class="rating-stars" data-test="vehicle-rating-stars">
                     @for (star of [1, 2, 3, 4, 5]; track star) {
                       @if (star <= (ride.rating.vehicleRating || 0)) {
                         <i class="bi bi-star-fill text-warning"></i>
@@ -146,14 +146,14 @@
                       }
                     }
                   </span>
-                  <span class="rating-value ms-2">{{ ride.rating.vehicleRating }}/5</span>
+                  <span class="rating-value ms-2" data-test="vehicle-rating-value">{{ ride.rating.vehicleRating }}/5</span>
                 </div>
               </div>
 
               <!-- Vehicle Comment -->
               @if (ride.rating.vehicleComment) {
                 <div class="detail-item">
-                  <p class="detail-value">{{ ride.rating.vehicleComment }}</p>
+                  <p class="detail-value" data-test="vehicle-comment">{{ ride.rating.vehicleComment }}</p>
                 </div>
               }
             </div>

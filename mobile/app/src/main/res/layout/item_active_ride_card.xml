@@ -27,16 +27,16 @@
                 android:layout_weight="1"
                 android:text="@string/ride_id_label"
                 android:textSize="14sp"
-                android:textColor="?attr/colorOnSecondary" />
+                android:textColor="?attr/colorOnPrimaryContainer" />
 
             <TextView
                 android:id="@+id/rideIdTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/sample_ride_id"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface" />
+                android:textColor="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
@@ -51,8 +51,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/route_label"
-                android:textSize="12sp"
-                android:textColor="?attr/colorSurfaceVariant"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnPrimaryContainer"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -62,7 +62,7 @@
                 android:text="@string/loading_route"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/colorOnPrimary"
                 android:maxLines="2"
                 android:ellipsize="end" />
 
@@ -81,16 +81,16 @@
                 android:layout_weight="1"
                 android:text="@string/driver_label"
                 android:textSize="14sp"
-                android:textColor="?attr/colorSurfaceVariant" />
+                android:textColor="?attr/colorOnPrimaryContainer" />
 
             <TextView
                 android:id="@+id/driverNameTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/loading_default"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="?attr/colorOnSurface" />
+                android:textColor="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
@@ -105,8 +105,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/passengers_label"
-                android:textSize="12sp"
-                android:textColor="?attr/colorSurfaceVariant"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnPrimaryContainer"
                 android:layout_marginBottom="4dp" />
 
             <TextView
@@ -114,8 +114,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/loading_default"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnPrimary"
                 android:maxLines="2"
                 android:ellipsize="end" />
 
@@ -134,15 +134,15 @@
                 android:layout_weight="1"
                 android:text="@string/start_time_label"
                 android:textSize="14sp"
-                android:textColor="?attr/colorSurfaceVariant" />
+                android:textColor="?attr/colorOnPrimaryContainer" />
 
             <TextView
                 android:id="@+id/startTimeTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/loading_default"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurface" />
+                android:textSize="16sp"
+                android:textColor="?attr/colorOnPrimary" />
 
         </LinearLayout>
 

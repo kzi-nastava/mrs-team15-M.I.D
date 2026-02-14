@@ -64,7 +64,7 @@
           <app-button
             text="Submit Rating"
             variant="primary"
-            [class.disabled]="!isRatingValid()"
+            [disabled]="!isRatingValid()"
             (clicked)="submitRating()">
           </app-button>
         </div>
