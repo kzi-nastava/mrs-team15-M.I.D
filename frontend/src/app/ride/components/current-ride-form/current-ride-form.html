@@ -32,6 +32,16 @@
                   <p class="ride-value">{{ destinationAddress }}</p>
                </div>
             </div>
+            @if(isAdmin && driverName) {
+            <div class="mb-2">
+               <p>Driver: <strong>{{ driverName }}</strong></p>
+            </div>
+          }
+            @if(isAdmin && passengerNames) {
+            <div class="mb-3">
+               <p>Passengers: <strong>{{ passengerNames }}</strong></p>
+            </div>
+          }
             <div class="current-ride-info ride-field mb-4 d-flex align-items-center">
                <p> Distance: <strong>{{ estimatedDistanceKm | number:'1.1-2' }} km</strong></p>
                <p class="ms-4"> Remaining: <strong>{{ remainingTimeMin !== undefined ? remainingTimeMin : estimatedDurationMin }} min</strong> </p>

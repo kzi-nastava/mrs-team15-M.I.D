@@ -13,7 +13,7 @@ public class LoginPage {
     private WebDriver driver;
     private WebDriverWait wait;
     private final String LOGIN_URL = "http://localhost:4200/login";
-    private final String ADMIN_HOME ="http://localhost:4200/admin-history-overview";
+    private final String ADMIN_HOME = "http://localhost:4200/admin-history-overview";
 
     public LoginPage(WebDriver driver) {
         this.driver = driver;
@@ -23,7 +23,8 @@ public class LoginPage {
     }
 
     public void setEmail(String email) {
-        WebElement emailComponent = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-test='email-input']")));
+        WebElement emailComponent = wait
+                .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-test='email-input']")));
         WebElement emailInput = emailComponent.findElement(By.tagName("input"));
 
         wait.until(ExpectedConditions.visibilityOf(emailInput));
@@ -32,7 +33,8 @@ public class LoginPage {
     }
 
     public void setPassword(String password) {
-        WebElement passwordComponent = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-test='password-input']")));
+        WebElement passwordComponent = wait
+                .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-test='password-input']")));
         WebElement passwordInput = passwordComponent.findElement(By.tagName("input"));
 
         wait.until(ExpectedConditions.visibilityOf(passwordInput));
@@ -41,11 +43,14 @@ public class LoginPage {
     }
 
     public void login() {
-        WebElement loginButtonComponent = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-test='login-button']")));
+        WebElement loginButtonComponent = wait
+                .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-test='login-button']")));
         WebElement loginButton = loginButtonComponent.findElement(By.tagName("button"));
 
         wait.until(ExpectedConditions.elementToBeClickable(loginButton));
         loginButton.click();
+
+        wait.until(ExpectedConditions.not(ExpectedConditions.urlToBe(LOGIN_URL)));
     }
 
     public boolean isLogged() {

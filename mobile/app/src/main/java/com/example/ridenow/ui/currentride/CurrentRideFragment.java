@@ -48,6 +48,12 @@ public class CurrentRideFragment extends Fragment {
     private TextView endAddressText;
     private TextView remainingTimeText;
 
+    // Admin view elements
+    private LinearLayout adminDriverLayout;
+    private LinearLayout adminPassengersLayout;
+    private TextView adminDriverText;
+    private TextView adminPassengersText;
+
     // User buttons
     private LinearLayout userButtonsLayout;
     private Button reportInconsistencyButton;
@@ -87,17 +93,17 @@ public class CurrentRideFragment extends Fragment {
             isAdminView = args.getBoolean("isAdminView", false);
             adminRideId = args.getLong("rideId", -1);
             if (adminRideId == -1) adminRideId = null;
-
-            // Extract route information for admin view
-            if (isAdminView && args.containsKey("startAddress")) {
-                createAdminRideFromBundle(args);
-            }
         }
 
         initViews(view);
         initServices();
         checkUserRole();
         setupButtonVisibility();
+
+        // Set admin information after views are initialized
+        if (args != null && isAdminView && args.containsKey("startAddress")) {
+            createAdminRideFromBundle(args);
+        }
 
         if (!isAdminView) {
             testCurrentLocation(); // Only test location for actual users
@@ -111,6 +117,12 @@ public class CurrentRideFragment extends Fragment {
         startAddressText = view.findViewById(R.id.startAddressText);
         endAddressText = view.findViewById(R.id.endAddressText);
         remainingTimeText = view.findViewById(R.id.remainingTimeText);
+
+        // Admin view elements
+        adminDriverLayout = view.findViewById(R.id.adminDriverLayout);
+        adminPassengersLayout = view.findViewById(R.id.adminPassengersLayout);
+        adminDriverText = view.findViewById(R.id.adminDriverText);
+        adminPassengersText = view.findViewById(R.id.adminPassengersText);
 
         // User buttons
         userButtonsLayout = view.findViewById(R.id.userButtonsLayout);
@@ -213,15 +225,23 @@ public class CurrentRideFragment extends Fragment {
 
     private void setupButtonVisibility() {
         if (isAdminView) {
-            // Admin view - hide all buttons
+            // Admin view - hide all buttons but show admin info
             userButtonsLayout.setVisibility(View.GONE);
             driverButtonsLayout.setVisibility(View.GONE);
-        } else if (isDriver) {
-            userButtonsLayout.setVisibility(View.GONE);
-            driverButtonsLayout.setVisibility(View.VISIBLE);
+            adminDriverLayout.setVisibility(View.VISIBLE);
+            adminPassengersLayout.setVisibility(View.VISIBLE);
         } else {
-            userButtonsLayout.setVisibility(View.VISIBLE);
-            driverButtonsLayout.setVisibility(View.GONE);
+            // Regular user/driver view - hide admin info
+            adminDriverLayout.setVisibility(View.GONE);
+            adminPassengersLayout.setVisibility(View.GONE);
+
+            if (isDriver) {
+                userButtonsLayout.setVisibility(View.GONE);
+                driverButtonsLayout.setVisibility(View.VISIBLE);
+            } else {
+                userButtonsLayout.setVisibility(View.VISIBLE);
+                driverButtonsLayout.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -257,6 +277,8 @@ public class CurrentRideFragment extends Fragment {
     }
 
     private void createAdminRideFromBundle(Bundle args) {
+        Log.d(TAG, "createAdminRideFromBundle() called");
+
         // Create a CurrentRideResponse from bundle data for admin view
         currentRide = new CurrentRideResponse();
         currentRide.setRideId(adminRideId);
@@ -278,6 +300,32 @@ public class CurrentRideFragment extends Fragment {
         route.setStartLocation(startLocation);
         route.setEndLocation(endLocation);
         currentRide.setRoute(route);
+
+        // Set admin-specific information
+        String driverName = args.getString("driverName", "Unknown Driver");
+        String passengers = args.getString("passengers", "");
+
+        Log.d(TAG, "Driver name from bundle: " + driverName);
+        Log.d(TAG, "Passengers from bundle: " + passengers);
+
+        if (adminDriverText != null) {
+            adminDriverText.setText(driverName);
+            Log.d(TAG, "Set driver text to: " + driverName);
+        } else {
+            Log.w(TAG, "adminDriverText is null");
+        }
+
+        if (adminPassengersText != null) {
+            if (passengers != null && !passengers.trim().isEmpty()) {
+                adminPassengersText.setText(passengers);
+                Log.d(TAG, "Set passengers text to: " + passengers);
+            } else {
+                adminPassengersText.setText(getString(R.string.no_passengers));
+                Log.d(TAG, "Set passengers text to no passengers");
+            }
+        } else {
+            Log.w(TAG, "adminPassengersText is null");
+        }
     }
 
     private void trackSpecificRide(Long rideId) {

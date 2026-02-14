@@ -62,6 +62,10 @@ export class CurrentRideForm implements OnDestroy {
   isPassenger: boolean = true;
   isAdmin: boolean = false;
 
+  // Driver and passenger information for admin view
+  driverName?: string;
+  passengerNames?: string;
+
   showStopModal: boolean = false;
   showPanicModal: boolean = false;
   showCompleteModal: boolean = false;
@@ -69,11 +73,11 @@ export class CurrentRideForm implements OnDestroy {
 
   ngOnInit(): void {
     this.mapRouteService.clearRoute();
-    
+
     // Check if accessed from admin panel via navigation state
     const nav = (this.router as any).getCurrentNavigation && (this.router as any).getCurrentNavigation();
     const fromAdmin = nav && nav.extras && nav.extras.state && nav.extras.state.fromAdmin;
-    
+
     const role = localStorage.getItem('role');
     if(fromAdmin || role === "ADMIN"){
       this.isAdmin = true;
@@ -101,6 +105,12 @@ export class CurrentRideForm implements OnDestroy {
             this.estimatedDistanceKm = incoming.route.distanceKm;
             this.estimatedDurationMin = incoming.route.estimatedTimeMin || incoming.estimatedDurationMin;
             this.rideId = incoming.rideId || incoming.id || undefined;
+
+            // Extract driver and passenger info for admin view
+            if (this.isAdmin && incoming.driverName) {
+              this.driverName = incoming.driverName;
+              this.passengerNames = incoming.passengerNames;
+            }
 
             // Draw route from polylinePoints
             if (incoming.route.polylinePoints && incoming.route.polylinePoints.length > 0) {

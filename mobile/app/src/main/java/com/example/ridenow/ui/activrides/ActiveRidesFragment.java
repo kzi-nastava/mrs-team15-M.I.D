@@ -140,6 +140,22 @@ public class ActiveRidesFragment extends Fragment {
                 bundle.putLong("rideId", ride.getRideId());
                 bundle.putBoolean("isAdminView", true);
 
+                // Pass driver and passengers information
+                String driverName = ride.getDriverName();
+                String passengers = ride.getPassengerNames();
+
+                if (driverName != null && !driverName.trim().isEmpty()) {
+                    bundle.putString("driverName", driverName);
+                } else {
+                    bundle.putString("driverName", "Unknown Driver");
+                }
+
+                if (passengers != null && !passengers.trim().isEmpty()) {
+                    bundle.putString("passengers", passengers);
+                } else {
+                    bundle.putString("passengers", "");
+                }
+
                 // Pass route information if available
                 if (ride.getRoute() != null) {
                     bundle.putString("startAddress", ride.getRoute().getStartLocation().getAddress());
