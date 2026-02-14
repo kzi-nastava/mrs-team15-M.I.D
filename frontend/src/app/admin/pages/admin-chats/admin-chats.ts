@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { ChatService } from '../../../services/chat.service';
 import { Chat } from '../../../model/chat.model';
@@ -9,12 +10,13 @@ import { filter, Subscription } from 'rxjs';
 @Component({
   selector: 'app-admin-chats',
   standalone: true,
-  imports: [CommonModule, PageHeaderComponent],
+  imports: [CommonModule, FormsModule, PageHeaderComponent],
   templateUrl: './admin-chats.html',
   styleUrls: ['./admin-chats.css']
 })
 export class AdminChats implements OnInit, OnDestroy {
   chats: Chat[] = [];
+  searchTerm: string = '';
   loading = true;
   error: string | null = null;
   private routerSubscription: Subscription | null = null;
@@ -65,5 +67,17 @@ export class AdminChats implements OnInit, OnDestroy {
 
   openChat(chatId: number): void {
     this.router.navigate(['/admin-chat', chatId]);
+  }
+
+  get filteredChats(): Chat[] {
+    if (!this.searchTerm.trim()) {
+      return this.chats;
+    }
+
+    const term = this.searchTerm.toLowerCase();
+    return this.chats.filter(chat =>
+      chat.user.toLowerCase().includes(term) ||
+      chat.id.toString().includes(term)
+    );
   }
 }
