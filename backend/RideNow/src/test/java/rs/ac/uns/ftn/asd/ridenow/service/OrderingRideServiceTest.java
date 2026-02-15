@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("RideService - orderRide() Unit Tests")
+@DisplayName("RideService - Order Ride Functionality Tests")
 public class OrderingRideServiceTest {
 
     @Mock
