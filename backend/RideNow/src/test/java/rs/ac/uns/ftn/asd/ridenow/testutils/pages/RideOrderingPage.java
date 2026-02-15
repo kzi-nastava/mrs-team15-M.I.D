@@ -1,10 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.testutils.pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.NotFoundException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -64,15 +60,9 @@ public class RideOrderingPage {
 
             // If not found, try matching by partial pickup text
             if (routeOpt == null) {
-                try {
-                    routeOpt = wait.until(ExpectedConditions.elementToBeClickable(
+                routeOpt = wait.until(ExpectedConditions.elementToBeClickable(
                             By.xpath("//li[contains(normalize-space(text()), '"+pickUp+"')]")));
-                } catch (Exception ignored) {}
-            }
 
-            // If still not found, pick the first favorite entry (fallback)
-            if (routeOpt == null) {
-                routeOpt = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".custom-dropdown-menu li.custom-dropdown-item")));
             }
 
             // Click the option (use JS for reliability)
@@ -80,6 +70,7 @@ public class RideOrderingPage {
         } catch(Exception e){
             throw new NotFoundException("Route not found in favorites: " + findBy);
         }
+
 
     }
 
@@ -94,13 +85,21 @@ public class RideOrderingPage {
 
     public boolean isRouteEstimateShown(String distance, String estimated){
         try{
-            // match normalized text like "6 km" and "15 minutes"
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[normalize-space(text())='"+distance+" km']")));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[normalize-space(text())='"+estimated+" minutes']")));
         } catch (Exception e) {
             return false;
         }
         return true;
+    }
+
+    public boolean waitForEstimateToDisappear(String distance, String estimated) {
+        try {
+            return wait.until(ExpectedConditions.invisibilityOfElementLocated(
+                    By.xpath("//div[contains(., '" + distance + " km')]")));
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     public void chooseRoute(){
@@ -113,11 +112,6 @@ public class RideOrderingPage {
             WebElement btn = driver.findElement(By.xpath("//app-button[.//button[contains(normalize-space(.),'Choose route')]]//button"));
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});arguments[0].click();", btn);
         }
-    }
-
-    public void openVehicleTypesMenu(){
-        // In some UIs vehicle types are on the next page (preferences). Provide a no-op that can be used safely.
-        // If there's an in-page control later, tests should switch to RidePreferencePage which has the select element.
     }
 
     public String getPickupAddress() {
@@ -156,6 +150,59 @@ public class RideOrderingPage {
             return res;
         } catch (Exception e) {
             return java.util.Collections.emptyList();
+        }
+    }
+
+    /**
+     * Check that the pickup, destination and stops inputs are filled with the expected values.
+     * Returns true when all match, false otherwise.
+     */
+    public boolean checkAutoinput(String pickup, String destination, java.util.List<String> stops) {
+        try {
+            WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+            return shortWait.until(drv -> {
+                String actualPickup = getPickupAddress();
+                String actualDestination = getDestinationAddress();
+                if (actualPickup == null) actualPickup = "";
+                if (actualDestination == null) actualDestination = "";
+
+                if (!actualPickup.equals(pickup)) return false;
+                if (!actualDestination.equals(destination)) return false;
+
+                java.util.List<String> actualStops = getStopAddresses();
+                java.util.List<String> expectedStops = (stops == null) ? java.util.Collections.emptyList() : new java.util.ArrayList<>(stops);
+
+                if (expectedStops.isEmpty()) {
+                    return actualStops.isEmpty();
+                }
+
+                if (actualStops.size() != expectedStops.size()) return false;
+                for (int i = 0; i < expectedStops.size(); i++) {
+                    String a = actualStops.get(i) == null ? "" : actualStops.get(i).trim();
+                    String e = expectedStops.get(i) == null ? "" : expectedStops.get(i).trim();
+                    if (!a.equals(e)) return false;
+                }
+                return true;
+            });
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Click the placeholder entry in the favorites dropdown labeled '--Choose favorite--'.
+     * Throws NotFoundException if placeholder is not present.
+     */
+    public void choosePlaceholderFavorite() {
+        // ensure menu is open
+        openFavoritesMenu();
+        try {
+                WebElement placeholder = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//li[normalize-space(text())='-- Choose favorite --']")
+                ));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});arguments[0].click();", placeholder);
+        } catch (Exception e) {
+            throw new NotFoundException("Placeholder '--Choose favorite--' not found in favorites menu");
         }
     }
 

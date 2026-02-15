@@ -201,4 +201,70 @@ public class UserHistoryPage {
             throw e;
         }
     }
+
+    /**
+     * Remove favorite for the ride matching provided route (click filled star and wait until unfilled)
+     */
+    public void removeFavorite(String pickup, String destination) {
+        try {
+            // Click the favorite icon for the matching row (ensure pickup before destination)
+            List<WebElement> rows = wait
+                    .until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("tbody tr")));
+
+            int matchIndex = -1;
+            for (int i = 0; i < rows.size(); i++) {
+                String routeText = getRowColumnText(i, 1);
+                if (routeText == null) continue;
+                if (routeText.contains(pickup) && routeText.contains(destination)) {
+                    int pickIdx = routeText.indexOf(pickup);
+                    int destIdx = routeText.indexOf(destination);
+                    if (pickIdx != -1 && destIdx != -1 && pickIdx < destIdx) {
+                        matchIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (matchIndex == -1) {
+                throw new IllegalStateException("No history row matching provided route was found for removal");
+            }
+
+            WebElement favIcon = rows.get(matchIndex).findElement(By.cssSelector("td.fav-cell i.bi"));
+            wait.until(ExpectedConditions.elementToBeClickable(favIcon));
+            // Click to open remove modal (frontend opens modal when favorite is true)
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", favIcon);
+
+            // Wait for Remove button in the modal and click it
+            WebElement removeButton = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//div[@id='removeFavoriteModal']//app-button[.//button[contains(text(), 'Remove')]]//button")
+            ));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", removeButton);
+
+            // capture index for lambda (must be effectively final)
+            final int idx = matchIndex;
+
+            // Wait until the icon no longer has the filled-star class. Re-query the table each poll to avoid stale references.
+            wait.until(drv -> {
+                try {
+                    List<WebElement> currentRows = ((WebDriver) drv).findElements(By.cssSelector("tbody tr"));
+                    if (idx >= currentRows.size()) {
+                        // row disappeared or table changed; consider favorite removed
+                        return true;
+                    }
+                    WebElement icon = currentRows.get(idx).findElement(By.cssSelector("td.fav-cell i.bi"));
+                    String cls = icon.getAttribute("class");
+                    return cls == null || !cls.contains("bi-star-fill");
+                } catch (StaleElementReferenceException e) {
+                    // DOM changed — retry until timeout
+                    return false;
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error removing favorite for route " + pickup + " -> " + destination + ": " + e.getMessage());
+            throw e;
+        }
+    }
 }
