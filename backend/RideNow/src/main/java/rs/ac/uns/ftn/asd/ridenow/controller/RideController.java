@@ -145,16 +145,16 @@ public class RideController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/order-ride")
-    public ResponseEntity<OrderRideResponseDTO> orderRide(
+    public ResponseEntity<?> orderRide(
             @Valid @RequestBody OrderRideRequestDTO request) {
+        User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String email = user.getEmail();
         try{
-            User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            String email = user.getEmail();
-            System.out.println("orderRide: " + request);
             return ResponseEntity.status(201).body(rideService.orderRide(request, email));
-        } catch (Exception e){
-            return ResponseEntity.status(403).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
         }
+
     }
 
     @PreAuthorize("hasRole('USER')")
