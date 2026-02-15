@@ -26,6 +26,7 @@ export interface CurrentRideDTO {
   rideId?: number;
   estimatedDurationMin: number;
   route: RouteDTO;
+  panic: boolean;
 }
 
 
@@ -98,6 +99,10 @@ export class CurrentRideForm implements OnDestroy {
       const incoming = this.rideData || (nav && nav.extras && nav.extras.state && (nav.extras.state.ride || nav.extras.state.order) ? (nav.extras.state.ride || nav.extras.state.order) : (typeof history !== 'undefined' && (history as any).state ? (history as any).state.ride || (history as any).state.order : null));
       if (incoming) {
         try {
+          const isPanic = nav && nav.extras && nav.extras.state && nav.extras.state.isPanic;
+          // Use isPanic flag from state OR from the ride object itself
+          const shouldShowPanic = isPanic || incoming.panic;
+          console.log('shouldShowPanic:', shouldShowPanic);
           // Handle new route structure (from current ride or admin active rides)
           if (incoming.route && incoming.route.startLocation && incoming.route.endLocation) {
             this.pickupAddress = formatAddress(incoming.route.startLocation.address);
@@ -115,7 +120,12 @@ export class CurrentRideForm implements OnDestroy {
             // Draw route from polylinePoints
             if (incoming.route.polylinePoints && incoming.route.polylinePoints.length > 0) {
               const routePoints = incoming.route.polylinePoints.map((p: any) => ({ lat: p.latitude, lng: p.longitude }));
-              try { this.mapRouteService.drawRoute(routePoints); } catch(e) {}
+              try { 
+                this.mapRouteService.drawRoute(routePoints);
+                if (shouldShowPanic) {
+                  this.mapRouteService.alertRoute();
+                }
+               } catch(e) {}
 
               // Draw stop markers
               if (incoming.route.stopLocations && incoming.route.stopLocations.length > 0) {
@@ -141,10 +151,20 @@ export class CurrentRideForm implements OnDestroy {
             }
 
             if (incoming.route) {
-              try { this.mapRouteService.drawRoute(incoming.route); } catch(e) {}
+              try {
+                this.mapRouteService.drawRoute(incoming.route);
+                if (shouldShowPanic) {
+                  this.mapRouteService.alertRoute();
+                }
+                } catch(e) {}
             } else if (incoming.routeLattitudes && incoming.routeLongitudes && Array.isArray(incoming.routeLattitudes) && Array.isArray(incoming.routeLongitudes) && incoming.routeLattitudes.length === incoming.routeLongitudes.length) {
               const pts = incoming.routeLattitudes.map((lat:any, i:number) => ({ lat: Number(lat), lng: Number(incoming.routeLongitudes[i]) }));
-              try { this.mapRouteService.drawRoute(pts); } catch(e) {}
+              try {
+                this.mapRouteService.drawRoute(pts);
+                if (shouldShowPanic) {
+                    this.mapRouteService.alertRoute();
+                }
+              } catch(e) {}
             }
           }
           this.cdr.detectChanges();
@@ -175,11 +195,15 @@ export class CurrentRideForm implements OnDestroy {
       this.estimatedDistanceKm = response.route.distanceKm;
       this.estimatedDurationMin = response.estimatedDurationMin;
       this.rideId = response.rideId;
+      let panic = response.panic;
       this.cdr.detectChanges();
 
       // Convert polylinePoints to route format for drawing
       const routePoints = response.route.polylinePoints.map(p => ({ lat: p.latitude, lng: p.longitude }));
       this.mapRouteService.drawRoute(routePoints);
+      if (panic) {
+        this.mapRouteService.alertRoute();
+      }
 
       // Draw stop markers
       if (response.route.stopLocations && response.route.stopLocations.length > 0) {

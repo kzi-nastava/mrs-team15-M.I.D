@@ -120,7 +120,8 @@ export class PanicAlerts implements OnInit, OnDestroy {
           this.router.navigate(['/current-ride'], { 
             state: { 
               ride: ride,
-              fromAdmin: true 
+              fromAdmin: true,
+              isPanic: true
             } 
           });
         } else {
@@ -134,7 +135,10 @@ export class PanicAlerts implements OnInit, OnDestroy {
     });
   }
 
-  resolveAlert(alert: PanicAlert): void {
+resolveAlert(alert: PanicAlert, event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.panicAlertService.resolvePanicAlert(alert.id).subscribe({
       next: (res: string) => {
         this.showMessageToast(res);
