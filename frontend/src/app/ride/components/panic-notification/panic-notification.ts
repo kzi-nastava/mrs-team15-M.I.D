@@ -43,23 +43,8 @@ export class PanicNotification implements OnInit, OnDestroy {
     });
   }
 
-  resolveAlert(alert: PanicAlert, event: Event): void {
-    event.stopPropagation();
-    if (confirm(`Resolve panic alert for Ride #${alert.rideId}?`)) {
-      this.panicAlertService.resolvePanicAlert(alert.id).subscribe({
-        next: () => {
-          console.log('Panic alert resolved:', alert.id);
-        },
-        error: (error) => {
-          console.error('Error resolving panic alert:', error);
-          //console.log('Failed to resolve panic alert');       - add error message pop up
-        }
-      });
-    }
-  }
-
   viewRideDetails(rideId: number): void {
-    // TODO: go to active rides page and locate to the care (route should be red)
+    this.router.navigate(["/panic-alerts"])
   }
 
   getTimeAgo(timestamp: string): string {

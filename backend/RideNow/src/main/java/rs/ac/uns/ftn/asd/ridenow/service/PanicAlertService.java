@@ -2,12 +2,17 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rs.ac.uns.ftn.asd.ridenow.dto.admin.UserItemDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.PanicAlertDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RoutePointDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
 import rs.ac.uns.ftn.asd.ridenow.repository.PanicAlertRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
@@ -17,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PanicAlertService {
@@ -124,6 +130,18 @@ public class PanicAlertService {
         return result;
     }
 
+    public Page<PanicAlertDTO> getUnresolvedAlerts(Pageable pageable) {
+        Page<PanicAlert> alerts = panicAlertRepository.findByResolvedFalse(pageable);
+        List<PanicAlertDTO> dtos = alerts.getContent().stream()
+                .map(this::mapToPanicAlertDTO)
+                .collect(Collectors.toList());
+        return new PageImpl<>(dtos, pageable, alerts.getTotalElements());
+    }
+
+    private PanicAlertDTO mapToPanicAlertDTO(PanicAlert panicAlert) {
+        return convertToDTO(panicAlert, panicAlert.getRide());
+    }
+
     public List<PanicAlertDTO> getAllAlerts(){
         List<PanicAlertDTO> result = new ArrayList<>();
         for(PanicAlert pa : panicAlertRepository.findAll()){
@@ -145,7 +163,7 @@ public class PanicAlertService {
     public void resolvePanicAlert(Long panicAlertId, Long adminUserId) throws Exception {
         Optional<PanicAlert> optionalPanicAlert = panicAlertRepository.findByIdAndResolvedFalse(panicAlertId);
         if(optionalPanicAlert.isEmpty()){
-            new Exception("Panic alert not found or already resolved");
+            throw new Exception("Panic alert not found or already resolved");
         }
         PanicAlert panicAlert = optionalPanicAlert.get();
         panicAlert.setResolved(true);
