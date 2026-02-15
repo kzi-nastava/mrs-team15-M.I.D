@@ -17,7 +17,7 @@ public class PanicAlert {
 
     @Column(nullable = false)
     @CreationTimestamp
-    private LocalDateTime time;
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private boolean resolved = false;
@@ -26,15 +26,18 @@ public class PanicAlert {
     @JoinColumn(name = "ride_id", nullable = false)
     private Ride ride;
 
+    @Column(nullable = false)
     private String panicBy;
+
+    @Column(nullable = false)
+    private String panicByRole;
+
+    @Column
+    private LocalDateTime resolvedAt;
+
+    @Column
+    private Long resolvedBy;
 
     public PanicAlert() {
     }
-
-    public void markResolved(){ this.resolved = true; }
-
-    public void markUnresolved(){
-        this.resolved = false;
-    }
-
 }
