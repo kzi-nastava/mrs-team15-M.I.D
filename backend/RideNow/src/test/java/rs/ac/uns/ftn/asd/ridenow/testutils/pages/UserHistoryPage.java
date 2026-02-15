@@ -9,6 +9,7 @@ import org.openqa.selenium.support.How;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.JavascriptExecutor;
 
 import java.time.Duration;
 import java.util.List;
@@ -130,5 +131,74 @@ public class UserHistoryPage {
     public void waitForPageLoad() {
         wait.until(ExpectedConditions.visibilityOf(table));
         wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("tbody tr")));
+    }
+
+    /**
+     * Click the favorite/star icon for the ride matching the provided route (pickup/destination/stops)
+     * and confirm the Add modal.
+     */
+    public void toggleFavorite(String pickup, String destination, List<String> stops) {
+        try {
+            List<WebElement> rows = wait
+                    .until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("tbody tr")));
+
+            int matchIndex = -1;
+            for (int i = 0; i < rows.size(); i++) {
+                String routeText = getRowColumnText(i, 1); // column 1 is route
+                if (routeText == null) continue;
+                if (routeText.contains(pickup) && routeText.contains(destination)) {
+                    int pickIdx = routeText.indexOf(pickup);
+                    int destIdx = routeText.indexOf(destination);
+                    // ensure pickup appears before destination in the displayed route (avoid reversed-route match)
+                    if (pickIdx != -1 && destIdx != -1 && pickIdx < destIdx) {
+                        matchIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (matchIndex == -1) {
+                throw new IllegalStateException("No history row matching provided route was found");
+            }
+
+            WebElement favIcon = rows.get(matchIndex).findElement(By.cssSelector("td.fav-cell i.bi"));
+            wait.until(ExpectedConditions.elementToBeClickable(favIcon));
+
+            // Use JS click to avoid interception by row click handlers
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", favIcon);
+
+            // If add-favorite modal appears, validate stops then click Add
+            WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//div[@id='addFavoriteModal']//app-button[.//button[contains(text(), 'Add')]]//button")
+            ));
+
+            // Validate stop addresses in modal match provided stops
+            List<WebElement> stopElems = driver.findElements(By.cssSelector("#addFavoriteModal .route-info ul li"));
+            if (stops == null || stops.isEmpty()) {
+                if (!stopElems.isEmpty()) {
+                    throw new IllegalStateException("Expected no stops in add-favorite modal, but some were present");
+                }
+            } else {
+                if (stopElems.size() != stops.size()) {
+                    throw new IllegalStateException("Stop count in add-favorite modal does not match expected stops");
+                }
+                for (int si = 0; si < stops.size(); si++) {
+                    String modalStop = stopElems.get(si).getText().trim();
+                    if (!modalStop.equals(stops.get(si))) {
+                        throw new IllegalStateException("Stop address mismatch at index " + si + ": expected='" + stops.get(si) + "' actual='" + modalStop + "'");
+                    }
+                }
+            }
+
+            addButton.click();
+
+            // Wait until the icon reflects favorite state (filled star)
+            WebElement iconAfter = rows.get(matchIndex).findElement(By.cssSelector("td.fav-cell i.bi"));
+            wait.until(ExpectedConditions.attributeContains(iconAfter, "class", "bi-star-fill"));
+
+        } catch (Exception e) {
+            System.err.println("Error toggling favorite for route " + pickup + " -> " + destination + ": " + e.getMessage());
+            throw e;
+        }
     }
 }
