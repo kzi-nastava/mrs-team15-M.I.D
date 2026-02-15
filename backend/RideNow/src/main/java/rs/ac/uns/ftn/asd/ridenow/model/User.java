@@ -83,11 +83,4 @@ public class User {
     public User(){
         super();
     }
-
-    public void addNotification(Notification notification){
-        if(notification != null && !notifications.contains(notification)){
-            notifications.add(notification);
-            notification.assignUser(this);
-        }
-    }
 }

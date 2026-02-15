@@ -7,6 +7,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
 import { TokenExpirationService } from '../../../services/token-expiration.service';
+import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
+
 @Component({
   selector: 'app-login-form',
   standalone: true,
@@ -16,7 +18,8 @@ import { TokenExpirationService } from '../../../services/token-expiration.servi
 })
 export class LoginForm {
 
-  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router, private tokenExpirationService: TokenExpirationService ){}
+  constructor(private cdr: ChangeDetectorRef, private authService : AuthService,
+    private router : Router, private tokenExpirationService: TokenExpirationService, private notificationWebSocketService : NotificationWebSocketService ){}
 
   passwordVisible = false;
 
@@ -48,6 +51,10 @@ export class LoginForm {
         localStorage.setItem('tokenExpiration', response.expiresAt.toString());
         this.tokenExpirationService.startTokenExpirationCheck();
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
+        if (response.role === 'ADMIN') {
+          setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
+        }
+
         switch(response.role) {
           case 'ADMIN':
             setTimeout(() => { this.router.navigate(['/admin-history-overview']); }, 1000);
