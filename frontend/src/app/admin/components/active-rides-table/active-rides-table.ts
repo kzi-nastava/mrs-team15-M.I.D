@@ -76,7 +76,8 @@ export class ActiveRidesTable {
     this.router.navigate(['/current-ride'], { 
       state: { 
         ride: ride,
-        fromAdmin: true 
+        fromAdmin: true,
+        isPanic: ride.panic
       } 
     });
   }

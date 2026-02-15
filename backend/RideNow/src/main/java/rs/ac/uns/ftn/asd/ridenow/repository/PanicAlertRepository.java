@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -43,4 +45,6 @@ public interface PanicAlertRepository extends JpaRepository<PanicAlert, Long> {
             "LEFT JOIN FETCH r.passengers " +
             "ORDER BY pa.createdAt DESC")
     List<PanicAlert> findAll();
+
+    Page<PanicAlert> findByResolvedFalse(Pageable pageable);
 }

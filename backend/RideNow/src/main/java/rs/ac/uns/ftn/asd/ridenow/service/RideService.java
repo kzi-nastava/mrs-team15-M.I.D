@@ -544,6 +544,7 @@ public class RideService {
             currentRideDTO.setEstimatedDurationMin((int) route.getEstimatedTimeMin());
             currentRideDTO.setRoute(new RouteDTO(route));
             currentRideDTO.setRideId(ride.getId());
+            currentRideDTO.setPanic(ride.getPanicAlert() != null);
             return currentRideDTO;
         } catch (Exception e) {
             throw new Exception(e);

@@ -8,6 +8,7 @@ import { DriverService } from '../../../services/driver.service';
 import { DriverStatusStore } from '../../states/driver-status.store';
 import { NotificationService } from '../../../services/notification.service';
 import { FormsModule } from '@angular/forms';
+import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
 import { NotificationBellComponent } from '../notification-bell/notification-bell';
 @Component({
   selector: 'app-navbar',
@@ -24,7 +25,9 @@ export class NavbarComponent {
     private authService : AuthService,
     private cdr: ChangeDetectorRef,
     private driverService : DriverService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private notificationWebSocketService: NotificationWebSocketService
+
   ) {}
 
   isUpdatingStatus = false;

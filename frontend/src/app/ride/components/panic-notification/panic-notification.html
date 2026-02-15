@@ -20,12 +20,6 @@
       <p><strong>Role:</strong> {{ alert.panicByRole }}</p>
       <p class="alert-time">{{ getTimeAgo(alert.createdAt) }}</p>
     </div>
-    
-    <button class="resolve-btn" 
-            (click)="resolveAlert(alert, $event)" 
-            title="Resolve Alert">
-      Resolve
-    </button>
   </div>
   <div class="connection-status" 
        [class.connected]="connectionStatus" 

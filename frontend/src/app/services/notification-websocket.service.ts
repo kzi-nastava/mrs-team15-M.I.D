@@ -156,6 +156,7 @@ export class NotificationWebSocketService {
       this.socket = null;
       this.connectionStatusSubject.next(false);
     }
+    this.unresolvedAlertsSubject.next([]);
     this.isConnecting = false;
   }
 
