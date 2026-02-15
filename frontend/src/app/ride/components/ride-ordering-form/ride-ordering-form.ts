@@ -80,6 +80,9 @@ export class RideOrderingForm implements OnInit {
       this.pickupAddress = '';
       this.destinationAddress = '';
       this.stops = [];
+      // clear any previously shown estimate when user chooses the placeholder
+      this.lastEstimate = null;
+      this.currentFavoriteRouteId = null;
     } else {
       this.selectedFavorite = name;
       const fav = this.favorites.find(f => f.name === name);
@@ -524,6 +527,9 @@ export class RideOrderingForm implements OnInit {
   chooseRoute() {
     this.showPreferences = true;
     this.routeChosen = true;
+    // Clear the last estimate so the Distance / Estimated time display is removed
+    this.lastEstimate = null;
+    try { this.cdr.detectChanges(); } catch (e) {}
   }
 
   constructor(private rideService: RideService, private passengerService: PassengerService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}

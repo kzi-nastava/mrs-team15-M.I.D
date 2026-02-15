@@ -73,6 +73,18 @@ public class NavbarPage {
         wait.until(ExpectedConditions.urlContains("/driver-history"));
     }
 
+
+    public void navigateToOrdering() {
+        openNavbarMenu();
+
+        // Click on "Order a Ride" which routes to /ride-ordering
+        WebElement orderLink = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(text(), 'Order a Ride') or contains(text(), 'Ride Now')]")
+        ));
+        orderLink.click();
+
+        wait.until(ExpectedConditions.urlContains("/ride-ordering"));
+    }
     public boolean isLoggedIn() {
         try {
             // Check multiple indicators of being logged in
