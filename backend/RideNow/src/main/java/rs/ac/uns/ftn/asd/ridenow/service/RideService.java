@@ -519,30 +519,6 @@ public class RideService {
         }
     }
 
-    public void triggerPanicAlert(User user) throws Exception {
-        Optional<Ride> optionalRide = Optional.empty();
-        if(user instanceof RegisteredUser registeredUser){
-            optionalRide = rideRepository.findCurrentRideByUser(registeredUser.getId());
-        }
-        else if(user instanceof  Driver driver){
-            optionalRide = rideRepository.findCurrentRideByDriver(driver.getId());
-        }
-        if(optionalRide.isEmpty()){
-            throw new Exception("You don't have ride in progress");
-        }
-        Ride ride = optionalRide.get();
-        if(ride.getPanicAlert() != null){
-            throw new Exception("Panic mode already active. Help is on the way!");
-        }
-        PanicAlert panicAlert = new PanicAlert();
-        panicAlert.setRide(ride);
-        panicAlert.setResolved(false);
-        panicAlert.setPanicBy(user.getRole().name());
-        panicAlertRepository.save(panicAlert);
-        ride.setPanicAlert(panicAlert);
-        rideRepository.save(ride);
-    }
-
     public void userRideCancellation(RegisteredUser registeredUser, Long rideId, CancelRideRequestDTO request) throws Exception {
         Optional<Ride> optionalRide = rideRepository.findById(rideId);
         if(optionalRide.isEmpty()){

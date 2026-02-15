@@ -19,6 +19,7 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.RateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.service.PanicAlertService;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
 
@@ -33,6 +34,9 @@ public class RideController {
     private RoutingService routingService;
 
     private final RideService rideService;
+
+    @Autowired
+    private PanicAlertService panicAlertService;
 
     public RideController(RideService rideService) {
         this.rideService = rideService;
@@ -188,7 +192,7 @@ public class RideController {
     public ResponseEntity<?> triggerPanicAlert(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
-            rideService.triggerPanicAlert(user);
+            panicAlertService.triggerPanicAlert(user);
             return ResponseEntity.ok(Map.of("message", "Panic alert triggered successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -1,0 +1,36 @@
+<div class="notification-container">
+  <div *ngFor="let alert of unresolvedAlerts" 
+       class="panic-alert"
+       (click)="viewRideDetails(alert.rideId)">
+       
+    <div class="alert-header">
+      <strong> PANIC ALERT</strong>
+      <span class="alert-id">#{{alert.id}}</span>
+    </div>
+    
+    <button class="close-btn" 
+            (click)="dismissAlert(alert, $event)" 
+            title="Dismiss">
+      ×
+    </button>
+    
+    <div class="alert-body">
+      <p><strong>Ride #{{ alert.rideId }}</strong></p>
+      <p><strong>Triggered by:</strong> {{ alert.panicBy }}</p>
+      <p><strong>Role:</strong> {{ alert.panicByRole }}</p>
+      <p class="alert-time">{{ getTimeAgo(alert.createdAt) }}</p>
+    </div>
+    
+    <button class="resolve-btn" 
+            (click)="resolveAlert(alert, $event)" 
+            title="Resolve Alert">
+      Resolve
+    </button>
+  </div>
+  <div class="connection-status" 
+       [class.connected]="connectionStatus" 
+       [class.disconnected]="!connectionStatus">
+    <span class="status-dot"></span>
+    {{ connectionStatus ? 'Connected' : 'Disconnected' }}
+  </div>
+</div>
