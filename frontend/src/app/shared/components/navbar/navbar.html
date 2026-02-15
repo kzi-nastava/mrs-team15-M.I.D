@@ -37,6 +37,11 @@
                <label class="form-check-label"> {{ isActive ? 'ACTIVE' : 'INACTIVE' }}</label>
              </div>
             }
+            @if (showNotificationBell) {
+             <div class="mt-1 me-2">
+                <app-notification-bell></app-notification-bell>
+             </div>
+            }
             @if (isLoggedIn) {
              <div class="mt-1 me-1 ms-1">
                 <app-button width="100px" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Log out" (clicked)="logout()"></app-button>

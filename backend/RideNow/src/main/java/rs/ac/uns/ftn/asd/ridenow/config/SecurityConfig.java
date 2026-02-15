@@ -27,14 +27,18 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // WebSocket endpoints MUST come first to avoid conflicts with REST API patterns
+                        .requestMatchers("/api/notifications/websocket").permitAll()
+                        .requestMatchers("/api/chat/websocket/**").permitAll()
+                        // Auth endpoints
                         .requestMatchers(
                                 "/api/auth/login", "/api/auth/register",
                                 "/api/auth/activate", "/api/auth/forgot-password",
                                 "/api/auth/reset-password", "/api/rides/estimate", "/api/auth/verify-reset-code",
-                                "api/auth/activate-code", "api/auth/resend-activation-email").permitAll()
+                                "api/auth/activate-code", "api/auth/resend-activation-email")
+                        .permitAll()
+                        // Static resources
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/api/notifications/websocket/**").permitAll()
-                        .requestMatchers("/api/chat/websocket/**").permitAll()
                         .requestMatchers("/api/admins/driver-register").hasRole("ADMIN")
                         .requestMatchers("/api/admins/driver-requests").hasRole("ADMIN")
                         .requestMatchers("/api/admins/driver-requests/").hasRole("ADMIN")
@@ -58,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rides/*/cancel").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/rides/panic-alert").hasAnyRole("USER", "DRIVER")
                         .requestMatchers("/api/rides/estimate-route").hasRole("USER")
-                        .requestMatchers("/api/rides/*/start").hasRole( "DRIVER")
+                        .requestMatchers("/api/rides/*/start").hasRole("DRIVER")
                         .requestMatchers("/api/rides/reorder-ride").hasAnyRole("USER", "ADMINf")
                         .requestMatchers("/api/rides/order-ride").hasRole("USER")
                         .requestMatchers("/api/vehicles/").permitAll()
@@ -77,9 +81,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/panic-alerts/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/panic-alerts/{id}/resolve").hasRole("ADMIN")
 
-
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -89,7 +91,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

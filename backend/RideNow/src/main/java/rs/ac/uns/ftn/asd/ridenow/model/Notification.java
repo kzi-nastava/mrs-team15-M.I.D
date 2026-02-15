@@ -30,11 +30,28 @@ public class Notification {
     @Column(nullable = false)
     private boolean seen = false;
 
+    @Column(name = "related_entity_id")
+    private Long relatedEntityId; // For storing ride ID, driver ID, etc.
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    User user;
+    private User user;
 
     public Notification() {
+    }
 
+    public Notification(User user, String message, NotificationType type) {
+        this.user = user;
+        this.message = message;
+        this.type = type;
+        this.seen = false;
+    }
+
+    public Notification(User user, String message, NotificationType type, Long relatedEntityId) {
+        this.user = user;
+        this.message = message;
+        this.type = type;
+        this.relatedEntityId = relatedEntityId;
+        this.seen = false;
     }
 }

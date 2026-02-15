@@ -69,7 +69,7 @@ export const routes: Routes = [
     { path: 'ride-ordering', component: RideOrdering },
     { path: 'admin-pricing', component: PricingManagement },
     { path: 'admin-report', component: AdminReport },
-    {path: 'admin-history-overview', component: AdminHistoryOverview},
+    { path: 'admin-history-overview', component: AdminHistoryOverview},
     { path: 'admin-active-rides', component: ActiveRides },
     { path: 'admin-chats', component: AdminChats },
     { path: 'admin-chat/:id', component: AdminChatDetail },

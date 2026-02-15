@@ -8,6 +8,7 @@ import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
 import { TokenExpirationService } from '../../../services/token-expiration.service';
 import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   selector: 'app-login-form',
@@ -18,8 +19,14 @@ import { NotificationWebSocketService } from '../../../services/notification-web
 })
 export class LoginForm {
 
-  constructor(private cdr: ChangeDetectorRef, private authService : AuthService,
-    private router : Router, private tokenExpirationService: TokenExpirationService, private notificationWebSocketService : NotificationWebSocketService ){}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private authService : AuthService,
+    private router : Router,
+    private tokenExpirationService: TokenExpirationService,
+    private notificationWebSocketService : NotificationWebSocketService,
+    private notificationService: NotificationService
+  ){}
 
   passwordVisible = false;
 
@@ -51,8 +58,18 @@ export class LoginForm {
         localStorage.setItem('tokenExpiration', response.expiresAt.toString());
         this.tokenExpirationService.startTokenExpirationCheck();
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
+
+        console.log('Login successful - Role:', response.role);
+
         if (response.role === 'ADMIN') {
           setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
+        } else if (response.role === 'USER' || response.role === 'DRIVER') {
+          // Initialize notifications for users and drivers
+          console.log('Initializing notifications after login');
+          // First load existing notifications
+          this.notificationService.initializeNotifications();
+          // Then connect to WebSocket for real-time updates
+          this.notificationService.connectToNotifications(response.token);
         }
 
         switch(response.role) {
@@ -61,14 +78,14 @@ export class LoginForm {
             return;
           case 'DRIVER':
             if(response.hasCurrentRide){
-              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);   
+              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);
               return;
             }
             setTimeout(() => { this.router.navigate(['/upcoming-rides']); }, 1000);
             return;
             case 'USER':
             if(response.hasCurrentRide){
-              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);   
+              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);
               return;
             }
             setTimeout(() => { this.router.navigate(['/ride-ordering']); }, 1000);

@@ -35,12 +35,14 @@ public class RideService {
     private final InconsistencyRepository inconsistencyRepository;
     private final PassengerRepository passengerRepository;
     private final RegisteredUserRepository registeredUserRepository;
+    private final NotificationService notificationService;
 
     public RideService(RoutingService routingService,PanicAlertRepository panicAlertRepository,
             PriceService priceService,RouteRepository routeRepository,
             RideRepository rideRepository, DriverRepository driverRepository,
             RatingRepository ratingRepository, InconsistencyRepository inconsistencyRepository,
-            PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository) {
+            PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository,
+            NotificationService notificationService) {
 
         this.routingService = routingService;
         this.panicAlertRepository = panicAlertRepository;
@@ -52,6 +54,7 @@ public class RideService {
         this.inconsistencyRepository = inconsistencyRepository;
         this.passengerRepository = passengerRepository;
         this.registeredUserRepository = registeredUserRepository;
+        this.notificationService = notificationService;
     }
 
     public RouteResponseDTO estimateRoute(EstimateRouteRequestDTO dto) {
@@ -171,6 +174,9 @@ public class RideService {
                     passenger.setRole(PassengerRole.PASSENGER);
                     passenger.setRide(ride);
                     ride.addPassenger(passenger);
+
+                    // Send notification to the added passenger
+                    notificationService.createAndSendPassengerAddedNotification(user, ride);
                 } catch (Exception e) {
                     // skip invalid passengers
                 }
@@ -391,6 +397,11 @@ public class RideService {
 
         // Save to database
         Rating savedRating = ratingRepository.save(rating);
+
+        // Delete RIDE_FINISHED notifications for all passengers of this ride
+        // since the ride has been rated and they no longer need the notification
+        notificationService.deleteRideFinishedNotifications(rideId);
+
         return(new RateResponseDTO(savedRating));
     }
 
@@ -429,6 +440,21 @@ public class RideService {
         ride.setStatus(RideStatus.FINISHED);
         ride.setEndTime(LocalDateTime.now());
         ride = rideRepository.save(ride);
+
+        // Delete old ride-related notifications (passenger added, ride assigned, ride started)
+        notificationService.deleteRideRelatedNotifications(rideId);
+
+        // Also delete any notifications for the specific passengers (fallback for notifications without relatedEntityId)
+        List<RegisteredUser> passengers = ride.getPassengers().stream()
+            .map(Passenger::getUser)
+            .collect(Collectors.toList());
+        notificationService.deleteRideRelatedNotificationsForPassengers(passengers, ride.getId());
+
+        // Send ride finished notifications to all passengers (creator gets rating request)
+        for (Passenger passenger : ride.getPassengers()) {
+            boolean isCreator = passenger.getRole() == PassengerRole.CREATOR;
+            notificationService.createRideFinishedNotification(passenger.getUser(), ride, isCreator);
+        }
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextHour = now.plusHours(1);
@@ -478,6 +504,11 @@ public class RideService {
         driver.setStatus(DriverStatus.INACTIVE);
         driverRepository.save(driver);
         rideRepository.save(ride);
+
+        // Send ride started notification to all passengers
+        for (Passenger passenger : ride.getPassengers()) {
+            notificationService.createRideStartedNotification(passenger.getUser(), ride);
+        }
     }
 
     public List<UpcomingRideDTO> getUpcomingRidesByUser(Long user_id) {

@@ -23,6 +23,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(chatWebSocketHandler, "/api/chat/websocket/{chatId}")
                 .setAllowedOrigins("*"); // Configure based on your frontend domains
         registry.addHandler(notificationWebSocketHandler, "/api/notifications/websocket")
-                .setAllowedOrigins("http://localhost:4200");
+                .setAllowedOrigins("*"); // Allow all origins for now, configure based on your needs
     }
 }

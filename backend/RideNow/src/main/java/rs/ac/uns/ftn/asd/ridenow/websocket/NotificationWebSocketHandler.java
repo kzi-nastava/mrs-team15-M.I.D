@@ -1,6 +1,8 @@
 package rs.ac.uns.ftn.asd.ridenow.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
@@ -27,45 +29,73 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     @Autowired
     private PanicAlertService panicAlertService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    // For admin panic alerts
     private final Map<Long, WebSocketSession> adminSessions = new ConcurrentHashMap<>();
+
+    // For all user notifications (including passengers, drivers, and admins)
+    private final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
+
     private final Map<String, Long> sessionIdToUserId = new ConcurrentHashMap<>();
 
+    public NotificationWebSocketHandler() {
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String token = extractTokenFromQuery(session);
+
+        if (token == null) {
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No token provided"));
+            return;
+        }
+
         User user = authenticateUser(token);
-
         if (user == null) {
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Authentication failed"));
+           session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Authentication failed"));
             return;
         }
 
-        if (!"ADMIN".equals(user.getRole().name())) {
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Admin access only"));
-            return;
-        }
-
-        adminSessions.put(user.getId(), session);
+        // Store user session for all notification types
+        userSessions.put(user.getId(), session);
         sessionIdToUserId.put(session.getId(), user.getId());
 
-        System.out.println("Admin connected: " + user.getEmail() + " (Total: " + adminSessions.size() + ")");
-
-        // Send current unresolved panic alerts to newly connected admin
-        sendInitialState(session);
-
+        // If user is admin, also store in admin sessions for panic alerts
+      if ("ADMIN".equals(user.getRole().name())) {
+            adminSessions.put(user.getId(), session);
+            // Send current unresolved panic alerts to newly connected admin
+            try {
+                sendInitialState(session);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
-
 
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
-        // Handle incoming messages if needed
+        // Handle incoming messages if needed - for now just echo back
+        if (message instanceof TextMessage textMessage) {
+            try {
+                // Parse and echo back for debugging
+                String payload = textMessage.getPayload();
+                System.out.println("Received message: " + payload);
+
+                // Echo back for testing
+                session.sendMessage(new TextMessage("{\"type\":\"echo\",\"data\":\"Message received\"}"));
+            } catch (Exception e) {
+                System.err.println("Error handling message: " + e.getMessage());
+            }
+        }
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        System.err.println("WebSocket error: " + exception.getMessage());
+        exception.printStackTrace();
         cleanupSession(session);
     }
 
@@ -98,21 +128,36 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Token validation error: " + e.getMessage());
+            System.err.println("ERROR: Exception during token validation: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
 
     private String extractTokenFromQuery(WebSocketSession session) {
         URI uri = session.getUri();
-        if (uri != null && uri.getQuery() != null) {
-            String[] params = uri.getQuery().split("&");
-            for (String param : params) {
-                if (param.startsWith("token=")) {
-                    return param.substring(6);
-                }
+
+        if (uri == null) {
+            return null;
+        }
+
+        String query = uri.getQuery();
+
+        if (query == null) {
+            return null;
+        }
+
+        String[] params = query.split("&");
+
+        for (int i = 0; i < params.length; i++) {
+            String param = params[i];
+
+            if (param.startsWith("token=")) {
+                String token = param.substring(6);
+                return token;
             }
         }
+
         return null;
     }
 
@@ -121,7 +166,6 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
             WebSocketMessageDTO message = new WebSocketMessageDTO("INITIAL_STATE", panicAlertService.getAllUnresolvedAlerts());
             String payload = objectMapper.writeValueAsString(message);
             session.sendMessage(new TextMessage(payload));
-            System.out.println("Sent initial state to admin");
         } catch (Exception e) {
             System.err.println("Failed to send initial state: " + e.getMessage());
         }
@@ -130,24 +174,40 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     private void cleanupSession(WebSocketSession session) {
         Long userId = sessionIdToUserId.remove(session.getId());
         if (userId != null) {
-            adminSessions.remove(userId);
-            System.out.println("Admin disconnected. Remaining: " + adminSessions.size());
+            userSessions.remove(userId);
+            adminSessions.remove(userId); // Remove from admin sessions too if it was there
         }
     }
 
-    // Broadcast new panic alert
+    // Broadcast to specific user (new method for user notifications)
+    public void broadcastToUser(Long userId, String action, Object data) {
+        WebSocketSession session = userSessions.get(userId);
+        if (session != null && session.isOpen()) {
+            try {
+                WebSocketMessageDTO message = new WebSocketMessageDTO(action, data);
+                String payload = objectMapper.writeValueAsString(message);
+                session.sendMessage(new TextMessage(payload));
+            } catch (Exception e) {
+                // Remove broken session
+                userSessions.remove(userId);
+                sessionIdToUserId.values().removeIf(id -> id.equals(userId));
+            }
+        }
+    }
+
+    // Broadcast new panic alert (existing method for admins)
     public void broadcastNewPanic(Object panicAlertDTO) {
         WebSocketMessageDTO message = new WebSocketMessageDTO("NEW_PANIC", panicAlertDTO);
-        broadcastMessage(message);
+        broadcastToAdmins(message);
     }
 
-    // Broadcast panic resolution
+    // Broadcast panic resolution (existing method for admins)
     public void broadcastPanicResolved(Long panicAlertId) {
         WebSocketMessageDTO message = new WebSocketMessageDTO("PANIC_RESOLVED", panicAlertId);
-        broadcastMessage(message);
+        broadcastToAdmins(message);
     }
 
-    private void broadcastMessage(WebSocketMessageDTO message) {
+    private void broadcastToAdmins(WebSocketMessageDTO message) {
         if (adminSessions.isEmpty()) {
             System.out.println("No admins connected - message not sent");
             return;
@@ -165,12 +225,12 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
                     }
                     return true; // Remove closed session
                 } catch (Exception e) {
-                    System.err.println("Failed to send message: " + e.getMessage());
+                    System.err.println("Failed to send message to admin: " + e.getMessage());
                     return true; // Remove failed session
                 }
             });
         } catch (Exception e) {
-            System.err.println("Failed to broadcast: " + e.getMessage());
+            System.err.println("Failed to broadcast to admins: " + e.getMessage());
         }
     }
 
