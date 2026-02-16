@@ -643,6 +643,9 @@ public class RideService {
             }
             for (Passenger passenger : ride.getPassengers()) {
                 participantIds.add(passenger.getUser().getId());
+                if (passenger.getUser().getId().equals(user.getId())) {
+                    currentRideDTO.setIsMainPassenger(passenger.getRole() == PassengerRole.CREATOR);
+                }
             }
             webSocketHandler.registerRideParticipants(ride.getId(), participantIds);
             System.out.println("Re-registered " + participantIds.size() + " participants for ride " + ride.getId());

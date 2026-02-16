@@ -1,6 +1,7 @@
 package rs.ac.uns.ftn.asd.ridenow.testutils.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
@@ -126,9 +127,24 @@ public class RatingPage {
             WebElement submitButton = wait.until(ExpectedConditions.presenceOfElementLocated(
                     By.xpath("//app-button[.//button[contains(text(), 'Submit Rating')]]//button")));
 
+            // Scroll the button into view
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", submitButton);
+
+            // Wait for button to be in viewport and visible
+            wait.until(driver -> {
+                boolean isDisplayed = submitButton.isDisplayed();
+                boolean isInViewport = (Boolean) ((JavascriptExecutor) driver).executeScript(
+                    "var rect = arguments[0].getBoundingClientRect();" +
+                    "return (rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);",
+                    submitButton
+                );
+                return isDisplayed && isInViewport;
+            });
+
+            // Wait for button to be clickable
             wait.until(ExpectedConditions.elementToBeClickable(submitButton));
 
-            // Try regular click first, fall back to JavaScript click if intercepted
+            // Click the button
             submitButton.click();
 
             // Wait for navigation away from rating page
@@ -146,6 +162,21 @@ public class RatingPage {
         try {
             WebElement submitButton = driver.findElement(
                     By.xpath("//app-button[.//button[contains(text(), 'Submit Rating')]]//button"));
+
+            // Scroll the button into view
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", submitButton);
+
+            // Wait for button to be in viewport and visible
+            wait.until(driver -> {
+                boolean isDisplayed = submitButton.isDisplayed();
+                boolean isInViewport = (Boolean) ((JavascriptExecutor) driver).executeScript(
+                    "var rect = arguments[0].getBoundingClientRect();" +
+                    "return (rect.top >= 0 && rect.left >= 0 && rect.bottom <= window.innerHeight && rect.right <= window.innerWidth);",
+                    submitButton
+                );
+                return isDisplayed && isInViewport;
+            });
+
             // Check if the disabled attribute is NOT present or is false
             String disabled = submitButton.getAttribute("disabled");
             return disabled == null || disabled.equals("false");

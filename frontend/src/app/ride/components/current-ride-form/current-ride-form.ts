@@ -27,6 +27,7 @@ export interface CurrentRideDTO {
   estimatedDurationMin: number;
   route: RouteDTO;
   panic: boolean;
+  isMainPassenger?: boolean;
 }
 
 
@@ -66,6 +67,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
   isDriver: boolean = false;
   isPassenger: boolean = true;
   isAdmin: boolean = false;
+  isMainPassenger: boolean = true;
 
   // Driver and passenger information for admin view
   driverName?: string;
@@ -120,6 +122,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
             this.estimatedDistanceKm = incoming.route.distanceKm;
             this.estimatedDurationMin = incoming.route.estimatedTimeMin || incoming.estimatedDurationMin;
             this.rideId = incoming.rideId || incoming.id || undefined;
+            this.isMainPassenger = incoming.isMainPassenger !== undefined ? incoming.isMainPassenger : true;
 
             // Extract driver and passenger info for admin view
             if (this.isAdmin && incoming.driverName) {
@@ -130,7 +133,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
             // Draw route from polylinePoints
             if (incoming.route.polylinePoints && incoming.route.polylinePoints.length > 0) {
               const routePoints = incoming.route.polylinePoints.map((p: any) => ({ lat: p.latitude, lng: p.longitude }));
-              try { 
+              try {
                 this.mapRouteService.drawRoute(routePoints);
                 if (shouldShowPanic) {
                   this.mapRouteService.alertRoute();
@@ -154,6 +157,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
             this.estimatedDistanceKm = incoming.distanceKm;
             this.estimatedDurationMin = incoming.estimatedTimeMinutes || incoming.estimatedDurationMin || incoming.estimatedDuration;
             this.rideId = incoming.id || incoming.rideId || undefined;
+            this.isMainPassenger = incoming.isMainPassenger !== undefined ? incoming.isMainPassenger : true;
 
             // For admin rides without distanceKm, estimate from duration
             if (!this.estimatedDistanceKm && this.estimatedDurationMin) {
@@ -231,7 +235,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
       const routePoints = event.route.map((p: any) => ({ lat: p.lat, lng: p.lng }));
       this.mapRouteService.drawRoute(routePoints);
     }
-    
+
     if (event.endAddress) {
       this.destinationAddress = formatAddress(event.endAddress);
     }
@@ -244,7 +248,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
     if (event.price !== undefined) {
       this.finalPrice = event.price;
     }
-    
+
     const role = event.triggeredBy || 'Driver';
     this.showMessageToast(`Ride stopped by ${role}. Final price: ${this.finalPrice || 'N/A'}`);
     this.cdr.detectChanges();
@@ -265,6 +269,7 @@ export class CurrentRideForm implements OnInit, OnDestroy {
       this.estimatedDistanceKm = response.route.distanceKm;
       this.estimatedDurationMin = response.estimatedDurationMin;
       this.rideId = response.rideId;
+      this.isMainPassenger = response.isMainPassenger !== undefined ? response.isMainPassenger : true;
       let panic = response.panic;
       this.cdr.detectChanges();
 

@@ -267,4 +267,44 @@ public class UserHistoryPage {
             throw e;
         }
     }
+
+    /**
+     * Find a ride by route string
+     *
+     * @param routeString The route to search for
+     * @return index of the ride, or -1 if not found
+     */
+    public int findRideByRoute(String routeString) {
+        int rowCount = getRowCount();
+        for (int i = 0; i < rowCount; i++) {
+            String route = getRoute(i);
+            if (route != null && route.equals(routeString)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Click on a specific ride row to view details
+     */
+    public void clickRide(int rowIndex) {
+        try {
+            List<WebElement> rows = wait
+                    .until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector("tbody tr")));
+            if (rowIndex >= rows.size()) {
+                throw new IllegalArgumentException("Row index out of bounds");
+            }
+
+            WebElement row = rows.get(rowIndex);
+            wait.until(ExpectedConditions.elementToBeClickable(row));
+            row.click();
+
+            // Wait for navigation to ride details page
+            wait.until(ExpectedConditions.urlContains("/history-ride-details"));
+        } catch (Exception e) {
+            System.err.println("Error clicking ride: " + e.getMessage());
+            throw e;
+        }
+    }
 }
