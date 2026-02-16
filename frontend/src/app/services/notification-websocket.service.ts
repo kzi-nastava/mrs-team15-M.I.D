@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { Ride } from '../history/components/ride-history-table/ride-history-table';
 
 export interface PanicAlert {
   id: number;
@@ -20,8 +21,15 @@ export interface PanicAlert {
 }
 
 export interface WebSocketMessage {
-  action: 'NEW_PANIC' | 'PANIC_RESOLVED' | 'INITIAL_STATE';
+  action: 'NEW_PANIC' | 'PANIC_RESOLVED' | 'INITIAL_STATE' | 'RIDE_PANIC' | 'RIDE_STOPPED' | 'ROUTE_UPDATED' | 'RIDE_COMPLETED';
   data: any;
+}
+
+export interface RideEventData {
+  rideId: number;
+  triggeredBy?: string; 
+  triggeredByUserId?: number;
+  [key: string]: any;
 }
 
 @Injectable({
@@ -37,6 +45,16 @@ export class NotificationWebSocketService {
   public unresolvedAlerts$: Observable<PanicAlert[]> = this.unresolvedAlertsSubject.asObservable();
   public connectionStatus$: Observable<boolean> = this.connectionStatusSubject.asObservable();
 
+  private ridePanicSubject = new BehaviorSubject<RideEventData | null>(null);
+  private rideStoppedSubject = new BehaviorSubject<RideEventData | null>(null);
+  private routeUpdatedSubject = new BehaviorSubject<RideEventData | null>(null);
+  private rideCompletedSubject = new BehaviorSubject<RideEventData | null>(null);
+
+  public ridePanic$: Observable<RideEventData | null> = this.ridePanicSubject.asObservable();
+  public rideStopped$: Observable<RideEventData | null> = this.rideStoppedSubject.asObservable();
+  public routeUpdated$: Observable<RideEventData | null> = this.routeUpdatedSubject.asObservable();
+  public rideCompleted$: Observable<RideEventData | null> = this.rideCompletedSubject.asObservable();
+
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 3000;
@@ -48,12 +66,6 @@ export class NotificationWebSocketService {
     const token = localStorage.getItem('jwtToken');
     if (!token) {
       console.error('No auth token found');
-      return;
-    }
-
-    const role = localStorage.getItem('role');
-    if (role !== 'ADMIN') {
-      console.log('WebSocket notifications only for admins');
       return;
     }
 
@@ -139,6 +151,24 @@ export class NotificationWebSocketService {
         const updatedAlerts = currentAlerts.filter(alert => alert.id !== resolvedId);
         this.unresolvedAlertsSubject.next(updatedAlerts);
         break;
+
+      case 'RIDE_PANIC':
+        console.log('RIDE PANIC EVENT:', message.data);
+        this.ridePanicSubject.next(message.data as RideEventData)
+        this.playAlertSound();
+        break
+      case 'RIDE_STOPPED':
+        console.log('RIDE STOPPED EVENT:', message.data);
+        this.rideStoppedSubject.next(message.data as RideEventData)
+        break
+      case 'ROUTE_UPDATED':
+        console.log('ROUTE UPDATED EVENT:', message.data);
+        this.routeUpdatedSubject.next(message.data as RideEventData)
+        break
+      case 'RIDE_COMPLETED':
+        console.log('RIDE COMPLETED EVENT:', message.data);
+        this.rideCompletedSubject.next(message.data as RideEventData)
+        break
     }
   }
 
@@ -157,6 +187,12 @@ export class NotificationWebSocketService {
       this.connectionStatusSubject.next(false);
     }
     this.unresolvedAlertsSubject.next([]);
+
+    this.ridePanicSubject.next(null);
+    this.rideStoppedSubject.next(null);
+    this.routeUpdatedSubject.next(null);
+    this.rideCompletedSubject.next(null);
+    
     this.isConnecting = false;
   }
 
