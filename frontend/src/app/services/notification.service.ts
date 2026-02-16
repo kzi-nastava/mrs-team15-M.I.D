@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 export interface NotificationDTO {
   id: number;
   message: string;
-  type: 'RIDE_ASSIGNED' | 'RIDE_STARTED' | 'PANIC' | 'RIDE_FINISHED' | 'ADDED_AS_PASSENGER';
+  type: 'RIDE_ASSIGNED' | 'RIDE_STARTED' | 'PANIC' | 'RIDE_FINISHED' | 'ADDED_AS_PASSENGER' | 'NO_DRIVERS_AVAILABLE' | 'RIDE_REQUEST_REJECTED' | 'RIDE_REQUEST_ACCEPTED' | 'SCHEDULED_RIDE_REMINDER';
   createdAt: string;
   seen: boolean;
   relatedEntityId?: number;
@@ -269,6 +269,23 @@ export class NotificationService {
 
       case 'RIDE_ASSIGNED':
         this.router.navigate(['/upcoming-rides']);
+        break;
+
+      case 'RIDE_REQUEST_ACCEPTED':
+        if (notification.relatedEntityId) {
+          this.router.navigate(['/upcoming-rides']);
+        }
+        break;
+
+      case 'SCHEDULED_RIDE_REMINDER':
+        if (notification.relatedEntityId) {
+          this.router.navigate(['/upcoming-rides']);
+        }
+        break;
+
+      case 'NO_DRIVERS_AVAILABLE':
+      case 'RIDE_REQUEST_REJECTED':
+        // No navigation needed for rejection notifications
         break;
 
       default:
