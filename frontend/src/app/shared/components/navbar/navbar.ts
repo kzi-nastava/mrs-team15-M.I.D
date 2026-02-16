@@ -6,17 +6,29 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { DriverService } from '../../../services/driver.service';
 import { DriverStatusStore } from '../../states/driver-status.store';
+import { NotificationService } from '../../../services/notification.service';
 import { FormsModule } from '@angular/forms';
+import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLinkWithHref, Button, CommonModule, FormsModule],
+  imports: [RouterLinkWithHref, Button, CommonModule, FormsModule, NotificationBellComponent],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
 export class NavbarComponent {
 
-  constructor(private driverState: DriverStatusStore, private router : Router, private authService : AuthService, private cdr: ChangeDetectorRef, private driverService : DriverService) {}
+  constructor(
+    private driverState: DriverStatusStore,
+    private router : Router,
+    private authService : AuthService,
+    private cdr: ChangeDetectorRef,
+    private driverService : DriverService,
+    private notificationService: NotificationService,
+    private notificationWebSocketService: NotificationWebSocketService
+
+  ) {}
 
   isUpdatingStatus = false;
   isActive = false;
@@ -54,6 +66,11 @@ export class NavbarComponent {
   get showActivityToggle(): boolean {
     const role = localStorage.getItem('role');
     return role === "DRIVER";
+  }
+
+  get showNotificationBell(): boolean {
+    const role = localStorage.getItem('role');
+    return role === "USER" || role === "DRIVER";
   }
 
   get role(): string | null {
@@ -105,6 +122,8 @@ onToggleChange(event: MouseEvent) {
         localStorage.removeItem('jwtToken');
         localStorage.removeItem('tokenExpiration');
         this.driverState.resetStatus();
+        this.notificationService.disconnect();
+        this.notificationWebSocketService.disconnect();
         this.isActive = false;
         this.driverStatus = '';
         this.showMessageToast( 'You have been logged out successfully. See you next time!');

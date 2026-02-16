@@ -1,5 +1,5 @@
 import { Router } from '@angular/router';
-import { ChangeDetectorRef, Component, ViewChild, OnDestroy, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, OnDestroy, Input, OnInit } from '@angular/core';
 import { Button } from '../../../shared/components/button/button';
 import { CommonModule } from '@angular/common';
 import { ReportInconsistencyModal } from '../report-inconsistency-modal/report-inconsistency-modal';
@@ -11,7 +11,7 @@ import { MapRouteService } from '../../../services/map-route.service';
 import { Subscription, interval } from 'rxjs';
 import { DriverService } from '../../../services/driver.service';
 import { formatAddress } from '../../../shared/utils/address.utils';
-
+import { NotificationWebSocketService, RideEventData } from '../../../services/notification-websocket.service';
 
 export interface RouteDTO {
   distanceKm: number;
@@ -26,6 +26,7 @@ export interface CurrentRideDTO {
   rideId?: number;
   estimatedDurationMin: number;
   route: RouteDTO;
+  panic: boolean;
 }
 
 
@@ -36,7 +37,7 @@ export interface CurrentRideDTO {
   styleUrl: './current-ride-form.css',
 })
 
-export class CurrentRideForm implements OnDestroy {
+export class CurrentRideForm implements OnInit, OnDestroy {
   @ViewChild(ReportInconsistencyModal) reportModal!: ReportInconsistencyModal;
   @Input() rideData: any;
 
@@ -45,7 +46,8 @@ export class CurrentRideForm implements OnDestroy {
     private rideService: RideService,
     private mapRouteService: MapRouteService,
     private router: Router,
-    private driverService : DriverService
+    private driverService : DriverService,
+    private websocketService : NotificationWebSocketService
   ){}
 
   pickupAddress : string = '';
@@ -57,6 +59,9 @@ export class CurrentRideForm implements OnDestroy {
   remainingTimeMin?: number;
   rideId?: number;
   private trackingSubscription?: Subscription;
+  private websocketPanicSubscription?: Subscription;
+  private websocketStopSubscription?: Subscription;
+  private websocketCompleteSubscription?: Subscription;
 
   isDriver: boolean = false;
   isPassenger: boolean = true;
@@ -73,6 +78,12 @@ export class CurrentRideForm implements OnDestroy {
 
   ngOnInit(): void {
     this.mapRouteService.clearRoute();
+
+    if (!this.websocketService.isConnected()) {
+      this.websocketService.connect();
+    }
+
+    this.subscribeToRideEvents();
 
     // Check if accessed from admin panel via navigation state
     const nav = (this.router as any).getCurrentNavigation && (this.router as any).getCurrentNavigation();
@@ -98,6 +109,10 @@ export class CurrentRideForm implements OnDestroy {
       const incoming = this.rideData || (nav && nav.extras && nav.extras.state && (nav.extras.state.ride || nav.extras.state.order) ? (nav.extras.state.ride || nav.extras.state.order) : (typeof history !== 'undefined' && (history as any).state ? (history as any).state.ride || (history as any).state.order : null));
       if (incoming) {
         try {
+          const isPanic = nav && nav.extras && nav.extras.state && nav.extras.state.isPanic;
+          // Use isPanic flag from state OR from the ride object itself
+          const shouldShowPanic = isPanic || incoming.panic;
+          console.log('shouldShowPanic:', shouldShowPanic);
           // Handle new route structure (from current ride or admin active rides)
           if (incoming.route && incoming.route.startLocation && incoming.route.endLocation) {
             this.pickupAddress = formatAddress(incoming.route.startLocation.address);
@@ -115,7 +130,12 @@ export class CurrentRideForm implements OnDestroy {
             // Draw route from polylinePoints
             if (incoming.route.polylinePoints && incoming.route.polylinePoints.length > 0) {
               const routePoints = incoming.route.polylinePoints.map((p: any) => ({ lat: p.latitude, lng: p.longitude }));
-              try { this.mapRouteService.drawRoute(routePoints); } catch(e) {}
+              try { 
+                this.mapRouteService.drawRoute(routePoints);
+                if (shouldShowPanic) {
+                  this.mapRouteService.alertRoute();
+                }
+               } catch(e) {}
 
               // Draw stop markers
               if (incoming.route.stopLocations && incoming.route.stopLocations.length > 0) {
@@ -141,10 +161,20 @@ export class CurrentRideForm implements OnDestroy {
             }
 
             if (incoming.route) {
-              try { this.mapRouteService.drawRoute(incoming.route); } catch(e) {}
+              try {
+                this.mapRouteService.drawRoute(incoming.route);
+                if (shouldShowPanic) {
+                  this.mapRouteService.alertRoute();
+                }
+                } catch(e) {}
             } else if (incoming.routeLattitudes && incoming.routeLongitudes && Array.isArray(incoming.routeLattitudes) && Array.isArray(incoming.routeLongitudes) && incoming.routeLattitudes.length === incoming.routeLongitudes.length) {
               const pts = incoming.routeLattitudes.map((lat:any, i:number) => ({ lat: Number(lat), lng: Number(incoming.routeLongitudes[i]) }));
-              try { this.mapRouteService.drawRoute(pts); } catch(e) {}
+              try {
+                this.mapRouteService.drawRoute(pts);
+                if (shouldShowPanic) {
+                    this.mapRouteService.alertRoute();
+                }
+              } catch(e) {}
             }
           }
           this.cdr.detectChanges();
@@ -167,6 +197,66 @@ export class CurrentRideForm implements OnDestroy {
     }
   }
 
+  private subscribeToRideEvents(): void {
+    this.websocketPanicSubscription = this.websocketService.ridePanic$.subscribe((event: RideEventData | null) => {
+      if(event && event.rideId === this.rideId){
+        console.log('Received panic alert for current ride:', event);
+        this.handleRemotePanic(event);
+      }
+    });
+
+    this.websocketStopSubscription = this.websocketService.rideStopped$.subscribe((event: RideEventData | null) => {
+      if(event && event.rideId === this.rideId){
+        console.log('Received stop ride event for current ride:', event);
+        this.handleRemoteStop(event);
+      }
+    });
+
+    this.websocketCompleteSubscription = this.websocketService.rideCompleted$.subscribe((event: RideEventData | null) => {
+      if(event && event.rideId === this.rideId){
+        console.log('Received ride completion for current ride:', event);
+        this.handleRemoteCompletion(event);
+
+      }
+    });
+  }
+  private handleRemotePanic(event: RideEventData): void {
+    const role = event.triggeredBy || 'Unknown';
+    this.mapRouteService.alertRoute();
+    this.showMessageToast(`PANIC ALERT triggered by ${role}!`);
+  }
+
+  private handleRemoteStop(event: RideEventData): void {
+    if (event.route && Array.isArray(event.route)) {
+      const routePoints = event.route.map((p: any) => ({ lat: p.lat, lng: p.lng }));
+      this.mapRouteService.drawRoute(routePoints);
+    }
+    
+    if (event.endAddress) {
+      this.destinationAddress = formatAddress(event.endAddress);
+    }
+    if (event.distanceKm !== undefined) {
+      this.estimatedDistanceKm = event.distanceKm;
+    }
+    if (event.estimatedDurationMin !== undefined) {
+      this.estimatedDurationMin = event.estimatedDurationMin;
+    }
+    if (event.price !== undefined) {
+      this.finalPrice = event.price;
+    }
+    
+    const role = event.triggeredBy || 'Driver';
+    this.showMessageToast(`Ride stopped by ${role}. Final price: ${this.finalPrice || 'N/A'}`);
+    this.cdr.detectChanges();
+  }
+
+  private handleRemoteCompletion(event: RideEventData): void {
+    this.showMessageToast('Ride has been completed by driver');
+    setTimeout(() => {
+      this.router.navigate(['/upcoming-rides']);
+    }, 2000);
+  }
+
  fetchCurrentRide(): void {
   this.rideService.getMyCurrentRide().subscribe({
     next: (response) => {
@@ -175,11 +265,15 @@ export class CurrentRideForm implements OnDestroy {
       this.estimatedDistanceKm = response.route.distanceKm;
       this.estimatedDurationMin = response.estimatedDurationMin;
       this.rideId = response.rideId;
+      let panic = response.panic;
       this.cdr.detectChanges();
 
       // Convert polylinePoints to route format for drawing
       const routePoints = response.route.polylinePoints.map(p => ({ lat: p.latitude, lng: p.longitude }));
       this.mapRouteService.drawRoute(routePoints);
+      if (panic) {
+        this.mapRouteService.alertRoute();
+      }
 
       // Draw stop markers
       if (response.route.stopLocations && response.route.stopLocations.length > 0) {
@@ -368,7 +462,15 @@ export class CurrentRideForm implements OnDestroy {
     if (this.trackingSubscription) {
       this.trackingSubscription.unsubscribe();
     }
-    this.mapRouteService.clearVehicleLocation();
+    if(this.websocketPanicSubscription){
+      this.websocketPanicSubscription.unsubscribe();
+    }
+    if(this.websocketCompleteSubscription){
+      this.websocketCompleteSubscription.unsubscribe();
+    }
+    if(this.websocketStopSubscription){
+      this.websocketStopSubscription.unsubscribe();
+    }
     this.mapRouteService.clearRoute();
   }
 }

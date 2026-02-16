@@ -15,11 +15,10 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
+import rs.ac.uns.ftn.asd.ridenow.websocket.NotificationWebSocketHandler;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,12 +34,15 @@ public class RideService {
     private final InconsistencyRepository inconsistencyRepository;
     private final PassengerRepository passengerRepository;
     private final RegisteredUserRepository registeredUserRepository;
+    private final NotificationService notificationService;
+    private final NotificationWebSocketHandler webSocketHandler;
 
-    public RideService(RoutingService routingService,PanicAlertRepository panicAlertRepository,
-            PriceService priceService,RouteRepository routeRepository,
-            RideRepository rideRepository, DriverRepository driverRepository,
-            RatingRepository ratingRepository, InconsistencyRepository inconsistencyRepository,
-            PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository) {
+    public RideService(RoutingService routingService, PanicAlertRepository panicAlertRepository,
+                       PriceService priceService, RouteRepository routeRepository,
+                       RideRepository rideRepository, DriverRepository driverRepository,
+                       RatingRepository ratingRepository, InconsistencyRepository inconsistencyRepository,
+                       PassengerRepository passengerRepository, RegisteredUserRepository registeredUserRepository,
+                       NotificationService notificationService, NotificationWebSocketHandler webSocketHandler) {
 
         this.routingService = routingService;
         this.panicAlertRepository = panicAlertRepository;
@@ -52,6 +54,8 @@ public class RideService {
         this.inconsistencyRepository = inconsistencyRepository;
         this.passengerRepository = passengerRepository;
         this.registeredUserRepository = registeredUserRepository;
+        this.notificationService = notificationService;
+        this.webSocketHandler = webSocketHandler;
     }
 
     public RouteResponseDTO estimateRoute(EstimateRouteRequestDTO dto) {
@@ -177,6 +181,12 @@ public class RideService {
                     passenger.setRole(PassengerRole.PASSENGER);
                     passenger.setRide(ride);
                     ride.addPassenger(passenger);
+                try{
+                    // Send notification to the added passenger
+                    notificationService.createAndSendPassengerAddedNotification(user, ride);
+                } catch (Exception e) {
+                    // skip invalid passengers
+                }
                 }
             }
         }
@@ -387,6 +397,11 @@ public class RideService {
 
         // Save to database
         Rating savedRating = ratingRepository.save(rating);
+
+        // Delete RIDE_FINISHED notifications for all passengers of this ride
+        // since the ride has been rated and they no longer need the notification
+        notificationService.deleteRideFinishedNotifications(rideId);
+
         return(new RateResponseDTO(savedRating));
     }
 
@@ -425,6 +440,32 @@ public class RideService {
         ride.setStatus(RideStatus.FINISHED);
         ride.setEndTime(LocalDateTime.now());
         ride = rideRepository.save(ride);
+
+        // Broadcast finished ride to all ride participants
+        Map<String, Object> completionData = new HashMap<>();
+        completionData.put("rideId", rideId);
+        completionData.put("triggeredBy", "DRIVER");
+        completionData.put("timestamp", new Date());
+
+        webSocketHandler.broadcastRideComplete(rideId, completionData);
+        // Websocket cleanup
+        webSocketHandler.unregisterRide(rideId);
+        System.out.println("Ride " + rideId + " completed and unregistered");
+
+    // Delete old ride-related notifications (passenger added, ride assigned, ride started)
+        notificationService.deleteRideRelatedNotifications(rideId);
+
+        // Also delete any notifications for the specific passengers (fallback for notifications without relatedEntityId)
+        List<RegisteredUser> passengers = ride.getPassengers().stream()
+            .map(Passenger::getUser)
+            .collect(Collectors.toList());
+        notificationService.deleteRideRelatedNotificationsForPassengers(passengers, ride.getId());
+
+        // Send ride finished notifications to all passengers (creator gets rating request)
+        for (Passenger passenger : ride.getPassengers()) {
+            boolean isCreator = passenger.getRole() == PassengerRole.CREATOR;
+            notificationService.createRideFinishedNotification(passenger.getUser(), ride, isCreator);
+        }
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextHour = now.plusHours(1);
@@ -474,6 +515,20 @@ public class RideService {
         driver.setStatus(DriverStatus.INACTIVE);
         driverRepository.save(driver);
         rideRepository.save(ride);
+
+        List<Long> participantIds = new ArrayList<>();
+        if(ride.getDriver() != null){
+            participantIds.add(ride.getDriver().getId());
+
+        }
+        // Send ride started notification to all passengers
+        for (Passenger passenger : ride.getPassengers()) {
+            notificationService.createRideStartedNotification(passenger.getUser(), ride);
+            participantIds.add(passenger.getUser().getId());
+        }
+
+        webSocketHandler.registerRideParticipants(rideId, participantIds);
+        System.out.println("Started ride " + rideId + " with " + participantIds.size() + " participants");
     }
 
     public List<UpcomingRideDTO> getUpcomingRidesByUser(Long user_id) {
@@ -509,34 +564,22 @@ public class RideService {
             currentRideDTO.setEstimatedDurationMin((int) route.getEstimatedTimeMin());
             currentRideDTO.setRoute(new RouteDTO(route));
             currentRideDTO.setRideId(ride.getId());
+            currentRideDTO.setPanic(ride.getPanicAlert() != null);
+
+            List<Long> participantIds = new ArrayList<>();
+            if(ride.getDriver() != null){
+                participantIds.add(ride.getDriver().getId());
+            }
+            for (Passenger passenger : ride.getPassengers()) {
+                participantIds.add(passenger.getUser().getId());
+            }
+            webSocketHandler.registerRideParticipants(ride.getId(), participantIds);
+            System.out.println("Re-registered " + participantIds.size() + " participants for ride " + ride.getId());
+
             return currentRideDTO;
         } catch (Exception e) {
             throw new Exception(e);
         }
-    }
-
-    public void triggerPanicAlert(User user) throws Exception {
-        Optional<Ride> optionalRide = Optional.empty();
-        if(user instanceof RegisteredUser registeredUser){
-            optionalRide = rideRepository.findCurrentRideByUser(registeredUser.getId());
-        }
-        else if(user instanceof  Driver driver){
-            optionalRide = rideRepository.findCurrentRideByDriver(driver.getId());
-        }
-        if(optionalRide.isEmpty()){
-            throw new Exception("You don't have ride in progress");
-        }
-        Ride ride = optionalRide.get();
-        if(ride.getPanicAlert() != null){
-            throw new Exception("Panic mode already active. Help is on the way!");
-        }
-        PanicAlert panicAlert = new PanicAlert();
-        panicAlert.setRide(ride);
-        panicAlert.setResolved(false);
-        panicAlert.setPanicBy(user.getRole().name());
-        panicAlertRepository.save(panicAlert);
-        ride.setPanicAlert(panicAlert);
-        rideRepository.save(ride);
     }
 
     public void userRideCancellation(RegisteredUser registeredUser, Long rideId, CancelRideRequestDTO request) throws Exception {
@@ -602,6 +645,18 @@ public class RideService {
         StopRideResponseDTO response = completeRide(ride, vehicle);
         updateRideOnCompletion(ride, response);
         rideRepository.save(ride);
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put("rideId", ride.getId());
+        eventData.put("triggeredBy", "DRIVER");
+        eventData.put("endAddress", response.getEndAddress());
+        eventData.put("distanceKm", response.getDistanceKm());
+        eventData.put("estimatedDurationMin", response.getEstimatedDurationMin());
+        eventData.put("price", response.getPrice());
+        eventData.put("route", response.getRoute());
+        webSocketHandler.broadcastRideStop(ride.getId(), eventData);
+        System.out.println("Ride " + ride.getId() + " stopped early");
+
         return response;
     }
 

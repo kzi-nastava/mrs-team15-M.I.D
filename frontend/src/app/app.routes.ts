@@ -35,6 +35,7 @@ import { ActiveRides } from './admin/pages/active-rides/active-rides';
 import { AdminChats } from './admin/pages/admin-chats/admin-chats';
 import { AdminChatDetail } from './admin/pages/admin-chat-detail/admin-chat-detail';
 import { UserChat } from './pages/user-chat/user-chat';
+import { PanicAlerts } from './admin/pages/panic-alerts/panic-alerts';
 
 export const routes: Routes = [
     { path: '', component: Home },         // Default route (home page)
@@ -68,10 +69,12 @@ export const routes: Routes = [
     { path: 'ride-ordering', component: RideOrdering },
     { path: 'admin-pricing', component: PricingManagement },
     { path: 'admin-report', component: AdminReport },
-    {path: 'admin-history-overview', component: AdminHistoryOverview},
+    { path: 'admin-history-overview', component: AdminHistoryOverview},
     { path: 'admin-active-rides', component: ActiveRides },
     { path: 'admin-chats', component: AdminChats },
     { path: 'admin-chat/:id', component: AdminChatDetail },
     { path: 'user-chat', component: UserChat },
-    { path: 'activate/:token', component: ActivationPage }
+    { path: 'activate/:token', component: ActivationPage },
+    { path: 'panic-alerts', component: PanicAlerts },
+
 ];
