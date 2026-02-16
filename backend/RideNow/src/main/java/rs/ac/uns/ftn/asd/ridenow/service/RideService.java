@@ -183,7 +183,7 @@ public class RideService {
                     ride.addPassenger(passenger);
                 try{
                     // Send notification to the added passenger
-                    notificationService.createAndSendPassengerAddedNotification(user, ride);
+                    notificationService.createAndSendPassengerAddedNotification(userOpt.get(), ride);
                 } catch (Exception e) {
                     // skip invalid passengers
                 }
