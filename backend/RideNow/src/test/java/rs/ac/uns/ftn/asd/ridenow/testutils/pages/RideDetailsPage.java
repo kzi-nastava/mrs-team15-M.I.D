@@ -21,7 +21,7 @@ public class RideDetailsPage {
     }
 
     public void waitForPageLoad() {
-        wait.until(ExpectedConditions.urlContains("/ride-details"));
+        wait.until(ExpectedConditions.urlContains("/history-ride-details"));
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".card-header")));
     }
 

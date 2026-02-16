@@ -13,6 +13,7 @@ public class CurrentRideDTO {
     private RouteDTO route;
     private Long rideId;
     private Boolean panic;
+    private Boolean isMainPassenger;
 
     public  CurrentRideDTO(){ super(); }
 }

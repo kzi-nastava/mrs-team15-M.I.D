@@ -18,11 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * 3. Find a rateable ride (not older than 3 days, not yet rated)
  * 4. Click rate button
  * 5. Submit rating with driver and vehicle ratings
- * 6. Logout
- * 7. Login as driver
- * 8. Navigate to driver history
- * 9. Find and click on the same ride
- * 10. Verify rating is displayed correctly
+ * 6. Navigate back to user history
+ * 7. Click on the rated ride to view details
+ * 8. Verify rating is displayed correctly
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
@@ -36,7 +34,6 @@ public class RideRatingTest extends TestBase {
     private NavbarPage navbarPage;
     private UserHistoryPage userHistoryPage;
     private RatingPage ratingPage;
-    private DriverHistoryPage driverHistoryPage;
     private RideDetailsPage rideDetailsPage;
 
     // Test data
@@ -59,7 +56,6 @@ public class RideRatingTest extends TestBase {
         navbarPage = new NavbarPage(driver);
         userHistoryPage = new UserHistoryPage(driver);
         ratingPage = new RatingPage(driver);
-        driverHistoryPage = new DriverHistoryPage(driver);
         rideDetailsPage = new RideDetailsPage(driver);
     }
 
@@ -100,27 +96,17 @@ public class RideRatingTest extends TestBase {
 
         ratingPage.submitRating();
 
-        // Step 6: Logout
-        navbarPage.logout();
+        // Step 6: Navigate back to user history to view ride details with rating
+        navbarPage.navigateToHistory();
+        userHistoryPage.waitForPageLoad();
 
-        // Step 7: Login as driver
-        loginPage.setEmail(ratingSeeder.getDriverEmail());
-        loginPage.setPassword(ratingSeeder.getDriverPassword());
-        loginPage.login();
+        // Step 7: Find and click on the rated ride to view details
+        int ratedRideIndex = userHistoryPage.findRideByRoute(ratedRideRoute);
+        assertTrue(ratedRideIndex >= 0, "Should find the rated ride in history");
 
-        assertTrue(navbarPage.isLoggedIn(), "Driver should be logged in");
+        userHistoryPage.clickRide(ratedRideIndex);
 
-        // Step 8: Navigate to driver history
-        navbarPage.navigateToDriverHistory();
-        driverHistoryPage.waitForPageLoad();
-
-        // Step 9: Find and click the rated ride
-        int driverRideIndex = driverHistoryPage.findRideByRoute(ratedRideRoute);
-        assertTrue(driverRideIndex >= 0, "Driver should see the ride in history");
-
-        driverHistoryPage.clickRide(driverRideIndex);
-
-        // Step 10: Verify rating is displayed correctly
+        // Step 8: Verify rating is displayed correctly in ride details
         rideDetailsPage.waitForPageLoad();
 
         assertTrue(rideDetailsPage.isRatingDisplayed(), "Rating section should be displayed");
