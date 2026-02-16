@@ -566,6 +566,17 @@ public class RideService {
             currentRideDTO.setRoute(new RouteDTO(route));
             currentRideDTO.setRideId(ride.getId());
             currentRideDTO.setPanic(ride.getPanicAlert() != null);
+
+            List<Long> participantIds = new ArrayList<>();
+            if(ride.getDriver() != null){
+                participantIds.add(ride.getDriver().getId());
+            }
+            for (Passenger passenger : ride.getPassengers()) {
+                participantIds.add(passenger.getUser().getId());
+            }
+            webSocketHandler.registerRideParticipants(ride.getId(), participantIds);
+            System.out.println("Re-registered " + participantIds.size() + " participants for ride " + ride.getId());
+
             return currentRideDTO;
         } catch (Exception e) {
             throw new Exception(e);

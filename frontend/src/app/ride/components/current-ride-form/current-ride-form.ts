@@ -37,7 +37,7 @@ export interface CurrentRideDTO {
   styleUrl: './current-ride-form.css',
 })
 
-export class CurrentRideForm implements OnDestroy {
+export class CurrentRideForm implements OnInit, OnDestroy {
   @ViewChild(ReportInconsistencyModal) reportModal!: ReportInconsistencyModal;
   @Input() rideData: any;
 

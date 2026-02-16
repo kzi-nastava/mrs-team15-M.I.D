@@ -30,11 +30,11 @@ export interface RideEventData {
   rideId: number;
   triggeredBy?: string; 
   triggeredByUserId?: number;
-  endAddress: string;
-  distanceKm: number;
-  estimatedDurationMin: number;
-  price : number;
-  route: any;
+  endAddress?: string;
+  distanceKm?: number;
+  estimatedDurationMin?: number;
+  price?: number;
+  route?: any;
 }
 
 @Injectable({
