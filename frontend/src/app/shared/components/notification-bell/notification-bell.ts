@@ -108,6 +108,14 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
         return 'bi bi-check-circle-fill';
       case 'PANIC':
         return 'bi bi-exclamation-triangle-fill';
+      case 'RIDE_REQUEST_ACCEPTED':
+        return 'bi bi-check2-circle';
+      case 'NO_DRIVERS_AVAILABLE':
+        return 'bi bi-x-circle-fill';
+      case 'RIDE_REQUEST_REJECTED':
+        return 'bi bi-x-circle-fill';
+      case 'SCHEDULED_RIDE_REMINDER':
+        return 'bi bi-alarm-fill';
       default:
         return 'bi bi-bell-fill';
     }

@@ -252,4 +252,103 @@ public class NotificationService {
             logger.error("Error deleting RIDE_FINISHED notifications for ride {}: {}", rideId, e.getMessage(), e);
         }
     }
+
+    public void createNoDriversAvailableNotification(RegisteredUser passenger) {
+        try {
+            String message = "Unfortunately, there are currently no active drivers available. Please try again later.";
+
+            Notification notification = new Notification();
+            notification.setUser(passenger);
+            notification.setMessage(message);
+            notification.setType(NotificationType.NO_DRIVERS_AVAILABLE);
+            notification.setSeen(false);
+
+            notification = notificationRepository.save(notification);
+            logger.info("Created no drivers available notification for user {}", passenger.getId());
+
+            // Send real-time notification via WebSocket
+            NotificationResponseDTO dto = new NotificationResponseDTO(notification);
+            webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+        } catch (Exception e) {
+            logger.error("Error creating no drivers available notification: {}", e.getMessage(), e);
+        }
+    }
+
+    public void createRideRequestRejectedNotification(RegisteredUser passenger) {
+        try {
+            String message = "Your ride request could not be processed at this time. All drivers are currently busy. Please try again later.";
+
+            Notification notification = new Notification();
+            notification.setUser(passenger);
+            notification.setMessage(message);
+            notification.setType(NotificationType.RIDE_REQUEST_REJECTED);
+            notification.setSeen(false);
+
+            notification = notificationRepository.save(notification);
+            logger.info("Created ride request rejected notification for user {}", passenger.getId());
+
+            // Send real-time notification via WebSocket
+            NotificationResponseDTO dto = new NotificationResponseDTO(notification);
+            webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+        } catch (Exception e) {
+            logger.error("Error creating ride request rejected notification: {}", e.getMessage(), e);
+        }
+    }
+
+    public void createRideRequestAcceptedNotification(RegisteredUser passenger, Ride ride) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
+            String rideTime = ride.getScheduledTime().format(formatter);
+
+            String message = String.format("Your ride request has been accepted! Your ride is scheduled for %s", rideTime);
+
+            Notification notification = new Notification();
+            notification.setUser(passenger);
+            notification.setMessage(message);
+            notification.setType(NotificationType.RIDE_REQUEST_ACCEPTED);
+            notification.setRelatedEntityId(ride.getId());
+            notification.setSeen(false);
+
+            notification = notificationRepository.save(notification);
+            logger.info("Created ride request accepted notification for user {}", passenger.getId());
+
+            // Send real-time notification via WebSocket
+            NotificationResponseDTO dto = new NotificationResponseDTO(notification);
+            webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+        } catch (Exception e) {
+            logger.error("Error creating ride request accepted notification: {}", e.getMessage(), e);
+        }
+    }
+
+    public void createScheduledRideReminderNotification(RegisteredUser passenger, Ride ride) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
+            String rideTime = ride.getScheduledTime().format(formatter);
+            String endAddress = ride.getRoute().getEndLocation().getAddress();
+            
+            // If address has more than 3 commas, show only first 3 parts
+            String[] parts = endAddress.split(",");
+            if (parts.length > 3) {
+                endAddress = parts[0] + ", " + parts[1] + ", " + parts[2];
+            }
+
+            String message = String.format("Reminder: Your ride to %s is scheduled for %s", endAddress, rideTime);
+
+            Notification notification = new Notification();
+            notification.setUser(passenger);
+            notification.setMessage(message);
+            notification.setType(NotificationType.SCHEDULED_RIDE_REMINDER);
+            notification.setRelatedEntityId(ride.getId());
+            notification.setSeen(false);
+
+            notification = notificationRepository.save(notification);
+            logger.info("Created scheduled ride reminder notification for user {} for ride {}", passenger.getId(), ride.getId());
+
+            // Send real-time notification via WebSocket
+            NotificationResponseDTO dto = new NotificationResponseDTO(notification);
+            webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+        } catch (Exception e) {
+            logger.error("Error creating scheduled ride reminder notification: {}", e.getMessage(), e);
+        }
+    }
 }

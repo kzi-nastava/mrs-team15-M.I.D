@@ -30,6 +30,7 @@ public class OrderRideResponseDTO {
     private double priceEstimate;
     private int ETA;
     private Long driverId;
+    private String rejectionReason;
 
     public OrderRideResponseDTO() { super(); }
 

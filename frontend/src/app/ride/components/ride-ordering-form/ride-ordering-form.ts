@@ -673,7 +673,7 @@ export class RideOrderingForm implements OnInit {
         babyFriendly: !!prefs.babySeat,
         petFriendly: !!prefs.petFriendly,
         linkedPassengers: prefs.guests && prefs.guests.length ? prefs.guests : [],
-        scheduledTime: prefs && prefs.scheduledTime ? (function(){ try { return new Date(prefs.scheduledTime).toISOString(); } catch(e){ return prefs.scheduledTime; } })() : null,
+        scheduledTime: prefs && prefs.scheduledTime ? (prefs.scheduledTime.includes('T') ? prefs.scheduledTime + ':00' : prefs.scheduledTime) : null,
         distanceKm: route?.distanceKm ?? 0,
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
         priceEstimate: priceForType,
