@@ -264,10 +264,6 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         broadcastToRide(rideId, "RIDE_STOPPED", stopData);
     }
 
-    public void broadcastRouteUpdate(Long rideId, Object routeData) {
-        broadcastToRide(rideId, "ROUTE_UPDATED", routeData);
-    }
-
     public void broadcastRideComplete(Long rideId, Object completionData) {
         broadcastToRide(rideId, "RIDE_COMPLETED", completionData);
     }
@@ -303,5 +299,4 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
             System.err.println("Failed to broadcast to ride " + rideId + ": " + e.getMessage());
         }
     }
-
 }

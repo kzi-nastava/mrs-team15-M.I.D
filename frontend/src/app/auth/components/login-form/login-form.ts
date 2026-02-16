@@ -70,6 +70,7 @@ export class LoginForm {
           this.notificationService.initializeNotifications();
           // Then connect to WebSocket for real-time updates
           this.notificationService.connectToNotifications(response.token);
+          setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
         }
 
         switch(response.role) {
