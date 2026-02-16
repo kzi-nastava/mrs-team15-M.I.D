@@ -108,13 +108,163 @@ class OrderingRideRepositoryTest {
         assertFalse(rides.isEmpty());
     }
 
+    // ================= BOUNDARY TESTS =================
+
+    @Test
+    @DisplayName("Should return empty list when driver has no scheduled rides")
+    void findScheduledRidesByDriver_noRides_shouldReturnEmpty() {
+        Driver newDriver = createNewDriver("newdriver@gmail.com");
+        em.flush();
+        em.clear();
+
+        List<Ride> rides = rideRepository.findScheduledRidesByDriver(newDriver);
+
+        assertTrue(rides.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return empty list when no scheduled rides in time window")
+    void findScheduledRidesForDriverInNextHour_noRidesInWindow_shouldReturnEmpty() {
+        LocalDateTime futureTime = now.plusDays(2);
+        
+        List<Ride> rides = rideRepository.findScheduledRidesForDriverInNextHour(
+                driver.getId(),
+                futureTime,
+                futureTime.plusHours(1)
+        );
+
+        assertTrue(rides.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return empty when driver has no current ride")
+    void findCurrentRideByDriver_noCurrentRide_shouldReturnEmpty() {
+        Driver newDriver = createNewDriver("freeDriver@gmail.com");
+        em.flush();
+        em.clear();
+
+        Optional<Ride> result = rideRepository.findCurrentRideByDriver(newDriver.getId());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return empty when user has no current ride")
+    void findCurrentRideByUser_noCurrentRide_shouldReturnEmpty() {
+        RegisteredUser newUser = createNewUser("newuser@gmail.com");
+        em.flush();
+        em.clear();
+
+        Optional<Ride> result = rideRepository.findCurrentRideByUser(newUser.getId());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return empty list when no active rides exist")
+    void findActiveRides_noActiveRides_shouldReturnEmpty() {
+        // Update all rides to FINISHED
+        inProgressRide.setStatus(RideStatus.FINISHED);
+        inProgressRide.setEndTime(LocalDateTime.now());
+        em.merge(inProgressRide);
+        em.flush();
+        em.clear();
+
+        List<Ride> rides = rideRepository.findActiveRides();
+
+        assertTrue(rides.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should handle boundary times for scheduled rides")
+    void findScheduledRidesForDriverInNextHour_exactBoundary_shouldInclude() {
+        // Create ride at exact boundary
+        Ride boundaryRide = createRide(RideStatus.REQUESTED);
+        boundaryRide.setScheduledTime(now.plusMinutes(30));
+        em.persist(boundaryRide);
+        em.flush();
+        em.clear();
+
+        List<Ride> rides = rideRepository.findScheduledRidesForDriverInNextHour(
+                driver.getId(),
+                now.minusMinutes(1),
+                now.plusHours(1).plusMinutes(1)
+        );
+
+        assertFalse(rides.isEmpty());
+        assertTrue(rides.stream().anyMatch(r -> r.getId().equals(boundaryRide.getId())));
+    }
+
+    @Test
+    @DisplayName("Should only return REQUESTED status rides in scheduled query")
+    void findScheduledRidesByDriver_onlyRequestedStatus_shouldReturn() {
+        // Create FINISHED ride for same driver
+        Ride finishedRide = createRide(RideStatus.FINISHED);
+        finishedRide.setEndTime(LocalDateTime.now());
+        em.persist(finishedRide);
+        em.flush();
+        em.clear();
+
+        List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
+
+        assertFalse(rides.isEmpty());
+        assertTrue(rides.stream().allMatch(r -> r.getStatus() == RideStatus.REQUESTED));
+        assertFalse(rides.stream().anyMatch(r -> r.getId().equals(finishedRide.getId())));
+    }
+
+    @Test
+    @DisplayName("Should only return IN_PROGRESS status in current ride query")
+    void findCurrentRideByDriver_onlyInProgress_shouldReturn() {
+        Optional<Ride> result = rideRepository.findCurrentRideByDriver(driver.getId());
+
+        assertTrue(result.isPresent());
+        assertEquals(RideStatus.IN_PROGRESS, result.get().getStatus());
+    }
+
+    // ================= helpers =================
+
+    private Driver createNewDriver(String email) {
+        Driver newDriver = new Driver();
+        newDriver.setFirstName("New");
+        newDriver.setLastName("Driver");
+        newDriver.setEmail(email);
+        newDriver.setPassword("123123");
+        newDriver.setAddress("Novi Sad");
+        newDriver.setPhoneNumber("0641234568");
+        newDriver.setActive(true);
+        newDriver.setBlocked(false);
+        newDriver.setJwtTokenValid(true);
+        newDriver.setRole(UserRoles.DRIVER);
+        newDriver.setAvailable(true);
+        newDriver.setWorkingHoursLast24(0.0);
+        newDriver.setStatus(DriverStatus.ACTIVE);
+        em.persist(newDriver);
+        return newDriver;
+    }
+
+    private RegisteredUser createNewUser(String email) {
+        RegisteredUser newUser = new RegisteredUser();
+        newUser.setFirstName("New");
+        newUser.setLastName("User");
+        newUser.setEmail(email);
+        newUser.setPassword("123123");
+        newUser.setAddress("Novi Sad");
+        newUser.setPhoneNumber("0641234569");
+        newUser.setActive(true);
+        newUser.setBlocked(false);
+        newUser.setJwtTokenValid(true);
+        newUser.setRole(UserRoles.USER);
+        em.persist(newUser);
+        return newUser;
+    }
+
     // ================= helpers =================
 
     private Driver createDriver() {
         Driver driver = new Driver();
         driver.setFirstName("Pera");
         driver.setLastName("Perić");
-        driver.setEmail("driver@test.com");
+        driver.setEmail("driver@gmail.com");
         driver.setPassword("123123");
         driver.setAddress("Novi Sad");
         driver.setPhoneNumber("0641234567");
@@ -135,7 +285,7 @@ class OrderingRideRepositoryTest {
         RegisteredUser user = new RegisteredUser();
         user.setFirstName("Mika");
         user.setLastName("Mikic");
-        user.setEmail("user@test.com");
+        user.setEmail("user@gmail.com");
         user.setPassword("123123");
         user.setAddress("Novi Sad");
         user.setPhoneNumber("0641234567");

@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { DriverRegisterForm } from './driver-register-form';
 import { of, throwError } from 'rxjs';
 
-// run this test with this command: ng test --include src/app/shared/components/driver-register-form/driver-register-form.spec.ts
+// command: ng test --include src/app/shared/components/driver-register-form/driver-register-form.spec.ts
 describe('DriverRegisterForm', () => {
   let component: DriverRegisterForm;
   let fixture: ComponentFixture<DriverRegisterForm>;
