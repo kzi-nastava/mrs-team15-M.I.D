@@ -13,8 +13,10 @@ import rs.ac.uns.ftn.asd.ridenow.security.JwtUtil;
 import rs.ac.uns.ftn.asd.ridenow.service.PanicAlertService;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -38,6 +40,9 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     private final Map<Long, WebSocketSession> userSessions = new ConcurrentHashMap<>();
 
     private final Map<String, Long> sessionIdToUserId = new ConcurrentHashMap<>();
+
+    // For current ride - maps ride to list of drivers and passengers
+    private final Map<Long, Set<Long>> rideParticipants = new ConcurrentHashMap<>();
 
     public NotificationWebSocketHandler() {
         this.objectMapper = new ObjectMapper();
@@ -177,6 +182,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
             userSessions.remove(userId);
             adminSessions.remove(userId); // Remove from admin sessions too if it was there
         }
+        rideParticipants.values().forEach(participants -> participants.remove((userId)));
     }
 
     // Broadcast to specific user (new method for user notifications)
@@ -234,7 +240,63 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         }
     }
 
-    public int getConnectedAdminCount() {
-        return adminSessions.size();
+    public void registerRideParticipant(Long rideId, Long userId){
+        rideParticipants.computeIfAbsent(rideId, k -> ConcurrentHashMap.newKeySet()).add(userId);
+        System.out.println("Registered user" + userId + "for ride" + rideId);
+    }
+
+    public void registerRideParticipants(Long rideId, List<Long> userIds){
+        Set<Long> participants = rideParticipants.computeIfAbsent(rideId, k -> ConcurrentHashMap.newKeySet());
+        participants.addAll(userIds);
+        System.out.println("Registered " + userIds.size() + " participants for ride " + rideId);
+    }
+
+    public void unregisterRide(Long rideId) {
+        rideParticipants.remove(rideId);
+        System.out.println("Unregistered all participants from ride " + rideId);
+    }
+
+    public void broadcastRidePanic(Long rideId, Object panicData) {
+        broadcastToRide(rideId, "RIDE_PANIC", panicData);
+    }
+
+    public void broadcastRideStop(Long rideId, Object stopData) {
+        broadcastToRide(rideId, "RIDE_STOPPED", stopData);
+    }
+
+    public void broadcastRideComplete(Long rideId, Object completionData) {
+        broadcastToRide(rideId, "RIDE_COMPLETED", completionData);
+    }
+
+    private void broadcastToRide(Long rideId, String action, Object data) {
+        Set<Long> participants = rideParticipants.get(rideId);
+
+        if (participants == null || participants.isEmpty()) {
+            System.out.println("No participants registered for ride " + rideId);
+            return;
+        }
+
+        WebSocketMessageDTO message = new WebSocketMessageDTO(action, data);
+
+        try {
+            String payload = objectMapper.writeValueAsString(message);
+            TextMessage textMessage = new TextMessage(payload);
+
+            int successCount = 0;
+            for (Long userId : participants) {
+                WebSocketSession session = userSessions.get(userId);
+                if (session != null && session.isOpen()) {
+                    try {
+                        session.sendMessage(textMessage);
+                        successCount++;
+                    } catch (Exception e) {
+                        System.err.println("Failed to send to user " + userId + ": " + e.getMessage());
+                    }
+                }
+            }
+            System.out.println("Broadcast " + action + " to " + successCount + "/" + participants.size() + " participants for ride " + rideId);
+        } catch (Exception e) {
+            System.err.println("Failed to broadcast to ride " + rideId + ": " + e.getMessage());
+        }
     }
 }

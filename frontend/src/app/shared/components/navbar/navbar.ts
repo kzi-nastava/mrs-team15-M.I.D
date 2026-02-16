@@ -123,6 +123,7 @@ onToggleChange(event: MouseEvent) {
         localStorage.removeItem('tokenExpiration');
         this.driverState.resetStatus();
         this.notificationService.disconnect();
+        this.notificationWebSocketService.disconnect();
         this.isActive = false;
         this.driverStatus = '';
         this.showMessageToast( 'You have been logged out successfully. See you next time!');

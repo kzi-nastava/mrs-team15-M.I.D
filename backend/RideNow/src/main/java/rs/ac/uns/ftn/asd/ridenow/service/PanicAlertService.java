@@ -19,9 +19,7 @@ import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.websocket.NotificationWebSocketHandler;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,12 +58,20 @@ public class PanicAlertService {
         panicAlert.setPanicByRole(user.getRole().name());
         panicAlert = panicAlertRepository.save(panicAlert);
 
+        Map<String, Object> panicData = new HashMap<>();
+        panicData.put("rideId", ride.getId());
+        panicData.put("triggeredBy", panicAlert.getPanicByRole());
+        panicData.put("triggeredByUserId", panicAlert.getPanicBy());
+        panicData.put("timestamp", new Date());
+
         ride.setPanicAlert(panicAlert);
         rideRepository.save(ride);
 
         PanicAlertDTO dto = convertToDTO(panicAlert, ride);
         webSocketHandler.broadcastNewPanic(dto);
+        webSocketHandler.broadcastRidePanic(ride.getId(), panicData);
         System.out.println("Panic alert created and broadcast for ride #" + ride.getId());
+        System.out.println("Panic alert triggered for ride " + ride.getId() + " by " + panicAlert.getPanicByRole());
         return dto;
     }
 
