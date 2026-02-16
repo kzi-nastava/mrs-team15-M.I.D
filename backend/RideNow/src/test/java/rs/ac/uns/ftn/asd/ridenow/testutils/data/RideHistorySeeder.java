@@ -197,9 +197,10 @@ public class RideHistorySeeder {
             if (!ride.getCancelled() && random.nextDouble() < 0.1) {
                 PanicAlert panic = new PanicAlert();
                 panic.setRide(ride);
-                panic.setPanicBy("USER");
-                panic.setTime(ride.getStartTime().plusMinutes(random.nextInt(10)));
+                panic.setPanicBy("user@gmail.com");
+                panic.setCreatedAt(ride.getStartTime().plusMinutes(random.nextInt(10)));
                 panic.setResolved(true);
+                panic.setPanicByRole("USER");
                 panicAlertRepository.save(panic);
             }
 
