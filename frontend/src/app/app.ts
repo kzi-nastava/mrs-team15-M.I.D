@@ -17,7 +17,7 @@ export class App {
   protected readonly title = signal('Ride Now');
 
   constructor(
-    private locationTrackingService: LocationTrackingService, 
+    private locationTrackingService: LocationTrackingService,
     private tokenExpirationService: TokenExpirationService,
     private notificationService: NotificationService
   ) {
@@ -28,11 +28,14 @@ export class App {
     const token = localStorage.getItem('jwtToken');
     const role = localStorage.getItem('role');
 
+    console.debug('[App] ngOnInit - token:', token ? 'present' : 'missing', 'role:', role);
+
     if (token) {
       this.tokenExpirationService.startTokenExpirationCheck();
-      
+
       // Initialize notifications for users and drivers
       if (role === 'USER' || role === 'DRIVER') {
+        console.debug('[App] Initializing notifications for role:', role);
         // First load existing notifications
         this.notificationService.initializeNotifications();
         // Then connect to WebSocket for real-time updates

@@ -55,23 +55,28 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         String token = extractTokenFromQuery(session);
 
         if (token == null) {
+            System.err.println("DEBUG: No token provided in WebSocket connection");
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No token provided"));
             return;
         }
 
         User user = authenticateUser(token);
         if (user == null) {
-           session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Authentication failed"));
+            System.err.println("DEBUG: Authentication failed for token");
+            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Authentication failed"));
             return;
         }
 
         // Store user session for all notification types
         userSessions.put(user.getId(), session);
         sessionIdToUserId.put(session.getId(), user.getId());
+        System.out.println("DEBUG: User " + user.getId() + " (" + user.getEmail() + ") connected to notifications WebSocket");
+        System.out.println("DEBUG: Current sessions: " + userSessions.keySet());
 
         // If user is admin, also store in admin sessions for panic alerts
-      if ("ADMIN".equals(user.getRole().name())) {
+        if ("ADMIN".equals(user.getRole().name())) {
             adminSessions.put(user.getId(), session);
+            System.out.println("DEBUG: User " + user.getId() + " is an admin, added to admin sessions");
             // Send current unresolved panic alerts to newly connected admin
             try {
                 sendInitialState(session);
@@ -188,16 +193,29 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     // Broadcast to specific user (new method for user notifications)
     public void broadcastToUser(Long userId, String action, Object data) {
         WebSocketSession session = userSessions.get(userId);
-        if (session != null && session.isOpen()) {
-            try {
-                WebSocketMessageDTO message = new WebSocketMessageDTO(action, data);
-                String payload = objectMapper.writeValueAsString(message);
-                session.sendMessage(new TextMessage(payload));
-            } catch (Exception e) {
-                // Remove broken session
-                userSessions.remove(userId);
-                sessionIdToUserId.values().removeIf(id -> id.equals(userId));
-            }
+        if (session == null) {
+            System.err.println("DEBUG: No session found for userId " + userId + ". Available sessions: " + userSessions.keySet());
+            return;
+        }
+
+        if (!session.isOpen()) {
+            System.err.println("DEBUG: Session for userId " + userId + " is closed");
+            userSessions.remove(userId);
+            return;
+        }
+
+        try {
+            WebSocketMessageDTO message = new WebSocketMessageDTO(action, data);
+            String payload = objectMapper.writeValueAsString(message);
+            System.out.println("DEBUG: Broadcasting " + action + " to user " + userId);
+            session.sendMessage(new TextMessage(payload));
+            System.out.println("DEBUG: Message sent successfully to user " + userId);
+        } catch (Exception e) {
+            System.err.println("DEBUG: Failed to send message to user " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+            // Remove broken session
+            userSessions.remove(userId);
+            sessionIdToUserId.values().removeIf(id -> id.equals(userId));
         }
     }
 
