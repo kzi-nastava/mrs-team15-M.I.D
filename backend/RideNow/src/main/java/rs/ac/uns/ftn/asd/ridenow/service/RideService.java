@@ -111,9 +111,7 @@ public class RideService {
     }
 
     public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto, String mainPassenger) {
-        OrderRideResponseDTO response = new OrderRideResponseDTO();
-
-        // validate vehicle type
+        // validacija tipa vozila
         VehicleType vehicleType;
         try {
             vehicleType = VehicleType.valueOf(dto.getVehicleType().toUpperCase());
@@ -121,87 +119,86 @@ public class RideService {
             throw new IllegalArgumentException("Invalid vehicle type: " + dto.getVehicleType());
         }
 
-        // make new route or find in favorites
+        // kreiranje nove rute ili korišćenje favorite
         Route route = makeRoute(dto);
 
+        // inicijalizacija ride uvek
         Ride ride = new Ride();
 
-        if (dto.getScheduledTime() != null) {
-            LocalDateTime scheduled = dto.getScheduledTime();
-            LocalDateTime prev30 = scheduled.minusMinutes(30);
-            LocalDateTime next30 = scheduled.plusMinutes(30);
+        // odredi vremenski okvir za pronalaženje najboljeg vozača
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endTime = (dto.getScheduledTime() != null) ? dto.getScheduledTime().plusMinutes(0) : now.plusHours(1);
 
-            response = getBestDriver(dto, vehicleType, prev30, next30);
+        // pronađi najboljeg vozača
+        OrderRideResponseDTO response = getBestDriver(
+                dto,
+                vehicleType,
+                (dto.getScheduledTime() != null) ? dto.getScheduledTime().minusMinutes(30) : now,
+                (dto.getScheduledTime() != null) ? dto.getScheduledTime().plusMinutes(30) : endTime
+        );
 
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime nextHour = now.plusHours(1);
-            response = getBestDriver(dto, vehicleType, now, nextHour);
+        // dodeli vozača ako postoji
+        Driver assigned = null;
+        if (response.getDriverId() != null) {
+            assigned = driverRepository.findById(response.getDriverId())
+                    .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 
+            // mark driver as unavailable ako nije zakazano
+            if (dto.getScheduledTime() == null) {
+                assigned.setStatus(DriverStatus.INACTIVE);
+            }
+            driverRepository.save(assigned);
         }
 
-        Driver assigned = driverRepository.findById(response.getDriverId())
-                .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
-        int ETA = response.getETA();
-        // Assign selected driver
-        ride.setDriver(assigned);
+        // odredi ETA
+        int ETA = (response.getETA() != 0) ? response.getETA() : 0;
+
+        // dodela vozača i status ride
+        if (assigned != null) {
+            ride.setDriver(assigned);
+        }
         ride.setStatus(RideStatus.REQUESTED);
-        if (dto.getScheduledTime() == null) {
-            ride.setScheduledTime(LocalDateTime.now().plusMinutes(ETA));
-        }
-        else {
-            ride.setScheduledTime(dto.getScheduledTime());
-            ETA = (int) java.time.Duration.between(LocalDateTime.now(), dto.getScheduledTime()).toMinutes();
-        }
         ride.setDistanceKm(dto.getDistanceKm());
         ride.setPrice(dto.getPriceEstimate());
-        // Add passengers to ride
-        Passenger main = new Passenger();
-        RegisteredUser mainUser = (RegisteredUser) registeredUserRepository.findByEmail(mainPassenger)
-                .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
+        ride.setScheduledTime((dto.getScheduledTime() != null) ? dto.getScheduledTime() : now.plusMinutes(ETA));
 
+        // dodavanje glavnog putnika
+        Passenger main = new Passenger();
+        RegisteredUser mainUser = registeredUserRepository.findByEmail(mainPassenger)
+                .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
         main.setUser(mainUser);
         main.setRole(PassengerRole.CREATOR);
         main.setRide(ride);
         ride.addPassenger(main);
+
+        // dodavanje linked putnika, preskakanje nepostojećih
         if (dto.getLinkedPassengers() != null) {
             for (String email : dto.getLinkedPassengers()) {
-                try {
-                    RegisteredUser user = registeredUserRepository.findByEmail(email)
-                            .orElseThrow(() -> new EntityNotFoundException("User with email " + email + " not found"));
-
+                Optional<RegisteredUser> userOpt = registeredUserRepository.findByEmail(email);
+                if (userOpt.isPresent()) {
                     Passenger passenger = new Passenger();
-                    passenger.setUser(user);
+                    passenger.setUser(userOpt.get());
                     passenger.setRole(PassengerRole.PASSENGER);
                     passenger.setRide(ride);
                     ride.addPassenger(passenger);
-
+                try{
                     // Send notification to the added passenger
                     notificationService.createAndSendPassengerAddedNotification(user, ride);
                 } catch (Exception e) {
                     // skip invalid passengers
                 }
+                }
             }
         }
 
+        // čuvanje rute i ride
         if (dto.getFavoriteRouteId() == null) {
             route = routeRepository.save(route);
-            ride.setRoute(route);
-            ride = rideRepository.save(ride);
-            response.setDriverId(assigned.getId());
-        } else {
-            ride.setRoute(route);
-            ride = rideRepository.save(ride);
-            response.setDriverId(assigned.getId());
         }
+        ride.setRoute(route);
+        ride = rideRepository.save(ride);
 
-        // mark driver as unavailable
-        if (dto.getScheduledTime() == null) {
-            assigned.setStatus(DriverStatus.INACTIVE);
-        }
-
-        driverRepository.save(assigned);
-
+        // popunjavanje response DTO
         response.setId(ride.getId());
         response.setMainPassengerEmail(mainPassenger);
         response.setStartAddress(dto.getStartAddress());
@@ -220,6 +217,8 @@ public class RideService {
 
         return response;
     }
+
+
 
     public OrderRideResponseDTO getBestDriver(OrderRideRequestDTO dto, VehicleType vehicleType, LocalDateTime now, LocalDateTime nextHour){
 

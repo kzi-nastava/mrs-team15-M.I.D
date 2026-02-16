@@ -17,4 +17,8 @@ public class RideEstimateResponseDTO {
         super();
     }
 
+    public RideEstimateResponseDTO(int estimatedDurationMin, double distanceKm) {
+        this.estimatedDurationMin = estimatedDurationMin;
+    }
+
 }
