@@ -224,6 +224,7 @@ public class AuthService {
             driver.setAvailable(false);
             driver.setStatus(DriverStatus.INACTIVE);
         }
+        user.setFcmDeviceToken(null);
         user.setJwtTokenValid(false);
         userRepository.save(user);
     }

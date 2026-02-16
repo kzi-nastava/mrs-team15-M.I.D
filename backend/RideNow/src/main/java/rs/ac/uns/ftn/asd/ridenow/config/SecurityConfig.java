@@ -27,7 +27,6 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // WebSocket endpoints MUST come first to avoid conflicts with REST API patterns
                         .requestMatchers("/api/notifications/websocket").permitAll()
                         .requestMatchers("/api/chat/websocket/**").permitAll()
                         // Auth endpoints
@@ -80,6 +79,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/panic-alerts/all").hasRole("ADMIN")
                         .requestMatchers("/api/panic-alerts/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/panic-alerts/{id}/resolve").hasRole("ADMIN")
+                        .requestMatchers("/api/fcm/register-token").hasAnyRole("ADMIN", "USER", "DRIVER")
+                        .requestMatchers("/api/notifications/**").hasAnyRole("ADMIN", "USER", "DRIVER")
 
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
