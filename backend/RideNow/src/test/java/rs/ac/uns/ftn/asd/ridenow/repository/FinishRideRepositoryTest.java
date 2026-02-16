@@ -33,9 +33,6 @@ public class FinishRideRepositoryTest {
     @Autowired
     private RideRepository rideRepository;
 
-    @Autowired
-    private DriverRepository driverRepository;
-
     private Driver driver;
     private Vehicle vehicle;
     private Route route;

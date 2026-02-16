@@ -9,10 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.*;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
+import rs.ac.uns.ftn.asd.ridenow.websocket.NotificationWebSocketHandler;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,10 +28,40 @@ import static org.mockito.Mockito.*;
 public class FinishRideServiceTest {
 
     @Mock
+    private RoutingService routingService;
+
+    @Mock
+    private PanicAlertRepository panicAlertRepository;
+
+    @Mock
+    private PriceService priceService;
+
+    @Mock
+    private RouteRepository routeRepository;
+
+    @Mock
     private RideRepository rideRepository;
 
     @Mock
     private DriverRepository driverRepository;
+
+    @Mock
+    private RatingRepository ratingRepository;
+
+    @Mock
+    private InconsistencyRepository inconsistencyRepository;
+
+    @Mock
+    private PassengerRepository passengerRepository;
+
+    @Mock
+    private RegisteredUserRepository registeredUserRepository;
+
+    @Mock
+    private NotificationWebSocketHandler webSocketHandler;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private RideService rideService;
@@ -81,6 +110,27 @@ public class FinishRideServiceTest {
         route.setDistanceKm(5.2);
         route.setEstimatedTimeMin(15.0);
 
+        // Setup Passengers
+        RegisteredUser passenger1 = new RegisteredUser();
+        passenger1.setId(2L);
+        passenger1.setFirstName("Jane");
+        passenger1.setLastName("Smith");
+        passenger1.setEmail("jane.smith@example.com");
+
+        Passenger mainPassenger = new Passenger();
+        mainPassenger.setUser(passenger1);
+        mainPassenger.setRole(PassengerRole.CREATOR);
+
+        RegisteredUser passenger2 = new RegisteredUser();
+        passenger2.setId(3L);
+        passenger2.setFirstName("Bob");
+        passenger2.setLastName("Johnson");
+        passenger2.setEmail("bob.johnson@example.com");
+
+        Passenger addedPassenger = new Passenger();
+        addedPassenger.setUser(passenger2);
+        addedPassenger.setRole(PassengerRole.PASSENGER);
+
         // Setup Ride
         ride = new Ride();
         ride.setId(1L);
@@ -90,16 +140,15 @@ public class FinishRideServiceTest {
         ride.setStartTime(LocalDateTime.now().minusMinutes(10));
         ride.setScheduledTime(LocalDateTime.now().minusMinutes(15));
         ride.setPrice(500.0);
+        ride.setPassengers(List.of(mainPassenger, addedPassenger));
     }
 
     @Test
-    @DisplayName("Should successfully finish ride when no scheduled rides exist within next hour")
-    void finishRide_NoScheduledRides_ShouldMarkDriverAsAvailableAndReturnFalse() {
+    @DisplayName("Should successfully finish ride and send notifications when no scheduled rides exist")
+    void finishRide_NoScheduledRides_ShouldFinishAndNotify() {
         // Arrange
         Long rideId = 1L;
         Long driverId = 1L;
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextHour = now.plusHours(1);
 
         when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
         when(rideRepository.save(any(Ride.class))).thenReturn(ride);
@@ -118,19 +167,28 @@ public class FinishRideServiceTest {
             savedRide.getEndTime() != null
         ));
 
+        // Verify WebSocket broadcasts
+        verify(webSocketHandler).broadcastRideComplete(eq(rideId), any(java.util.Map.class));
+        verify(webSocketHandler).unregisterRide(rideId);
+
+        // Verify notifications were deleted
+        verify(notificationService).deleteRideRelatedNotifications(rideId);
+        verify(notificationService).deleteRideRelatedNotificationsForPassengers(
+                argThat(list -> list != null && list.size() == 2), eq(rideId));
+
+        // Verify ride finished notifications were sent to all passengers
+        verify(notificationService, times(2)).createRideFinishedNotification(any(RegisteredUser.class), eq(ride), anyBoolean());
+
         // Verify driver was made available
         verify(driverRepository).save(argThat(savedDriver ->
             savedDriver.getAvailable() == true &&
-            savedDriver.getPendingStatus() == null
+            savedDriver.getStatus() == DriverStatus.ACTIVE
         ));
-
-        // Verify search for scheduled rides
-        verify(rideRepository).findScheduledRidesForDriverInNextHour(eq(driverId), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
-    @DisplayName("Should successfully finish ride and start next scheduled ride")
-    void finishRide_HasScheduledRides_ShouldStartNextRideAndReturnTrue() {
+    @DisplayName("Should successfully finish ride and send notifications when next ride exists")
+    void finishRide_HasScheduledRides_ShouldFinishNotifyAndStartNext() {
         // Arrange
         Long rideId = 1L;
         Long driverId = 1L;
@@ -159,6 +217,16 @@ public class FinishRideServiceTest {
             savedRide.getStatus() == RideStatus.FINISHED &&
             savedRide.getEndTime() != null
         ));
+
+        // Verify WebSocket broadcasts
+        verify(webSocketHandler).broadcastRideComplete(eq(rideId), any(java.util.Map.class));
+        verify(webSocketHandler).unregisterRide(rideId);
+
+        // Verify notifications were deleted and sent
+        verify(notificationService).deleteRideRelatedNotifications(rideId);
+        verify(notificationService).deleteRideRelatedNotificationsForPassengers(
+                argThat(list -> list != null && list.size() == 2), eq(rideId));
+        verify(notificationService, times(2)).createRideFinishedNotification(any(RegisteredUser.class), eq(ride), anyBoolean());
 
         // Verify next ride was started
         verify(rideRepository).save(argThat(savedNextRide ->
@@ -192,34 +260,6 @@ public class FinishRideServiceTest {
     }
 
     @Test
-    @DisplayName("Should handle driver with pending status when no scheduled rides exist")
-    void finishRide_DriverWithPendingStatus_ShouldApplyPendingStatusAndClearIt() {
-        // Arrange
-        Long rideId = 1L;
-        Long driverId = 1L;
-
-        driver.setPendingStatus(DriverStatus.INACTIVE);
-
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(ride));
-        when(rideRepository.save(any(Ride.class))).thenReturn(ride);
-        when(rideRepository.findScheduledRidesForDriverInNextHour(eq(driverId), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(new ArrayList<>());
-
-        // Act
-        Boolean result = rideService.finishRide(rideId, driverId);
-
-        // Assert
-        assertFalse(result);
-
-        // Verify driver status was updated correctly
-        verify(driverRepository).save(argThat(savedDriver ->
-            savedDriver.getAvailable() == true &&
-            savedDriver.getStatus() == DriverStatus.INACTIVE &&
-            savedDriver.getPendingStatus() == null
-        ));
-    }
-
-    @Test
     @DisplayName("Should handle null driver gracefully")
     void finishRide_NullDriver_ShouldFinishRideWithoutDriverUpdate() {
         // Arrange
@@ -250,7 +290,7 @@ public class FinishRideServiceTest {
 
     @Test
     @DisplayName("Should handle multiple scheduled rides and start the first one")
-    void finishRide_MultipleScheduledRides_ShouldStartFirstRideOnly() {
+    void finishRide_MultipleScheduledRides_ShouldStartFirstRideAndNotify() {
         // Arrange
         Long rideId = 1L;
         Long driverId = 1L;
@@ -277,6 +317,14 @@ public class FinishRideServiceTest {
 
         // Assert
         assertTrue(result);
+
+        // Verify WebSocket and notifications
+        verify(webSocketHandler).broadcastRideComplete(eq(rideId), any(java.util.Map.class));
+        verify(webSocketHandler).unregisterRide(rideId);
+        verify(notificationService).deleteRideRelatedNotifications(rideId);
+        verify(notificationService).deleteRideRelatedNotificationsForPassengers(
+                argThat(list -> list != null && list.size() == 2), eq(rideId));
+        verify(notificationService, times(2)).createRideFinishedNotification(any(RegisteredUser.class), eq(ride), anyBoolean());
 
         // Verify only the first ride was started
         verify(rideRepository, times(2)).save(any(Ride.class)); // Once for finishing current ride, once for starting next

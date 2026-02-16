@@ -11,10 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import rs.ac.uns.ftn.asd.ridenow.RideNowApplication;
 import rs.ac.uns.ftn.asd.ridenow.model.*;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.PassengerRole;
-import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
+import rs.ac.uns.ftn.asd.ridenow.model.enums.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,9 +31,6 @@ public class UpcomingRidesRepositoryTest {
 
     @Autowired
     private RideRepository rideRepository;
-
-    @Autowired
-    private DriverRepository driverRepository;
 
     private Driver driver1;
     private Driver driver2;
@@ -87,7 +81,7 @@ public class UpcomingRidesRepositoryTest {
         driver1.setStatus(DriverStatus.ACTIVE);
         driver1.setRating(4.5);
         driver1.setWorkingHoursLast24(8.0);
-        driver1.setRole(rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles.DRIVER);
+        driver1.setRole(UserRoles.DRIVER);
         driver1.setJwtTokenValid(false);
 
         driver2 = new Driver();
@@ -103,7 +97,7 @@ public class UpcomingRidesRepositoryTest {
         driver2.setStatus(DriverStatus.ACTIVE);
         driver2.setRating(4.7);
         driver2.setWorkingHoursLast24(6.0);
-        driver2.setRole(rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles.DRIVER);
+        driver2.setRole(UserRoles.DRIVER);
         driver2.setJwtTokenValid(false);
 
         // Create test passengers
@@ -116,7 +110,7 @@ public class UpcomingRidesRepositoryTest {
         passenger1.setAddress("789 Passenger Street");
         passenger1.setActive(true);
         passenger1.setBlocked(false);
-        passenger1.setRole(rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles.USER);
+        passenger1.setRole(UserRoles.USER);
         passenger1.setJwtTokenValid(false);
 
         passenger2 = new RegisteredUser();
@@ -128,7 +122,7 @@ public class UpcomingRidesRepositoryTest {
         passenger2.setAddress("101 Traveler Avenue");
         passenger2.setActive(true);
         passenger2.setBlocked(false);
-        passenger2.setRole(rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles.USER);
+        passenger2.setRole(UserRoles.USER);
         passenger2.setJwtTokenValid(false);
 
         // Persist users first

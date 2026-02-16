@@ -199,6 +199,9 @@ public class RideService {
         main.setRide(ride);
         ride.addPassenger(main);
 
+        ride.setRoute(route);
+
+
         // dodavanje linked putnika, preskakanje nepostojećih
         if (dto.getLinkedPassengers() != null) {
             for (String email : dto.getLinkedPassengers()) {
@@ -223,8 +226,8 @@ public class RideService {
         if (dto.getFavoriteRouteId() == null) {
             route = routeRepository.save(route);
         }
-        ride.setRoute(route);
         ride = rideRepository.save(ride);
+
 
         // Send notifications for successful ride booking
         try {
@@ -541,17 +544,16 @@ public class RideService {
 
         List<Ride> scheduledRides = rideRepository.findScheduledRidesForDriverInNextHour(
                 driverId, now, nextHour);
+        System.out.println("Found " + scheduledRides.size() + " scheduled rides for driver " + driverId + " in the next hour after finishing ride " + rideId);
 
         if (scheduledRides.isEmpty()) {
             // mark driver as available again
             Driver driver = ride.getDriver();
             if (driver != null) {
                 driver.setAvailable(true);
-                if(driver.getPendingStatus() != null){
-                    driver.setStatus(driver.getPendingStatus());
-                    driver.setPendingStatus(null);
-                }
+                driver.setStatus(DriverStatus.ACTIVE);
                 driverRepository.save(driver);
+                System.out.println("Marked driver " + driver.getId() + " as available after finishing ride " + rideId);
             }
             return false;
         }

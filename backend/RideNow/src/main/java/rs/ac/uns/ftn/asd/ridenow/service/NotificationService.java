@@ -9,6 +9,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.*;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.NotificationType;
 import rs.ac.uns.ftn.asd.ridenow.repository.NotificationRepository;
 import rs.ac.uns.ftn.asd.ridenow.websocket.NotificationWebSocketHandler;
+import rs.ac.uns.ftn.asd.ridenow.util.AddressUtil;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.time.format.DateTimeFormatter;
@@ -23,14 +24,18 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationWebSocketHandler webSocketHandler;
     private final FcmService fcmService;
+    private final EmailService emailService;
 
     public NotificationService(NotificationRepository notificationRepository,
                               NotificationWebSocketHandler webSocketHandler,
-                              FcmService fcmService) {
+                              FcmService fcmService,
+                              EmailService emailService) {
         this.notificationRepository = notificationRepository;
         this.webSocketHandler = webSocketHandler;
         this.fcmService = fcmService;
+        this.emailService = emailService;
     }
+
 
     public List<NotificationResponseDTO> getUserNotifications(User user) {
         try {
@@ -127,10 +132,24 @@ public class NotificationService {
 
             // Send push notification via FCM
             fcmService.sendPassengerAddedNotification(passenger, ride);
+
+            // Send email notification
+            String startAddress = AddressUtil.formatAddress(ride.getRoute().getStartLocation().getAddress());
+            String endAddress = AddressUtil.formatAddress(ride.getRoute().getEndLocation().getAddress());
+            emailService.sendPassengerAddedEmail(
+                passenger.getFirstName(),
+                passenger.getEmail(),
+                startAddress,
+                endAddress,
+                rideTime,
+                ride.getRoute().getDistanceKm(),
+                ride.getPrice()
+            );
         } catch (Exception e) {
             logger.error("Error creating passenger added notification: {}", e.getMessage(), e);
         }
     }
+
 
     public void createRideAssignedNotification(User driver, Ride ride) {
         try {
@@ -165,7 +184,7 @@ public class NotificationService {
             notification.setUser(passenger);
             notification.setMessage(message);
             notification.setType(NotificationType.RIDE_STARTED);
-            notification.setRelatedEntityId(ride.getId()); // Set ride ID so it can be deleted later
+            notification.setRelatedEntityId(ride.getId());
             notification.setSeen(false);
 
             notification = notificationRepository.save(notification);
@@ -177,10 +196,21 @@ public class NotificationService {
 
             // Send push notification via FCM
             fcmService.sendRideStartedNotification(passenger, ride);
+
+            // Send email notification
+            String driverName = ride.getDriver() != null ? ride.getDriver().getFirstName() : "Your driver";
+            String endAddress = AddressUtil.formatAddress(ride.getRoute().getEndLocation().getAddress());
+            emailService.sendRideStartedEmail(
+                passenger.getFirstName(),
+                passenger.getEmail(),
+                driverName,
+                endAddress
+            );
         } catch (Exception e) {
             logger.error("Error creating ride started notification: {}", e.getMessage(), e);
         }
     }
+
 
     public void createRideFinishedNotification(RegisteredUser passenger, Ride ride, boolean isCreator) {
         try {
@@ -196,7 +226,7 @@ public class NotificationService {
             notification.setMessage(message);
             notification.setType(NotificationType.RIDE_FINISHED);
             if (isCreator) {
-                notification.setRelatedEntityId(ride.getId()); // Only set ride ID for creator so they can access rating page
+                notification.setRelatedEntityId(ride.getId());
             }
             notification.setSeen(false);
 
@@ -210,6 +240,31 @@ public class NotificationService {
 
             // Send push notification via FCM
             fcmService.sendRideFinishedNotification(passenger, ride, isCreator);
+
+            // Send email notification
+            String startAddress = AddressUtil.formatAddress(ride.getRoute().getStartLocation().getAddress());
+            String endAddress = AddressUtil.formatAddress(ride.getRoute().getEndLocation().getAddress());
+
+            if (isCreator) {
+                emailService.sendRideFinishedEmailForCreator(
+                    passenger.getFirstName(),
+                    passenger.getEmail(),
+                    startAddress,
+                    endAddress,
+                    ride.getRoute().getDistanceKm(),
+                    ride.getPrice(),
+                    ride.getId()
+                );
+            } else {
+                emailService.sendRideFinishedEmailForPassenger(
+                    passenger.getFirstName(),
+                    passenger.getEmail(),
+                    startAddress,
+                    endAddress,
+                    ride.getRoute().getDistanceKm(),
+                    ride.getPrice()
+                );
+            }
         } catch (Exception e) {
             logger.error("Error creating ride finished notification: {}", e.getMessage(), e);
         }
