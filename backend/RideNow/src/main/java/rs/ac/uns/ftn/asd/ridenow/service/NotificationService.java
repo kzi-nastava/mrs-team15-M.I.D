@@ -22,11 +22,14 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationWebSocketHandler webSocketHandler;
+    private final FcmService fcmService;
 
     public NotificationService(NotificationRepository notificationRepository,
-                              NotificationWebSocketHandler webSocketHandler) {
+                              NotificationWebSocketHandler webSocketHandler,
+                              FcmService fcmService) {
         this.notificationRepository = notificationRepository;
         this.webSocketHandler = webSocketHandler;
+        this.fcmService = fcmService;
     }
 
     public List<NotificationResponseDTO> getUserNotifications(User user) {
@@ -121,6 +124,9 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+
+            // Send push notification via FCM
+            fcmService.sendPassengerAddedNotification(passenger, ride);
         } catch (Exception e) {
             logger.error("Error creating passenger added notification: {}", e.getMessage(), e);
         }
@@ -168,6 +174,9 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+
+            // Send push notification via FCM
+            fcmService.sendRideStartedNotification(passenger, ride);
         } catch (Exception e) {
             logger.error("Error creating ride started notification: {}", e.getMessage(), e);
         }
@@ -198,6 +207,9 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+
+            // Send push notification via FCM
+            fcmService.sendRideFinishedNotification(passenger, ride, isCreator);
         } catch (Exception e) {
             logger.error("Error creating ride finished notification: {}", e.getMessage(), e);
         }

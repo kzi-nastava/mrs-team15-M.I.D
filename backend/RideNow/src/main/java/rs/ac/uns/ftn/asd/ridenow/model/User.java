@@ -65,6 +65,9 @@ public class User {
     @Column(nullable = false)
     boolean jwtTokenValid;
 
+    @Column(length = 500)
+    private String fcmDeviceToken;
+
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                 String profileImage, boolean active, boolean blocked, UserRoles role, boolean jwtTokenValid) {
         this.email = email;

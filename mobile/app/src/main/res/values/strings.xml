@@ -253,4 +253,16 @@
     <string name="base_price_hint">Enter base price in RSD</string>
     <string name="price_per_km_hint">Enter price per kilometer in RSD</string>
 
+    <!-- Notifications -->
+    <string name="nav_notifications">Notifications</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="no_notifications">No notifications yet</string>
+    <string name="error_loading_notifications">Error loading notifications</string>
+    <string name="notification_ride_assigned">You have been assigned to a ride</string>
+    <string name="notification_ride_started">Your ride has started</string>
+    <string name="notification_ride_finished">Your ride has finished</string>
+    <string name="notification_added_passenger">You have been added as a passenger</string>
+    <string name="notification_panic">Panic alert triggered</string>
+    <string name="delete_notification">Delete notification</string>
+
 </resources>
