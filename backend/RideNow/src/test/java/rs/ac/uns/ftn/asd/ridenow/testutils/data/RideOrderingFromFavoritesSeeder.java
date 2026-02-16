@@ -5,10 +5,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
+import rs.ac.uns.ftn.asd.ridenow.model.PriceConfig;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.PriceRepository;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.model.PolylinePoint;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
@@ -49,6 +51,9 @@ public class RideOrderingFromFavoritesSeeder {
     private PassengerRepository passengerRepository;
 
     @Autowired
+    private PriceRepository priceRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private final String USER_EMAIL = "user1@gmail.com";
@@ -56,9 +61,26 @@ public class RideOrderingFromFavoritesSeeder {
 
     public void seedAll() {
         clearAll();
+        seedPriceConfigs();
         seedUserWithFavoriteRoute();
+        seedGuestUser();
         seedAvailableDriverNearRoute();
         seedRides();
+    }
+
+    private void seedPriceConfigs() {
+        // Create price configuration for each vehicle type
+        PriceConfig standardConfig = new PriceConfig(VehicleType.STANDARD, 120.0, 50.0);
+        PriceConfig luxuryConfig = new PriceConfig(VehicleType.LUXURY, 200.0, 80.0);
+        PriceConfig vanConfig = new PriceConfig(VehicleType.VAN, 150.0, 60.0);
+
+        priceRepository.save(standardConfig);
+        priceRepository.save(luxuryConfig);
+        priceRepository.save(vanConfig);
+
+        System.out.println("[SEEDER] Price configs created: STANDARD(" + standardConfig.getBasePrice() + "+" + standardConfig.getPricePerKm() + "/km), "
+                + "LUXURY(" + luxuryConfig.getBasePrice() + "+" + luxuryConfig.getPricePerKm() + "/km), "
+                + "VAN(" + vanConfig.getBasePrice() + "+" + vanConfig.getPricePerKm() + "/km)");
     }
 
     private void seedRides() {
@@ -163,39 +185,110 @@ public class RideOrderingFromFavoritesSeeder {
     }
 
     private void seedAvailableDriverNearRoute() {
-        // Create a driver and vehicle close to the seeded route so auto-assign can find them
-        Driver driver = new Driver();
-        driver.setFirstName("Test");
-        driver.setLastName("Driver");
-        driver.setEmail("available.driver@example.com");
-        driver.setPassword(passwordEncoder.encode("driverPass123"));
-        driver.setActive(true);
-        driver.setBlocked(false);
-        driver.setPhoneNumber("+381609000001");
-        driver.setAddress("Driver Street");
-        driver.setStatus(DriverStatus.ACTIVE);
-        driver.setAvailable(true);
-        driver.setWorkingHoursLast24(1.0);
-        driver.setRating(4.2);
+        // Create first driver with STANDARD vehicle near the seeded route
+        Driver driver1 = new Driver();
+        driver1.setFirstName("Test");
+        driver1.setLastName("Driver");
+        driver1.setEmail("available.driver@example.com");
+        driver1.setPassword(passwordEncoder.encode("driverPass123"));
+        driver1.setActive(true);
+        driver1.setBlocked(false);
+        driver1.setPhoneNumber("+381609000001");
+        driver1.setAddress("Driver Street");
+        driver1.setStatus(DriverStatus.ACTIVE);
+        driver1.setAvailable(true);
+        driver1.setWorkingHoursLast24(1.0);
+        driver1.setRating(4.2);
+        driver1.setJwtTokenValid(true);
 
-        Vehicle vehicle = new Vehicle();
-        vehicle.setLicencePlate("TEST-123");
-        vehicle.setModel("Toyota Prius");
-        vehicle.setLat(45.255); // near seeded route coords
-        vehicle.setLon(19.845);
-        vehicle.setAvailable(true);
-        vehicle.setRating(4.0);
-        vehicle.setPetFriendly(true);
-        vehicle.setChildFriendly(true);
-        vehicle.setSeatCount(4);
-        vehicle.setType(VehicleType.STANDARD);
+        Vehicle vehicle1 = new Vehicle();
+        vehicle1.setLicencePlate("TEST-123");
+        vehicle1.setModel("Toyota Prius");
+        vehicle1.setLat(45.255); // near seeded route coords
+        vehicle1.setLon(19.845);
+        vehicle1.setAvailable(true);
+        vehicle1.setRating(4.0);
+        vehicle1.setPetFriendly(true);
+        vehicle1.setChildFriendly(true);
+        vehicle1.setSeatCount(4);
+        vehicle1.setType(VehicleType.STANDARD);
 
         // assign bidirectional relation
-        vehicle.assignDriver(driver);
+        vehicle1.assignDriver(driver1);
 
         // save driver and vehicle
-        driverRepository.save(driver);
-        vehicleRepository.save(vehicle);
+        driverRepository.save(driver1);
+        vehicleRepository.save(vehicle1);
+
+        // Create second driver with STANDARD vehicle (backup)
+        Driver driver2 = new Driver();
+        driver2.setFirstName("Backup");
+        driver2.setLastName("Driver");
+        driver2.setEmail("backup.driver@example.com");
+        driver2.setPassword(passwordEncoder.encode("driverPass456"));
+        driver2.setActive(true);
+        driver2.setBlocked(false);
+        driver2.setPhoneNumber("+381609000002");
+        driver2.setAddress("Driver Street 2");
+        driver2.setStatus(DriverStatus.ACTIVE);
+        driver2.setAvailable(true);
+        driver2.setWorkingHoursLast24(2.0);
+        driver2.setRating(4.5);
+        driver2.setJwtTokenValid(true);
+
+        Vehicle vehicle2 = new Vehicle();
+        vehicle2.setLicencePlate("TEST-456");
+        vehicle2.setModel("Honda Civic");
+        vehicle2.setLat(45.260); // near seeded route coords
+        vehicle2.setLon(19.850);
+        vehicle2.setAvailable(true);
+        vehicle2.setRating(4.3);
+        vehicle2.setPetFriendly(true);
+        vehicle2.setChildFriendly(true);
+        vehicle2.setSeatCount(4);
+        vehicle2.setType(VehicleType.STANDARD);
+
+        // assign bidirectional relation
+        vehicle2.assignDriver(driver2);
+
+        // save driver and vehicle
+        driverRepository.save(driver2);
+        vehicleRepository.save(vehicle2);
+
+        // Create third driver with LUXURY vehicle
+        Driver driver3 = new Driver();
+        driver3.setFirstName("Premium");
+        driver3.setLastName("Driver");
+        driver3.setEmail("premium.driver@example.com");
+        driver3.setPassword(passwordEncoder.encode("driverPass789"));
+        driver3.setActive(true);
+        driver3.setBlocked(false);
+        driver3.setPhoneNumber("+381609000003");
+        driver3.setAddress("Driver Street 3");
+        driver3.setStatus(DriverStatus.ACTIVE);
+        driver3.setAvailable(true);
+        driver3.setWorkingHoursLast24(0.5);
+        driver3.setRating(4.8);
+        driver3.setJwtTokenValid(true);
+
+        Vehicle vehicle3 = new Vehicle();
+        vehicle3.setLicencePlate("TEST-789");
+        vehicle3.setModel("Mercedes S-Class");
+        vehicle3.setLat(45.245); // near seeded route coords
+        vehicle3.setLon(19.840);
+        vehicle3.setAvailable(true);
+        vehicle3.setRating(4.7);
+        vehicle3.setPetFriendly(false);
+        vehicle3.setChildFriendly(true);
+        vehicle3.setSeatCount(4);
+        vehicle3.setType(VehicleType.LUXURY);
+
+        // assign bidirectional relation
+        vehicle3.assignDriver(driver3);
+
+        // save driver and vehicle
+        driverRepository.save(driver3);
+        vehicleRepository.save(vehicle3);
     }
 
     private void seedUserWithFavoriteRoute() {
@@ -209,6 +302,8 @@ public class RideOrderingFromFavoritesSeeder {
         user.setPhoneNumber("+381640000001");
         user.setAddress("User1 Street");
         user.setBlocked(false);
+        user.setJwtTokenValid(true);  // Required for JWT authentication to work
+        System.out.println("[SEEDER] Setting jwtTokenValid=true for user: " + USER_EMAIL);
 
         // create route that will be used as favorite (data provided)
         Location start = new Location(45.2328905, 19.8216559, "Mornarska 57, Novi Sad");
@@ -281,7 +376,27 @@ public class RideOrderingFromFavoritesSeeder {
         route = routeRepository.save(route);
 
         // persist user (do not create any FavoriteRoute initially)
-        registeredUserRepository.save(user);
+        RegisteredUser savedUser = registeredUserRepository.save(user);
+        System.out.println("[SEEDER] User saved: " + savedUser.getEmail() + ", jwtTokenValid=" + savedUser.isJwtTokenValid() + ", role=" + savedUser.getRole());
+    }
+
+    private void seedGuestUser() {
+        // Create guest user that can be added as linked passenger
+        RegisteredUser guest = new RegisteredUser();
+        guest.setFirstName("Guest");
+        guest.setLastName("User");
+        guest.setEmail("user2@gmail.com");
+        guest.setPassword(passwordEncoder.encode(USER_PASSWORD));
+        guest.setRole(UserRoles.USER);
+        guest.setActive(true);
+        guest.setPhoneNumber("+381640000002");
+        guest.setAddress("Guest Street");
+        guest.setBlocked(false);
+        guest.setJwtTokenValid(true);
+        System.out.println("[SEEDER] Setting jwtTokenValid=true for guest: " + guest.getEmail());
+        
+        RegisteredUser savedGuest = registeredUserRepository.save(guest);
+        System.out.println("[SEEDER] Guest saved: " + savedGuest.getEmail() + ", jwtTokenValid=" + savedGuest.isJwtTokenValid());
     }
 
     public void clearAll() {
@@ -293,6 +408,7 @@ public class RideOrderingFromFavoritesSeeder {
         try { rideRepository.deleteAll(); } catch (Exception ignored) {}
         try { vehicleRepository.deleteAll(); } catch (Exception ignored) {}
         try { driverRepository.deleteAll(); } catch (Exception ignored) {}
+        try { priceRepository.deleteAll(); } catch (Exception ignored) {}
         try { routeRepository.deleteAll(); } catch (Exception ignored) {}
         try { registeredUserRepository.deleteAll(); } catch (Exception ignored) {}
     }

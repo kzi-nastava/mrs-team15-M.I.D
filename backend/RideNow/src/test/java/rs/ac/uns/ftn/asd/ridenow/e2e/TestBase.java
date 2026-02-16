@@ -14,8 +14,8 @@ public class TestBase {
     @BeforeEach
     void setUp(){
         // Get absolute path to chromedriver in the project directory
-        String chromedriverPath = Paths.get(System.getProperty("user.dir"), "chromedriver").toString();
-        System.setProperty("webdriver.chrome.driver", chromedriverPath);
+        //String chromedriverPath = Paths.get(System.getProperty("user.dir"), "chromedriver").toString();
+        System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
 
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--no-sandbox");

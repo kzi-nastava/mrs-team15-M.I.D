@@ -127,7 +127,6 @@ public class FindingDriverPage {
         long end = System.currentTimeMillis() + timeoutSeconds * 1000L;
         while (System.currentTimeMillis() < end){
             if (isGoodDriver(minRating)) return true;
-            try { Thread.sleep(500); } catch (InterruptedException ignored){}
         }
         return false;
     }
@@ -136,15 +135,7 @@ public class FindingDriverPage {
         long end = System.currentTimeMillis() + timeoutSeconds * 1000L;
         while (System.currentTimeMillis() < end){
             if (isFindingDriverShown()) return true;
-            try { Thread.sleep(300); } catch (InterruptedException ignored){}
         }
         return false;
-    }
-
-    public void cancelFinding(){
-        try{
-            WebElement cancelBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space(text())='Cancel' or normalize-space(text())='Stop searching']")));
-            cancelBtn.click();
-        } catch (Exception ignored){}
     }
 }

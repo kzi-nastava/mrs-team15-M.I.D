@@ -527,8 +527,7 @@ export class RideOrderingForm implements OnInit {
   chooseRoute() {
     this.showPreferences = true;
     this.routeChosen = true;
-    // Clear the last estimate so the Distance / Estimated time display is removed
-    this.lastEstimate = null;
+    // Keep lastEstimate so the preference form can show the price
     try { this.cdr.detectChanges(); } catch (e) {}
   }
 

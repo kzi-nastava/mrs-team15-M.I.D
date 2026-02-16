@@ -16,7 +16,7 @@ public class RidePreferencePage {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    @FindBy(xpath = "//select")
+    @FindBy(css = "select.form-select")
     private WebElement vehicleTypeSelect;
 
     @FindBy(id = "rpPet")
@@ -25,13 +25,13 @@ public class RidePreferencePage {
     @FindBy(id = "rpBabySeat")
     private WebElement babySelect;
 
-    @FindBy(xpath = "//button[contains(@aria-label,'Add guest')]")
+    @FindBy(xpath = "//button[contains(@aria-label,'Add guest') or contains(normalize-space(.),'Add guest')]")
     private WebElement addGuestButton;
 
-    @FindBy(xpath = "//input[contains(@type,'datetime-local')]")
+    @FindBy(css = "input[type='datetime-local']")
     private WebElement dateInput;
 
-    @FindBy(xpath = "//*[normalize-space(text())='Order ride']")
+    @FindBy(xpath = "//app-button[.//button[normalize-space(text())='Order ride']]//button")
     private WebElement orderButton;
 
 

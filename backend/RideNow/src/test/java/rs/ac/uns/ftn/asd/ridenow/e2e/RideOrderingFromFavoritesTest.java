@@ -129,7 +129,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         orderingPage.choosePlaceholderFavorite();
 
 
-        // Inputs should not be auto-filled
+        // Inputs should not be autofilled
         String actualPickup = orderingPage.getPickupAddress();
         String actualDestination = orderingPage.getDestinationAddress();
         assertTrue(actualPickup == null || actualPickup.isEmpty(), "Pickup should be empty after choosing placeholder");
@@ -272,6 +272,137 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         String driverName = findingDriverPage.getDriverName();
         assertNotNull(driverName, "Driver name should be displayed when driver is found");
+    }
+
+    @Test
+    @Order(4)
+    void rideOrderingFromFavorites_noFavorites_showsOnlyPlaceholder() {
+        // Login
+        loginPage.setEmail(seeder.getUserEmail());
+        loginPage.setPassword(seeder.getUserPassword());
+        loginPage.login();
+
+        assertTrue(navbarPage.isLoggedIn(), "User should be logged in");
+
+        // Navigate to ordering without adding any favorites
+        navbarPage.navigateToOrdering();
+        orderingPage = new RideOrderingPage(driver);
+        orderingPage.openFavoritesMenu();
+
+        // Should only see placeholder, no actual routes
+        assertThrows(NotFoundException.class, () -> orderingPage.chooseFavoriteRoute(pickUp1, destination1, stops1),
+                "Should not find any favorite routes when none have been added");
+    }
+
+    @Test
+    @Order(5)
+    void rideOrderingFromFavorites_switchBetweenMultipleFavorites_correctAutofill() {
+        // Login
+        loginPage.setEmail(seeder.getUserEmail());
+        loginPage.setPassword(seeder.getUserPassword());
+        loginPage.login();
+
+        assertTrue(navbarPage.isLoggedIn(), "User should be logged in");
+
+        // Add two different favorites
+        navbarPage.navigateToHistory();
+        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage.waitForPageLoad();
+        historyPage.toggleFavorite(pickUp1, destination1, stops1);
+        historyPage.toggleFavorite(pickUp2, destination2, stops2);
+
+        // Navigate to ordering
+        navbarPage.navigateToOrdering();
+        orderingPage = new RideOrderingPage(driver);
+
+        // Choose first favorite
+        orderingPage.openFavoritesMenu();
+        orderingPage.chooseFavoriteRoute(pickUp1, destination1, stops1);
+        assertTrue(orderingPage.checkAutoinput(pickUp1, destination1, stops1), 
+                "First favorite should autofill correctly");
+        assertTrue(orderingPage.isRouteEstimateShown(expectedDistance1, expectedTime1),
+                "First favorite should show correct estimate");
+
+        // Switch to second favorite
+        orderingPage.openFavoritesMenu();
+        orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
+        assertTrue(orderingPage.checkAutoinput(pickUp2, destination2, stops2), 
+                "Second favorite should autofill correctly");
+        assertTrue(orderingPage.isRouteEstimateShown(expectedDistance2, expectedTime2),
+                "Second favorite should show correct estimate");
+
+        // Switch back to first favorite
+        orderingPage.openFavoritesMenu();
+        orderingPage.chooseFavoriteRoute(pickUp1, destination1, stops1);
+        assertTrue(orderingPage.checkAutoinput(pickUp1, destination1, stops1), 
+                "Switching back to first favorite should work correctly");
+    }
+
+    @Test
+    @Order(6)
+    void rideOrderingFromFavorites_addDuplicateFavorite_shouldNotCreateDuplicate() {
+        // Login
+        loginPage.setEmail(seeder.getUserEmail());
+        loginPage.setPassword(seeder.getUserPassword());
+        loginPage.login();
+
+        assertTrue(navbarPage.isLoggedIn(), "User should be logged in");
+
+        // Add favorite first time
+        navbarPage.navigateToHistory();
+        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage.waitForPageLoad();
+        historyPage.toggleFavorite(pickUp1, destination1, stops1);
+
+        // Try to add same favorite again
+        historyPage.toggleFavorite(pickUp1, destination1, stops1);
+
+        // Navigate to ordering and check only one instance exists
+        navbarPage.navigateToOrdering();
+        orderingPage = new RideOrderingPage(driver);
+        orderingPage.openFavoritesMenu();
+        
+        // Should successfully find the route (not throw exception)
+        orderingPage.chooseFavoriteRoute(pickUp1, destination1, stops1);
+        assertTrue(orderingPage.checkAutoinput(pickUp1, destination1, stops1),
+                "Favorite should still work after duplicate attempt");
+    }
+
+    @Test
+    @Order(7)
+    void rideOrderingFromFavorites_favoriteWithNoStops_completesFullFlow() {
+        // Login
+        loginPage.setEmail(seeder.getUserEmail());
+        loginPage.setPassword(seeder.getUserPassword());
+        loginPage.login();
+
+        assertTrue(navbarPage.isLoggedIn(), "User should be logged in");
+
+        // Add favorite with no stops
+        navbarPage.navigateToHistory();
+        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage.waitForPageLoad();
+        historyPage.toggleFavorite(pickUp2, destination2, stops2);
+
+        // Use it to order a ride
+        navbarPage.navigateToOrdering();
+        orderingPage = new RideOrderingPage(driver);
+        orderingPage.openFavoritesMenu();
+        orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
+
+        assertTrue(orderingPage.checkAutoinput(pickUp2, destination2, stops2),
+                "Route with no stops should autofill correctly");
+        
+        // Verify stops list is empty
+        assertTrue(orderingPage.getStopAddresses().isEmpty(),
+                "Stop addresses should be empty for route without stops");
+
+        orderingPage.chooseRoute();
+
+        // Verify navigation to preferences page
+        preferencePage = new RidePreferencePage(driver);
+        assertTrue(preferencePage.isPageOpened(),
+                "Should navigate to preferences page after choosing favorite route");
     }
 
 
