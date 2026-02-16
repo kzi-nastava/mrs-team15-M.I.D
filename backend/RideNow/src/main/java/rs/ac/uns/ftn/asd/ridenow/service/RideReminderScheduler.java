@@ -13,8 +13,10 @@ import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class RideReminderScheduler {
@@ -24,8 +26,8 @@ public class RideReminderScheduler {
     private final RideRepository rideRepository;
     private final NotificationService notificationService;
     
-    // Track when we last sent a reminder for each ride to avoid duplicates
-    private final Map<Long, LocalDateTime> lastReminderSent = new HashMap<>();
+    // Track which reminders have been sent for each ride (15min, 10min, 5min)
+    private final Map<Long, Set<Integer>> sentReminders = new HashMap<>();
 
     public RideReminderScheduler(RideRepository rideRepository, NotificationService notificationService) {
         this.rideRepository = rideRepository;
@@ -46,48 +48,49 @@ public class RideReminderScheduler {
         try {
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime fifteenMinutesFromNow = now.plusMinutes(15);
-            LocalDateTime oneMinuteAgo = now.minusMinutes(1);
+            
+            logger.info("[SCHEDULER] Running at {}, looking for rides between {} and {}", now, now, fifteenMinutesFromNow);
             
             // Find scheduled rides that are within 15 minutes
             List<Ride> upcomingRides = rideRepository.findUpcomingScheduledRides(now, fifteenMinutesFromNow);
 
+            logger.info("[SCHEDULER] Found {} upcoming scheduled rides", upcomingRides.size());
+
             for (Ride ride : upcomingRides) {
                 long minutesUntilRide = java.time.Duration.between(now, ride.getScheduledTime()).toMinutes();
                 
-                // Send reminders at specific intervals: 15, 10, 5 minutes
-                if (shouldSendReminder(ride, minutesUntilRide, now)) {
+                logger.debug("Ride {} scheduled at {}, minutes until ride: {}", 
+                    ride.getId(), ride.getScheduledTime(), minutesUntilRide);
+                
+                // Get or create the set of sent reminders for this ride
+                Set<Integer> sent = sentReminders.computeIfAbsent(ride.getId(), k -> new HashSet<>());
+                
+                // Send 5-minute reminder (check first, highest priority)
+                if (minutesUntilRide <= 5 && !sent.contains(5)) {
                     sendRemindersToPassengers(ride);
-                    lastReminderSent.put(ride.getId(), now);
-                    logger.info("Sent reminders for ride {} scheduled at {}", ride.getId(), ride.getScheduledTime());
+                    sent.add(5);
+                    logger.info("Sent 5-minute reminder for ride {} scheduled at {}", ride.getId(), ride.getScheduledTime());
+                }
+                // Send 10-minute reminder (only if 5-min not due yet)
+                else if (minutesUntilRide <= 10 && minutesUntilRide > 5 && !sent.contains(10)) {
+                    sendRemindersToPassengers(ride);
+                    sent.add(10);
+                    logger.info("Sent 10-minute reminder for ride {} scheduled at {}", ride.getId(), ride.getScheduledTime());
+                }
+                // Send 15-minute reminder (only if 10-min not due yet)
+                else if (minutesUntilRide <= 15 && minutesUntilRide > 10 && !sent.contains(15)) {
+                    sendRemindersToPassengers(ride);
+                    sent.add(15);
+                    logger.info("Sent 15-minute reminder for ride {} scheduled at {}", ride.getId(), ride.getScheduledTime());
                 }
             }
             
             // Clean up old entries from the tracking map
-            cleanupOldReminders(oneMinuteAgo);
+            cleanupOldReminders();
             
         } catch (Exception e) {
             logger.error("Error in ride reminder scheduler: {}", e.getMessage(), e);
         }
-    }
-
-    private boolean shouldSendReminder(Ride ride, long minutesUntilRide, LocalDateTime now) {
-        // Check if we should send reminder at 15, 10, or 5 minutes before
-        boolean isReminderTime = (minutesUntilRide <= 15 && minutesUntilRide >= 14) ||
-                                  (minutesUntilRide <= 10 && minutesUntilRide >= 9) ||
-                                  (minutesUntilRide <= 5 && minutesUntilRide >= 4);
-        
-        if (!isReminderTime) {
-            return false;
-        }
-        
-        // Check if we already sent a reminder recently (within last 2 minutes)
-        LocalDateTime lastSent = lastReminderSent.get(ride.getId());
-        if (lastSent != null) {
-            long minutesSinceLastReminder = java.time.Duration.between(lastSent, now).toMinutes();
-            return minutesSinceLastReminder >= 2; // Only send if at least 2 minutes passed
-        }
-        
-        return true;
     }
 
     private void sendRemindersToPassengers(Ride ride) {
@@ -103,8 +106,26 @@ public class RideReminderScheduler {
         }
     }
 
-    private void cleanupOldReminders(LocalDateTime cutoffTime) {
-        // Remove entries older than the cutoff time to prevent memory leak
-        lastReminderSent.entrySet().removeIf(entry -> entry.getValue().isBefore(cutoffTime.minusHours(1)));
+    private void cleanupOldReminders() {
+        // Remove entries for rides that are more than 1 hour old
+        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(1);
+        
+        // Check all rides in the map, fetch their scheduled time, and remove if too old
+        sentReminders.entrySet().removeIf(entry -> {
+            try {
+                Long rideId = entry.getKey();
+                Ride ride = rideRepository.findById(rideId).orElse(null);
+                
+                // Remove if ride doesn't exist or scheduled time has passed by more than 1 hour
+                if (ride == null || ride.getScheduledTime() == null) {
+                    return true;
+                }
+                
+                return ride.getScheduledTime().isBefore(cutoffTime);
+            } catch (Exception e) {
+                logger.debug("Error checking ride {} for cleanup, removing from map", entry.getKey());
+                return true;
+            }
+        });
     }
 }

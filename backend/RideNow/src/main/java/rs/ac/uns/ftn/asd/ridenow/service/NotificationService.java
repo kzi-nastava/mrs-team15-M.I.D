@@ -324,12 +324,15 @@ public class NotificationService {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
             String rideTime = ride.getScheduledTime().format(formatter);
-            
-            String startAddress = ride.getRoute().getStartLocation().getAddress();
             String endAddress = ride.getRoute().getEndLocation().getAddress();
+            
+            // If address has more than 3 commas, show only first 3 parts
+            String[] parts = endAddress.split(",");
+            if (parts.length > 3) {
+                endAddress = parts[0] + ", " + parts[1] + ", " + parts[2];
+            }
 
-            String message = String.format("Reminder: Your ride from %s to %s is scheduled for %s", 
-                startAddress, endAddress, rideTime);
+            String message = String.format("Reminder: Your ride to %s is scheduled for %s", endAddress, rideTime);
 
             Notification notification = new Notification();
             notification.setUser(passenger);
