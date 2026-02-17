@@ -26,8 +26,6 @@ public class RegisterDriverRequestDTO {
     @NotBlank
     private String address;
 
-    private String profileImage;
-
     @NotBlank
     private String licensePlate;
 

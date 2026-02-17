@@ -54,6 +54,31 @@ describe('DriverRegisterForm', () => {
     expect(component.toastType).toBe('success');
   });
 
+  // ngOnInit tests
+  describe('ngOnInit', () => {
+    it('should initialize component', () => {
+      spyOn(console, 'log');
+      component.ngOnInit();
+      // ngOnInit currently just checks for ADMIN role
+      expect(component).toBeTruthy();
+    });
+  });
+
+  // File input tests
+  describe('File Input', () => {
+    it('should trigger file input click when onSelectPhoto is called', () => {
+      const mockClick = jasmine.createSpy('click');
+      component.fileInput = {
+        nativeElement: {
+          click: mockClick
+        }
+      } as any;
+
+      component.onSelectPhoto();
+      expect(mockClick).toHaveBeenCalled();
+    });
+  });
+
   // Email validation tests
   describe('Email Validation', () => {
     it('should return true for valid email', () => {
@@ -172,7 +197,7 @@ describe('DriverRegisterForm', () => {
 
   // File selection tests
   describe('File Selection', () => {
-    it('should update userAvatar when file is selected', () => {
+    it('should update userAvatar and selectedFile when file is selected', () => {
       const mockFile = new File(['image content'], 'avatar.jpg', { type: 'image/jpeg' });
       const mockEvent = {
         target: { files: [mockFile] }
@@ -182,6 +207,7 @@ describe('DriverRegisterForm', () => {
       component.onFileSelected(mockEvent);
 
       expect(component.userAvatar).toBe('blob:mock-url');
+      expect(component.selectedFile).toBe(mockFile);
     });
 
     it('should not update userAvatar when no file is selected', () => {
@@ -317,49 +343,54 @@ describe('DriverRegisterForm', () => {
       component.vehicle.babyFriendly = false;
     });
 
-    it('should call adminService.registerDriver with correct data when form is valid', () => {
+    it('should call adminService.registerDriver with FormData when form is valid', () => {
       const registerSpy = spyOn(component['adminService'], 'registerDriver')
         .and.returnValue(of({ success: true }));
 
       component.onSubmit();
 
       expect(registerSpy).toHaveBeenCalled();
-      const payload = registerSpy.calls.mostRecent().args[0];
-      expect(payload.email).toBe('test@example.com');
-      expect(payload.firstName).toBe('Petar');
-      expect(payload.lastName).toBe('Petrovic');
-      expect(payload.phoneNumber).toBe('0601234567');
-      expect(payload.address).toBe('Bulevar Oslobodjenja 123, Novi Sad');
-      expect(payload.licensePlate).toBe('NS123AB');
-      expect(payload.vehicleModel).toBe('Toyota Corolla');
-      expect(payload.vehicleType).toBe('STANDARD');
-      expect(payload.numberOfSeats).toBe(4);
-      expect(payload.petFriendly).toBe(true);
-      expect(payload.babyFriendly).toBe(false);
+      const formData = registerSpy.calls.mostRecent().args[0];
+      expect(formData instanceof FormData).toBe(true);
+      expect(formData.get('email')).toBe('test@example.com');
+      expect(formData.get('firstName')).toBe('Petar');
+      expect(formData.get('lastName')).toBe('Petrovic');
+      expect(formData.get('phoneNumber')).toBe('0601234567');
+      expect(formData.get('address')).toBe('Bulevar Oslobodjenja 123, Novi Sad');
+      expect(formData.get('licensePlate')).toBe('NS123AB');
+      expect(formData.get('vehicleModel')).toBe('Toyota Corolla');
+      expect(formData.get('vehicleType')).toBe('STANDARD');
+      expect(formData.get('numberOfSeats')).toBe('4');
+      expect(formData.get('petFriendly')).toBe('true');
+      expect(formData.get('babyFriendly')).toBe('false');
     });
 
-    it('should send profileImage in payload when avatar is set', () => {
-      component.userAvatar = 'blob:mock-avatar-url';
+    it('should send profileImage in FormData when file is selected', () => {
+      const mockFile = new File(['image content'], 'avatar.jpg', { type: 'image/jpeg' });
+      component.selectedFile = mockFile;
+      
       const registerSpy = spyOn(component['adminService'], 'registerDriver')
         .and.returnValue(of({ success: true }));
 
       component.onSubmit();
 
       expect(registerSpy).toHaveBeenCalled();
-      const payload = registerSpy.calls.mostRecent().args[0];
-      expect(payload.profileImage).toBe('blob:mock-avatar-url');
+      const formData = registerSpy.calls.mostRecent().args[0];
+      expect(formData instanceof FormData).toBe(true);
+      expect(formData.get('profileImage')).toEqual(mockFile);
     });
 
-    it('should send null profileImage when avatar is not set', () => {
-      component.userAvatar = '';
+    it('should not send profileImage when no file is selected', () => {
+      component.selectedFile = null;
       const registerSpy = spyOn(component['adminService'], 'registerDriver')
         .and.returnValue(of({ success: true }));
 
       component.onSubmit();
 
       expect(registerSpy).toHaveBeenCalled();
-      const payload = registerSpy.calls.mostRecent().args[0];
-      expect(payload.profileImage).toBe(null);
+      const formData = registerSpy.calls.mostRecent().args[0];
+      expect(formData instanceof FormData).toBe(true);
+      expect(formData.get('profileImage')).toBeNull();
     });
 
     it('should map vehicle type to LUXURY correctly', () => {
@@ -370,8 +401,9 @@ describe('DriverRegisterForm', () => {
       component.onSubmit();
 
       expect(registerSpy).toHaveBeenCalled();
-      const payload = registerSpy.calls.mostRecent().args[0];
-      expect(payload.vehicleType).toBe('LUXURY');
+      const formData = registerSpy.calls.mostRecent().args[0];
+      expect(formData instanceof FormData).toBe(true);
+      expect(formData.get('vehicleType')).toBe('LUXURY');
     });
 
     it('should map vehicle type to VAN correctly', () => {
@@ -382,8 +414,9 @@ describe('DriverRegisterForm', () => {
       component.onSubmit();
 
       expect(registerSpy).toHaveBeenCalled();
-      const payload = registerSpy.calls.mostRecent().args[0];
-      expect(payload.vehicleType).toBe('VAN');
+      const formData = registerSpy.calls.mostRecent().args[0];
+      expect(formData instanceof FormData).toBe(true);
+      expect(formData.get('vehicleType')).toBe('VAN');
     });
 
     it('should convert boolean vehicle features correctly', () => {
@@ -395,9 +428,10 @@ describe('DriverRegisterForm', () => {
       component.onSubmit();
 
       expect(registerSpy).toHaveBeenCalled();
-      const payload = registerSpy.calls.mostRecent().args[0];
-      expect(payload.petFriendly).toBe(false);
-      expect(payload.babyFriendly).toBe(true);
+      const formData = registerSpy.calls.mostRecent().args[0];
+      expect(formData instanceof FormData).toBe(true);
+      expect(formData.get('petFriendly')).toBe('false');
+      expect(formData.get('babyFriendly')).toBe('true');
     });
   });
 
@@ -509,8 +543,7 @@ describe('DriverRegisterForm', () => {
       component.onSubmit();
 
       expect(console.log).toHaveBeenCalledWith(
-        'Posting driver registration payload',
-        jasmine.any(Object),
+        'Posting driver registration with FormData',
         'adminId',
         jasmine.any(Number)
       );

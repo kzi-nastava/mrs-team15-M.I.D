@@ -6,10 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
@@ -92,11 +94,17 @@ public class AdminController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/driver-register")
-    public ResponseEntity<RegisterDriverResponseDTO> register(
-            @Valid @RequestBody RegisterDriverRequestDTO request) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.status(201).body(adminService.register(request));
+    @PostMapping(value = "/driver-register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> register(
+            @Valid @ModelAttribute RegisterDriverRequestDTO request,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+        try {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            RegisterDriverResponseDTO responseDTO = adminService.register(request, profileImage);
+            return ResponseEntity.status(201).body(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
