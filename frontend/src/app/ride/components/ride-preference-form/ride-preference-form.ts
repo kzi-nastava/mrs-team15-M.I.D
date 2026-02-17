@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
@@ -21,11 +21,11 @@ export interface RidePreferences {
   styleUrls: ['./ride-preference-form.css'],
 })
 export class RidePreferenceForm {
-  constructor() {}
+  constructor(private cdr: ChangeDetectorRef) {}
   @Input() estimate: any;
   @Input() selectedVehicleType: string = 'STANDARD';
 
-  vehicleType: string = '';
+  vehicleType: string = 'standard';
   babySeat: boolean = false;
   petFriendly: boolean = false;
   guests: string[] = [];
@@ -46,6 +46,9 @@ export class RidePreferenceForm {
     if (changes['selectedVehicleType'] && !this.vehicleType) {
       try { this.vehicleType = (this.selectedVehicleType || 'STANDARD').toLowerCase(); } catch(e) {}
     }
+    if (changes['estimate']) {
+      this.cdr.detectChanges();
+    }
     try {
       if (!this.minDatetime) this.minDatetime = this._formatLocalDatetime(new Date());
       if (!this.maxDatetime) this.maxDatetime = this._formatLocalDatetime(new Date(Date.now() + 5 * 60 * 60 * 1000));
@@ -56,10 +59,18 @@ export class RidePreferenceForm {
     if (!this.estimate) return '-';
     const vt = (this.vehicleType || '').toLowerCase();
     try {
-      if (vt === 'standard') return this._formatPrice(this.estimate.priceEstimateStandard ?? this.estimate.priceEstimate ?? null);
-      if (vt === 'luxury') return this._formatPrice(this.estimate.priceEstimateLuxury ?? this.estimate.priceEstimate ?? null);
-      if (vt === 'van') return this._formatPrice(this.estimate.priceEstimateVan ?? this.estimate.priceEstimate ?? null);
-    } catch (e) {}
+      if (vt === 'standard') {
+        return this._formatPrice(this.estimate.priceEstimateStandard ?? this.estimate.priceEstimate ?? null);
+      }
+      if (vt === 'luxury') {
+        return this._formatPrice(this.estimate.priceEstimateLuxury ?? this.estimate.priceEstimate ?? null);
+      }
+      if (vt === 'van') {
+        return this._formatPrice(this.estimate.priceEstimateVan ?? this.estimate.priceEstimate ?? null);
+      }
+    } catch (e) {
+      console.error('Error in getSelectedPrice:', e);
+    }
     return this._formatPrice(this.estimate.priceEstimate ?? null);
   }
 
@@ -72,6 +83,10 @@ export class RidePreferenceForm {
 
   addEmptyGuest() {
     this.guests.push('');
+  }
+
+  onVehicleTypeChange(newType: string) {
+    
   }
 
   onScheduledTimeChange(val: string | null) {

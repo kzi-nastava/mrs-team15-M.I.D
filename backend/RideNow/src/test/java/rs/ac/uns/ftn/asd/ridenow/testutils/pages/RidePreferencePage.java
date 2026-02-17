@@ -16,7 +16,7 @@ public class RidePreferencePage {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    @FindBy(xpath = "//select")
+    @FindBy(css = "select.form-select")
     private WebElement vehicleTypeSelect;
 
     @FindBy(id = "rpPet")
@@ -25,13 +25,13 @@ public class RidePreferencePage {
     @FindBy(id = "rpBabySeat")
     private WebElement babySelect;
 
-    @FindBy(xpath = "//button[contains(@aria-label,'Add guest')]")
+    @FindBy(xpath = "//button[contains(@aria-label,'Add guest') or contains(normalize-space(.),'Add guest')]")
     private WebElement addGuestButton;
 
-    @FindBy(xpath = "//input[contains(@type,'datetime-local')]")
+    @FindBy(css = "input[type='datetime-local']")
     private WebElement dateInput;
 
-    @FindBy(xpath = "//*[normalize-space(text())='Order ride']")
+    @FindBy(xpath = "//app-button[.//button[normalize-space(text())='Order ride']]//button")
     private WebElement orderButton;
 
 
@@ -70,6 +70,45 @@ public class RidePreferencePage {
         try{
             WebElement priceElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("selected-price-value")));
             return priceElement.getText().trim().equals(price);
+        } catch (Exception e){
+            return false;
+        }
+    }
+
+    public String getCurrentPrice(){
+        try{
+            WebElement priceElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("selected-price-value")));
+            return priceElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public String getScheduledTimeError(){
+        try{
+            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
+            return errorElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public boolean hasScheduledTimeError(){
+        try{
+            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
+            return errorElement.isDisplayed() && !errorElement.getText().trim().isEmpty();
+        } catch (Exception e){
+            return false;
+        }
+    }
+
+    public boolean isOrderButtonDisabled(){
+        try{
+            WebElement btn = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//app-button[.//button[normalize-space(text())='Order ride']]//button")
+            ));
+            String disabled = btn.getAttribute("disabled");
+            return disabled != null && (disabled.equals("true") || disabled.equals("disabled"));
         } catch (Exception e){
             return false;
         }
