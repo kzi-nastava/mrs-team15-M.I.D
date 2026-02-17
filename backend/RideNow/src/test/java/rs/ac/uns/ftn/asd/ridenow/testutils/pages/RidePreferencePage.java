@@ -75,6 +75,45 @@ public class RidePreferencePage {
         }
     }
 
+    public String getCurrentPrice(){
+        try{
+            WebElement priceElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("selected-price-value")));
+            return priceElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public String getScheduledTimeError(){
+        try{
+            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
+            return errorElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public boolean hasScheduledTimeError(){
+        try{
+            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
+            return errorElement.isDisplayed() && !errorElement.getText().trim().isEmpty();
+        } catch (Exception e){
+            return false;
+        }
+    }
+
+    public boolean isOrderButtonDisabled(){
+        try{
+            WebElement btn = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//app-button[.//button[normalize-space(text())='Order ride']]//button")
+            ));
+            String disabled = btn.getAttribute("disabled");
+            return disabled != null && (disabled.equals("true") || disabled.equals("disabled"));
+        } catch (Exception e){
+            return false;
+        }
+    }
+
     public void setPetFriendly(boolean petFriendly){
         try{
             if (petFriendly){

@@ -86,8 +86,7 @@ export class RidePreferenceForm {
   }
 
   onVehicleTypeChange(newType: string) {
-    // Angular change detection will automatically update the price display
-    // by re-calling getSelectedPrice() when the template re-renders
+    
   }
 
   onScheduledTimeChange(val: string | null) {

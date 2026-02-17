@@ -138,4 +138,52 @@ public class FindingDriverPage {
         }
         return false;
     }
+
+    /**
+     * Check if "No drivers available" message is displayed.
+     */
+    public boolean isNoDriversAvailableShown(){
+        try{
+            // Look for the "No drivers available" heading
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(
+                "//*[contains(normalize-space(text()),'No drivers available') or contains(normalize-space(text()),'no drivers available')]"
+            )));
+            return true;
+        } catch (Exception e){
+            return false;
+        }
+    }
+
+    /**
+     * Wait for "No drivers available" message to appear.
+     * @param timeoutSeconds Maximum time to wait in seconds
+     * @return true if message appears within timeout, false otherwise
+     */
+    public boolean waitForNoDriversAvailable(long timeoutSeconds){
+        try{
+            WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+            shortWait.until(ExpectedConditions.or(
+                ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(normalize-space(text()),'No drivers available')]")),
+                ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(normalize-space(text()),'no drivers available')]")),
+                ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(normalize-space(text()),'currently no drivers')]"))
+            ));
+            return true;
+        } catch (Exception e){
+            return false;
+        }
+    }
+
+    /**
+     * Get the "no drivers" message text.
+     */
+    public String getNoDriversMessage(){
+        try{
+            WebElement messageElement = driver.findElement(By.xpath(
+                "//*[contains(normalize-space(text()),'No drivers') or contains(normalize-space(text()),'no drivers')]"
+            ));
+            return messageElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
 }

@@ -206,5 +206,25 @@ public class RideOrderingPage {
         }
     }
 
+    /**
+     * Check if a route is drawn on the map by verifying the presence of Leaflet polyline and markers.
+     * Returns true if route polyline and at least 2 markers (start/end) are present.
+     */
+    public boolean isRouteDrawnOnMap() {
+        try {
+            // Wait for the polyline (route) to be present on the map
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("path.leaflet-interactive")
+            ));
+            
+            // Check for markers (circle markers for start and end points)
+            List<WebElement> markers = driver.findElements(By.cssSelector("path.leaflet-interactive"));
+            
+            // Should have at least 3 elements: 1 polyline for route + 2 for start/end markers
+            return markers.size() >= 3;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 }
