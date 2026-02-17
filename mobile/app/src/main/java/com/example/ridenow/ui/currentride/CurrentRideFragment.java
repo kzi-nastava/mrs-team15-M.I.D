@@ -101,7 +101,7 @@ public class CurrentRideFragment extends Fragment {
         setupButtonVisibility();
 
         // Set admin information after views are initialized
-        if (args != null && isAdminView && args.containsKey("startAddress")) {
+        if (args != null && isAdminView && (args.containsKey("routeDTO") || args.containsKey("startAddress"))) {
             createAdminRideFromBundle(args);
         }
 
@@ -245,6 +245,25 @@ public class CurrentRideFragment extends Fragment {
         }
     }
 
+    private void updateUserButtonVisibility() {
+        // Only update if this is a user (not driver) view
+        if (!isDriver && currentRide != null && userButtonsLayout != null) {
+            Boolean isMainPassenger = currentRide.getMainPassenger();
+
+            if (isMainPassenger != null && !isMainPassenger) {
+                // Not main passenger - hide report and panic buttons
+                reportInconsistencyButton.setVisibility(View.GONE);
+                panicButton.setVisibility(View.GONE);
+                Log.d(TAG, "User is not main passenger - hiding report and panic buttons");
+            } else {
+                // Main passenger - show buttons
+                reportInconsistencyButton.setVisibility(View.VISIBLE);
+                panicButton.setVisibility(View.VISIBLE);
+                Log.d(TAG, "User is main passenger - showing report and panic buttons");
+            }
+        }
+    }
+
     private void getCurrentRide() {
         if (isAdminView && adminRideId != null) {
             // Admin view - track specific ride
@@ -258,6 +277,7 @@ public class CurrentRideFragment extends Fragment {
                     if (response.isSuccessful() && response.body() != null) {
                         currentRide = response.body();
                         setupRideInfo();
+                        updateUserButtonVisibility(); // Update button visibility based on isMainPassenger
                         if (isDriver) {
                             startDriverLocationUpdates();
                         } else {
@@ -283,22 +303,31 @@ public class CurrentRideFragment extends Fragment {
         currentRide = new CurrentRideResponse();
         currentRide.setRideId(adminRideId);
 
-        // Create route from bundle data
-        com.example.ridenow.dto.model.RouteDTO route = new com.example.ridenow.dto.model.RouteDTO();
+        // Try to get complete RouteDTO first
+        com.example.ridenow.dto.model.RouteDTO route = null;
+        if (args.containsKey("routeDTO")) {
+            route = (com.example.ridenow.dto.model.RouteDTO) args.getSerializable("routeDTO");
+            Log.d(TAG, "Using RouteDTO from bundle");
+        } else {
+            // Fallback: Create route from individual lat/lon values (for backward compatibility)
+            route = new com.example.ridenow.dto.model.RouteDTO();
 
-        // Create locations
-        com.example.ridenow.dto.model.LocationDTO startLocation = new com.example.ridenow.dto.model.LocationDTO();
-        startLocation.setAddress(args.getString("startAddress"));
-        startLocation.setLatitude(args.getDouble("startLat"));
-        startLocation.setLongitude(args.getDouble("startLon"));
+            // Create locations
+            com.example.ridenow.dto.model.LocationDTO startLocation = new com.example.ridenow.dto.model.LocationDTO();
+            startLocation.setAddress(args.getString("startAddress"));
+            startLocation.setLatitude(args.getDouble("startLat"));
+            startLocation.setLongitude(args.getDouble("startLon"));
 
-        com.example.ridenow.dto.model.LocationDTO endLocation = new com.example.ridenow.dto.model.LocationDTO();
-        endLocation.setAddress(args.getString("endAddress"));
-        endLocation.setLatitude(args.getDouble("endLat"));
-        endLocation.setLongitude(args.getDouble("endLon"));
+            com.example.ridenow.dto.model.LocationDTO endLocation = new com.example.ridenow.dto.model.LocationDTO();
+            endLocation.setAddress(args.getString("endAddress"));
+            endLocation.setLatitude(args.getDouble("endLat"));
+            endLocation.setLongitude(args.getDouble("endLon"));
 
-        route.setStartLocation(startLocation);
-        route.setEndLocation(endLocation);
+            route.setStartLocation(startLocation);
+            route.setEndLocation(endLocation);
+            Log.d(TAG, "Created RouteDTO from individual coordinates");
+        }
+
         currentRide.setRoute(route);
 
         // Set admin-specific information
@@ -326,6 +355,9 @@ public class CurrentRideFragment extends Fragment {
         } else {
             Log.w(TAG, "adminPassengersText is null");
         }
+
+        // Display the route on the map
+        setupRideInfo();
     }
 
     private void trackSpecificRide(Long rideId) {

@@ -1,10 +1,13 @@
 package com.example.ridenow.ui.chat;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
@@ -20,6 +23,7 @@ import com.example.ridenow.dto.chat.ChatResponseDTO;
 import com.example.ridenow.service.ChatService;
 import com.example.ridenow.util.ClientUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -31,9 +35,12 @@ public class AdminChatsFragment extends Fragment {
 
     private RecyclerView chatsRecyclerView;
     private LinearLayout emptyStateLayout;
+    private EditText searchInput;
 
     private AdminChatAdapter chatAdapter;
     private ChatService chatService;
+    private List<ChatResponseDTO> allChats;
+    private List<ChatResponseDTO> filteredChats;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,6 +67,21 @@ public class AdminChatsFragment extends Fragment {
     private void initViews(View view) {
         chatsRecyclerView = view.findViewById(R.id.chatsRecyclerView);
         emptyStateLayout = view.findViewById(R.id.emptyStateLayout);
+        searchInput = view.findViewById(R.id.searchInput);
+
+        // Setup search listener
+        searchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterChats(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
     }
 
     private void setupRecyclerView() {
@@ -99,9 +121,42 @@ public class AdminChatsFragment extends Fragment {
     }
 
     private void showChats(List<ChatResponseDTO> chats) {
+        allChats = chats;
+        filteredChats = new ArrayList<>(chats);
+
         chatsRecyclerView.setVisibility(View.VISIBLE);
         emptyStateLayout.setVisibility(View.GONE);
-        chatAdapter.updateChats(chats);
+        chatAdapter.updateChats(filteredChats);
+    }
+
+    private void filterChats(String query) {
+        if (allChats == null) return;
+
+        filteredChats.clear();
+
+        if (query.isEmpty()) {
+            filteredChats.addAll(allChats);
+        } else {
+            String queryLower = query.toLowerCase().trim();
+            for (ChatResponseDTO chat : allChats) {
+                // Search by user name (first name + last name)
+                String userName = (chat.getUser().toLowerCase());
+                if (userName.contains(queryLower)) {
+                    filteredChats.add(chat);
+                }
+            }
+        }
+
+        chatAdapter.updateChats(filteredChats);
+
+        // Show empty state if no results
+        if (filteredChats.isEmpty()) {
+            chatsRecyclerView.setVisibility(View.GONE);
+            emptyStateLayout.setVisibility(View.VISIBLE);
+        } else {
+            chatsRecyclerView.setVisibility(View.VISIBLE);
+            emptyStateLayout.setVisibility(View.GONE);
+        }
     }
 
     private void showEmptyState() {

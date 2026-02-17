@@ -73,7 +73,13 @@ public class NotificationsAdapter extends RecyclerView.Adapter<NotificationsAdap
 
         public void bind(NotificationResponseDTO notification, OnNotificationClickListener listener, OnNotificationDeleteListener deleteListener, int position) {
             messageTextView.setText(notification.getMessage());
-            typeTextView.setText(notification.getType().toString());
+
+            // Handle null notification type
+            if (notification.getType() != null) {
+                typeTextView.setText(notification.getType().toString());
+            } else {
+                typeTextView.setText("Unknown");
+            }
 
             // Display createdAt as String directly (already formatted from backend)
             String createdAtStr = notification.getCreatedAt();
