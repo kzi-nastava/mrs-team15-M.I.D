@@ -15,6 +15,7 @@ export class DriverRegisterForm implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   userAvatar: string = '';
+  selectedFile: File | null = null; // Store the actual file
   showToast = false;
   toastMessage = '';
   toastType: 'success' | 'error' = 'success';
@@ -122,6 +123,7 @@ export class DriverRegisterForm implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
+      this.selectedFile = file; // Store the file
       this.userAvatar = URL.createObjectURL(file);
     }
   }
@@ -171,23 +173,27 @@ export class DriverRegisterForm implements OnInit {
       // ignore, fallback to 1
     }
 
-    const payload: any = {
-      email: this.user.email,
-      firstName: this.user.firstName,
-      lastName: this.user.lastName,
-      phoneNumber: this.user.phone,
-      address: this.user.address,
-      profileImage: this.userAvatar || null,
-      licensePlate: this.vehicle.licensePlate,
-      vehicleModel: this.vehicle.model,
-      vehicleType: this.mapVehicleType(this.vehicle.type),
-      numberOfSeats: Number(this.vehicle.seats) || 1,
-      babyFriendly: !!this.vehicle.babyFriendly,
-      petFriendly: !!this.vehicle.petFriendly,
-    };
+    // Create FormData for multipart/form-data request
+    const formData = new FormData();
+    formData.append('email', this.user.email);
+    formData.append('firstName', this.user.firstName);
+    formData.append('lastName', this.user.lastName);
+    formData.append('phoneNumber', this.user.phone);
+    formData.append('address', this.user.address);
+    formData.append('licensePlate', this.vehicle.licensePlate);
+    formData.append('vehicleModel', this.vehicle.model);
+    formData.append('vehicleType', this.mapVehicleType(this.vehicle.type));
+    formData.append('numberOfSeats', String(Number(this.vehicle.seats) || 1));
+    formData.append('babyFriendly', String(!!this.vehicle.babyFriendly));
+    formData.append('petFriendly', String(!!this.vehicle.petFriendly));
+    
+    // Add profile image if selected
+    if (this.selectedFile) {
+      formData.append('profileImage', this.selectedFile, this.selectedFile.name);
+    }
 
-    console.log('Posting driver registration payload', payload, 'adminId', adminId);
-    this.adminService.registerDriver(payload).subscribe({
+    console.log('Posting driver registration with FormData', 'adminId', adminId);
+    this.adminService.registerDriver(formData).subscribe({
       next: (res) => {
         console.log('Driver registration response', res);
         this.showToastMessage('Driver registration submitted', 'success');
