@@ -15,7 +15,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.OrderRideRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.OrderRideResponseDTO;
-// removed unused import
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.UserRoles;
