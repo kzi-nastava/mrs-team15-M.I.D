@@ -38,8 +38,4 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("DELETE FROM Notification n WHERE n.user IN :users AND n.type IN :types")
     void deleteByUsersAndTypes(List<User> users, List<NotificationType> types);
-
-    List<Notification> findByRelatedEntityIdAndType(Long relatedEntityId, NotificationType type);
-
-    List<Notification> findByUserAndType(User user, NotificationType type);
 }

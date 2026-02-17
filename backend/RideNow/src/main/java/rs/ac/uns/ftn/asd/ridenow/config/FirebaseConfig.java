@@ -12,12 +12,8 @@ import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Firebase Cloud Messaging (FCM) Configuration
- *
- * This configuration initializes the Firebase Admin SDK for sending push notifications
- * to mobile devices. If credentials are not found, Firebase is skipped gracefully.
- */
+
+// Firebase Cloud Messaging (FCM) Configuration
 @Configuration
 public class FirebaseConfig {
 
@@ -27,8 +23,6 @@ public class FirebaseConfig {
      * Initialize Firebase Admin SDK
      *
      * The credentials file should be placed at: src/main/resources/firebase-credentials.json
-     *
-     * @return FirebaseMessaging bean for sending notifications, or null if credentials not available
      */
     @Bean
     public FirebaseMessaging firebaseMessaging() {

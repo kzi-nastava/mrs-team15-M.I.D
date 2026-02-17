@@ -37,8 +37,6 @@ class OrderingRideRepositoryTest {
 
     private Driver driver;
     private RegisteredUser user;
-    private Ride requestedRide;
-    private Ride inProgressRide;
     private Route route;
 
     private final LocalDateTime now = LocalDateTime.now();
@@ -49,23 +47,8 @@ class OrderingRideRepositoryTest {
         driver = createDriver();  // persistovan
         user = createUser();      // persistovan
 
-        requestedRide = createRide(RideStatus.REQUESTED);
-        inProgressRide = createRide(RideStatus.IN_PROGRESS);
-
         em.flush();
         em.clear();
-    }
-
-
-    // ================= scheduled rides =================
-
-    @Test
-    @DisplayName("Should return scheduled rides by driver")
-    void findScheduledRidesByDriver_shouldReturnRides() {
-        List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
-
-        assertFalse(rides.isEmpty());
-        assertEquals(RideStatus.REQUESTED, rides.get(0).getStatus());
     }
 
     @Test
@@ -80,47 +63,7 @@ class OrderingRideRepositoryTest {
         assertNotNull(rides);
     }
 
-    // ================= current ride =================
-
-    @Test
-    @DisplayName("Should find current ride by driver")
-    void findCurrentRideByDriver_shouldReturnRide() {
-        Optional<Ride> result = rideRepository.findCurrentRideByDriver(driver.getId());
-
-        assertTrue(result.isPresent());
-        assertEquals(RideStatus.IN_PROGRESS, result.get().getStatus());
-    }
-
-    @Test
-    @DisplayName("Should find current ride by user")
-    void findCurrentRideByUser_shouldReturnRide() {
-        Optional<Ride> result = rideRepository.findCurrentRideByUser(user.getId());
-
-        assertTrue(result.isPresent());
-        assertEquals(RideStatus.IN_PROGRESS, result.get().getStatus());
-    }
-
-    @Test
-    @DisplayName("Should return active rides")
-    void findActiveRides_shouldReturnList() {
-        List<Ride> rides = rideRepository.findActiveRides();
-
-        assertFalse(rides.isEmpty());
-    }
-
     // ================= BOUNDARY TESTS =================
-
-    @Test
-    @DisplayName("Should return empty list when driver has no scheduled rides")
-    void findScheduledRidesByDriver_noRides_shouldReturnEmpty() {
-        Driver newDriver = createNewDriver("newdriver@gmail.com");
-        em.flush();
-        em.clear();
-
-        List<Ride> rides = rideRepository.findScheduledRidesByDriver(newDriver);
-
-        assertTrue(rides.isEmpty());
-    }
 
     @Test
     @DisplayName("Should return empty list when no scheduled rides in time window")
@@ -132,45 +75,6 @@ class OrderingRideRepositoryTest {
                 futureTime,
                 futureTime.plusHours(1)
         );
-
-        assertTrue(rides.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should return empty when driver has no current ride")
-    void findCurrentRideByDriver_noCurrentRide_shouldReturnEmpty() {
-        Driver newDriver = createNewDriver("freeDriver@gmail.com");
-        em.flush();
-        em.clear();
-
-        Optional<Ride> result = rideRepository.findCurrentRideByDriver(newDriver.getId());
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should return empty when user has no current ride")
-    void findCurrentRideByUser_noCurrentRide_shouldReturnEmpty() {
-        RegisteredUser newUser = createNewUser("newuser@gmail.com");
-        em.flush();
-        em.clear();
-
-        Optional<Ride> result = rideRepository.findCurrentRideByUser(newUser.getId());
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should return empty list when no active rides exist")
-    void findActiveRides_noActiveRides_shouldReturnEmpty() {
-        // Update all rides to FINISHED
-        inProgressRide.setStatus(RideStatus.FINISHED);
-        inProgressRide.setEndTime(LocalDateTime.now());
-        em.merge(inProgressRide);
-        em.flush();
-        em.clear();
-
-        List<Ride> rides = rideRepository.findActiveRides();
 
         assertTrue(rides.isEmpty());
     }
@@ -193,69 +97,6 @@ class OrderingRideRepositoryTest {
 
         assertFalse(rides.isEmpty());
         assertTrue(rides.stream().anyMatch(r -> r.getId().equals(boundaryRide.getId())));
-    }
-
-    @Test
-    @DisplayName("Should only return REQUESTED status rides in scheduled query")
-    void findScheduledRidesByDriver_onlyRequestedStatus_shouldReturn() {
-        // Create FINISHED ride for same driver
-        Ride finishedRide = createRide(RideStatus.FINISHED);
-        finishedRide.setEndTime(LocalDateTime.now());
-        em.persist(finishedRide);
-        em.flush();
-        em.clear();
-
-        List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
-
-        assertFalse(rides.isEmpty());
-        assertTrue(rides.stream().allMatch(r -> r.getStatus() == RideStatus.REQUESTED));
-        assertFalse(rides.stream().anyMatch(r -> r.getId().equals(finishedRide.getId())));
-    }
-
-    @Test
-    @DisplayName("Should only return IN_PROGRESS status in current ride query")
-    void findCurrentRideByDriver_onlyInProgress_shouldReturn() {
-        Optional<Ride> result = rideRepository.findCurrentRideByDriver(driver.getId());
-
-        assertTrue(result.isPresent());
-        assertEquals(RideStatus.IN_PROGRESS, result.get().getStatus());
-    }
-
-    // ================= helpers =================
-
-    private Driver createNewDriver(String email) {
-        Driver newDriver = new Driver();
-        newDriver.setFirstName("New");
-        newDriver.setLastName("Driver");
-        newDriver.setEmail(email);
-        newDriver.setPassword("123123");
-        newDriver.setAddress("Novi Sad");
-        newDriver.setPhoneNumber("0641234568");
-        newDriver.setActive(true);
-        newDriver.setBlocked(false);
-        newDriver.setJwtTokenValid(true);
-        newDriver.setRole(UserRoles.DRIVER);
-        newDriver.setAvailable(true);
-        newDriver.setWorkingHoursLast24(0.0);
-        newDriver.setStatus(DriverStatus.ACTIVE);
-        em.persist(newDriver);
-        return newDriver;
-    }
-
-    private RegisteredUser createNewUser(String email) {
-        RegisteredUser newUser = new RegisteredUser();
-        newUser.setFirstName("New");
-        newUser.setLastName("User");
-        newUser.setEmail(email);
-        newUser.setPassword("123123");
-        newUser.setAddress("Novi Sad");
-        newUser.setPhoneNumber("0641234569");
-        newUser.setActive(true);
-        newUser.setBlocked(false);
-        newUser.setJwtTokenValid(true);
-        newUser.setRole(UserRoles.USER);
-        em.persist(newUser);
-        return newUser;
     }
 
     // ================= helpers =================

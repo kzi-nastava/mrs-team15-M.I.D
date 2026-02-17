@@ -18,11 +18,13 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     NotificationWebSocketHandler notificationWebSocketHandler;
 
+    private final String allowedOrigin = "http://localhost:4200";
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/api/chat/websocket/{chatId}")
-                .setAllowedOrigins("*"); // Configure based on your frontend domains
+                .setAllowedOrigins(allowedOrigin);
         registry.addHandler(notificationWebSocketHandler, "/api/notifications/websocket")
-                .setAllowedOrigins("*"); // Allow all origins for now, configure based on your needs
+                .setAllowedOrigins(allowedOrigin);
     }
 }

@@ -43,18 +43,6 @@ public class OrderingRideServiceTest {
     private RoutingService routingService;
     @Mock
     private NotificationService notificationService;
-    @Mock
-    private NotificationWebSocketHandler notificationWebSocketHandler;
-    @Mock
-    private PanicAlertRepository panicAlertRepository;
-    @Mock
-    private PriceService priceService;
-    @Mock
-    private RatingRepository ratingRepository;
-    @Mock
-    private InconsistencyRepository inconsistencyRepository;
-    @Mock
-    private PassengerRepository passengerRepository;
 
     @InjectMocks
     private RideService rideService;
