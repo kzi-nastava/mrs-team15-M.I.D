@@ -28,34 +28,10 @@ import static org.mockito.Mockito.*;
 public class FinishRideServiceTest {
 
     @Mock
-    private RoutingService routingService;
-
-    @Mock
-    private PanicAlertRepository panicAlertRepository;
-
-    @Mock
-    private PriceService priceService;
-
-    @Mock
-    private RouteRepository routeRepository;
-
-    @Mock
     private RideRepository rideRepository;
 
     @Mock
     private DriverRepository driverRepository;
-
-    @Mock
-    private RatingRepository ratingRepository;
-
-    @Mock
-    private InconsistencyRepository inconsistencyRepository;
-
-    @Mock
-    private PassengerRepository passengerRepository;
-
-    @Mock
-    private RegisteredUserRepository registeredUserRepository;
 
     @Mock
     private NotificationWebSocketHandler webSocketHandler;

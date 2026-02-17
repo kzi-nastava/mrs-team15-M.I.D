@@ -118,7 +118,7 @@ public class OrderingRideControllerTest {
     @DisplayName("Should return 400 Bad Request when request is invalid")
     @WithMockUser(roles = "USER")
     void orderRideReturns400WhenRequestInvalid() throws Exception {
-        OrderRideRequestDTO invalidRequest = new OrderRideRequestDTO(); // prazno -> @Valid pali
+        OrderRideRequestDTO invalidRequest = new OrderRideRequestDTO();
 
         mockMvc.perform(post("/api/rides/order-ride").with(authentication(authToken))
                 .contentType(MediaType.APPLICATION_JSON)

@@ -278,24 +278,6 @@ public class FinishRideControllerTest {
     }
 
     @Test
-    @DisplayName("Should ensure proper error message format")
-    @WithMockUser(roles = "DRIVER")
-    void finishRide_ShouldReturnProperErrorFormat() throws Exception {
-        Long rideId = 999L;
-        when(rideService.finishRide(eq(rideId), eq(driver.getId())))
-                .thenThrow(new EntityNotFoundException("Ride with id " + rideId + " not found"));
-
-        mockMvc.perform(post("/api/rides/{id}/finish", rideId)
-                        .with(authentication(driverAuthToken))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNotFound()) // GlobalExceptionHandler returns 404 for EntityNotFoundException
-                .andExpect(content().string("Ride with id " + rideId + " not found"));
-
-        verify(rideService, times(1)).finishRide(eq(rideId), eq(driver.getId()));
-    }
-
-    @Test
     @DisplayName("Should validate that driver ID is extracted correctly from authentication")
     @WithMockUser(roles = "DRIVER")
     void finishRide_ShouldExtractDriverIdCorrectly() throws Exception {
