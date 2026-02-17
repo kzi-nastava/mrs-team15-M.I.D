@@ -156,14 +156,9 @@ public class ActiveRidesFragment extends Fragment {
                     bundle.putString("passengers", "");
                 }
 
-                // Pass route information if available
+                // Pass complete RouteDTO object
                 if (ride.getRoute() != null) {
-                    bundle.putString("startAddress", ride.getRoute().getStartLocation().getAddress());
-                    bundle.putString("endAddress", ride.getRoute().getEndLocation().getAddress());
-                    bundle.putDouble("startLat", ride.getRoute().getStartLocation().getLatitude());
-                    bundle.putDouble("startLon", ride.getRoute().getStartLocation().getLongitude());
-                    bundle.putDouble("endLat", ride.getRoute().getEndLocation().getLatitude());
-                    bundle.putDouble("endLon", ride.getRoute().getEndLocation().getLongitude());
+                    bundle.putSerializable("routeDTO", ride.getRoute());
                 }
 
                 androidx.navigation.NavController navController =
