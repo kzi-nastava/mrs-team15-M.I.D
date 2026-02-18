@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="?attr/colorPrimary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/price_config_title"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/price_config_subtitle"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:alpha="0.7" />
+
+        </LinearLayout>
+
+        <!-- Loading indicator -->
+        <LinearLayout
+            android:id="@+id/loadingLayout"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/price_config_loading"
+                android:textColor="@color/black"
+                android:alpha="0.7" />
+
+        </LinearLayout>
+
+        <!-- Error message -->
+        <TextView
+            android:id="@+id/tvError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/price_config_error"
+            android:textColor="@color/danger"
+            android:background="@color/error_background"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:drawableStartCompat="@drawable/ic_error"
+            android:drawablePadding="8dp" />
+
+        <!-- Success message -->
+        <TextView
+            android:id="@+id/tvSuccess"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/price_config_success"
+            android:textColor="@color/primary"
+            android:background="@color/success_background"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:drawableStartCompat="@drawable/ic_check_circle"
+            android:drawablePadding="8dp" />
+
+        <!-- Content container -->
+        <LinearLayout
+            android:id="@+id/contentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Dynamic Price Config Cards Container -->
+            <LinearLayout
+                android:id="@+id/priceConfigCardsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end"
+                android:layout_marginBottom="32dp">
+
+                <Button
+                    android:id="@+id/btnSaveChanges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="@string/price_config_save_changes"
+                    style="@style/ButtonPrimary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

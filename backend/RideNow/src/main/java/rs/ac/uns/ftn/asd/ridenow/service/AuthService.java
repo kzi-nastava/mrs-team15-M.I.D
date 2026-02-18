@@ -157,6 +157,12 @@ public class AuthService {
         } catch (Exception e) {
             responseDTO.setHasCurrentRide(false);
         }
+        if(existingUser instanceof Driver driver){
+            responseDTO.setActive(driver.getStatus() == DriverStatus.ACTIVE);
+        }
+        else{
+            responseDTO.setActive(false);
+        }
         responseDTO.setToken(token);
         responseDTO.setExpiresAt(expiresAt);
         responseDTO.setRole(existingUser.getRole().name());
@@ -224,6 +230,7 @@ public class AuthService {
             driver.setAvailable(false);
             driver.setStatus(DriverStatus.INACTIVE);
         }
+        user.setFcmDeviceToken(null);
         user.setJwtTokenValid(false);
         userRepository.save(user);
     }

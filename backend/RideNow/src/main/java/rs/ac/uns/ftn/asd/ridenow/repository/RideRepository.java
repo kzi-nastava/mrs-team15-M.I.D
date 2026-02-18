@@ -125,7 +125,9 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
 
 
-    @Query("SELECT r FROM Ride r " +
+    @Query("SELECT DISTINCT r FROM Ride r " +
+            "LEFT JOIN FETCH r.passengers p " +
+            "LEFT JOIN FETCH p.user " +
             "WHERE r.driver = :driver AND r.status = 'REQUESTED'")
     List<Ride> findScheduledRidesByDriver(@Param("driver") Driver driver);
 
@@ -169,6 +171,23 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
             nativeQuery = true)
     Optional<Ride> findCurrentRideByDriver(@Param("driverId") Long driverId);
 
+    @Query("SELECT r FROM Ride r " +
+            "WHERE r.status = 'IN_PROGRESS'")
+    List<Ride> findActiveRides();
 
-
+    @Query("SELECT DISTINCT r FROM Ride r " +
+            "LEFT JOIN FETCH r.passengers p " +
+            "LEFT JOIN FETCH p.user " +
+            "LEFT JOIN FETCH r.route rt " +
+            "LEFT JOIN FETCH rt.startLocation " +
+            "LEFT JOIN FETCH rt.endLocation " +
+            "LEFT JOIN FETCH r.driver " +
+            "WHERE r.status = 'REQUESTED' " +
+            "AND r.scheduledTime IS NOT NULL " +
+            "AND r.scheduledTime > :now " +
+            "AND r.scheduledTime < :fifteenMinutesFromNow")
+    List<Ride> findUpcomingScheduledRides(
+            @Param("now") LocalDateTime now,
+            @Param("fifteenMinutesFromNow") LocalDateTime fifteenMinutesFromNow
+    );
 }

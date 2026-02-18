@@ -41,7 +41,7 @@ export class PricingManagement implements OnInit {
     this.loading = true;
     this.error = null;
     this.cdr.detectChanges();
-    
+
     this.adminService.getPriceConfigurations().subscribe({
       next: (response: PriceConfigResponse) => {
         console.log('Price configurations loaded successfully:', response);
@@ -68,17 +68,10 @@ export class PricingManagement implements OnInit {
     return hasChanges;
   }
 
-  resetChanges(): void {
-    console.log('resetChanges() called');
-    this.priceConfigs = [...this.originalPriceConfigs];
-    this.error = null;
-    this.success = null;
-  }
-
   saveChanges(): void {
     console.log('saveChanges() called');
     console.log('Proceeding with save request');
-    
+
     this.saving = true;
     this.error = null;
     this.success = null;
@@ -97,7 +90,7 @@ export class PricingManagement implements OnInit {
         this.success = 'Price configurations updated successfully!';
         this.saving = false;
         this.cdr.detectChanges();
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => {
           this.success = null;

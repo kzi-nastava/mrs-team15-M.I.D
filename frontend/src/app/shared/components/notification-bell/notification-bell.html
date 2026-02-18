@@ -1,0 +1,59 @@
+<div class="notification-bell" [class.has-notifications]="unreadCount > 0">
+  <button
+    class="bell-button"
+    (click)="toggleDropdown()"
+    [attr.aria-label]="'Notifications (' + unreadCount + ' unread)'"
+  >
+    <i class="bi bi-bell"></i>
+    <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+  </button>
+
+  <!-- Notification Dropdown -->
+  <div class="notification-dropdown" *ngIf="showDropdown">
+    <div class="dropdown-header">
+      <h6>Notifications</h6>
+      <button
+        class="btn-link"
+        (click)="markAllAsSeen()"
+        *ngIf="unreadCount > 0"
+      >
+        Mark all as read
+      </button>
+    </div>
+
+    <div class="notification-list">
+      <div
+        *ngFor="let notification of notifications | slice:0:10; trackBy: trackByNotificationId"
+        class="notification-item"
+        [class.unread]="!notification.seen"
+        (click)="markAsSeen(notification)"
+      >
+        <div class="notification-icon" [ngClass]="'type-' + notification.type.toLowerCase()">
+          <i [class]="getNotificationIcon(notification.type)"></i>
+        </div>
+        <div class="notification-content">
+          <p class="notification-message">{{ notification.message }}</p>
+          <small class="notification-time">{{ formatTime(notification.createdAt) }}</small>
+        </div>
+        <button
+          class="delete-button"
+          (click)="deleteNotification($event, notification)"
+          [attr.aria-label]="'Delete notification'"
+          title="Delete notification"
+        >
+          <i class="bi bi-x"></i>
+        </button>
+        <div class="unread-indicator" *ngIf="!notification.seen"></div>
+      </div>
+
+      <div class="no-notifications" *ngIf="notifications.length === 0">
+        <i class="bi bi-bell-slash"></i>
+        <p>No notifications yet</p>
+      </div>
+    </div>
+
+    <div class="dropdown-footer" *ngIf="notifications.length > 10">
+      <p class="text-muted small mb-0">Showing 10 most recent notifications</p>
+    </div>
+  </div>
+</div>

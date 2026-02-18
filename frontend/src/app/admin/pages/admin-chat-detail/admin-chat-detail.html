@@ -1,0 +1,79 @@
+<div class="d-flex justify-content-center">
+  <div class="chat-container" style="width: 100%; max-width: 1200px;">
+    <div class="d-flex flex-column" style="height: calc(100vh - 56px);">
+      <div class="bg-white border-bottom p-3">
+        <div class="container-fluid">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <button class="btn btn-outline-dark" (click)="goBack()">
+                <i class="bi bi-arrow-left me-2"></i>Back to Chats
+              </button>
+            </div>
+            <div class="col">
+              <h5 class="mb-0 fw-semibold">Chat #{{ chatId }}</h5>
+            </div>
+            <div class="col-auto">
+              <span class="badge" [class.bg-success]="connected" [class.bg-danger]="!connected">
+                {{ connected ? 'Connected' : 'Disconnected' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger m-3 mb-0" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      </div>
+
+      <div *ngIf="loading" class="d-flex flex-column align-items-center justify-content-center flex-grow-1">
+        <div class="spinner-border text-dark mb-3" role="status">
+          <span class="visually-hidden">Connecting...</span>
+        </div>
+        <p class="text-muted">Connecting to chat...</p>
+      </div>
+
+      <div *ngIf="!loading" class="flex-grow-1 d-flex flex-column" style="min-height: 0;">
+        <div #messageContainer class="flex-grow-1 overflow-auto p-3" style="background-color: #f8f9fa;">
+          <div class="container-fluid">
+            <div *ngIf="messages.length === 0" class="text-center py-5">
+              <i class="bi bi-chat-dots" style="font-size: 3rem; color: #6c757d;"></i>
+              <p class="text-muted mt-3">No messages yet. Start the conversation!</p>
+            </div>
+
+            <div class="mb-3" *ngFor="let message of messages">
+              <div class="d-flex" [class.justify-content-end]="!message.userSender">
+                <div class="message-bubble" [class.admin-bubble]="!message.userSender" [class.user-bubble]="message.userSender">
+                  <div class="fw-semibold small mb-1">{{ message.userSender ? 'User' : 'You (Admin)' }}</div>
+                  <div>{{ message.content }}</div>
+                  <div class="text-muted small mt-1">{{ message.timestamp | date: 'short' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white border-top p-3">
+          <div class="container-fluid">
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newMessage"
+                (keyup.enter)="sendMessage()"
+                placeholder="Type your message..."
+                [disabled]="!connected"
+              />
+              <button
+                class="btn btn-dark"
+                (click)="sendMessage()"
+                [disabled]="!connected || !newMessage.trim()"
+              >
+                <i class="bi bi-send-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

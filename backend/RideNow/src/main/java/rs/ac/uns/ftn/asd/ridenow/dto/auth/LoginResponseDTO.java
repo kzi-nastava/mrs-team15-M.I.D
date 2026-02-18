@@ -10,6 +10,7 @@ public class LoginResponseDTO {
     private String role;
     private long expiresAt;
     private boolean hasCurrentRide;
+    private boolean active;
 
     public LoginResponseDTO() {
         super();

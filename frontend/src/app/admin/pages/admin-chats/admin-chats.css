@@ -1,0 +1,15 @@
+/* Minimal custom styles - Bootstrap handles most styling */
+
+.chat-with-new-messages {
+  background-color: #f4f4f4;
+  border-left: 4px solid #000000;
+}
+
+.chat-with-new-messages:hover {
+  background-color: #ebebeb;
+}
+
+.chat-with-new-messages h6 {
+  color: #000000;
+  font-weight: 600 !important;
+}

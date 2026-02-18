@@ -7,6 +7,10 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
 import { TokenExpirationService } from '../../../services/token-expiration.service';
+import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
+import { NotificationService } from '../../../services/notification.service';
+import { DriverStatusStore } from '../../../shared/states/driver-status.store';
+
 @Component({
   selector: 'app-login-form',
   standalone: true,
@@ -16,7 +20,15 @@ import { TokenExpirationService } from '../../../services/token-expiration.servi
 })
 export class LoginForm {
 
-  constructor(private cdr: ChangeDetectorRef, private authService : AuthService, private router : Router, private tokenExpirationService: TokenExpirationService ){}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private authService : AuthService,
+    private router : Router,
+    private tokenExpirationService: TokenExpirationService,
+    private notificationWebSocketService : NotificationWebSocketService,
+    private notificationService: NotificationService,
+    private driverStatusStore: DriverStatusStore
+  ){}
 
   passwordVisible = false;
 
@@ -48,26 +60,32 @@ export class LoginForm {
         localStorage.setItem('tokenExpiration', response.expiresAt.toString());
         this.tokenExpirationService.startTokenExpirationCheck();
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
-        switch(response.role) {
-          case 'ADMIN':
-            setTimeout(() => { this.router.navigate(['/admin-history']); }, 1000);
-            return;
-          case 'DRIVER':
-            if(response.hasCurrentRide){
-              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);   
-              return;
-            }
-            setTimeout(() => { this.router.navigate(['/upcoming-rides']); }, 1000);
-            return;
-            case 'USER':
-            if(response.hasCurrentRide){
-              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);   
-              return;
-            }
-            setTimeout(() => { this.router.navigate(['/ride-ordering']); }, 1000);
-            return;
+
+        if (response.role === 'DRIVER') {
+          const initialStatus = response.active ? 'ACTIVE' : 'INACTIVE';
+          this.driverStatusStore.setStatus(initialStatus);
         }
-        setTimeout(() => { this.router.navigate(['/home']); }, 1000);
+
+        if (response.role === 'ADMIN') {
+          setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
+          this.navigateAfterLogin(response.role, response.hasCurrentRide);
+        } else if (response.role === 'USER' || response.role === 'DRIVER') {
+          // Initialize notifications for users and drivers
+          // Load notifications and connect to WebSocket in proper sequence
+          // Wait for notifications to load before navigating
+          this.notificationService.loadAndConnectNotifications(response.token).subscribe({
+            next: () => {
+              this.navigateAfterLogin(response.role, response.hasCurrentRide);
+            },
+            error: (error) => {
+              // Still navigate even if notifications fail
+              this.navigateAfterLogin(response.role, response.hasCurrentRide);
+            }
+          });
+          setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
+        } else {
+          this.navigateAfterLogin(response.role, response.hasCurrentRide);
+        }
       },
       error: (err) => {
         if (typeof err.error === 'string') {
@@ -77,6 +95,30 @@ export class LoginForm {
         }
       }
     });
+  }
+
+  private navigateAfterLogin(role: string, hasCurrentRide: boolean): void {
+    switch(role) {
+      case 'ADMIN':
+        setTimeout(() => { this.router.navigate(['/admin-history-overview']); }, 1000);
+        return;
+      case 'DRIVER':
+        if(hasCurrentRide){
+          setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);
+          return;
+        }
+        setTimeout(() => { this.router.navigate(['/upcoming-rides']); }, 1000);
+        return;
+      case 'USER':
+        if(hasCurrentRide){
+          setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);
+          return;
+        }
+        setTimeout(() => { this.router.navigate(['/ride-ordering']); }, 1000);
+        return;
+      default:
+        setTimeout(() => { this.router.navigate(['/home']); }, 1000);
+    }
   }
 
   showMessageToast(message: string): void {

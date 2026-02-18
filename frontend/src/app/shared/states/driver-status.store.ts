@@ -11,7 +11,7 @@ export class DriverStatusStore {
   }
 
    resetStatus() {
-    this.statusSubject.next("INACTIVE");  
+    this.statusSubject.next(null);  
   }
 
   get currentStatus(): string | null {

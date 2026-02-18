@@ -2,12 +2,14 @@ package com.example.ridenow.service;
 
 import com.example.ridenow.dto.rating.RatingRequestDTO;
 import com.example.ridenow.dto.rating.RatingResponseDTO;
+import com.example.ridenow.dto.ride.ActiveRideDTO;
 import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
 import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
+import com.example.ridenow.dto.ride.EstimateRouteRequestDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,9 @@ public interface RideService {
                                            @Query("endLatitude") Double endLatitude,
                                            @Query("endLongitude") Double endLongitude);
 
+    @POST("rides/estimate-route")
+    Call<RideEstimateResponseDTO> estimateRoute(@Body EstimateRouteRequestDTO request);
+
     @PUT("rides/{id}/cancel")
     Call<Void> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
 
@@ -50,4 +55,7 @@ public interface RideService {
 
     @POST("rides/panic-alert")
     Call <Map<String, String>> triggerPanicAlert();
+
+    @GET("/api/rides/active-rides")
+    Call<List<ActiveRideDTO>> getActiveRides();
 }

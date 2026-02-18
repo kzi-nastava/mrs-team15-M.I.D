@@ -3,25 +3,30 @@ package com.example.ridenow.dto.ride;
 import java.util.List;
 
 public class RideEstimateResponseDTO {
-    private int estimatedDurationMin;
+    private Integer estimatedDurationMin;
+    private Integer estimatedTimeMinutes;
+    private Integer estimatedTime;
     private double distanceKm;
     private List<RoutePointDTO> route;
 
     public RideEstimateResponseDTO() {}
 
-    public RideEstimateResponseDTO(int estimatedDurationMin, double distanceKm, List<RoutePointDTO> route) {
-        this.estimatedDurationMin = estimatedDurationMin;
-        this.distanceKm = distanceKm;
-        this.route = route;
-    }
-
     public int getEstimatedDurationMin() {
-        return estimatedDurationMin;
+        if (estimatedDurationMin != null && estimatedDurationMin != 0) return estimatedDurationMin;
+        if (estimatedTimeMinutes != null && estimatedTimeMinutes != 0) return estimatedTimeMinutes;
+        if (estimatedTime != null && estimatedTime != 0) return estimatedTime;
+        return 0;
     }
 
     public void setEstimatedDurationMin(int estimatedDurationMin) {
         this.estimatedDurationMin = estimatedDurationMin;
     }
+
+    public Integer getEstimatedTimeMinutes() { return estimatedTimeMinutes; }
+    public void setEstimatedTimeMinutes(Integer estimatedTimeMinutes) { this.estimatedTimeMinutes = estimatedTimeMinutes; }
+
+    public Integer getEstimatedTime() { return estimatedTime; }
+    public void setEstimatedTime(Integer estimatedTime) { this.estimatedTime = estimatedTime; }
 
     public double getDistanceKm() {
         return distanceKm;

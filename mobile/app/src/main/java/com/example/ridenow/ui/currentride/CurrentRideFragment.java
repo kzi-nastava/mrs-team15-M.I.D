@@ -46,6 +46,13 @@ public class CurrentRideFragment extends Fragment {
     private RouteMapView routeMapView;
     private TextView startAddressText;
     private TextView endAddressText;
+    private TextView remainingTimeText;
+
+    // Admin view elements
+    private LinearLayout adminDriverLayout;
+    private LinearLayout adminPassengersLayout;
+    private TextView adminDriverText;
+    private TextView adminPassengersText;
 
     // User buttons
     private LinearLayout userButtonsLayout;
@@ -66,6 +73,8 @@ public class CurrentRideFragment extends Fragment {
     private static final long TRACKING_INTERVAL = 10000; // 10 seconds
 
     private boolean isDriver = false;
+    private boolean isAdminView = false;
+    private Long adminRideId = null;
     private TokenUtils tokenUtils;
     private LocationManager locationManager;
 
@@ -78,11 +87,28 @@ public class CurrentRideFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Check if this is an admin view
+        Bundle args = getArguments();
+        if (args != null) {
+            isAdminView = args.getBoolean("isAdminView", false);
+            adminRideId = args.getLong("rideId", -1);
+            if (adminRideId == -1) adminRideId = null;
+        }
+
         initViews(view);
         initServices();
         checkUserRole();
         setupButtonVisibility();
-        testCurrentLocation(); // Test what location the emulator is reporting
+
+        // Set admin information after views are initialized
+        if (args != null && isAdminView && (args.containsKey("routeDTO") || args.containsKey("startAddress"))) {
+            createAdminRideFromBundle(args);
+        }
+
+        if (!isAdminView) {
+            testCurrentLocation(); // Only test location for actual users
+        }
+
         getCurrentRide();
     }
 
@@ -90,6 +116,13 @@ public class CurrentRideFragment extends Fragment {
         routeMapView = view.findViewById(R.id.routeMapView);
         startAddressText = view.findViewById(R.id.startAddressText);
         endAddressText = view.findViewById(R.id.endAddressText);
+        remainingTimeText = view.findViewById(R.id.remainingTimeText);
+
+        // Admin view elements
+        adminDriverLayout = view.findViewById(R.id.adminDriverLayout);
+        adminPassengersLayout = view.findViewById(R.id.adminPassengersLayout);
+        adminDriverText = view.findViewById(R.id.adminDriverText);
+        adminPassengersText = view.findViewById(R.id.adminPassengersText);
 
         // User buttons
         userButtonsLayout = view.findViewById(R.id.userButtonsLayout);
@@ -133,11 +166,11 @@ public class CurrentRideFragment extends Fragment {
     private void triggerPanicButton() {
         rideService.triggerPanicAlert().enqueue(new Callback<Map<String, String>>() {
             @Override
-            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+            public void onResponse(@NonNull Call<Map<String, String>> call, @NonNull Response<Map<String, String>> response) {
                 panicButton.setEnabled(true);
                 if(response.isSuccessful()){
                     routeMapView.setPanicMode(true);
-                    if(currentRide != null || currentRide.getRoute() != null){
+                    if(currentRide != null && currentRide.getRoute() != null){
                         routeMapView.displayRoute(currentRide.getRoute().getStartLocation(),
                                 currentRide.getRoute().getEndLocation(),
                                 currentRide.getRoute().getStopLocations(),
@@ -191,36 +224,180 @@ public class CurrentRideFragment extends Fragment {
     }
 
     private void setupButtonVisibility() {
-        if (isDriver) {
+        if (isAdminView) {
+            // Admin view - hide all buttons but show admin info
             userButtonsLayout.setVisibility(View.GONE);
-            driverButtonsLayout.setVisibility(View.VISIBLE);
-        } else {
-            userButtonsLayout.setVisibility(View.VISIBLE);
             driverButtonsLayout.setVisibility(View.GONE);
+            adminDriverLayout.setVisibility(View.VISIBLE);
+            adminPassengersLayout.setVisibility(View.VISIBLE);
+        } else {
+            // Regular user/driver view - hide admin info
+            adminDriverLayout.setVisibility(View.GONE);
+            adminPassengersLayout.setVisibility(View.GONE);
+
+            if (isDriver) {
+                userButtonsLayout.setVisibility(View.GONE);
+                driverButtonsLayout.setVisibility(View.VISIBLE);
+            } else {
+                userButtonsLayout.setVisibility(View.VISIBLE);
+                driverButtonsLayout.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void updateUserButtonVisibility() {
+        // Only update if this is a user (not driver) view
+        if (!isDriver && currentRide != null && userButtonsLayout != null) {
+            Boolean isMainPassenger = currentRide.getMainPassenger();
+
+            if (isMainPassenger != null && !isMainPassenger) {
+                // Not main passenger - hide report and panic buttons
+                reportInconsistencyButton.setVisibility(View.GONE);
+                panicButton.setVisibility(View.GONE);
+                Log.d(TAG, "User is not main passenger - hiding report and panic buttons");
+            } else {
+                // Main passenger - show buttons
+                reportInconsistencyButton.setVisibility(View.VISIBLE);
+                panicButton.setVisibility(View.VISIBLE);
+                Log.d(TAG, "User is main passenger - showing report and panic buttons");
+            }
         }
     }
 
     private void getCurrentRide() {
-        Call<CurrentRideResponse> call = rideService.getCurrentRide();
+        if (isAdminView && adminRideId != null) {
+            // Admin view - track specific ride
+            trackSpecificRide(adminRideId);
+        } else {
+            // Normal user/driver view - get current ride
+            Call<CurrentRideResponse> call = rideService.getCurrentRide();
+            call.enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<CurrentRideResponse> call, @NonNull Response<CurrentRideResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        currentRide = response.body();
+                        setupRideInfo();
+                        updateUserButtonVisibility(); // Update button visibility based on isMainPassenger
+                        if (isDriver) {
+                            startDriverLocationUpdates();
+                        } else {
+                            startVehicleTracking();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "No current ride found", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<CurrentRideResponse> call, @NonNull Throwable t) {
+                    Toast.makeText(getContext(), "Failed to get current ride: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    private void createAdminRideFromBundle(Bundle args) {
+        Log.d(TAG, "createAdminRideFromBundle() called");
+
+        // Create a CurrentRideResponse from bundle data for admin view
+        currentRide = new CurrentRideResponse();
+        currentRide.setRideId(adminRideId);
+
+        // Try to get complete RouteDTO first
+        com.example.ridenow.dto.model.RouteDTO route = null;
+        if (args.containsKey("routeDTO")) {
+            route = (com.example.ridenow.dto.model.RouteDTO) args.getSerializable("routeDTO");
+            Log.d(TAG, "Using RouteDTO from bundle");
+        } else {
+            // Fallback: Create route from individual lat/lon values (for backward compatibility)
+            route = new com.example.ridenow.dto.model.RouteDTO();
+
+            // Create locations
+            com.example.ridenow.dto.model.LocationDTO startLocation = new com.example.ridenow.dto.model.LocationDTO();
+            startLocation.setAddress(args.getString("startAddress"));
+            startLocation.setLatitude(args.getDouble("startLat"));
+            startLocation.setLongitude(args.getDouble("startLon"));
+
+            com.example.ridenow.dto.model.LocationDTO endLocation = new com.example.ridenow.dto.model.LocationDTO();
+            endLocation.setAddress(args.getString("endAddress"));
+            endLocation.setLatitude(args.getDouble("endLat"));
+            endLocation.setLongitude(args.getDouble("endLon"));
+
+            route.setStartLocation(startLocation);
+            route.setEndLocation(endLocation);
+            Log.d(TAG, "Created RouteDTO from individual coordinates");
+        }
+
+        currentRide.setRoute(route);
+
+        // Set admin-specific information
+        String driverName = args.getString("driverName", "Unknown Driver");
+        String passengers = args.getString("passengers", "");
+
+        Log.d(TAG, "Driver name from bundle: " + driverName);
+        Log.d(TAG, "Passengers from bundle: " + passengers);
+
+        if (adminDriverText != null) {
+            adminDriverText.setText(driverName);
+            Log.d(TAG, "Set driver text to: " + driverName);
+        } else {
+            Log.w(TAG, "adminDriverText is null");
+        }
+
+        if (adminPassengersText != null) {
+            if (passengers != null && !passengers.trim().isEmpty()) {
+                adminPassengersText.setText(passengers);
+                Log.d(TAG, "Set passengers text to: " + passengers);
+            } else {
+                adminPassengersText.setText(getString(R.string.no_passengers));
+                Log.d(TAG, "Set passengers text to no passengers");
+            }
+        } else {
+            Log.w(TAG, "adminPassengersText is null");
+        }
+
+        // Display the route on the map
+        setupRideInfo();
+    }
+
+    private void trackSpecificRide(Long rideId) {
+        // For admin view, we already have route info from bundle, just start tracking location
+        if (currentRide != null) {
+            setupRideInfo();
+        }
+        startAdminVehicleTracking(rideId);
+    }
+
+    private void startAdminVehicleTracking(Long rideId) {
+        if (rideId == null) return;
+
+        trackingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                trackSpecificVehicle(rideId);
+                trackingHandler.postDelayed(this, TRACKING_INTERVAL);
+            }
+        };
+
+        // Schedule periodic tracking (initial call already made in trackSpecificRide)
+        trackingHandler.postDelayed(trackingRunnable, TRACKING_INTERVAL);
+    }
+
+    private void trackSpecificVehicle(Long rideId) {
+        Call<TrackVehicleResponseDTO> call = rideService.trackVehicle(rideId.toString());
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<CurrentRideResponse> call, @NonNull Response<CurrentRideResponse> response) {
+            public void onResponse(@NonNull Call<TrackVehicleResponseDTO> call, @NonNull Response<TrackVehicleResponseDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    currentRide = response.body();
-                    setupRideInfo();
-                    if (isDriver) {
-                        startDriverLocationUpdates();
-                    } else {
-                        startVehicleTracking();
-                    }
-                } else {
-                    Toast.makeText(getContext(), "No current ride found", Toast.LENGTH_SHORT).show();
+                    TrackVehicleResponseDTO trackData = response.body();
+                    updateVehicleLocation(trackData.getLocation());
+                    updateRemainingTime(trackData.getRemainingTimeInMinutes());
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<CurrentRideResponse> call, @NonNull Throwable t) {
-                Toast.makeText(getContext(), "Failed to get current ride: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onFailure(@NonNull Call<TrackVehicleResponseDTO> call, @NonNull Throwable t) {
+                // Silently fail for tracking errors to avoid spamming admin
             }
         });
     }
@@ -288,6 +465,7 @@ public class CurrentRideFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     TrackVehicleResponseDTO trackData = response.body();
                     updateVehicleLocation(trackData.getLocation());
+                    updateRemainingTime(trackData.getRemainingTimeInMinutes());
                 }
             }
 
@@ -368,6 +546,20 @@ public class CurrentRideFragment extends Fragment {
             routeMapView.updateVehicleMarker(vehicleLocation);
             // Center map on vehicle location
             routeMapView.centerOnLocation(vehicleLocation);
+        }
+    }
+
+    private void updateRemainingTime(Integer remainingTimeInMinutes) {
+        if (remainingTimeText != null && getContext() != null) {
+            if (remainingTimeInMinutes != null) {
+                if (remainingTimeInMinutes <= 0) {
+                    remainingTimeText.setText(getString(R.string.current_ride_arriving_soon));
+                } else {
+                    remainingTimeText.setText(getString(R.string.current_ride_minutes_remaining, remainingTimeInMinutes));
+                }
+            } else {
+                remainingTimeText.setText(getString(R.string.current_ride_calculating));
+            }
         }
     }
 

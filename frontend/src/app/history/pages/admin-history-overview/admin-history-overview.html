@@ -1,0 +1,8 @@
+<app-page-header title="Ride history overview" [showDateFilter]="false"></app-page-header>
+<app-users-overview-table [users]="filteredUsers" (sortChange)="onSort($event)"></app-users-overview-table>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+  <app-button id="previous" text="←" variant="primary" height="30px" width="40px" [disabled]="isFirstPage" (clicked)="goToPreviousPage()"></app-button>
+  <span class="text-muted">page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total users)</span>
+  <app-button id="next" text="→" variant="primary" height="30px" width="40px" [disabled]="isLastPage" (clicked)="goToNextPage()"></app-button>
+</div>

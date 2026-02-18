@@ -1,41 +1,37 @@
 <div class="px-5 pb-5">
   <div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle" data-test="ride-history-table">
       <thead>
         <tr>
-          <th scope="col" class="sortable" (click)="sort('route')">
+          <th scope="col" class="sortable" (click)="sort('route')" data-test="sort-route">
             Route <span class="sort-icon">{{ getSortIcon('route') }}</span>
           </th>
-          <th scope="col" class="sortable" (click)="sort('startTime')">
+          <th scope="col" class="sortable" (click)="sort('startTime')" data-test="sort-start-time">
             Start time <span class="sort-icon">{{ getSortIcon('startTime') }}</span>
           </th>
-          <th scope="col" class="sortable" (click)="sort('endTime')">
+          <th scope="col" class="sortable" (click)="sort('endTime')" data-test="sort-end-time">
             End time <span class="sort-icon">{{ getSortIcon('endTime') }}</span>
           </th>
-          <th scope="col" class="sortable" (click)="sort('cancelled')">
+          <th scope="col" class="sortable" (click)="sort('cancelled')" data-test="sort-cancelled">
             Cancelled <span class="sort-icon">{{ getSortIcon('cancelled') }}</span>
           </th>
-           <th scope="col" class="sortable" (click)="sort('price')">
+          <th scope="col" class="sortable" (click)="sort('price')" data-test="sort-cost">
             Cost <span class="sort-icon">{{ getSortIcon('price') }}</span>
           </th>
-          <th scope="col" class="sortable" (click)="sort('panicButton')">
-            Panic Button <span class="sort-icon">{{ getSortIcon('panicButton') }}</span>
+          <th scope="col" class="sortable" (click)="sort('panic')" data-test="sort-panic">
+            Panic <span class="sort-icon">{{ getSortIcon('panic') }}</span>
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody data-test="ride-history-tbody">
         @for (ride of rides; track ride.id) {
-          <tr class="clickable-row" (click)="viewRideDetails(ride)">
+          <tr class="clickable-row" (click)="viewRideDetails(ride)" data-test="ride-row">
             <td>{{ ride.route }}</td>
             <td>{{ ride.startTime }}</td>
             <td>{{ ride.endTime }}</td>
             <td>
               @if (ride.cancelled) {
                 <span class="badge bg-danger">{{ ride.cancelled }}</span>
-                @if (ride.cancelledBy) {
-                  <br>
-                  <small>{{ ride.cancelledBy }}</small>
-                }
               } @else {
                 <span>N/A</span>
               }
@@ -44,14 +40,15 @@
             <td>
               @if (ride.panicButton) {
                 <span class="badge bg-danger">{{ ride.panicButton }}</span>
-                @if (ride.panicBy) {
-                  <br>
-                  <small>{{ ride.panicBy }}</small>
-                }
               } @else {
                 <span>N/A</span>
               }
             </td>
+          </tr>
+        }
+        @if (rides.length === 0) {
+          <tr data-test="no-results-row">
+            <td colspan="6" class="text-center text-muted py-4">No rides found</td>
           </tr>
         }
       </tbody>

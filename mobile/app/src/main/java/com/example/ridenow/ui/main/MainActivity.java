@@ -13,16 +13,22 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.ridenow.R;
+import com.example.ridenow.dto.user.FcmTokenDTO;
 import com.example.ridenow.service.LogoutService;
 import com.example.ridenow.service.TokenExpirationService;
+import com.example.ridenow.service.UserService;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.messaging.FirebaseMessaging;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -84,6 +90,11 @@ public class MainActivity extends AppCompatActivity {
         toggle.syncState();
         setupTokenUtils();
         updateMenuVisibility();
+
+        // Handle notification click from FCM
+        if (getIntent().getBooleanExtra("navigateToNotifications", false)) {
+            navController.navigate(R.id.notifications);
+        }
     }
 
     private void setupTokenUtils() {
@@ -138,7 +149,47 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Login success, starting token expiration checks");
             tokenExpirationService.startTokenExpirationCheck();
         }
+
+        // Initialize Firebase Cloud Messaging token
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String token = task.getResult();
+                        Log.d(TAG, "FCM token obtained successfully: " + token);
+                        // Send token to backend
+                        registerFcmToken(token);
+                    } else {
+                        Log.e(TAG, "Failed to get FCM token", task.getException());
+                    }
+                });
+
         updateMenuVisibility();
+    }
+
+    private void registerFcmToken(String token) {
+        try {
+            com.example.ridenow.dto.user.FcmTokenDTO tokenDTO = new com.example.ridenow.dto.user.FcmTokenDTO();
+            tokenDTO.setToken(token);
+
+            com.example.ridenow.service.UserService userService = ClientUtils.getClient(com.example.ridenow.service.UserService.class);
+            userService.registerToken(tokenDTO).enqueue(new retrofit2.Callback<Void>() {
+                @Override
+                public void onResponse(@NonNull retrofit2.Call<Void> call, @NonNull retrofit2.Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        Log.d(TAG, "FCM token registered successfully with backend");
+                    } else {
+                        Log.e(TAG, "Failed to register FCM token: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull retrofit2.Call<Void> call, @NonNull Throwable t) {
+                    Log.e(TAG, "Error registering FCM token", t);
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error registering FCM token", e);
+        }
     }
 
     private void updateMenuVisibility() {
@@ -182,6 +233,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
+        navigationView.getMenu().findItem(R.id.admin_chats).setVisible(isAdmin); // Support Chats
+
+        // Live support for logged-in non-admin users
+        navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
+        navigationView.getMenu().findItem(R.id.active_rides).setVisible(isAdmin); // Active Rides
+        navigationView.getMenu().findItem(R.id.price_configs).setVisible(isAdmin); // Price Configuration
     }
 
     public void handleLogout() {
@@ -206,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onLogout() {
         Log.d(TAG, "Logging out user");
+
         if (tokenExpirationService != null) {
             tokenExpirationService.stopTokenExpirationCheck();
         }
@@ -215,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 navController.navigate(R.id.login);
             } catch (Exception e) {
-                Log.e(TAG, "Error navigating to login on logout", e);
+                Log.e(TAG, "Error navigating to login during logout", e);
             }
         }
     }

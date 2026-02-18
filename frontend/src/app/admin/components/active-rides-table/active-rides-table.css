@@ -1,0 +1,23 @@
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.table-warning {
+  background-color: #fff3cd !important;
+}
+
+.table-warning:hover {
+  background-color: #ffeaa7 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.9rem;
+  }
+}

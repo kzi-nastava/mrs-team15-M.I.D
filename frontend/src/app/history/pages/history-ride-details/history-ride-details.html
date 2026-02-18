@@ -1,3 +1,20 @@
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
+    </div>
+  </div>
+</div>
 <div class="container mt-4">
   @if (ride) {
     <div class="row">
@@ -68,9 +85,6 @@
                 <p class="detail-value">
                   <span class="badge bg-danger">{{ ride.cancelled }}</span>
                 </p>
-                @if (ride.cancelledBy) {
-                  <small class="text-muted">By: {{ ride.cancelledBy }}</small>
-                }
               } @else {
                 <p class="detail-value text-muted">No</p>
               }
@@ -82,9 +96,6 @@
                 <p class="detail-value">
                   <span class="badge bg-danger">{{ ride.panicButton }}</span>
                 </p>
-                @if (ride.panicBy) {
-                  <small class="text-muted">By: {{ ride.panicBy }}</small>
-                }
               } @else {
                 <p class="detail-value text-muted">No incidents</p>
               }
@@ -112,12 +123,12 @@
                       }
                     }
                   </span>
-                  <span class="rating-value ms-2">{{ ride.rating.driverRating }}/5</span>
+                  <span class="rating-value ms-2" data-test="driver-rating-value">{{ ride.rating.driverRating }}/5</span>
                 </div>
               </div>
               @if (ride.rating.driverComment) {
                 <div class="detail-item mb-4">
-                  <p class="detail-value">{{ ride.rating.driverComment }}</p>
+                  <p class="detail-value" data-test="driver-comment">{{ ride.rating.driverComment }}</p>
                 </div>
               }
 
@@ -136,12 +147,12 @@
                       }
                     }
                   </span>
-                  <span class="rating-value ms-2">{{ ride.rating.vehicleRating }}/5</span>
+                  <span class="rating-value ms-2" data-test="vehicle-rating-value">{{ ride.rating.vehicleRating }}/5</span>
                 </div>
               </div>
               @if (ride.rating.vehicleComment) {
                 <div class="detail-item">
-                  <p class="detail-value">{{ ride.rating.vehicleComment }}</p>
+                  <p class="detail-value" data-test="vehicle-comment">{{ ride.rating.vehicleComment }}</p>
                 </div>
               }
             </div>
@@ -178,7 +189,7 @@
   }
 </div>
 
-<app-reorder-ride-modal 
+<app-reorder-ride-modal
   *ngIf="showReorderModal" (close)="showReorderModal = false"
   (bookNow)="onBookNow()" (schedule)="onScheduleForLater($event)">
 </app-reorder-ride-modal>

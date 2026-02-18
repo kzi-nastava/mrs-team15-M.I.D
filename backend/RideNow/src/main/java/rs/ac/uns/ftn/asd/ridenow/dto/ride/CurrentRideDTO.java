@@ -12,6 +12,8 @@ public class CurrentRideDTO {
     private int estimatedDurationMin;
     private RouteDTO route;
     private Long rideId;
+    private Boolean panic;
+    private Boolean isMainPassenger;
 
     public  CurrentRideDTO(){ super(); }
 }

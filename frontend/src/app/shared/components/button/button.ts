@@ -20,9 +20,9 @@ export class Button {
   @Input() routerLink?: string;
   @Input() disabled: boolean = false;
 
-  @Output() clicked = new EventEmitter<void>();
+  @Output() clicked = new EventEmitter<MouseEvent>();
 
-  onClick() {
-    this.clicked.emit();
+  onClick(event: MouseEvent) {
+    this.clicked.emit(event); // Pass the event through
   }
 }

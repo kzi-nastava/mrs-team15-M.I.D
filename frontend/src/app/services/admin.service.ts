@@ -8,7 +8,7 @@ export class AdminService {
 
   constructor(private http: HttpClient) {}
 
-  registerDriver(data: any): Observable<any> {
+  registerDriver(data: FormData): Observable<any> {
     return this.http.post(`${this.apiURL}/driver-register`, data);
   }
 
@@ -54,5 +54,25 @@ export class AdminService {
     console.log('PUT request URL:', `${this.apiURL}/price-configs`);
     console.log('Request payload:', priceData);
     return this.http.put(`${this.apiURL}/price-configs`, priceData);
+  }
+
+  getActiveRides(): Observable<any> {
+    console.log('AdminService.getActiveRides() called');
+    const activeRidesUrl = 'http://localhost:8081/api/rides/active-rides';
+    console.log('GET request URL:', activeRidesUrl);
+    return this.http.get(activeRidesUrl);
+  }
+
+  // Calls backend GET /report with query parameters.
+  getReport(params: { startDate?: number | null; endDate?: number | null; drivers?: boolean; users?: boolean; personId?: string | number | null }): Observable<any> {
+    const url = `${this.apiURL}/report`;
+    const httpParams: any = {};
+    if (params.startDate != null) httpParams.startDate = String(params.startDate);
+    if (params.endDate != null) httpParams.endDate = String(params.endDate);
+    if (params.drivers != null) httpParams.drivers = String(params.drivers);
+    if (params.users != null) httpParams.users = String(params.users);
+    if (params.personId != null) httpParams.personId = String(params.personId);
+    console.log('AdminService.getReport() called, URL:', url, 'params:', httpParams);
+    return this.http.get(url, { params: httpParams });
   }
 }

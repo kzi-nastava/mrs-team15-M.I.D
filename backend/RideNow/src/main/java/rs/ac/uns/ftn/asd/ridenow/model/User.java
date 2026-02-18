@@ -54,9 +54,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    List<Message> messages = new ArrayList<>();
-
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "activation_token_id")
     private ActivationToken activationToken;
@@ -67,6 +64,9 @@ public class User {
 
     @Column(nullable = false)
     boolean jwtTokenValid;
+
+    @Column(length = 500)
+    private String fcmDeviceToken;
 
     public User(String email, String password, String firstName, String lastName, String phoneNumber, String address,
                 String profileImage, boolean active, boolean blocked, UserRoles role, boolean jwtTokenValid) {
@@ -85,19 +85,5 @@ public class User {
 
     public User(){
         super();
-    }
-
-    public void addNotification(Notification notification){
-        if(notification != null && !notifications.contains(notification)){
-            notifications.add(notification);
-            notification.assignUser(this);
-        }
-    }
-
-    public void addMessage(Message message) {
-        if(message != null && !messages.contains(message)) {
-            messages.add(message);
-            message.setSender(this);
-        }
     }
 }

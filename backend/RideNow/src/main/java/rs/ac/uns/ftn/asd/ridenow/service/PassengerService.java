@@ -229,21 +229,15 @@ public class PassengerService {
             endOfDay = dateTime.toLocalDate().atTime(23, 59, 59);
         }
         return date != null ?
-                findByDriverWithAllRelationsAndDate(user, startOfDay, endOfDay, pageable) :
-                findByDriverWithAllRelations(user, pageable);
+                findPassengerRidesWithAllRelationsAndDate(user, startOfDay, endOfDay, pageable) :
+                findPassengerRidesWithAllRelations(user, pageable);
     }
 
-    private Page<Ride> findByDriverWithAllRelations(User user, Pageable pageable) {
-        if (user instanceof Driver) {
-            return historyRepository.findDriverRidesWithAllRelations(user.getId(), pageable);
-        }
+    private Page<Ride> findPassengerRidesWithAllRelations(User user, Pageable pageable) {
         return historyRepository.findPassengerRidesWithAllRelations(user.getId(), pageable);
     }
 
-    private Page<Ride> findByDriverWithAllRelationsAndDate(User user, LocalDateTime startOfDay, LocalDateTime endOfDay, Pageable pageable) {
-        if (user instanceof Driver) {
-            return historyRepository.findDriverRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
-        }
+    private Page<Ride> findPassengerRidesWithAllRelationsAndDate(User user, LocalDateTime startOfDay, LocalDateTime endOfDay, Pageable pageable) {
         return historyRepository.findPassengerRidesWithAllRelationsAndDate(user.getId(), startOfDay, endOfDay, pageable);
     }
 

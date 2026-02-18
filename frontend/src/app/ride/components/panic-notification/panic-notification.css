@@ -1,0 +1,231 @@
+.notification-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 10000;
+  max-width: 380px;
+  pointer-events: none;
+}
+
+.notification-container > * {
+  pointer-events: auto;
+}
+
+.panic-alert {
+  background: #dc3545;
+  color: white;
+  padding: 20px;
+  padding-top: 40px; /* Space for close button */
+  margin-bottom: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(220, 53, 69, 0.3);
+  cursor: pointer;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+  border-left: 4px solid #a71d2a;
+  transition: all 0.2s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.panic-alert:hover {
+  box-shadow: 0 4px 16px rgba(220, 53, 69, 0.4);
+  transform: translateY(-2px);
+  background: #c82333;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.alert-id {
+  font-size: 14px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.alert-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: white;
+  margin-bottom: 12px;
+}
+
+.alert-body p {
+  margin: 6px 0;
+  font-weight: 300;
+}
+
+.alert-body strong {
+  font-weight: 600;
+  color: white;
+}
+
+.alert-time {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 300;
+}
+
+/* Close button (X) - positioned at top right */
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24px;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+  padding: 0;
+  font-weight: 300;
+  margin: 0 !important;
+  text-transform: none !important;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+/* Resolve button - positioned at bottom */
+.resolve-btn {
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  margin: 5px 0;
+  transition: all 0.25s ease;
+  background-color: #ffffff;
+  width: 100%;
+  color: #000;
+  padding: 10px 16px;
+}
+
+.resolve-btn:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.resolve-btn:active {
+  transform: translateY(0);
+}
+
+/* No alerts message */
+.no-alerts {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 16px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Connection status */
+.connection-status {
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.connected {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.connected .status-dot {
+  background: #4caf50;
+}
+
+.disconnected {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.disconnected .status-dot {
+  background: #f44336;
+}
+
+@media (max-width: 768px) {
+  .notification-container {
+    top: 70px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+
+  .panic-alert {
+    padding: 16px;
+    padding-top: 36px;
+  }
+
+  .alert-header {
+    font-size: 15px;
+  }
+  
+  .resolve-btn {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}

@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -20,11 +21,13 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.UpcomingRideDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.DriverService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Driver", description = "Driver management endpoints")
 @RestController
 @RequestMapping("/api/driver")
 public class DriverController {
@@ -36,6 +39,7 @@ public class DriverController {
         this.driverService = driverService;
     }
 
+    @Operation(summary = "Get ride history", description = "Retrieve paginated ride history for the authenticated driver with sorting and filtering options")
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/ride-history")
     public ResponseEntity<Page<DriverHistoryItemDTO>> getRideHistory(@RequestParam(defaultValue = "0") int page,
@@ -62,7 +66,7 @@ public class DriverController {
 
         return ResponseEntity.ok(history);
     }
-  
+
       private String mapSortField(String sortBy) {
         return switch (sortBy) {
             case "route" -> "route.startLocation.address";
@@ -76,6 +80,7 @@ public class DriverController {
         };
     }
 
+    @Operation(summary = "Get upcoming rides", description = "Retrieve a list of upcoming rides for the authenticated driver")
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/rides")
     public ResponseEntity<List<UpcomingRideDTO>> findRides() {
@@ -86,6 +91,7 @@ public class DriverController {
         return ResponseEntity.ok(rides);
     }
 
+    @Operation(summary = "Request driver change", description = "Submit a request to change driver information with optional profile image")
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping(path = "/change-request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<DriverChangeResponseDTO> requestDriverChange(@ModelAttribute DriverChangeRequestDTO request,
@@ -94,10 +100,11 @@ public class DriverController {
         if (user instanceof  Driver driver){
             return ResponseEntity.ok(driverService.requestDriverChanges(driver, request, profileImage));
         }
-        return ResponseEntity.status(403).build();
+        return ResponseEntity.badRequest().build();
 
     }
 
+    @Operation(summary = "Change driver status", description = "Update the current status of the driver (e.g., available, unavailable) with optional pending status for approval")
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/change-status")
     public ResponseEntity<?> changeDriverStatus(@Valid @RequestBody DriverStatusRequestDTO request) {
@@ -112,6 +119,7 @@ public class DriverController {
         return ResponseEntity.badRequest().body("Driver does not exists");
     }
 
+    @Operation(summary = "Get driver status", description = "Retrieve the current status of the driver along with any pending status awaiting approval")
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/status")
     public ResponseEntity<?> getDriverStatus() {
@@ -125,9 +133,10 @@ public class DriverController {
         return ResponseEntity.badRequest().body("Driver does not exists");
     }
 
+    @Operation(summary = "Activate driver account", description = "Activate a driver's account using a token sent via email after registration")
     @PutMapping("/activate-account")
     public ResponseEntity<?> activateDriverAccount(@RequestBody DriverAccountActivationRequestDTO request) {
-        
+
         try {
             driverService.activateDriverAccountByToken(request);
             return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
@@ -138,6 +147,7 @@ public class DriverController {
         }
     }
 
+    @Operation(summary = "Update driver location", description = "Update the current location of the driver for real-time tracking and ride matching")
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/update-location")
     public ResponseEntity<DriverLocationResponseDTO> updateDriverLocation(@Valid @RequestBody DriverLocationRequestDTO request) {
@@ -149,6 +159,7 @@ public class DriverController {
         return ResponseEntity.badRequest().build();
     }
 
+    @Operation(summary = "Check if driver can start ride", description = "Check if the driver is eligible to start a ride based on their current status and any pending issues")
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/can-start-ride")
     public ResponseEntity<DriverCanStartRideResponseDTO> canDriverStartRide() {

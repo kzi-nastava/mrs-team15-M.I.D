@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -15,11 +16,13 @@ import rs.ac.uns.ftn.asd.ridenow.repository.ActivationTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.ForgotPasswordTokenRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
+@Tag(name = "Authentication", description = "User authentication endpoints")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -33,6 +36,7 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Operation(summary = "User login", description = "Authenticate user and return JWT token")
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO request) {
         try {
@@ -43,6 +47,7 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "User logout", description = "Invalidate user session and JWT token")
     @PostMapping("/logout")
     public ResponseEntity<LogoutResponseDTO> logout(){
         try{
@@ -56,6 +61,7 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Forgot password", description = "Initiate forgot password process by sending reset link to user's email")
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
         try {
@@ -67,6 +73,7 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Reset password", description = "Reset user password using token from email link")
     @PutMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestParam String token, @RequestBody ResetPasswordRequestDTO request) {
         Optional<ForgotPasswordToken> optionalToken = forgotPasswordTokenRepository.findByToken(token);
@@ -87,6 +94,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Your password has been successfully updated."));
     }
 
+    @Operation(summary = "User registration", description = "Register a new user with profile information and optional profile image")
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> register(@Valid
             @ModelAttribute RegisterRequestDTO request,
@@ -99,6 +107,7 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Activate account", description = "Activate user account using token from email link")
     @PutMapping("/activate")
     public ResponseEntity<?> activate(@RequestParam String token) {
         Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(token);
@@ -119,6 +128,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
     }
 
+    @Operation(summary = "Verify reset code", description = "Verify the reset code sent to user's email for password reset")
     @PostMapping("/verify-reset-code")
     public ResponseEntity<?> verifyResetCode(@Valid @RequestBody VerifyCodeRequestDTO request) {
         Optional<ForgotPasswordToken> optionalToken =  forgotPasswordTokenRepository.findByVerificationCodeAndUser_Email(request.getCode(), request.getEmail());
@@ -134,6 +144,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Code verified","token", forgotPasswordToken.getToken()));
     }
 
+    @Operation(summary = "Verify activation code", description = "Verify the activation code sent to user's email for account activation")
     @PutMapping("/activate-code")
     public ResponseEntity<?> activateCode(@Valid @RequestBody VerifyCodeRequestDTO request) {
         Optional<ActivationToken> optionalToken = activationTokenRepository.findByVerificationCodeAndUser_Email(request.getCode(), request.getEmail());
@@ -154,6 +165,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Account activated successfully"));
     }
 
+    @Operation(summary = "Resend activation email", description = "Resend account activation email with new token if previous token expired or lost")
     @PostMapping("/resend-activation-email")
     public ResponseEntity<?> resendActivationEmail(@Valid @RequestBody ActivateAccountRequestDTO request) {
         Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());

@@ -1,0 +1,30 @@
+<div class="container mt-3">
+  <h3>Passenger report</h3>
+
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <label>Start date</label>
+      <input class="form-control" type="date" [(ngModel)]="startDateStr" />
+    </div>
+    <div class="col-md-3">
+      <label>End date</label>
+      <input class="form-control" type="date" [(ngModel)]="endDateStr" />
+    </div>
+    <div class="col-md-3 align-self-end">
+      <button class="btn btn-report" (click)="loadReport()" [disabled]="loading">{{ loading ? 'Loading...' : 'Load report' }}</button>
+    </div>
+  </div>
+
+  <div *ngIf="message" class="alert alert-info">{{ message }}</div>
+
+  
+
+  <app-report-tabs
+    [ridesSum]="ridesSum"
+    [ridesAvg]="ridesAvg"
+    [kmSum]="kmSum"
+    [kmAvg]="kmAvg"
+    [moneySum]="moneySum"
+    [moneyAvg]="moneyAvg"
+    [isDriver]="false"
+  ></app-report-tabs>

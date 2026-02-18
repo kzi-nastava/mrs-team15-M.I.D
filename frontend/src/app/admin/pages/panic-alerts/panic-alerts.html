@@ -1,0 +1,81 @@
+<app-page-header title="Panic alerts management" [showDateFilter]="false"></app-page-header>
+<div id="message" class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+  <div class="toast align-items-center text-white bg-black border-0"
+       [class.show]="showMessage"
+       role="alert"
+       aria-live="assertive"
+       aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              (click)="showMessage = false">
+      </button>
+    </div>
+  </div>
+</div>
+<div class="px-5 pb-5">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Ride</th>
+          <th scope="col">Triggered By</th>
+          <th scope="col">Role</th>
+          <th scope="col">Driver</th>
+          <th scope="col">Passenger</th>
+          <th scope="col">Time</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (alert of filteredAlerts; track alert.id) {
+          <tr class="clickable-row" (click)="onAlertRowClick(alert)">
+            <td>{{ alert.id }}</td>
+            <td>{{ alert.rideId }}</td>
+            <td>{{ alert.panicBy }}</td>
+            <td>{{ alert.panicByRole }}</td>
+            <td>{{ alert.driverEmail }}</td>
+            <td>{{ alert.passengerEmail }}</td>
+            <td>{{alert.createdAt | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              <app-button 
+                text="Resolve" 
+                variant="primary" 
+                width="auto" 
+                height="auto" 
+                fontWeight="600" 
+                (clicked)="resolveAlert(alert, $event)">
+              </app-button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mb-3">
+  <app-button 
+    id="previous" 
+    text="←" 
+    variant="primary" 
+    height="30px" 
+    width="40px" 
+    [disabled]="isFirstPage" 
+    (clicked)="goToPreviousPage()">
+  </app-button>
+  <span class="text-muted">Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total alerts)</span>
+  <app-button 
+    id="next" 
+    text="→" 
+    variant="primary" 
+    height="30px" 
+    width="40px" 
+    [disabled]="isLastPage" 
+    (clicked)="goToNextPage()">
+  </app-button>
+</div>

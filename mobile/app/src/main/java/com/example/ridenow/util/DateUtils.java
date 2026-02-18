@@ -2,6 +2,8 @@ package com.example.ridenow.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 
@@ -118,5 +120,19 @@ public class DateUtils {
         }
 
         return startTime + " - " + endTime;
+    }
+
+    /**
+     * Formats LocalDateTime to a readable date and time string
+     * @param dateTime LocalDateTime to format
+     * @return Formatted date time string (e.g., "Dec 26, 2025 at 14:30")
+     */
+    public static String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "N/A";
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm", Locale.getDefault());
+        return dateTime.format(formatter);
     }
 }

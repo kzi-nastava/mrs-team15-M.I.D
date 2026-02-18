@@ -6,17 +6,29 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { DriverService } from '../../../services/driver.service';
 import { DriverStatusStore } from '../../states/driver-status.store';
+import { NotificationService } from '../../../services/notification.service';
 import { FormsModule } from '@angular/forms';
+import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLinkWithHref, Button, CommonModule, FormsModule],
+  imports: [RouterLinkWithHref, Button, CommonModule, FormsModule, NotificationBellComponent],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
 export class NavbarComponent {
 
-  constructor(private driverState: DriverStatusStore, private router : Router, private authService : AuthService, private cdr: ChangeDetectorRef, private driverService : DriverService) {}
+  constructor(
+    private driverState: DriverStatusStore,
+    private router : Router,
+    private authService : AuthService,
+    private cdr: ChangeDetectorRef,
+    private driverService : DriverService,
+    private notificationService: NotificationService,
+    private notificationWebSocketService: NotificationWebSocketService
+
+  ) {}
 
   isUpdatingStatus = false;
   isActive = false;
@@ -33,6 +45,12 @@ export class NavbarComponent {
       this.isActive = status === 'ACTIVE';
       this.cdr.detectChanges();
     });
+
+    if (this.showActivityToggle && !this.driverState.currentStatus) {
+      this.driverService.getMyStatus().subscribe({
+        error: (err) => console.error('Failed to fetch driver status', err)
+      });
+    }
   }
 
   protected menuOpen = signal(false);
@@ -54,6 +72,11 @@ export class NavbarComponent {
   get showActivityToggle(): boolean {
     const role = localStorage.getItem('role');
     return role === "DRIVER";
+  }
+
+  get showNotificationBell(): boolean {
+    const role = localStorage.getItem('role');
+    return role === "USER" || role === "DRIVER";
   }
 
   get role(): string | null {
@@ -105,17 +128,16 @@ onToggleChange(event: MouseEvent) {
         localStorage.removeItem('jwtToken');
         localStorage.removeItem('tokenExpiration');
         this.driverState.resetStatus();
+        this.notificationService.disconnect();
+        this.notificationWebSocketService.disconnect();
         this.isActive = false;
         this.driverStatus = '';
         this.showMessageToast( 'You have been logged out successfully. See you next time!');
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        if (typeof err.error === 'string') {
-          this.showMessageToast(err.error);
-        } else {
-          this.showMessageToast('Unable to log out right now. Please try again.');
-        }
+        const error = err.error?.message || err.message || 'Unable to log out right now. Please try again.';
+        this.showMessageToast(error);
       }
     });
   }

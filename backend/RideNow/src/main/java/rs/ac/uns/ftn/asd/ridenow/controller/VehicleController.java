@@ -11,9 +11,12 @@ import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.UpdateVehicleRequest;
 import rs.ac.uns.ftn.asd.ridenow.dto.vehicle.VehicleResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.service.VehicleService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 
+@Tag(name = "Vehicles", description = "Vehicle management endpoints")
 @RestController
 @RequestMapping("/api/vehicles")
 public class VehicleController {
@@ -25,12 +28,16 @@ public class VehicleController {
         this.vehicleService = vehicleService;
     }
 
+    @Operation(summary = "Get all available vehicles", description = "Retrieve list of all vehicles available in specified location radius")
     @GetMapping("/")
-    public ResponseEntity<List<VehicleResponseDTO>> getAll(@RequestParam @NotNull Double lat, @RequestParam @NotNull Double lon) {
+    public ResponseEntity<List<VehicleResponseDTO>> getAll(
+            @RequestParam @NotNull Double lat,
+            @RequestParam @NotNull Double lon) {
         List<VehicleResponseDTO> vehicles = vehicleService.getAllVehicles(lat, lon);
         return ResponseEntity.ok(vehicles);
     }
 
+    @Operation(summary = "Update vehicle location", description = "Driver updates their vehicle's GPS location")
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/update-location/{licencePlate}")
     public ResponseEntity<VehicleResponseDTO> updateVehicleLocation(@PathVariable @NotNull @NotEmpty String licencePlate, @Valid @RequestBody UpdateVehicleRequest req) {

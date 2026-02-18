@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, Input, ChangeDetectorRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Button } from '../../../shared/components/button/button';
@@ -27,6 +27,8 @@ interface FavoriteRoute {
   styleUrls: ['./ride-ordering-form.css'],
 })
 export class RideOrderingForm implements OnInit {
+  @Input() hasActiveRide: boolean = false;
+  
   pickupAddress: string = '';
   destinationAddress: string = '';
   stops: string[] = [];
@@ -80,6 +82,9 @@ export class RideOrderingForm implements OnInit {
       this.pickupAddress = '';
       this.destinationAddress = '';
       this.stops = [];
+      // clear any previously shown estimate when user chooses the placeholder
+      this.lastEstimate = null;
+      this.currentFavoriteRouteId = null;
     } else {
       this.selectedFavorite = name;
       const fav = this.favorites.find(f => f.name === name);
@@ -524,6 +529,8 @@ export class RideOrderingForm implements OnInit {
   chooseRoute() {
     this.showPreferences = true;
     this.routeChosen = true;
+    // Keep lastEstimate so the preference form can show the price
+    try { this.cdr.detectChanges(); } catch (e) {}
   }
 
   constructor(private rideService: RideService, private passengerService: PassengerService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}
@@ -596,6 +603,13 @@ export class RideOrderingForm implements OnInit {
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
     
+    // Check if user has active ride
+    if (this.hasActiveRide) {
+      console.warn('Cannot order ride: user already has an active ride');
+      this.orderAttempt.emit({ error: 'You already have an active ride' });
+      return;
+    }
+    
     try {
       const startGeo = await this.rideService.geocodeAddress(this.pickupAddress) || { lat: 0, lon: 0 };
       const endGeo = await this.rideService.geocodeAddress(this.destinationAddress) || { lat: 0, lon: 0 };
@@ -667,7 +681,7 @@ export class RideOrderingForm implements OnInit {
         babyFriendly: !!prefs.babySeat,
         petFriendly: !!prefs.petFriendly,
         linkedPassengers: prefs.guests && prefs.guests.length ? prefs.guests : [],
-        scheduledTime: prefs && prefs.scheduledTime ? (function(){ try { return new Date(prefs.scheduledTime).toISOString(); } catch(e){ return prefs.scheduledTime; } })() : null,
+        scheduledTime: prefs && prefs.scheduledTime ? (prefs.scheduledTime.includes('T') ? prefs.scheduledTime + ':00' : prefs.scheduledTime) : null,
         distanceKm: route?.distanceKm ?? 0,
         estimatedTimeMinutes: route?.estimatedTimeMinutes ?? (route?.estimatedDurationMin ?? 0),
         priceEstimate: priceForType,

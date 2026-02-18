@@ -6,6 +6,7 @@ public class CurrentRideResponse {
     private int estimatedDurationMin;
     private RouteDTO route;
     private Long rideId;
+    private Boolean isMainPassenger;
 
     public int getEstimatedDurationMin() {
         return estimatedDurationMin;
@@ -29,5 +30,13 @@ public class CurrentRideResponse {
 
     public void setRideId(Long rideId) {
         this.rideId = rideId;
+    }
+
+    public Boolean getMainPassenger() {
+        return isMainPassenger;
+    }
+
+    public void setMainPassenger(Boolean mainPassenger) {
+        isMainPassenger = mainPassenger;
     }
 }

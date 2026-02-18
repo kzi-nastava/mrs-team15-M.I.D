@@ -1,0 +1,43 @@
+<div class="chart-area">
+  <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-rides" data-bs-toggle="tab" data-bs-target="#rides" type="button" role="tab">Rides</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-distance" data-bs-toggle="tab" data-bs-target="#distance" type="button" role="tab">Distance</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-expense" data-bs-toggle="tab" data-bs-target="#expense" type="button" role="tab">{{ isAdmin ? 'Money' : (isDriver ? 'Earned' : 'Spent') }}</button>
+    </li>
+  </ul>
+
+  <div class="tab-content mt-3">
+    <div class="tab-pane fade show active" id="rides" role="tabpanel">
+      <div class="chart-wrapper">
+        <div class="chart-meta mb-2">
+          <div><strong>Sum:</strong> {{ ridesSum !== null ? (ridesSum | number:'1.0-0') : '-' }}</div>
+          <div><strong>Avg:</strong> {{ ridesAvg !== null ? (ridesAvg | number:'1.0-2') : '-' }}</div>
+        </div>
+        <canvas id="ridesCanvasEl" #ridesCanvas style="height:320px"></canvas>
+      </div>
+    </div>
+    <div class="tab-pane fade" id="distance" role="tabpanel">
+      <div class="chart-wrapper">
+        <div class="chart-meta mb-2">
+          <div><strong>Sum (km):</strong> {{ kmSum !== null ? (kmSum | number:'1.0-3') : '-' }}</div>
+          <div><strong>Avg (km):</strong> {{ kmAvg !== null ? (kmAvg | number:'1.0-3') : '-' }}</div>
+        </div>
+        <canvas id="distanceCanvasEl" #distanceCanvas style="height:320px"></canvas>
+      </div>
+    </div>
+    <div class="tab-pane fade" id="expense" role="tabpanel">
+      <div class="chart-wrapper">
+        <div class="chart-meta mb-2">
+          <div><strong>Sum (RSD):</strong> {{ moneySum !== null ? (moneySum | number:'1.0-2') + ' RSD' : '-' }}</div>
+          <div><strong>Avg (RSD):</strong> {{ moneyAvg !== null ? (moneyAvg | number:'1.0-2') + ' RSD' : '-' }}</div>
+        </div>
+        <canvas id="expenseCanvasEl" #expenseCanvas style="height:320px"></canvas>
+      </div>
+    </div>
+  </div>
+</div>

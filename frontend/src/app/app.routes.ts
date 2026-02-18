@@ -17,6 +17,8 @@ import { Home } from './home/pages/home/home';
 import { RideEstimation } from './ride/pages/ride-estimation/ride-estimation';
 import { Rating } from './ride/pages/rating/rating';
 import { UserHistory } from './history/pages/user-history/user-history';
+import { PassangerReport } from './reports/pages/passanger-report/passanger-report';
+import { DriverReport } from './reports/pages/driver-report/driver-report';
 import { UpcomingRides } from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
 import { AdminUsers } from './admin/pages/users/users';
@@ -26,7 +28,14 @@ import { StartRide } from './ride/pages/start-ride/start-ride';
 import { RideOrdering } from './ride/pages/ride-ordering/ride-ordering';
 import { FindingDriver } from './ride/pages/finding-driver/finding-driver';
 import { ActivationPage } from './auth/pages/activation-page/activation-page';
+import { AdminHistoryOverview } from './history/pages/admin-history-overview/admin-history-overview';
 import { PricingManagement } from './admin/pages/pricing-management/pricing-management';
+import { AdminReport } from './reports/pages/admin-report/admin-report';
+import { ActiveRides } from './admin/pages/active-rides/active-rides';
+import { AdminChats } from './admin/pages/admin-chats/admin-chats';
+import { AdminChatDetail } from './admin/pages/admin-chat-detail/admin-chat-detail';
+import { UserChat } from './pages/user-chat/user-chat';
+import { PanicAlerts } from './admin/pages/panic-alerts/panic-alerts';
 
 export const routes: Routes = [
     { path: '', component: Home },         // Default route (home page)
@@ -45,11 +54,13 @@ export const routes: Routes = [
     { path: 'driver-rides', component: DriverAppointedRides },
     { path: 'ride-details/:id', component: RideDetails },
     { path: 'user-history', component: UserHistory },
+    { path: 'passanger-report', component: PassangerReport },
+    { path: 'driver-report', component: DriverReport },
     { path: 'home', component: Home },
     { path: 'ride-estimation', component: RideEstimation },
     { path: 'rating/:id', component: Rating },
     { path: 'upcoming-rides', component: UpcomingRides },
-    { path: 'admin-history', component: AdminHistory },
+    { path: 'admin-history/:id', component: AdminHistory },
     { path: 'admin-users', component: AdminUsers },
     { path: 'history-ride-details/:id', component: HistoryRideDetails },
     { path: 'current-ride', component: CurrentRide },
@@ -57,5 +68,13 @@ export const routes: Routes = [
     { path: 'finding-driver', component: FindingDriver },
     { path: 'ride-ordering', component: RideOrdering },
     { path: 'admin-pricing', component: PricingManagement },
-    { path: 'activate/:token', component: ActivationPage }
+    { path: 'admin-report', component: AdminReport },
+    { path: 'admin-history-overview', component: AdminHistoryOverview},
+    { path: 'admin-active-rides', component: ActiveRides },
+    { path: 'admin-chats', component: AdminChats },
+    { path: 'admin-chat/:id', component: AdminChatDetail },
+    { path: 'user-chat', component: UserChat },
+    { path: 'activate/:token', component: ActivationPage },
+    { path: 'panic-alerts', component: PanicAlerts },
+
 ];
