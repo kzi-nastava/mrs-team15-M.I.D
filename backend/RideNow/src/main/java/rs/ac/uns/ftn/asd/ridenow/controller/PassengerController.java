@@ -15,9 +15,12 @@ import rs.ac.uns.ftn.asd.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RouteResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PassengerService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.Collection;
 
+@Tag(name = "Passenger", description = "Passenger management endpoints")
 @RestController
 @RequestMapping("/api/passengers")
 public class PassengerController {
@@ -29,9 +32,17 @@ public class PassengerController {
         this.passengerService = passengerService;
     }
 
-
+    @Operation(summary = "Get favorite routes", description = "Retrieve passenger's saved favorite routes")
     @PreAuthorize("hasRole('USER')")
-    @PutMapping("/favorite-routes/{routeId}")
+    @GetMapping("/favorite-routes")
+    public ResponseEntity<Collection<FavoriteRouteResponseDTO>> getRoutes() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
+    }
+
+    @Operation(summary = "Add route to favorites", description = "Save a route as favorite for quick access")
+    @PostMapping("/favorite-routes/{routeId}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RouteResponseDTO> addToFavorites(
             @PathVariable Long routeId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -39,7 +50,7 @@ public class PassengerController {
         return ResponseEntity.ok(passengerService.addToFavorites(id, routeId));
     }
 
-
+    @Operation(summary = "Remove route from favorites", description = "Delete a route from passenger's favorite list")
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/favorite-routes/{routeId}")
     public ResponseEntity<Void> removeFromFavorites(
@@ -50,14 +61,7 @@ public class PassengerController {
         return ResponseEntity.status(204).build();
     }
 
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/favorite-routes")
-    public ResponseEntity<Collection<FavoriteRouteResponseDTO>> getRoutes() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
-    }
-
-
+    @Operation(summary = "Get favorite route details", description = "Retrieve details of a specific favorite route by ID")
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/favorite-routes/{id}")
     public ResponseEntity<RouteResponseDTO> getRoute(@PathVariable Long id) {
@@ -65,7 +69,7 @@ public class PassengerController {
         return ResponseEntity.ok(passengerService.getRoute(user.getId(), id));
     }
 
-
+    @Operation(summary = "Get ride history", description = "Retrieve passenger's past rides with pagination and sorting")
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/ride-history")
     public ResponseEntity<Page<RideHistoryItemDTO>> getRideHistory(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,

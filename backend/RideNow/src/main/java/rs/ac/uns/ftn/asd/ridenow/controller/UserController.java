@@ -19,22 +19,26 @@ import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.Collection;
 
+@Tag(name = "Users", description = "User management endpoints")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+    @Operation(summary = "Change password", description = "Update user password with old and new password")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER', 'ADMIN')")
-    @PutMapping("/change-password")
+    @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequestDTO dto) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -42,6 +46,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Get user profile", description = "Retrieve user profile information")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER', 'ADMIN')")
     @GetMapping("")
     public ResponseEntity<UserResponseDTO> getUser() {
@@ -49,6 +54,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getUser(user));
     }
 
+    @Operation(summary = "Update user profile", description = "Update user profile with new information and optional profile image")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PutMapping(path = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateUser(
@@ -63,6 +69,7 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Get user report", description = "Retrieve statistics and report for user's rides within date range")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/report")
     public ResponseEntity<ReportResponseDTO> getReport(@RequestParam(required = false) @Min(0) Long startDate,
@@ -70,6 +77,4 @@ public class UserController {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.getReport(startDate, endDate, user.getId()));
     }
-
-
 }

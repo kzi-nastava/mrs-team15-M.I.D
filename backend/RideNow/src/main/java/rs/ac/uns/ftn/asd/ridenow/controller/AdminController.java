@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,10 +21,12 @@ import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.service.AdminService;
 import rs.ac.uns.ftn.asd.ridenow.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Admin", description = "Admin management endpoints")
 @RestController
 @RequestMapping("/api/admins")
 public class AdminController {
@@ -40,6 +43,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
+    @Operation(summary = "Get all non-admin users", description = "Retrieve a paginated list of all non-admin users with sorting options")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all-users")
     public ResponseEntity<Page<UserItemDTO>> getAllUsers(
@@ -63,6 +67,7 @@ public class AdminController {
         };
     }
 
+    @Operation(summary = "Get user ride history", description = "Retrieve a paginated list of rides for a specific user with sorting and filtering options")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/ride-history")
     public ResponseEntity<Page<AdminRideHistoryItemDTO>> getRideHistory(@RequestParam Long id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
@@ -93,6 +98,7 @@ public class AdminController {
         };
     }
 
+    @Operation(summary = "Register new driver", description = "Admin registers a new driver with profile information and optional profile image")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/driver-register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> register(
@@ -106,12 +112,14 @@ public class AdminController {
         }
     }
 
+    @Operation(summary = "Get driver change requests", description = "Retrieve a list of pending driver profile change requests for admin review")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/driver-requests")
     public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests() {
         return ResponseEntity.ok(adminService.getDriverRequests());
     }
 
+    @Operation(summary = "Review driver change request", description = "Admin reviews a driver profile change request and approves or rejects it with optional comments")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("driver-requests/{requestId}")
     public ResponseEntity<Void> reviewDriverRequest(
@@ -124,12 +132,14 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Get user profile by ID", description = "Retrieve user profile information by user ID for admin use")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @Operation(summary = "Get users with search and sorting", description = "Retrieve a paginated list of users with optional search by name or email and sorting options for admin use")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<Page<UserResponseDTO>> getUsers(
@@ -141,24 +151,28 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUsers(search, sortBy, sortDirection, page, size));
     }
 
+    @Operation(summary = "Block user", description = "Admin blocks a user by ID, preventing them from accessing their account")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/block/{id}")
     public ResponseEntity<Void> blockUser(@PathVariable Long id) {
         return ResponseEntity.ok(userService.blockUser(id));
     }
 
+    @Operation(summary = "Unblock user", description = "Admin unblocks a user by ID, restoring their access to their account")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/unblock/{id}")
     public ResponseEntity<Void> unblockUser(@PathVariable Long id) {
         return ResponseEntity.ok(userService.unblockUser(id));
     }
 
+    @Operation(summary = "Get price configurations", description = "Retrieve current price configurations for admin review and management")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/price-configs")
     public ResponseEntity<PriceConfigResponseDTO> getPriceConfigs() {
         return ResponseEntity.ok(adminService.getPriceConfigs());
     }
 
+    @Operation(summary = "Update price configurations", description = "Admin updates price configurations with new values for different ride types and conditions")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/price-configs")
     public ResponseEntity<Void> updatePriceConfigs(@Valid @RequestBody PriceConfigRequestDTO request) {

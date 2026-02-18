@@ -27,6 +27,12 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // OpenAPI/Swagger documentation
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+                        // WebSocket endpoints
                         .requestMatchers("/api/notifications/websocket").permitAll()
                         .requestMatchers("/api/chat/websocket/**").permitAll()
                         // Auth endpoints

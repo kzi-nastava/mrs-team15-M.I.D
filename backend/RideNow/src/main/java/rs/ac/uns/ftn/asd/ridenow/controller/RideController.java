@@ -23,10 +23,13 @@ import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.service.PanicAlertService;
 import rs.ac.uns.ftn.asd.ridenow.service.RideService;
 import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Rides", description = "Ride management endpoints")
 @RestController
 @RequestMapping("/api/rides")
 public class RideController {
@@ -43,6 +46,7 @@ public class RideController {
         this.rideService = rideService;
     }
 
+    @Operation(summary = "Estimate ride cost and duration", description = "Calculate ride cost and duration based on start and end coordinates")
     @GetMapping("/estimate")
     public ResponseEntity<?> estimate(@RequestParam Double startLatitude, @RequestParam Double startLongitude,
                                       @RequestParam Double endLatitude, @RequestParam Double endLongitude) {
@@ -55,6 +59,7 @@ public class RideController {
         }
     }
 
+    @Operation(summary = "Stop current ride", description = "Driver stops the current ride in progress")
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/stop")
     public ResponseEntity<?> stop (){
@@ -67,6 +72,7 @@ public class RideController {
         }
     }
 
+    @Operation(summary = "Cancel a ride", description = "Allow user or driver to cancel a scheduled or ongoing ride")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @PutMapping("/{id}/cancel")
     public ResponseEntity<?> cancel(@PathVariable Long id, @RequestBody CancelRideRequestDTO request) {
@@ -84,6 +90,7 @@ public class RideController {
         }
     }
 
+    @Operation(summary = "Track vehicle location", description = "Get real-time vehicle location and details for an ongoing ride")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}/track")
     public ResponseEntity<TrackVehicleDTO> trackRide(@PathVariable @NotNull @Min(1) Long id){
@@ -91,6 +98,7 @@ public class RideController {
         return ResponseEntity.ok(vehicle);
     }
 
+    @Operation(summary = "Report ride inconsistency", description = "Report any issues or discrepancies during a ride")
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/inconsistency")
     public ResponseEntity<InconsistencyResponseDTO> reportInconsistency(@RequestBody @Valid InconsistencyRequestDTO req){
@@ -101,6 +109,7 @@ public class RideController {
         return ResponseEntity.status(201).body(res);
     }
 
+    @Operation(summary = "Finish a ride", description = "Driver marks a ride as completed")
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{id}/finish")
     public ResponseEntity<Boolean> finish(@PathVariable @NotNull @Min(1) Long id) {
@@ -111,6 +120,7 @@ public class RideController {
         return ResponseEntity.ok(nextAvailable);
     }
 
+    @Operation(summary = "Start a ride", description = "Driver starts a scheduled ride")
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/{id}/start")
     public ResponseEntity<Void> startRide(@PathVariable Long id) {
@@ -118,6 +128,7 @@ public class RideController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Get passenger pickup details", description = "Retrieve passenger information and pickup confirmation for a ride")
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/{id}/start")
     public ResponseEntity<StartRideResponseDTO> passangerPickup(@PathVariable Long id) {
@@ -125,6 +136,7 @@ public class RideController {
     }
 
 
+    @Operation(summary = "Estimate route details", description = "Calculate route with stops, distance, and time estimates")
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/estimate-route")
     public ResponseEntity<RouteResponseDTO> estimateRoute(
@@ -138,6 +150,7 @@ public class RideController {
         }
     }
 
+    @Operation(summary = "Order a ride", description = "User requests and orders a new ride")
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/order-ride")
     public ResponseEntity<?> orderRide(
@@ -154,6 +167,7 @@ public class RideController {
 
     }
 
+    @Operation(summary = "Rate driver", description = "User rates the driver after ride completion")
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/{rideId}/rate")
     public ResponseEntity<RateResponseDTO> rateDriver(@PathVariable @NotNull @Min(1) Long rideId, @Valid @RequestBody RateRequestDTO req) {
@@ -161,6 +175,7 @@ public class RideController {
         return ResponseEntity.status(201).body(res);
     }
 
+    @Operation(summary = "Get upcoming rides", description = "Retrieve list of upcoming rides for the current user")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/my-upcoming-rides")
     public List<UpcomingRideDTO> getUpcomingRides() {
@@ -169,6 +184,7 @@ public class RideController {
         return rideService.getUpcomingRidesByUser(userId);
     }
 
+    @Operation(summary = "Get current ride", description = "Retrieve details of the user's current active ride")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @GetMapping("/my-current-ride")
     public CurrentRideDTO getCurrentRide(){
@@ -180,6 +196,7 @@ public class RideController {
         }
     }
 
+    @Operation(summary = "Trigger panic alert", description = "User or driver triggers a panic alert during a ride")
     @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
     @PostMapping("/panic-alert")
     public ResponseEntity<?> triggerPanicAlert(){
@@ -193,12 +210,14 @@ public class RideController {
     }
 
 
+    @Operation(summary = "Get active rides", description = "Admin retrieves all currently active rides in the system")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/active-rides")
     public ResponseEntity<List<ActiveRideDTO>> getActiveRides() {
         return ResponseEntity.ok(rideService.getActiveRides());
     }
 
+    @Operation(summary = "Reorder a ride", description = "User or admin reorders a previously completed ride with same route")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/reorder-ride")
     public ResponseEntity<?> reorderRide(@RequestBody ReorderRideRequestDTO request) {
