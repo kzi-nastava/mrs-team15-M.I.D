@@ -36,10 +36,8 @@ export class App {
       // Initialize notifications for users and drivers
       if (role === 'USER' || role === 'DRIVER') {
         console.debug('[App] Initializing notifications for role:', role);
-        // First load existing notifications
-        this.notificationService.initializeNotifications();
-        // Then connect to WebSocket for real-time updates
-        this.notificationService.connectToNotifications(token);
+        // Load existing notifications and connect to WebSocket in proper sequence
+        this.notificationService.loadAndConnectNotifications(token);
       }
     }
   }

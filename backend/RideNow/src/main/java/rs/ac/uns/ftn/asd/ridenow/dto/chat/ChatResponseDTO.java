@@ -7,4 +7,5 @@ import lombok.Setter;
 public class ChatResponseDTO {
     private Long id;
     private String user;
+    private Boolean hasNewMessages;
 }

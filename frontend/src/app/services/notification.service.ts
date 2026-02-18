@@ -58,16 +58,43 @@ export class NotificationService {
       this.socket = new WebSocket(`${this.wsUrl}?token=${encodeURIComponent(token)}`);
 
       this.socket.onopen = () => {
-        this.reconnectAttempts = 0;
+        this.ngZone.run(() => {
+          console.log('WebSocket connected for notifications');
+          this.reconnectAttempts = 0;
+
+          // Reload notifications when connected to catch any that arrived before subscription
+          console.log('Reloading notifications after WebSocket connect');
+          this.getAllNotifications().subscribe({
+            next: (notifications) => {
+              console.log('Reloaded notifications after connect:', notifications.length);
+              this.notificationsSubject.next(notifications);
+            },
+            error: (error) => {
+              console.error('Failed to reload notifications:', error);
+            }
+          });
+
+          this.getUnreadCount().subscribe({
+            next: (response) => {
+              console.log('Reloaded unread count:', response.count);
+              this.unreadCountSubject.next(response.count);
+            },
+            error: (error) => {
+              console.error('Failed to reload unread count:', error);
+            }
+          });
+        });
       };
 
       this.socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          this.handleWebSocketMessage(data);
-        } catch (error) {
-          console.error('Error parsing notification message:', error);
-        }
+        this.ngZone.run(() => {
+          try {
+            const data = JSON.parse(event.data);
+            this.handleWebSocketMessage(data);
+          } catch (error) {
+            console.error('Error parsing notification message:', error);
+          }
+        });
       };
 
       this.socket.onclose = (event) => {
@@ -214,6 +241,39 @@ export class NotificationService {
       }
     });
 
+    this.getUnreadCount().subscribe({
+      next: (response) => {
+        this.unreadCountSubject.next(response.count);
+      },
+      error: (error) => {
+        console.error('Failed to load unread count:', error);
+      }
+    });
+  }
+
+  // Load notifications and return observable for sequencing
+  loadAndConnectNotifications(token: string): void {
+    const role = localStorage.getItem('role');
+
+    if (role !== 'USER' && role !== 'DRIVER') {
+      return;
+    }
+
+    // Load existing notifications first
+    this.getAllNotifications().subscribe({
+      next: (notifications) => {
+        this.notificationsSubject.next(notifications);
+        // Only connect WebSocket AFTER initial load is complete
+        this.connectToNotifications(token);
+      },
+      error: (error) => {
+        console.error('Failed to load notifications:', error);
+        // Still connect even if load fails
+        this.connectToNotifications(token);
+      }
+    });
+
+    // Load unread count
     this.getUnreadCount().subscribe({
       next: (response) => {
         this.unreadCountSubject.next(response.count);

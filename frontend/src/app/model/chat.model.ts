@@ -1,6 +1,7 @@
 export interface Chat {
   id: number;
   user: string;
+  hasNewMessages?: boolean; // Flag indicating if chat has new messages
   messages?: Message[]; // Optional for list view
 }
 

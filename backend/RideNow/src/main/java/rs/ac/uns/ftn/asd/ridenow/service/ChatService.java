@@ -47,6 +47,12 @@ public class ChatService {
             ChatResponseDTO dto = new ChatResponseDTO();
             dto.setId(chat.getId());
             dto.setUser(chat.getUser().getFirstName() + " " + chat.getUser().getLastName());
+
+            // Check if the last message was sent by the user (userSender = true)
+            boolean hasNewMessages = !chat.getMessages().isEmpty() &&
+                    chat.getMessages().get(chat.getMessages().size() - 1).getUserSender();
+            dto.setHasNewMessages(hasNewMessages);
+
             return dto;
         }).toList();
     }

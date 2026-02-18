@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Ride } from '../history/components/ride-history-table/ride-history-table';
 import { CurrentRide } from '../ride/pages/current-ride/current-ride';
@@ -28,7 +28,7 @@ export interface WebSocketMessage {
 
 export interface RideEventData {
   rideId: number;
-  triggeredBy?: string; 
+  triggeredBy?: string;
   triggeredByUserId?: number;
   endAddress?: string;
   distanceKm?: number;
@@ -42,11 +42,11 @@ export interface RideEventData {
 })
 export class NotificationWebSocketService {
   private socket: WebSocket | null = null;
-  
+
   // Store all unresolved alerts
   private unresolvedAlertsSubject = new BehaviorSubject<PanicAlert[]>([]);
   private connectionStatusSubject = new BehaviorSubject<boolean>(false);
-  
+
   public unresolvedAlerts$: Observable<PanicAlert[]> = this.unresolvedAlertsSubject.asObservable();
   public connectionStatus$: Observable<boolean> = this.connectionStatusSubject.asObservable();
 
@@ -65,6 +65,8 @@ export class NotificationWebSocketService {
   private isConnecting = false;
   private shouldReconnect = true;
 
+  constructor(private ngZone: NgZone) {}
+
   connect(): void {
     const token = localStorage.getItem('jwtToken');
     if (!token) {
@@ -82,14 +84,16 @@ export class NotificationWebSocketService {
     try {
       const wsUrl = `ws://localhost:8081/api/notifications/websocket?token=${encodeURIComponent(token)}`;
       console.log('Connecting to WebSocket...');
-      
+
       this.socket = new WebSocket(wsUrl);
 
       this.socket.onopen = () => {
-        console.log('WebSocket connected');
-        this.connectionStatusSubject.next(true);
-        this.reconnectAttempts = 0;
-        this.isConnecting = false;
+        this.ngZone.run(() => {
+          console.log('WebSocket connected');
+          this.connectionStatusSubject.next(true);
+          this.reconnectAttempts = 0;
+          this.isConnecting = false;
+        });
       };
 
       this.socket.onmessage = (event) => {
@@ -113,7 +117,7 @@ export class NotificationWebSocketService {
         this.connectionStatusSubject.next(false);
         this.isConnecting = false;
         this.socket = null;
-        
+
         if (this.shouldReconnect && event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           const delay = this.reconnectDelay * this.reconnectAttempts;
@@ -130,51 +134,53 @@ export class NotificationWebSocketService {
   }
 
   private handleWebSocketMessage(message: WebSocketMessage): void {
-    const currentAlerts = this.unresolvedAlertsSubject.value;
+    this.ngZone.run(() => {
+      const currentAlerts = this.unresolvedAlertsSubject.value;
 
-    switch (message.action) {
-      case 'INITIAL_STATE':
-        // Set initial unresolved alerts
-        const alerts = message.data as PanicAlert[];
-        console.log(`Received ${alerts.length} unresolved alerts`);
-        this.unresolvedAlertsSubject.next(alerts);
-        break;
+      switch (message.action) {
+        case 'INITIAL_STATE':
+          // Set initial unresolved alerts
+          const alerts = message.data as PanicAlert[];
+          console.log(`Received ${alerts.length} unresolved alerts`);
+          this.unresolvedAlertsSubject.next(alerts);
+          break;
 
-      case 'NEW_PANIC':
-        // Add new panic alert
-        const newAlert = message.data as PanicAlert;
-        console.log('NEW PANIC ALERT:', newAlert);
-        this.unresolvedAlertsSubject.next([newAlert, ...currentAlerts]);
-        this.playAlertSound();
-        break;
+        case 'NEW_PANIC':
+          // Add new panic alert
+          const newAlert = message.data as PanicAlert;
+          console.log('NEW PANIC ALERT:', newAlert);
+          this.unresolvedAlertsSubject.next([newAlert, ...currentAlerts]);
+          this.playAlertSound();
+          break;
 
-      case 'PANIC_RESOLVED':
-        const resolvedId = message.data as number;
-        console.log('Panic resolved:', resolvedId);
-        const updatedAlerts = currentAlerts.filter(alert => alert.id !== resolvedId);
-        this.unresolvedAlertsSubject.next(updatedAlerts);
-        break;
+        case 'PANIC_RESOLVED':
+          const resolvedId = message.data as number;
+          console.log('Panic resolved:', resolvedId);
+          const updatedAlerts = currentAlerts.filter(alert => alert.id !== resolvedId);
+          this.unresolvedAlertsSubject.next(updatedAlerts);
+          break;
 
-      case 'RIDE_PANIC':
-        console.log('RIDE PANIC EVENT:', message.data);
-        this.ridePanicSubject.next(message.data as RideEventData)
-        this.playAlertSound();
-        break
-      case 'RIDE_STOPPED':
-        console.log('RIDE STOPPED EVENT:', message.data);
-        this.rideStoppedSubject.next(message.data as RideEventData)
-        break
-      case 'RIDE_COMPLETED':
-        console.log('RIDE COMPLETED EVENT:', message.data);
-        this.rideCompletedSubject.next(message.data as RideEventData)
-        break
-    }
+        case 'RIDE_PANIC':
+          console.log('RIDE PANIC EVENT:', message.data);
+          this.ridePanicSubject.next(message.data as RideEventData)
+          this.playAlertSound();
+          break
+        case 'RIDE_STOPPED':
+          console.log('RIDE STOPPED EVENT:', message.data);
+          this.rideStoppedSubject.next(message.data as RideEventData)
+          break
+        case 'RIDE_COMPLETED':
+          console.log('RIDE COMPLETED EVENT:', message.data);
+          this.rideCompletedSubject.next(message.data as RideEventData)
+          break
+      }
+    });
   }
 
   disconnect(): void {
     this.shouldReconnect = false;
     this.reconnectAttempts = 0;
-    
+
     if (this.socket) {
       console.log('Disconnecting WebSocket...');
       try {
@@ -190,7 +196,7 @@ export class NotificationWebSocketService {
     this.ridePanicSubject.next(null);
     this.rideStoppedSubject.next(null);
     this.rideCompletedSubject.next(null);
-    
+
     this.isConnecting = false;
   }
 
@@ -199,7 +205,7 @@ export class NotificationWebSocketService {
       if (!this.audioContext) {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      
+
       console.log('Playing alert sound');
       this.createBeep(800, 0.3, 0.5);
       setTimeout(() => this.createBeep(1000, 0.3, 0.5), 600);

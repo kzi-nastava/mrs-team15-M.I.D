@@ -41,7 +41,7 @@
 
 /* Example calculation section styling */
 .bg-light.rounded {
-  border-left: 4px solid #0d6efd;
+  border-left: 4px solid #000000;
 }
 
 /* Responsive adjustments */
@@ -49,7 +49,7 @@
   .d-flex.justify-content-end.gap-2 {
     flex-direction: column;
   }
-  
+
   .d-flex.justify-content-end.gap-2 .btn {
     width: 100%;
   }

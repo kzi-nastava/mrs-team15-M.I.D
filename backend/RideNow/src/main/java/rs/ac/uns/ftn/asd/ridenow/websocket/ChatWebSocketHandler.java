@@ -43,17 +43,13 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String token = extractTokenFromQuery(session);
-        System.out.println("Got token");
         Long chatId = extractChatIdFromPath(session);
-        System.out.println("Got chat id");
         User user = authenticateUser(token);
-        System.out.println("User Authenticated");
 
         if (user == null || chatId == null) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Authentication failed or invalid chat ID"));
             return;
         }
-        System.out.println("User Authenticated");
 
         // Store user information in session attributes
         session.getAttributes().put("userId", user.getId());

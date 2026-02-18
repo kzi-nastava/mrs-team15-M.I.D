@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService, NotificationDTO } from '../../../services/notification.service';
 import { Subscription } from 'rxjs';
@@ -17,22 +17,30 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   private subscriptions = new Subscription();
 
-  constructor(private notificationService: NotificationService, private cdr: ChangeDetectorRef) {}
+  constructor(private notificationService: NotificationService, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit(): void {
+    console.log('[NotificationBell] Initializing...');
+
     // Subscribe to notifications
     this.subscriptions.add(
       this.notificationService.notifications$.subscribe(notifications => {
-        this.notifications = notifications;
-        this.cdr.detectChanges();
+        this.ngZone.run(() => {
+          console.log('[NotificationBell] Notifications updated:', notifications.length);
+          this.notifications = notifications;
+          this.cdr.detectChanges();
+        });
       })
     );
 
     // Subscribe to unread count
     this.subscriptions.add(
       this.notificationService.unreadCount$.subscribe(count => {
-        this.unreadCount = count;
-        this.cdr.detectChanges();
+        this.ngZone.run(() => {
+          console.log('[NotificationBell] Unread count updated:', count);
+          this.unreadCount = count;
+          this.cdr.detectChanges();
+        });
       })
     );
 
@@ -40,7 +48,10 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.notificationService.newNotification$.subscribe(notification => {
         if (notification) {
-          this.cdr.detectChanges();
+          this.ngZone.run(() => {
+            console.log('[NotificationBell] New notification:', notification);
+            this.cdr.detectChanges();
+          });
         }
       })
     );

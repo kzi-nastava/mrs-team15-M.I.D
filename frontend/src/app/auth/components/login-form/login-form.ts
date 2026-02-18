@@ -65,34 +65,57 @@ export class LoginForm {
           setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
         } else if (response.role === 'USER' || response.role === 'DRIVER') {
           // Initialize notifications for users and drivers
-          console.log('Initializing notifications after login');
-          // First load existing notifications
-          this.notificationService.initializeNotifications();
-          // Then connect to WebSocket for real-time updates
-          this.notificationService.connectToNotifications(response.token);
+          console.log('[LoginForm] Initializing notifications after login');
+          // Load notifications and connect to WebSocket in proper sequence
+          this.notificationService.loadAndConnectNotifications(response.token);
+          console.log('[LoginForm] Notification initialization requested');
           setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
         }
 
         switch(response.role) {
           case 'ADMIN':
-            setTimeout(() => { this.router.navigate(['/admin-history-overview']); }, 1000);
+            setTimeout(() => {
+              this.router.navigate(['/admin-history-overview']).then(() => {
+                setTimeout(() => { window.location.reload(); }, 500);
+              });
+            }, 1000);
             return;
           case 'DRIVER':
             if(response.hasCurrentRide){
-              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);
+              setTimeout(() => {
+                this.router.navigate(['/current-ride']).then(() => {
+                  setTimeout(() => { window.location.reload(); }, 500);
+                });
+              }, 1000);
               return;
             }
-            setTimeout(() => { this.router.navigate(['/upcoming-rides']); }, 1000);
+            setTimeout(() => {
+              this.router.navigate(['/upcoming-rides']).then(() => {
+                setTimeout(() => { window.location.reload(); }, 500);
+              });
+            }, 1000);
             return;
             case 'USER':
             if(response.hasCurrentRide){
-              setTimeout(() => { this.router.navigate(['/current-ride']); }, 1000);
+              setTimeout(() => {
+                this.router.navigate(['/current-ride']).then(() => {
+                  setTimeout(() => { window.location.reload(); }, 500);
+                });
+              }, 1000);
               return;
             }
-            setTimeout(() => { this.router.navigate(['/ride-ordering']); }, 1000);
+            setTimeout(() => {
+              this.router.navigate(['/ride-ordering']).then(() => {
+                setTimeout(() => { window.location.reload(); }, 500);
+              });
+            }, 1000);
             return;
         }
-        setTimeout(() => { this.router.navigate(['/home']); }, 1000);
+        setTimeout(() => {
+          this.router.navigate(['/home']).then(() => {
+            setTimeout(() => { window.location.reload(); }, 500);
+          });
+        }, 1000);
       },
       error: (err) => {
         if (typeof err.error === 'string') {

@@ -46,13 +46,17 @@
       <div *ngIf="!loading && filteredChats.length > 0" class="list-group">
         <div
           *ngFor="let chat of filteredChats"
+          [class.chat-with-new-messages]="chat.hasNewMessages"
           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
           (click)="openChat(chat.id)"
           style="cursor: pointer;"
         >
-          <div>
-            <h6 class="mb-1 fw-semibold">Chat #{{ chat.id }}</h6>
-            <p class="mb-0 text-muted small">{{ chat.user }}</p>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2">
+              <h6 class="mb-0 fw-semibold">Chat #{{ chat.id }}</h6>
+              <span *ngIf="chat.hasNewMessages" class="badge bg-black text-white">New</span>
+            </div>
+            <p class="mb-0 text-muted small mt-1">{{ chat.user }}</p>
           </div>
           <i class="bi bi-chevron-right"></i>
         </div>
