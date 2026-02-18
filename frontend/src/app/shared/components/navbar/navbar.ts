@@ -46,6 +46,12 @@ export class NavbarComponent {
       this.isActive = status === 'ACTIVE';
       this.cdr.detectChanges();
     });
+
+    if (this.showActivityToggle && !this.driverState.currentStatus) {
+      this.driverService.getMyStatus().subscribe({
+        error: (err) => console.error('Failed to fetch driver status', err)
+      });
+    }
     console.log('[Navbar] Initialization complete');
   }
 

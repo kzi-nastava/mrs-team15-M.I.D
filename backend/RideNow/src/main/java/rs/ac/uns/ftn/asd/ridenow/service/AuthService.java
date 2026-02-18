@@ -157,6 +157,12 @@ public class AuthService {
         } catch (Exception e) {
             responseDTO.setHasCurrentRide(false);
         }
+        if(existingUser instanceof Driver driver){
+            responseDTO.setActive(driver.getStatus() == DriverStatus.ACTIVE);
+        }
+        else{
+            responseDTO.setActive(false);
+        }
         responseDTO.setToken(token);
         responseDTO.setExpiresAt(expiresAt);
         responseDTO.setRole(existingUser.getRole().name());
