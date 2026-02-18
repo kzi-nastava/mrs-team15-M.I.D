@@ -38,4 +38,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("DELETE FROM Notification n WHERE n.user IN :users AND n.type IN :types")
     void deleteByUsersAndTypes(List<User> users, List<NotificationType> types);
+
+    @Query("SELECT COUNT(n) > 0 FROM Notification n WHERE n.relatedEntityId = :rideId AND n.type = :type AND n.message LIKE %:minutePattern%")
+    boolean existsByRideIdAndTypeAndMinutes(Long rideId, NotificationType type, String minutePattern);
 }

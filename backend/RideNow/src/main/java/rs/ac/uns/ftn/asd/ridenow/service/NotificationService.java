@@ -387,7 +387,7 @@ public class NotificationService {
         }
     }
 
-    public void createScheduledRideReminderNotification(RegisteredUser passenger, Ride ride) {
+    public void createScheduledRideReminderNotification(RegisteredUser passenger, Ride ride, int minutesUntilRide) {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
             String rideTime = ride.getScheduledTime().format(formatter);
@@ -399,7 +399,7 @@ public class NotificationService {
                 endAddress = parts[0] + ", " + parts[1] + ", " + parts[2];
             }
 
-            String message = String.format("Reminder: Your ride to %s is scheduled for %s", endAddress, rideTime);
+            String message = String.format("Reminder: Your ride to %s is scheduled for %s (in %d minutes)", endAddress, rideTime, minutesUntilRide);
 
             Notification notification = new Notification();
             notification.setUser(passenger);
