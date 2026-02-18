@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.asd.ridenow.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.FcmTokenDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.Map;
  * This endpoint allows mobile apps to register and update their FCM tokens
  * so that push notifications can be delivered to the correct device.
  */
+@Tag(name = "FCM", description = "Firebase Cloud Messaging endpoints")
 @RestController
 @RequestMapping("/api/fcm")
 public class FcmController {
@@ -31,6 +34,7 @@ public class FcmController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER', 'USER')")
     @PostMapping("/register-token")
+    @Operation(summary = "Register FCM token", description = "Register or update device's Firebase Cloud Messaging token for push notifications")
     public ResponseEntity<?> registerFcmToken(@RequestBody FcmTokenDTO tokenDTO) {
             // Get current authenticated user
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
