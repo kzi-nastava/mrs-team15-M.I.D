@@ -25,22 +25,18 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     // Subscribe to notifications
     this.subscriptions.add(
       this.notificationService.notifications$.subscribe(notifications => {
-        this.ngZone.run(() => {
-          console.log('[NotificationBell] Notifications updated:', notifications.length);
-          this.notifications = notifications;
-          this.cdr.detectChanges();
-        });
+        console.log('[NotificationBell] Notifications updated:', notifications.length);
+        this.notifications = notifications;
+        this.cdr.detectChanges();
       })
     );
 
     // Subscribe to unread count
     this.subscriptions.add(
       this.notificationService.unreadCount$.subscribe(count => {
-        this.ngZone.run(() => {
-          console.log('[NotificationBell] Unread count updated:', count);
-          this.unreadCount = count;
-          this.cdr.detectChanges();
-        });
+        console.log('[NotificationBell] Unread count updated:', count);
+        this.unreadCount = count;
+        this.cdr.detectChanges();
       })
     );
 
@@ -48,10 +44,8 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.notificationService.newNotification$.subscribe(notification => {
         if (notification) {
-          this.ngZone.run(() => {
-            console.log('[NotificationBell] New notification:', notification);
-            this.cdr.detectChanges();
-          });
+          console.log('[NotificationBell] New notification:', notification);
+          this.cdr.detectChanges();
         }
       })
     );

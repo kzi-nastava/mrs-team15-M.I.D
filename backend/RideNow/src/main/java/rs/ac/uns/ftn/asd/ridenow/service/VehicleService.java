@@ -24,6 +24,8 @@ public class VehicleService {
                 lng - 0.1, lng + 0.1
         );
         return vehicles.stream()
+                // Filter only vehicles with active drivers
+                .filter(vehicle -> vehicle.getDriver() != null && vehicle.getDriver().isActive())
                 .map(this::convertToDTO)
                 .toList();
     }
@@ -44,7 +46,8 @@ public class VehicleService {
     private VehicleResponseDTO convertToDTO(Vehicle vehicle) {
         VehicleResponseDTO dto = new VehicleResponseDTO();
         dto.setLocation(new Location(vehicle.getLat(), vehicle.getLon()));
-        dto.setAvailable(vehicle.isAvailable());
+        // Use driver's availability status instead of vehicle's
+        dto.setAvailable(vehicle.getDriver().getAvailable());
         dto.setLicencePlate(vehicle.getLicencePlate());
         return dto;
     }
