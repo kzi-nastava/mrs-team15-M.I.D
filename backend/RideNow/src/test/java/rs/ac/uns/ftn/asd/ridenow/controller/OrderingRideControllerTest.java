@@ -288,8 +288,6 @@ public class OrderingRideControllerTest {
         verify(rideService, never()).orderRide(any(), any());
     }
 
-    // ============= EDGE CASE TESTS ================
-
     @Test
     @DisplayName("Should handle scheduled ride request")
     @WithMockUser(roles = "USER")
