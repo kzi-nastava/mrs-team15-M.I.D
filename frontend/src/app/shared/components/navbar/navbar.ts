@@ -35,7 +35,6 @@ export class NavbarComponent {
   driverStatus = '';
 
   ngOnInit() {
-    console.log('[Navbar] Initializing...');
     if (this.showActivityToggle) {
       this.driverService.getMyStatus().subscribe();
     }
@@ -46,7 +45,6 @@ export class NavbarComponent {
       this.isActive = status === 'ACTIVE';
       this.cdr.detectChanges();
     });
-    console.log('[Navbar] Initialization complete');
   }
 
   protected menuOpen = signal(false);
