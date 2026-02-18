@@ -99,7 +99,6 @@ public class AdminController {
             @Valid @ModelAttribute RegisterDriverRequestDTO request,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
         try {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             RegisterDriverResponseDTO responseDTO = adminService.register(request, profileImage);
             return ResponseEntity.status(201).body(responseDTO);
         } catch (Exception e) {
@@ -110,7 +109,6 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/driver-requests")
     public ResponseEntity<List<DriverChangeRequestDTO>> getDriverRequests() {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(adminService.getDriverRequests());
     }
 
@@ -129,7 +127,6 @@ public class AdminController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
@@ -141,21 +138,18 @@ public class AdminController {
             @RequestParam(required = false) String sortDirection,
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.getUsers(search, sortBy, sortDirection, page, size));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/block/{id}")
     public ResponseEntity<Void> blockUser(@PathVariable Long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.blockUser(id));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/unblock/{id}")
     public ResponseEntity<Void> unblockUser(@PathVariable Long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.unblockUser(id));
     }
 

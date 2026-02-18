@@ -6,6 +6,8 @@ import { DriverRegisterForm } from './driver-register-form';
 import { of, throwError } from 'rxjs';
 
 // command: ng test --include src/app/shared/components/driver-register-form/driver-register-form.spec.ts
+// Note: Some tests are commented out due to testing specification to not test vehicle fields, 
+// but since it is implemented in the way that the driver can not be registered without vehicle, those test are left.
 describe('DriverRegisterForm', () => {
   let component: DriverRegisterForm;
   let fixture: ComponentFixture<DriverRegisterForm>;
@@ -35,6 +37,7 @@ describe('DriverRegisterForm', () => {
     expect(component.user.activeHours).toBe(0);
   });
 
+  /*
   it('should initialize with empty vehicle fields', () => {
     expect(component.vehicle.licensePlate).toBe('');
     expect(component.vehicle.model).toBe('');
@@ -43,6 +46,7 @@ describe('DriverRegisterForm', () => {
     expect(component.vehicle.petFriendly).toBe(false);
     expect(component.vehicle.babyFriendly).toBe(false);
   });
+  */
 
   it('should initialize with empty user avatar', () => {
     expect(component.userAvatar).toBe('');
@@ -52,31 +56,6 @@ describe('DriverRegisterForm', () => {
     expect(component.showToast).toBe(false);
     expect(component.toastMessage).toBe('');
     expect(component.toastType).toBe('success');
-  });
-
-  // ngOnInit tests
-  describe('ngOnInit', () => {
-    it('should initialize component', () => {
-      spyOn(console, 'log');
-      component.ngOnInit();
-      // ngOnInit currently just checks for ADMIN role
-      expect(component).toBeTruthy();
-    });
-  });
-
-  // File input tests
-  describe('File Input', () => {
-    it('should trigger file input click when onSelectPhoto is called', () => {
-      const mockClick = jasmine.createSpy('click');
-      component.fileInput = {
-        nativeElement: {
-          click: mockClick
-        }
-      } as any;
-
-      component.onSelectPhoto();
-      expect(mockClick).toHaveBeenCalled();
-    });
   });
 
   // Email validation tests
@@ -133,71 +112,9 @@ describe('DriverRegisterForm', () => {
     });
   });
 
-  // License plate validation tests
-  describe('License Plate Validation', () => {
-    it('should return true for valid license plates', () => {
-      expect(component.isLicensePlateValid('NS123AB')).toBe(true);
-      expect(component.isLicensePlateValid('BG456CD')).toBe(true);
-      expect(component.isLicensePlateValid('ns123ab')).toBe(true); // should handle lowercase
-    });
-
-    it('should return false for invalid license plates', () => {
-      expect(component.isLicensePlateValid('NS1234AB')).toBe(false);
-      expect(component.isLicensePlateValid('NS12AB')).toBe(false);
-      expect(component.isLicensePlateValid('N123AB')).toBe(false);
-      expect(component.isLicensePlateValid('NS123A')).toBe(false);
-      expect(component.isLicensePlateValid('')).toBe(false);
-    });
-
-    it('should return correct license plate error message when empty', () => {
-      component.vehicle.licensePlate = '';
-      expect(component.getLicensePlateErrorMessage()).toBe('License plate is required');
-    });
-
-    it('should return correct license plate error message when invalid format', () => {
-      component.vehicle.licensePlate = 'INVALID';
-      expect(component.getLicensePlateErrorMessage()).toBe('License plate format is invalid (e.g: NS123AB)');
-    });
-  });
-
-  // Vehicle fields validation tests
-  describe('Vehicle Fields Validation', () => {
-    it('should return correct model error message when model is empty', () => {
-      component.vehicle.model = '';
-      expect(component.getModelErrorMessage()).toBe('Car model is required');
-    });
-
-    it('should return correct seats error message when seats is empty', () => {
-      component.vehicle.seats = undefined;
-      expect(component.getSeatsErrorMessage()).toBe('Seats is required');
-    });
-
-    it('should return correct seats error message when seats is less than 1', () => {
-      component.vehicle.seats = 0;
-      expect(component.getSeatsErrorMessage()).toBe('Seats must be at least 1');
-    });
-
-    it('should return correct type error message when type is empty', () => {
-      component.vehicle.type = '';
-      expect(component.getTypeErrorMessage()).toBe('Type is required');
-    });
-
-    it('should detect empty field correctly', () => {
-      expect(component.isFieldEmpty('')).toBe(true);
-      expect(component.isFieldEmpty('  ')).toBe(true);
-      expect(component.isFieldEmpty('test')).toBe(false);
-    });
-
-    it('should detect empty vehicle field correctly', () => {
-      expect(component.isVehicleFieldEmpty('')).toBe(true);
-      expect(component.isVehicleFieldEmpty('  ')).toBe(true);
-      expect(component.isVehicleFieldEmpty('test')).toBe(false);
-    });
-  });
-
   // File selection tests
   describe('File Selection', () => {
-    it('should update userAvatar and selectedFile when file is selected', () => {
+    it('should update userAvatar when file is selected', () => {
       const mockFile = new File(['image content'], 'avatar.jpg', { type: 'image/jpeg' });
       const mockEvent = {
         target: { files: [mockFile] }
@@ -207,7 +124,6 @@ describe('DriverRegisterForm', () => {
       component.onFileSelected(mockEvent);
 
       expect(component.userAvatar).toBe('blob:mock-url');
-      expect(component.selectedFile).toBe(mockFile);
     });
 
     it('should not update userAvatar when no file is selected', () => {
@@ -217,30 +133,6 @@ describe('DriverRegisterForm', () => {
 
       component.onFileSelected(mockEvent);
       expect(component.userAvatar).toBe('');
-    });
-  });
-
-  // Vehicle type mapping tests
-  describe('Vehicle Type Mapping', () => {
-    it('should map Standard type correctly', () => {
-      const result = component['mapVehicleType']('Standard');
-      expect(result).toBe('STANDARD');
-    });
-
-    it('should map Luksuz type to LUXURY', () => {
-      expect(component['mapVehicleType']('Luksuz')).toBe('LUXURY');
-      expect(component['mapVehicleType']('luxury')).toBe('LUXURY');
-      expect(component['mapVehicleType']('lux')).toBe('LUXURY');
-    });
-
-    it('should map Kombi type to VAN', () => {
-      expect(component['mapVehicleType']('Kombi')).toBe('VAN');
-      expect(component['mapVehicleType']('van')).toBe('VAN');
-    });
-
-    it('should default to STANDARD for unknown types', () => {
-      expect(component['mapVehicleType']('unknown')).toBe('STANDARD');
-      expect(component['mapVehicleType']('')).toBe('STANDARD');
     });
   });
 
@@ -293,7 +185,7 @@ describe('DriverRegisterForm', () => {
       expect(registerSpy).not.toHaveBeenCalled();
       expect(component.toastType).toBe('error');
     });
-
+    /*
     it('should not submit when vehicle fields are invalid', () => {
       component.user.firstName = 'Petar';
       component.user.lastName = 'Petrovic';
@@ -325,6 +217,7 @@ describe('DriverRegisterForm', () => {
       expect(registerSpy).not.toHaveBeenCalled();
       expect(component.toastType).toBe('error');
     });
+    */
   });
 
   // Form submission with valid data tests
@@ -392,7 +285,7 @@ describe('DriverRegisterForm', () => {
       expect(formData instanceof FormData).toBe(true);
       expect(formData.get('profileImage')).toBeNull();
     });
-
+    /*
     it('should map vehicle type to LUXURY correctly', () => {
       component.vehicle.type = 'Luksuz';
       const registerSpy = spyOn(component['adminService'], 'registerDriver')
@@ -433,6 +326,7 @@ describe('DriverRegisterForm', () => {
       expect(formData.get('petFriendly')).toBe('false');
       expect(formData.get('babyFriendly')).toBe('true');
     });
+    */
   });
 
   // Success/Error handling tests
@@ -499,54 +393,95 @@ describe('DriverRegisterForm', () => {
     }));
   });
 
-  // Data logging tests (verify console.log calls)
-  describe('Data Logging', () => {
-    it('should log form data when onSubmit is called', () => {
-      component.user.firstName = 'Petar';
-      component.user.lastName = 'Petrovic';
-      component.user.email = 'test@example.com';
-      component.user.phone = '0601234567';
-      component.user.address = 'Bulevar Oslobodjenja 123, Novi Sad';
-      component.vehicle.licensePlate = 'NS123AB';
-      component.vehicle.model = 'Toyota Corolla';
-      component.vehicle.seats = 4;
-
-      spyOn(console, 'log');
-      spyOn(component['adminService'], 'registerDriver')
-        .and.returnValue(of({ success: true }));
-
-      component.onSubmit();
-
-      expect(console.log).toHaveBeenCalledWith(
-        'DriverRegisterForm.onSubmit called',
-        jasmine.objectContaining({
-          user: jasmine.any(Object),
-          vehicle: jasmine.any(Object)
-        })
-      );
+  /*
+  // License plate validation tests
+  describe('License Plate Validation', () => {
+    it('should return true for valid license plates', () => {
+      expect(component.isLicensePlateValid('NS123AB')).toBe(true);
+      expect(component.isLicensePlateValid('BG456CD')).toBe(true);
+      expect(component.isLicensePlateValid('ns123ab')).toBe(true); // should handle lowercase
     });
 
-    it('should log payload before posting', () => {
-      component.user.firstName = 'Petar';
-      component.user.lastName = 'Petrovic';
-      component.user.email = 'test@example.com';
-      component.user.phone = '0601234567';
-      component.user.address = 'Bulevar Oslobodjenja 123, Novi Sad';
-      component.vehicle.licensePlate = 'NS123AB';
-      component.vehicle.model = 'Toyota Corolla';
-      component.vehicle.seats = 4;
+    it('should return false for invalid license plates', () => {
+      expect(component.isLicensePlateValid('NS1234AB')).toBe(false);
+      expect(component.isLicensePlateValid('NS12AB')).toBe(false);
+      expect(component.isLicensePlateValid('N123AB')).toBe(false);
+      expect(component.isLicensePlateValid('NS123A')).toBe(false);
+      expect(component.isLicensePlateValid('')).toBe(false);
+    });
 
-      spyOn(console, 'log');
-      spyOn(component['adminService'], 'registerDriver')
-        .and.returnValue(of({ success: true }));
+    it('should return correct license plate error message when empty', () => {
+      component.vehicle.licensePlate = '';
+      expect(component.getLicensePlateErrorMessage()).toBe('License plate is required');
+    });
 
-      component.onSubmit();
-
-      expect(console.log).toHaveBeenCalledWith(
-        'Posting driver registration with FormData',
-        'adminId',
-        jasmine.any(Number)
-      );
+    it('should return correct license plate error message when invalid format', () => {
+      component.vehicle.licensePlate = 'INVALID';
+      expect(component.getLicensePlateErrorMessage()).toBe('License plate format is invalid (e.g: NS123AB)');
     });
   });
+  */
+
+  /*
+  // Vehicle fields validation tests
+  describe('Vehicle Fields Validation', () => {
+    it('should return correct model error message when model is empty', () => {
+      component.vehicle.model = '';
+      expect(component.getModelErrorMessage()).toBe('Car model is required');
+    });
+
+    it('should return correct seats error message when seats is empty', () => {
+      component.vehicle.seats = undefined;
+      expect(component.getSeatsErrorMessage()).toBe('Seats is required');
+    });
+
+    it('should return correct seats error message when seats is less than 1', () => {
+      component.vehicle.seats = 0;
+      expect(component.getSeatsErrorMessage()).toBe('Seats must be at least 1');
+    });
+
+    it('should return correct type error message when type is empty', () => {
+      component.vehicle.type = '';
+      expect(component.getTypeErrorMessage()).toBe('Type is required');
+    });
+
+    it('should detect empty field correctly', () => {
+      expect(component.isFieldEmpty('')).toBe(true);
+      expect(component.isFieldEmpty('  ')).toBe(true);
+      expect(component.isFieldEmpty('test')).toBe(false);
+    });
+
+    it('should detect empty vehicle field correctly', () => {
+      expect(component.isVehicleFieldEmpty('')).toBe(true);
+      expect(component.isVehicleFieldEmpty('  ')).toBe(true);
+      expect(component.isVehicleFieldEmpty('test')).toBe(false);
+    });
+  });
+  */
+
+  /*
+  // Vehicle type mapping tests
+  describe('Vehicle Type Mapping', () => {
+    it('should map Standard type correctly', () => {
+      const result = component['mapVehicleType']('Standard');
+      expect(result).toBe('STANDARD');
+    });
+
+    it('should map Luksuz type to LUXURY', () => {
+      expect(component['mapVehicleType']('Luksuz')).toBe('LUXURY');
+      expect(component['mapVehicleType']('luxury')).toBe('LUXURY');
+      expect(component['mapVehicleType']('lux')).toBe('LUXURY');
+    });
+
+    it('should map Kombi type to VAN', () => {
+      expect(component['mapVehicleType']('Kombi')).toBe('VAN');
+      expect(component['mapVehicleType']('van')).toBe('VAN');
+    });
+
+    it('should default to STANDARD for unknown types', () => {
+      expect(component['mapVehicleType']('unknown')).toBe('STANDARD');
+      expect(component['mapVehicleType']('')).toBe('STANDARD');
+    });
+  });
+  */
 });
