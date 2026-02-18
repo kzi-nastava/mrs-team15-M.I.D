@@ -234,6 +234,24 @@ public class OrderingRideServiceTest {
                 () -> rideService.orderRide(validRequest, "nonexistent@gmail.com"));
     }
 
+    @Test
+    @DisplayName("Main passenger with active ride throws IllegalStateException")
+    void orderRide_mainPassengerHasActiveRide_shouldThrow() {
+        Ride existingRide = new Ride();
+        existingRide.setId(50L);
+        existingRide.setStatus(RideStatus.IN_PROGRESS);
+
+        when(registeredUserRepository.findByEmail("user@gmail.com")).thenReturn(Optional.of(mainUser));
+        when(rideRepository.findCurrentRideByUser(mainUser.getId())).thenReturn(Optional.of(existingRide));
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> rideService.orderRide(validRequest, "user@gmail.com")
+        );
+        assertTrue(exception.getMessage().contains("already have an active ride"));
+        verify(rideRepository, never()).save(any(Ride.class));
+    }
+
     // ==================== ROUTE VALIDATION ====================
 
     @Test

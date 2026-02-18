@@ -59,7 +59,10 @@
                                         <app-button class="show-route-btn" width="120%" height="35px" variant="primary" fontWeight="700" textTransform="uppercase" text="Show route" (click)="showRoute()"></app-button>
                                  </div>
 
-                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors() || !lastEstimate" (click)="chooseRoute()"></app-button>
+                <app-button width="100%" height="35px" variant="secondary" fontWeight="700" textTransform="uppercase" text="Choose route" [disabled]="hasErrors() || !lastEstimate || hasActiveRide" (click)="chooseRoute()"></app-button>
+                <div *ngIf="hasActiveRide" class="text-danger mt-2 text-center" style="font-size: 0.9rem;">
+                  You cannot order a new ride while you have an active ride.
+                </div>
 
                 </ng-container>
                 <ng-container *ngIf="showPreferences">

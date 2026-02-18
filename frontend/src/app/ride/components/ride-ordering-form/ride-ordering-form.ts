@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, Input, ChangeDetectorRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Button } from '../../../shared/components/button/button';
@@ -27,6 +27,8 @@ interface FavoriteRoute {
   styleUrls: ['./ride-ordering-form.css'],
 })
 export class RideOrderingForm implements OnInit {
+  @Input() hasActiveRide: boolean = false;
+  
   pickupAddress: string = '';
   destinationAddress: string = '';
   stops: string[] = [];
@@ -600,6 +602,13 @@ export class RideOrderingForm implements OnInit {
 
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
+    
+    // Check if user has active ride
+    if (this.hasActiveRide) {
+      console.warn('Cannot order ride: user already has an active ride');
+      this.orderAttempt.emit({ error: 'You already have an active ride' });
+      return;
+    }
     
     try {
       const startGeo = await this.rideService.geocodeAddress(this.pickupAddress) || { lat: 0, lon: 0 };
