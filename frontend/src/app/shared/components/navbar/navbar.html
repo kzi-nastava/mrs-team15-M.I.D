@@ -62,6 +62,9 @@
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/ride-ordering" (click)="closeMenu()">Order a Ride</a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
+                </li>
                 }
                 @if (role === 'DRIVER') {
                 <li class="nav-item">
@@ -76,9 +79,6 @@
                 @if (role === 'USER' || role === 'DRIVER') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/current-ride" (click)="closeMenu()">Current ride</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" routerLink="/user-history" (click)="closeMenu()">Ride History</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/user-chat" (click)="closeMenu()">Live Support</a>
@@ -109,7 +109,7 @@
                   <a class="nav-link" routerLink="/driver-report" (click)="closeMenu()">Reports</a>
                 </li>
                 }
-                
+
                @if (role === 'ADMIN') {
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/driver-registration" (click)="closeMenu()">Driver Registration</a>
