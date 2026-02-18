@@ -132,11 +132,8 @@ onToggleChange(event: MouseEvent) {
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        if (typeof err.error === 'string') {
-          this.showMessageToast(err.error);
-        } else {
-          this.showMessageToast('Unable to log out right now. Please try again.');
-        }
+        const error = err.error?.message || err.message || 'Unable to log out right now. Please try again.';
+        this.showMessageToast(error);
       }
     });
   }
