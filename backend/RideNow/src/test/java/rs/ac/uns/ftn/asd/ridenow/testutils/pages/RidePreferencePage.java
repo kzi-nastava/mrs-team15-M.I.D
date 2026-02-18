@@ -71,24 +71,6 @@ public class RidePreferencePage {
         }
     }
 
-    public String getScheduledTimeError(){
-        try{
-            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
-            return errorElement.getText().trim();
-        } catch (Exception e){
-            return null;
-        }
-    }
-
-    public boolean hasScheduledTimeError(){
-        try{
-            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
-            return errorElement.isDisplayed() && !errorElement.getText().trim().isEmpty();
-        } catch (Exception e){
-            return false;
-        }
-    }
-
     public boolean isOrderButtonDisabled(){
         try{
             WebElement btn = wait.until(ExpectedConditions.presenceOfElementLocated(

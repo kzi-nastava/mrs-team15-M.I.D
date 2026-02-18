@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpServerErrorException;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.RideEstimateResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.StopRideResponseDTO;
@@ -145,8 +146,10 @@ public class RideController {
         String email = user.getEmail();
         try{
             return ResponseEntity.status(201).body(rideService.orderRide(request, email));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(500).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
 
     }
