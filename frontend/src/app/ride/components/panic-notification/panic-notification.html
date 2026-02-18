@@ -21,10 +21,4 @@
       <p class="alert-time">{{ getTimeAgo(alert.createdAt) }}</p>
     </div>
   </div>
-  <div class="connection-status" 
-       [class.connected]="connectionStatus" 
-       [class.disconnected]="!connectionStatus">
-    <span class="status-dot"></span>
-    {{ connectionStatus ? 'Connected' : 'Disconnected' }}
-  </div>
 </div>

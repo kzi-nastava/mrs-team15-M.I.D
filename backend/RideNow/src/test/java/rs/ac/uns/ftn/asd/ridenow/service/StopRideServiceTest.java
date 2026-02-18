@@ -13,9 +13,7 @@ import rs.ac.uns.ftn.asd.ridenow.model.enums.RideStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
-import rs.ac.uns.ftn.asd.ridenow.service.PriceService;
-import rs.ac.uns.ftn.asd.ridenow.service.RideService;
-import rs.ac.uns.ftn.asd.ridenow.service.RoutingService;
+import rs.ac.uns.ftn.asd.ridenow.websocket.NotificationWebSocketHandler;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -38,6 +36,9 @@ public class StopRideServiceTest {
 
     @Mock
     private RouteRepository routeRepository;
+
+    @Mock
+    private NotificationWebSocketHandler webSocketHandler;
 
     @InjectMocks
     private RideService rideService;

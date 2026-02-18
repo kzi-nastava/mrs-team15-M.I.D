@@ -45,6 +45,13 @@ export class NavbarComponent {
       this.isActive = status === 'ACTIVE';
       this.cdr.detectChanges();
     });
+
+    if (this.showActivityToggle && !this.driverState.currentStatus) {
+      this.driverService.getMyStatus().subscribe({
+        error: (err) => console.error('Failed to fetch driver status', err)
+      });
+    }
+    console.log('[Navbar] Initialization complete');
   }
 
   protected menuOpen = signal(false);
@@ -130,11 +137,8 @@ onToggleChange(event: MouseEvent) {
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        if (typeof err.error === 'string') {
-          this.showMessageToast(err.error);
-        } else {
-          this.showMessageToast('Unable to log out right now. Please try again.');
-        }
+        const error = err.error?.message || err.message || 'Unable to log out right now. Please try again.';
+        this.showMessageToast(error);
       }
     });
   }

@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { TokenExpirationService } from '../../../services/token-expiration.service';
 import { NotificationWebSocketService } from '../../../services/notification-websocket.service';
 import { NotificationService } from '../../../services/notification.service';
+import { DriverStatusStore } from '../../../shared/states/driver-status.store';
 
 @Component({
   selector: 'app-login-form',
@@ -25,7 +26,8 @@ export class LoginForm {
     private router : Router,
     private tokenExpirationService: TokenExpirationService,
     private notificationWebSocketService : NotificationWebSocketService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private driverStatusStore: DriverStatusStore
   ){}
 
   passwordVisible = false;
@@ -59,7 +61,10 @@ export class LoginForm {
         this.tokenExpirationService.startTokenExpirationCheck();
         this.showMessageToast("Login successful. Good to see you again. Where to next?");
 
-        console.log('Login successful - Role:', response.role);
+        if (response.role === 'DRIVER') {
+          const initialStatus = response.active ? 'ACTIVE' : 'INACTIVE';
+          this.driverStatusStore.setStatus(initialStatus);
+        }
 
         if (response.role === 'ADMIN') {
           setTimeout(() => { this.notificationWebSocketService.connect(); }, 500);
