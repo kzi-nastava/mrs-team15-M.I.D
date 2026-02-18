@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RatingDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.model.RouteDTO;
@@ -26,6 +27,7 @@ import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.*;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -192,7 +194,7 @@ public class AdminService {
     }
 
     @Transactional
-    public RegisterDriverResponseDTO register(@Valid RegisterDriverRequestDTO request) {
+    public RegisterDriverResponseDTO register(@Valid RegisterDriverRequestDTO request, MultipartFile profileImage) throws IOException {
         // create Vehicle
         Vehicle vehicle = new Vehicle();
         vehicle.setLicencePlate(request.getLicensePlate());
@@ -202,6 +204,9 @@ public class AdminService {
         vehicle.setChildFriendly(request.isBabyFriendly());
         vehicle.setPetFriendly(request.isPetFriendly());
 
+        // generate profile image URL
+        String profileImageURL = authService.generateProfileImageUrl(profileImage);
+
         // create Driver
         Driver driver = new Driver();
         driver.setEmail(request.getEmail());
@@ -210,9 +215,8 @@ public class AdminService {
         driver.setFirstName(request.getFirstName());
         driver.setLastName(request.getLastName());
         driver.setPhoneNumber(request.getPhoneNumber());
-        driver.setProfileImage(request.getProfileImage() != null ? request.getProfileImage() : "default_profile_image_url");
+        driver.setProfileImage(profileImageURL);
         driver.setAddress(request.getAddress());
-        driver.setProfileImage(authService.profileImageURL);
         // mark admin-created drivers as inactive until they set their password
         driver.setActive(false);
         driver.setBlocked(false);

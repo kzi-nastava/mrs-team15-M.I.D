@@ -8,7 +8,7 @@ export class AdminService {
 
   constructor(private http: HttpClient) {}
 
-  registerDriver(data: any): Observable<any> {
+  registerDriver(data: FormData): Observable<any> {
     return this.http.post(`${this.apiURL}/driver-register`, data);
   }
 

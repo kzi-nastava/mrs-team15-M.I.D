@@ -16,7 +16,7 @@ public class RidePreferencePage {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    @FindBy(xpath = "//select")
+    @FindBy(css = "select.form-select")
     private WebElement vehicleTypeSelect;
 
     @FindBy(id = "rpPet")
@@ -25,13 +25,13 @@ public class RidePreferencePage {
     @FindBy(id = "rpBabySeat")
     private WebElement babySelect;
 
-    @FindBy(xpath = "//button[contains(@aria-label,'Add guest')]")
+    @FindBy(xpath = "//button[contains(@aria-label,'Add guest') or contains(normalize-space(.),'Add guest')]")
     private WebElement addGuestButton;
 
-    @FindBy(xpath = "//input[contains(@type,'datetime-local')]")
+    @FindBy(css = "input[type='datetime-local']")
     private WebElement dateInput;
 
-    @FindBy(xpath = "//*[normalize-space(text())='Order ride']")
+    @FindBy(xpath = "//app-button[.//button[normalize-space(text())='Order ride']]//button")
     private WebElement orderButton;
 
 
@@ -40,8 +40,6 @@ public class RidePreferencePage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
         PageFactory.initElements(driver, this);
-        // wait until the vehicle preference label is present to consider the page ready
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//label[text()='Vehicle preference']")));
     }
 
     public boolean isPageOpened(){
@@ -62,14 +60,42 @@ public class RidePreferencePage {
         String typeFind = type.toLowerCase();
         WebElement option = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//option[contains(translate(@value,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'"+typeFind+"')]")));
         option.click();
-        // wait a moment for price update if present
-        try { Thread.sleep(400); } catch (InterruptedException ignored) {}
     }
 
-    public boolean checkPrice(String price){
+    public String getCurrentPrice(){
         try{
             WebElement priceElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.className("selected-price-value")));
-            return priceElement.getText().trim().equals(price);
+            return priceElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public String getScheduledTimeError(){
+        try{
+            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
+            return errorElement.getText().trim();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public boolean hasScheduledTimeError(){
+        try{
+            WebElement errorElement = driver.findElement(By.cssSelector(".schedule-picker .error"));
+            return errorElement.isDisplayed() && !errorElement.getText().trim().isEmpty();
+        } catch (Exception e){
+            return false;
+        }
+    }
+
+    public boolean isOrderButtonDisabled(){
+        try{
+            WebElement btn = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//app-button[.//button[normalize-space(text())='Order ride']]//button")
+            ));
+            String disabled = btn.getAttribute("disabled");
+            return disabled != null && (disabled.equals("true") || disabled.equals("disabled"));
         } catch (Exception e){
             return false;
         }
@@ -100,22 +126,17 @@ public class RidePreferencePage {
         WebElement inputEmail = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[contains(@placeholder,'Enter guest email') or contains(@placeholder,'Guest email')]")));
         inputEmail.clear();
         inputEmail.sendKeys(guestEmail);
-        // after entering guest email some UIs may require pressing Enter or blur
-        inputEmail.sendKeys("\n");
     }
 
     public void enterScheduledDateTime(String scheduledDateTime) {
         try {
             wait.until(ExpectedConditions.visibilityOf(dateInput));
-            // use JS to set value to avoid browser/format issues
             ((JavascriptExecutor) driver).executeScript(
                     "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input')); arguments[0].dispatchEvent(new Event('change'));",
                     dateInput, scheduledDateTime
             );
         } catch (Exception e) {
-            // fallback to sendKeys
-            wait.until(ExpectedConditions.visibilityOf(dateInput)).clear();
-            dateInput.sendKeys(scheduledDateTime);
+            throw new RuntimeException(e);
         }
     }
 
@@ -125,9 +146,7 @@ public class RidePreferencePage {
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", orderButton);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", orderButton);
         } catch (Exception e) {
-            // fallback: click inner button of app-button component
-            WebElement btn = driver.findElement(By.xpath("//app-button[.//button[contains(normalize-space(.),'Order ride')]]//button"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});arguments[0].click();", btn);
+            throw  new RuntimeException(e);
         }
     }
 

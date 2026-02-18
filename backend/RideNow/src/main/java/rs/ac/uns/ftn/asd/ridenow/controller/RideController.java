@@ -113,10 +113,6 @@ public class RideController {
     @PreAuthorize("hasRole('DRIVER')")
     @PutMapping("/{id}/start")
     public ResponseEntity<Void> startRide(@PathVariable Long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(user instanceof Driver)) {
-            return ResponseEntity.status(403).build();
-        }
         rideService.startRide(id);
         return ResponseEntity.ok().build();
     }
@@ -124,12 +120,7 @@ public class RideController {
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/{id}/start")
     public ResponseEntity<StartRideResponseDTO> passangerPickup(@PathVariable Long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(user instanceof Driver)) {
-            return ResponseEntity.status(403).build();
-        }
-        StartRideResponseDTO response = rideService.passangerPickup(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(rideService.passangerPickup(id));
     }
 
 
@@ -138,7 +129,6 @@ public class RideController {
     public ResponseEntity<RouteResponseDTO> estimateRoute(
             @Valid @RequestBody EstimateRouteRequestDTO dto) {
         try {
-            User user = (User)  SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             RouteResponseDTO response = rideService.estimateRoute(dto);
             return ResponseEntity.status(201).body(response);
 

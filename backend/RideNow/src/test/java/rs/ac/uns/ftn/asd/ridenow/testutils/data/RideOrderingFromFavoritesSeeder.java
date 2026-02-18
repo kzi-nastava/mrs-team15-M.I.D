@@ -5,10 +5,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
+import rs.ac.uns.ftn.asd.ridenow.model.PriceConfig;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.DriverStatus;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.VehicleType;
 import rs.ac.uns.ftn.asd.ridenow.repository.DriverRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.VehicleRepository;
+import rs.ac.uns.ftn.asd.ridenow.repository.PriceRepository;
 import rs.ac.uns.ftn.asd.ridenow.model.Location;
 import rs.ac.uns.ftn.asd.ridenow.model.PolylinePoint;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
@@ -24,6 +26,21 @@ import rs.ac.uns.ftn.asd.ridenow.repository.RouteRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.PassengerRepository;
 
+/**
+ * Test data seeder for ride ordering from favorites E2E tests.
+ * Seeds the following data:
+ * - Price configurations: STANDARD (120 DIN + 50 DIN/km), LUXURY (200 DIN + 80 DIN/km), VAN (150 DIN + 60 DIN/km)
+ * - Main user: user1@gmail.com
+ * - Guest user: user2@gmail.com
+ * - 3 Drivers with vehicles:
+ *   - Marko Marković (STANDARD vehicle, rating 4.2)
+ *   - Ana Petrović (STANDARD vehicle, rating 4.5)
+ *   - Stefan Jovanović (LUXURY vehicle, rating 4.8)
+ * - 3 Finished rides with complete route data:
+ *   - Mornarska 57 → Cika Stevina 4 (7.379 km, 1 stop)
+ *   - Big Novi Sad → Big Fashion (5.04 km, no stops)
+ *   - Cika Stevina 4 → Mornarska 57 (10.743 km, 2 stops - reverse route)
+ */
 @Component
 public class RideOrderingFromFavoritesSeeder {
 
@@ -49,6 +66,9 @@ public class RideOrderingFromFavoritesSeeder {
     private PassengerRepository passengerRepository;
 
     @Autowired
+    private PriceRepository priceRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private final String USER_EMAIL = "user1@gmail.com";
@@ -56,169 +76,37 @@ public class RideOrderingFromFavoritesSeeder {
 
     public void seedAll() {
         clearAll();
-        seedUserWithFavoriteRoute();
+        seedPriceConfigs();
+        seedMainUser();
+        seedGuestUser();
         seedAvailableDriverNearRoute();
         seedRides();
     }
 
+    private void seedPriceConfigs() {
+        PriceConfig standardConfig = new PriceConfig(VehicleType.STANDARD, 120.0, 50.0);
+        PriceConfig luxuryConfig = new PriceConfig(VehicleType.LUXURY, 200.0, 80.0);
+        PriceConfig vanConfig = new PriceConfig(VehicleType.VAN, 150.0, 60.0);
+
+        priceRepository.save(standardConfig);
+        priceRepository.save(luxuryConfig);
+        priceRepository.save(vanConfig);
+
+        System.out.println("[SEEDER] Price configs created: STANDARD(" + standardConfig.getBasePrice() + "+" + standardConfig.getPricePerKm() + "/km), "
+                + "LUXURY(" + luxuryConfig.getBasePrice() + "+" + luxuryConfig.getPricePerKm() + "/km), "
+                + "VAN(" + vanConfig.getBasePrice() + "+" + vanConfig.getPricePerKm() + "/km)");
+    }
+
     private void seedRides() {
-        // create one finished ride that uses the already seeded favorite route
         RegisteredUser user = registeredUserRepository.findByEmail(USER_EMAIL).orElse(null);
         if (user == null) return;
 
-        Route favoriteRoute = null;
-        for (Route r : routeRepository.findAll()) {
-            if (r.getStartLocation() != null && "Mornarska 57, Novi Sad".equals(r.getStartLocation().getAddress())) {
-                favoriteRoute = r;
-                break;
-            }
-        }
-
-        if (favoriteRoute != null) {
-            Ride ride = new Ride();
-            ride.setRoute(favoriteRoute);
-            // assign a driver if present
-            if (!driverRepository.findAll().isEmpty()) {
-                ride.setDriver(driverRepository.findAll().get(0));
-            }
-            ride.setDistanceKm(favoriteRoute.getDistanceKm());
-            java.time.LocalDateTime scheduled = java.time.LocalDateTime.now().minusDays(3);
-            ride.setScheduledTime(scheduled);
-            ride.setStartTime(scheduled);
-            ride.setEndTime(scheduled.plusMinutes((long) favoriteRoute.getEstimatedTimeMin()));
-            ride.setPrice(200 + favoriteRoute.getDistanceKm() * 40);
-            ride.setStatus(RideStatus.FINISHED);
-            rideRepository.save(ride);
-
-            Passenger p = new Passenger();
-            p.setRide(ride);
-            p.setUser(user);
-            p.setRole(PassengerRole.CREATOR);
-            passengerRepository.save(p);
-        }
-
-        // create second finished ride with the provided route data
-        Route newRoute = new Route(5.04, 11.0, new Location(45.2760171, 19.8259933, "Big Novi Sad, Novi Sad"), new Location(45.2457648, 19.8434868, "Big Fashion, Novi Sad"));
-
-        double[][] pts = new double[][]{
-            {45.27601,19.825603},{45.274517,19.825654},{45.273982,19.825849},{45.274446,19.828546},{45.274539,19.829083},{45.274544,19.829115},{45.274587,19.829362},{45.273858,19.829634},{45.273908,19.829942},{45.273915,19.829973},{45.273955,19.830164},{45.273864,19.830133},{45.273817,19.830149},{45.273345,19.830309},{45.273313,19.830316},{45.273282,19.830325},{45.273166,19.830356},{45.273046,19.83039},{45.273015,19.8304},{45.272643,19.830532},{45.272511,19.830636},{45.271922,19.830842},{45.271675,19.830923},{45.270894,19.831192},{45.270577,19.831307},{45.270305,19.831404},{45.270246,19.831424},{45.270138,19.831418},{45.269884,19.831496},{45.26952,19.831606},{45.269489,19.831615},{45.269455,19.831624},{45.269336,19.831661},{45.269229,19.831696},{45.269087,19.831742},{45.269056,19.831754},{45.268778,19.831858},{45.268512,19.831991},{45.268415,19.832132},{45.268216,19.832285},{45.268106,19.832375},{45.268021,19.832462},{45.267891,19.832611},{45.267713,19.832839},{45.267509,19.833122},{45.267477,19.833168},{45.267373,19.833313},{45.26717,19.833598},{45.26693,19.833931},{45.266723,19.834221},{45.266631,19.834286},{45.266206,19.834838},{45.266181,19.834871},{45.26608,19.835007},{45.266008,19.835104},{45.265911,19.835234},{45.265885,19.83527},{45.265714,19.835528},{45.26561,19.835697},{45.265494,19.835923},{45.265221,19.8363},{45.264976,19.836654},{45.264871,19.836794},{45.264584,19.83717},{45.264477,19.83731},{45.26429,19.837566},{45.26325,19.838982},{45.262951,19.839389},{45.262929,19.83942},{45.262906,19.839451},{45.262891,19.839471},{45.262803,19.839595},{45.262724,19.839703},{45.262671,19.839776},{45.262567,19.839916},{45.262055,19.840609},{45.261969,19.840727},{45.261655,19.841154},{45.261377,19.841527},{45.261215,19.841767},{45.261079,19.841994},{45.260923,19.842272},{45.260822,19.842428},{45.260794,19.842472},{45.260715,19.842542},{45.260637,19.842646},{45.260512,19.842806},{45.260495,19.842828},{45.260369,19.842988},{45.26024,19.842954},{45.260175,19.842928},{45.260127,19.842922},{45.260078,19.842922},{45.2599,19.842827},{45.259465,19.842614},{45.258993,19.842416},{45.258739,19.842316},{45.258199,19.842105},{45.258148,19.842085},{45.258125,19.842076},{45.258027,19.842038},{45.257887,19.841988},{45.257869,19.841982},{45.25776,19.841943},{45.257561,19.841841},{45.257448,19.841795},{45.257272,19.841722},{45.257213,19.841697},{45.257098,19.841659},{45.257077,19.84162},{45.257044,19.841594},{45.256998,19.841578},{45.256628,19.841547},{45.256489,19.841549},{45.256428,19.841541},{45.256334,19.84153},{45.256258,19.841517},{45.256167,19.841502},{45.256092,19.841493},{45.255993,19.841482},{45.255828,19.841477},{45.255717,19.841489},{45.255591,19.841531},{45.255506,19.841567},{45.25542,19.84161},{45.255247,19.841711},{45.255221,19.8363}
-        };
-        for (double[] p : pts) {
-            newRoute.getPolylinePoints().add(new PolylinePoint(p[0], p[1]));
-        }
-
-        newRoute = routeRepository.save(newRoute);
-
-        Ride ride2 = new Ride();
-        ride2.setRoute(newRoute);
-        if (!driverRepository.findAll().isEmpty()) ride2.setDriver(driverRepository.findAll().get(0));
-        ride2.setDistanceKm(5.04);
-        java.time.LocalDateTime scheduled2 = java.time.LocalDateTime.now().minusDays(1);
-        ride2.setScheduledTime(scheduled2);
-        ride2.setStartTime(scheduled2);
-        ride2.setEndTime(scheduled2.plusMinutes(11));
-        ride2.setPrice(401.612);
-        ride2.setStatus(RideStatus.FINISHED);
-        rideRepository.save(ride2);
-
-        Passenger p2 = new Passenger();
-        p2.setRide(ride2);
-        p2.setUser(user);
-        p2.setRole(PassengerRole.CREATOR);
-        passengerRepository.save(p2);
-        
-            // create third finished ride (reverse of favorite with two stops) so it appears in history
-            Route revRoute = new Route(10.743, 22.0, new Location(45.2624525, 19.8165981, "Cika Stevina 4, Novi Sad"), new Location(45.2328905, 19.8216559, "Mornarska 57, Novi Sad"));
-
-            // add two stops
-            revRoute.addStopLocation(new Location(45.2760171, 19.8259933, "Big Novi Sad, Novi Sad"));
-            revRoute.addStopLocation(new Location(45.2457648, 19.8434868, "Big Fashion, Novi Sad"));
-
-            double[][] revPts = new double[][]{
-                {45.262366,19.816446},{45.263037,19.815668},{45.263091,19.815606},{45.263101,19.815594},{45.263175,19.815509},{45.263586,19.816211},{45.263961,19.816869},{45.263979,19.816904},{45.26399,19.816924},{45.264063,19.817059},{45.264132,19.817177},{45.264197,19.81729},{45.26421,19.817312},{45.264345,19.817546},{45.264776,19.818294},{45.264856,19.818433},{45.265059,19.818787},{45.265275,19.819154},{45.265405,19.819376},{45.265738,19.819982},{45.266139,19.820674},{45.266549,19.821365},{45.266757,19.821732},{45.266946,19.822053},{45.266962,19.822082},{45.267041,19.822222},{45.26737,19.822808},{45.267497,19.823051},{45.267578,19.823205},{45.267779,19.823566},{45.26804,19.824051},{45.268059,19.824087},{45.268079,19.824124},{45.268157,19.82427},{45.268217,19.824382},{45.268298,19.824273},{45.268381,19.824159},{45.268406,19.824124},{45.268443,19.824069},{45.268494,19.824008},{45.268536,19.823965},{45.268583,19.823933},{45.268638,19.823922},{45.268791,19.823866},{45.269133,19.823864},{45.269636,19.823841},{45.269902,19.823834},{45.271114,19.823791},{45.271678,19.82377},{45.271819,19.823764},{45.272032,19.823762},{45.27219,19.82376},{45.272221,19.823759},{45.273109,19.823715},{45.273453,19.823706},{45.274468,19.823655},{45.274983,19.823631},{45.276046,19.823622},{45.27677,19.82359},{45.277701,19.82357},{45.277885,19.823565},{45.278231,19.823543},{45.278638,19.823543},{45.278736,19.823553},{45.278859,19.82359},{45.278969,19.823635},{45.27901,19.823653},{45.279061,19.823694},{45.279105,19.823754},{45.27913,19.823836},{45.279135,19.823908},{45.279124,19.823966},{45.278973,19.824563},{45.278889,19.824897},{45.278806,19.824902},{45.276762,19.824963},{45.276714,19.824971},{45.276701,19.825033},{45.276699,19.825466},{45.276683,19.825558},{45.276642,19.825582},{45.27601,19.825603},{45.274517,19.825654},{45.273982,19.825849},{45.274446,19.828546},{45.274539,19.829083},{45.274544,19.829115},{45.274587,19.829362},{45.273858,19.829634},{45.273908,19.829942},{45.273915,19.829973},{45.273955,19.830164},{45.273864,19.830133},{45.273817,19.830149},{45.273345,19.830309},{45.273313,19.830316},{45.273282,19.830325},{45.273166,19.830356},{45.273046,19.83039},{45.273015,19.8304},{45.272643,19.830532},{45.272511,19.830636},{45.271922,19.830842},{45.271675,19.830923},{45.270894,19.831192},{45.270577,19.831307},{45.270305,19.831404},{45.270246,19.831424},{45.270138,19.831418},{45.269884,19.831496},{45.26952,19.831606},{45.269489,19.831615},{45.269455,19.831624},{45.269336,19.831661},{45.269229,19.831696},{45.269087,19.831742},{45.269056,19.831754},{45.268778,19.831858},{45.268512,19.831991},{45.268415,19.832132},{45.268216,19.832285},{45.268106,19.832375},{45.268021,19.832462},{45.267891,19.832611},{45.267713,19.832839},{45.267509,19.833122},{45.267477,19.833168},{45.267373,19.833313},{45.26717,19.833598},{45.26693,19.833931},{45.266723,19.834221},{45.266631,19.834286},{45.266206,19.834838}
-            };
-            for (double[] p : revPts) {
-                revRoute.getPolylinePoints().add(new PolylinePoint(p[0], p[1]));
-            }
-
-            revRoute = routeRepository.save(revRoute);
-
-            Ride ride3 = new Ride();
-            ride3.setRoute(revRoute);
-            if (!driverRepository.findAll().isEmpty()) ride3.setDriver(driverRepository.findAll().get(0));
-            ride3.setDistanceKm(10.743);
-            java.time.LocalDateTime scheduled3 = java.time.LocalDateTime.now().minusDays(2);
-            ride3.setScheduledTime(scheduled3);
-            ride3.setStartTime(scheduled3);
-            ride3.setEndTime(scheduled3.plusMinutes(22));
-            ride3.setPrice(629.716);
-            ride3.setStatus(RideStatus.FINISHED);
-            rideRepository.save(ride3);
-
-            Passenger p3 = new Passenger();
-            p3.setRide(ride3);
-            p3.setUser(user);
-            p3.setRole(PassengerRole.CREATOR);
-            passengerRepository.save(p3);
-    }
-
-    private void seedAvailableDriverNearRoute() {
-        // Create a driver and vehicle close to the seeded route so auto-assign can find them
-        Driver driver = new Driver();
-        driver.setFirstName("Test");
-        driver.setLastName("Driver");
-        driver.setEmail("available.driver@example.com");
-        driver.setPassword(passwordEncoder.encode("driverPass123"));
-        driver.setActive(true);
-        driver.setBlocked(false);
-        driver.setPhoneNumber("+381609000001");
-        driver.setAddress("Driver Street");
-        driver.setStatus(DriverStatus.ACTIVE);
-        driver.setAvailable(true);
-        driver.setWorkingHoursLast24(1.0);
-        driver.setRating(4.2);
-
-        Vehicle vehicle = new Vehicle();
-        vehicle.setLicencePlate("TEST-123");
-        vehicle.setModel("Toyota Prius");
-        vehicle.setLat(45.255); // near seeded route coords
-        vehicle.setLon(19.845);
-        vehicle.setAvailable(true);
-        vehicle.setRating(4.0);
-        vehicle.setPetFriendly(true);
-        vehicle.setChildFriendly(true);
-        vehicle.setSeatCount(4);
-        vehicle.setType(VehicleType.STANDARD);
-
-        // assign bidirectional relation
-        vehicle.assignDriver(driver);
-
-        // save driver and vehicle
-        driverRepository.save(driver);
-        vehicleRepository.save(vehicle);
-    }
-
-    private void seedUserWithFavoriteRoute() {
-        RegisteredUser user = new RegisteredUser();
-        user.setFirstName("User1");
-        user.setLastName("User1");
-        user.setEmail(USER_EMAIL);
-        user.setPassword(passwordEncoder.encode(USER_PASSWORD));
-        user.setRole(UserRoles.USER);
-        user.setActive(true);
-        user.setPhoneNumber("+381640000001");
-        user.setAddress("User1 Street");
-        user.setBlocked(false);
-
-        // create route that will be used as favorite (data provided)
         Location start = new Location(45.2328905, 19.8216559, "Mornarska 57, Novi Sad");
         Location end = new Location(45.2624525, 19.8165981, "Cika Stevina 4, Novi Sad");
-        Route route = new Route(7.379, 13.0, start, end);
-        // add stops
-        route.addStopLocation(new Location(45.2457648, 19.8434868, "Big Fashion, Novi Sad"));
+        Route favoriteRoute = new Route(7.379, 13.0, start, end);
+        favoriteRoute.addStopLocation(new Location(45.246028, 19.8442, "Big Fashion, Novi Sad"));
 
-        // add polyline points (trimmed list)
-        double[][] pts = new double[][]{
+        double[][] favPts = new double[][]{
             {45.232946,19.821583},{45.232832,19.821411},{45.23276,19.821302},{45.232813,19.82123},{45.232967,19.82103},
             {45.233792,19.819952},{45.23381,19.819929},{45.233968,19.819718},{45.234003,19.819672},{45.234052,19.819619},
             {45.234555,19.818978},{45.23501,19.818399},{45.235599,19.819284},{45.236174,19.820147},{45.23661,19.820821},
@@ -274,25 +162,237 @@ public class RideOrderingFromFavoritesSeeder {
             {45.262525,19.818082},{45.262224,19.817561},{45.262112,19.817368},{45.261893,19.816992},{45.261927,19.816953},
             {45.261937,19.816941},{45.262006,19.816862},{45.262366,19.816446}
         };
-        for (double[] p : pts) {
-            route.getPolylinePoints().add(new PolylinePoint(p[0], p[1]));
+        for (double[] p : favPts) {
+            favoriteRoute.getPolylinePoints().add(new PolylinePoint(p[0], p[1]));
+        }
+        favoriteRoute = routeRepository.save(favoriteRoute);
+
+        Ride ride = new Ride();
+        ride.setRoute(favoriteRoute);
+        if (!driverRepository.findAll().isEmpty()) {
+            ride.setDriver(driverRepository.findAll().get(0));
+        }
+        ride.setDistanceKm(favoriteRoute.getDistanceKm());
+        java.time.LocalDateTime scheduled = java.time.LocalDateTime.now().minusDays(3);
+        ride.setScheduledTime(scheduled);
+        ride.setStartTime(scheduled);
+        ride.setEndTime(scheduled.plusMinutes((long) favoriteRoute.getEstimatedTimeMin()));
+        ride.setPrice(200 + favoriteRoute.getDistanceKm() * 40);
+        ride.setStatus(RideStatus.FINISHED);
+        rideRepository.save(ride);
+
+        Passenger p = new Passenger();
+        p.setRide(ride);
+        p.setUser(user);
+        p.setRole(PassengerRole.CREATOR);
+        passengerRepository.save(p);
+
+        Route newRoute = new Route(5.04, 11.0, new Location(45.2760171, 19.8259933, "Big Novi Sad, Novi Sad"), new Location(45.246028, 19.8442, "Big Fashion, Novi Sad"));
+
+        double[][] pts = new double[][]{
+            {45.27601,19.825603},{45.274517,19.825654},{45.273982,19.825849},{45.274446,19.828546},{45.274539,19.829083},{45.274544,19.829115},{45.274587,19.829362},{45.273858,19.829634},{45.273908,19.829942},{45.273915,19.829973},{45.273955,19.830164},{45.273864,19.830133},{45.273817,19.830149},{45.273345,19.830309},{45.273313,19.830316},{45.273282,19.830325},{45.273166,19.830356},{45.273046,19.83039},{45.273015,19.8304},{45.272643,19.830532},{45.272511,19.830636},{45.271922,19.830842},{45.271675,19.830923},{45.270894,19.831192},{45.270577,19.831307},{45.270305,19.831404},{45.270246,19.831424},{45.270138,19.831418},{45.269884,19.831496},{45.26952,19.831606},{45.269489,19.831615},{45.269455,19.831624},{45.269336,19.831661},{45.269229,19.831696},{45.269087,19.831742},{45.269056,19.831754},{45.268778,19.831858},{45.268512,19.831991},{45.268415,19.832132},{45.268216,19.832285},{45.268106,19.832375},{45.268021,19.832462},{45.267891,19.832611},{45.267713,19.832839},{45.267509,19.833122},{45.267477,19.833168},{45.267373,19.833313},{45.26717,19.833598},{45.26693,19.833931},{45.266723,19.834221},{45.266631,19.834286},{45.266206,19.834838},{45.266181,19.834871},{45.26608,19.835007},{45.266008,19.835104},{45.265911,19.835234},{45.265885,19.83527},{45.265714,19.835528},{45.26561,19.835697},{45.265494,19.835923},{45.265221,19.8363},{45.264976,19.836654},{45.264871,19.836794},{45.264584,19.83717},{45.264477,19.83731},{45.26429,19.837566},{45.26325,19.838982},{45.262951,19.839389},{45.262929,19.83942},{45.262906,19.839451},{45.262891,19.839471},{45.262803,19.839595},{45.262724,19.839703},{45.262671,19.839776},{45.262567,19.839916},{45.262055,19.840609},{45.261969,19.840727},{45.261655,19.841154},{45.261377,19.841527},{45.261215,19.841767},{45.261079,19.841994},{45.260923,19.842272},{45.260822,19.842428},{45.260794,19.842472},{45.260715,19.842542},{45.260637,19.842646},{45.260512,19.842806},{45.260495,19.842828},{45.260369,19.842988},{45.26024,19.842954},{45.260175,19.842928},{45.260127,19.842922},{45.260078,19.842922},{45.2599,19.842827},{45.259465,19.842614},{45.258993,19.842416},{45.258739,19.842316},{45.258199,19.842105},{45.258148,19.842085},{45.258125,19.842076},{45.258027,19.842038},{45.257887,19.841988},{45.257869,19.841982},{45.25776,19.841943},{45.257561,19.841841},{45.257448,19.841795},{45.257272,19.841722},{45.257213,19.841697},{45.257098,19.841659},{45.257077,19.84162},{45.257044,19.841594},{45.256998,19.841578},{45.256628,19.841547},{45.256489,19.841549},{45.256428,19.841541},{45.256334,19.84153},{45.256258,19.841517},{45.256167,19.841502},{45.256092,19.841493},{45.255993,19.841482},{45.255828,19.841477},{45.255717,19.841489},{45.255591,19.841531},{45.255506,19.841567},{45.25542,19.84161},{45.255247,19.841711},{45.25494,19.841917},{45.254458,19.842248},{45.25443,19.842271},{45.2544,19.842291},{45.254242,19.842415},{45.254094,19.842537},{45.254071,19.842557},{45.254028,19.842595},{45.253918,19.842688},{45.253866,19.842746},{45.253805,19.84282},{45.253758,19.842889},{45.253714,19.842956},{45.253664,19.843035},{45.253579,19.843203},{45.253537,19.843304},{45.253492,19.843424},{45.253445,19.843575},{45.253408,19.843744},{45.253384,19.843868},{45.253369,19.844009},{45.253357,19.844216},{45.253363,19.844369},{45.253372,19.844454},{45.253396,19.844612},{45.253446,19.844833},{45.253454,19.844927},{45.253516,19.845553},{45.25357,19.846151},{45.25359,19.84637},{45.253652,19.847028},{45.253681,19.847339},{45.25371,19.847649},{45.253571,19.847674},{45.253465,19.847689},{45.253364,19.84769},{45.253248,19.847658},{45.25292,19.847536},{45.252845,19.847503},{45.252535,19.847383},{45.252219,19.847262},{45.251882,19.847139},{45.251834,19.847118},{45.251754,19.847075},{45.251666,19.846991},{45.251599,19.846969},{45.251507,19.846972},{45.25146,19.84698},{45.251427,19.846986},{45.251372,19.846999},{45.251323,19.847009},{45.251257,19.847044},{45.251149,19.847104},{45.251066,19.847169},{45.251029,19.847197},{45.250913,19.847309},{45.250835,19.847406},{45.250764,19.847463},{45.25069,19.847512},{45.250401,19.847701},{45.250363,19.847727},{45.250267,19.847794},{45.250173,19.847859},{45.250148,19.847875},{45.24974,19.848147},{45.24931,19.848421},{45.249233,19.848469},{45.249151,19.848523},{45.248801,19.848739},{45.248715,19.848796},{45.24835,19.849033},{45.248296,19.849068},{45.247908,19.849315},{45.247843,19.849356},{45.247816,19.849374},{45.247726,19.849432},{45.247544,19.849151},{45.247451,19.849026},{45.24736,19.84892},{45.247234,19.848786},{45.246469,19.848067},{45.246443,19.848042},{45.246414,19.848015},{45.246319,19.847926},{45.246134,19.847752},{45.245884,19.847488},{45.24579,19.84739},{45.245765,19.847322},{45.245536,19.846999},{45.245452,19.84686},{45.24537,19.846706},{45.245309,19.846583},{45.245239,19.846428},{45.24512,19.846158},{45.24503,19.845834},{45.24497,19.845731},{45.24483,19.845182},{45.244852,19.845063},{45.244885,19.845006},{45.244902,19.844987},{45.244933,19.844955},{45.245257,19.844789},{45.245297,19.844741},{45.245319,19.844688},{45.245389,19.844667},{45.24595,19.844383},{45.245997,19.844299},{45.24602,19.844218},{45.246028,19.8442}
+        };
+        for (double[] p2 : pts) {
+            newRoute.getPolylinePoints().add(new PolylinePoint(p2[0], p2[1]));
         }
 
-        route = routeRepository.save(route);
+        newRoute = routeRepository.save(newRoute);
 
-        // persist user (do not create any FavoriteRoute initially)
-        registeredUserRepository.save(user);
+        Ride ride2 = new Ride();
+        ride2.setRoute(newRoute);
+        if (!driverRepository.findAll().isEmpty()) ride2.setDriver(driverRepository.findAll().get(0));
+        ride2.setDistanceKm(5.04);
+        java.time.LocalDateTime scheduled2 = java.time.LocalDateTime.now().minusDays(1);
+        ride2.setScheduledTime(scheduled2);
+        ride2.setStartTime(scheduled2);
+        ride2.setEndTime(scheduled2.plusMinutes(11));
+        ride2.setPrice(401.612);
+        ride2.setStatus(RideStatus.FINISHED);
+        rideRepository.save(ride2);
+
+        Passenger p2 = new Passenger();
+        p2.setRide(ride2);
+        p2.setUser(user);
+        p2.setRole(PassengerRole.CREATOR);
+        passengerRepository.save(p2);
+        
+        Route revRoute = new Route(10.743, 22.0, new Location(45.262366, 19.816446, "Cika Stevina 4, Novi Sad"), new Location(45.232946, 19.821583, "Mornarska 57, Novi Sad"));
+
+        revRoute.addStopLocation(new Location(45.2760171, 19.8259933, "Big Novi Sad, Novi Sad"));
+        revRoute.addStopLocation(new Location(45.246028, 19.8442, "Big Fashion, Novi Sad"));
+
+        double[][] revPts = new double[][]{
+                {45.262366,19.816446},{45.263037,19.815668},{45.263091,19.815606},{45.263101,19.815594},{45.263175,19.815509},{45.263586,19.816211},{45.263961,19.816869},{45.263979,19.816904},{45.26399,19.816924},{45.264063,19.817059},{45.264132,19.817177},{45.264197,19.81729},{45.26421,19.817312},{45.264345,19.817546},{45.264776,19.818294},{45.264856,19.818433},{45.265059,19.818787},{45.265275,19.819154},{45.265405,19.819376},{45.265738,19.819982},{45.266139,19.820674},{45.266549,19.821365},{45.266757,19.821732},{45.266946,19.822053},{45.266962,19.822082},{45.267041,19.822222},{45.26737,19.822808},{45.267497,19.823051},{45.267578,19.823205},{45.267779,19.823566},{45.26804,19.824051},{45.268059,19.824087},{45.268079,19.824124},{45.268157,19.82427},{45.268217,19.824382},{45.268298,19.824273},{45.268381,19.824159},{45.268406,19.824124},{45.268443,19.824069},{45.268494,19.824008},{45.268536,19.823965},{45.268583,19.823933},{45.268638,19.823922},{45.268791,19.823866},{45.269133,19.823864},{45.269636,19.823841},{45.269902,19.823834},{45.271114,19.823791},{45.271678,19.82377},{45.271819,19.823764},{45.272032,19.823762},{45.27219,19.82376},{45.272221,19.823759},{45.273109,19.823715},{45.273453,19.823706},{45.274468,19.823655},{45.274983,19.823631},{45.276046,19.823622},{45.27677,19.82359},{45.277701,19.82357},{45.277885,19.823565},{45.278231,19.823543},{45.278638,19.823543},{45.278736,19.823553},{45.278859,19.82359},{45.278969,19.823635},{45.27901,19.823653},{45.279061,19.823694},{45.279105,19.823754},{45.27913,19.823836},{45.279135,19.823908},{45.279124,19.823966},{45.278973,19.824563},{45.278889,19.824897},{45.278806,19.824902},{45.276762,19.824963},{45.276714,19.824971},{45.276701,19.825033},{45.276699,19.825466},{45.276683,19.825558},{45.276642,19.825582},{45.27601,19.825603},{45.274517,19.825654},{45.273982,19.825849},{45.274446,19.828546},{45.274539,19.829083},{45.274544,19.829115},{45.274587,19.829362},{45.273858,19.829634},{45.273908,19.829942},{45.273915,19.829973},{45.273955,19.830164},{45.273864,19.830133},{45.273817,19.830149},{45.273345,19.830309},{45.273313,19.830316},{45.273282,19.830325},{45.273166,19.830356},{45.273046,19.83039},{45.273015,19.8304},{45.272643,19.830532},{45.272511,19.830636},{45.271922,19.830842},{45.271675,19.830923},{45.270894,19.831192},{45.270577,19.831307},{45.270305,19.831404},{45.270246,19.831424},{45.270138,19.831418},{45.269884,19.831496},{45.26952,19.831606},{45.269489,19.831615},{45.269455,19.831624},{45.269336,19.831661},{45.269229,19.831696},{45.269087,19.831742},{45.269056,19.831754},{45.268778,19.831858},{45.268512,19.831991},{45.268415,19.832132},{45.268216,19.832285},{45.268106,19.832375},{45.268021,19.832462},{45.267891,19.832611},{45.267713,19.832839},{45.267509,19.833122},{45.267477,19.833168},{45.267373,19.833313},{45.26717,19.833598},{45.26693,19.833931},{45.266723,19.834221},{45.266631,19.834286},{45.266206,19.834838},{45.266181,19.834871},{45.26608,19.835007},{45.266008,19.835104},{45.265911,19.835234},{45.265885,19.83527},{45.265714,19.835528},{45.26561,19.835697},{45.265494,19.835923},{45.265221,19.8363},{45.264976,19.836654},{45.264871,19.836794},{45.264584,19.83717},{45.264477,19.83731},{45.26429,19.837566},{45.26325,19.838982},{45.262951,19.839389},{45.262929,19.83942},{45.262906,19.839451},{45.262891,19.839471},{45.262803,19.839595},{45.262724,19.839703},{45.262671,19.839776},{45.262567,19.839916},{45.262055,19.840609},{45.261969,19.840727},{45.261655,19.841154},{45.261377,19.841527},{45.261215,19.841767},{45.261079,19.841994},{45.260923,19.842272},{45.260822,19.842428},{45.260794,19.842472},{45.260715,19.842542},{45.260637,19.842646},{45.260512,19.842806},{45.260495,19.842828},{45.260369,19.842988},{45.26024,19.842954},{45.260175,19.842928},{45.260127,19.842922},{45.260078,19.842922},{45.2599,19.842827},{45.259465,19.842614},{45.258993,19.842416},{45.258739,19.842316},{45.258199,19.842105},{45.258148,19.842085},{45.258125,19.842076},{45.258027,19.842038},{45.257887,19.841988},{45.257869,19.841982},{45.25776,19.841943},{45.257561,19.841841},{45.257448,19.841795},{45.257272,19.841722},{45.257213,19.841697},{45.257098,19.841659},{45.257077,19.84162},{45.257044,19.841594},{45.256998,19.841578},{45.256628,19.841547},{45.256489,19.841549},{45.256428,19.841541},{45.256334,19.84153},{45.256258,19.841517},{45.256167,19.841502},{45.256092,19.841493},{45.255993,19.841482},{45.255828,19.841477},{45.255717,19.841489},{45.255591,19.841531},{45.255506,19.841567},{45.25542,19.84161},{45.255247,19.841711},{45.25494,19.841917},{45.254458,19.842248},{45.25443,19.842271},{45.2544,19.842291},{45.254242,19.842415},{45.254094,19.842537},{45.254071,19.842557},{45.254028,19.842595},{45.253918,19.842688},{45.253866,19.842746},{45.253805,19.84282},{45.253758,19.842889},{45.253714,19.842956},{45.253664,19.843035},{45.253579,19.843203},{45.253537,19.843304},{45.253492,19.843424},{45.253445,19.843575},{45.253408,19.843744},{45.253384,19.843868},{45.253369,19.844009},{45.253357,19.844216},{45.253363,19.844369},{45.253372,19.844454},{45.253396,19.844612},{45.253446,19.844833},{45.253454,19.844927},{45.253516,19.845553},{45.25357,19.846151},{45.25359,19.84637},{45.253652,19.847028},{45.253681,19.847339},{45.25371,19.847649},{45.253571,19.847674},{45.253465,19.847689},{45.253364,19.84769},{45.253248,19.847658},{45.25292,19.847536},{45.252845,19.847503},{45.252535,19.847383},{45.252219,19.847262},{45.251882,19.847139},{45.251834,19.847118},{45.251754,19.847075},{45.251666,19.846991},{45.251599,19.846969},{45.251507,19.846972},{45.25146,19.84698},{45.251427,19.846986},{45.251372,19.846999},{45.251323,19.847009},{45.251257,19.847044},{45.251149,19.847104},{45.251066,19.847169},{45.251029,19.847197},{45.250913,19.847309},{45.250835,19.847406},{45.250764,19.847463},{45.25069,19.847512},{45.250401,19.847701},{45.250363,19.847727},{45.250267,19.847794},{45.250173,19.847859},{45.250148,19.847875},{45.24974,19.848147},{45.24931,19.848421},{45.249233,19.848469},{45.249151,19.848523},{45.248801,19.848739},{45.248715,19.848796},{45.24835,19.849033},{45.248296,19.849068},{45.247908,19.849315},{45.247843,19.849356},{45.247816,19.849374},{45.247726,19.849432},{45.247544,19.849151},{45.247451,19.849026},{45.24736,19.84892},{45.247234,19.848786},{45.246469,19.848067},{45.246443,19.848042},{45.246414,19.848015},{45.246319,19.847926},{45.246134,19.847752},{45.245884,19.847488},{45.24579,19.84739},{45.245765,19.847322},{45.245536,19.846999},{45.245452,19.84686},{45.24537,19.846706},{45.245309,19.846583},{45.245239,19.846428},{45.24512,19.846158},{45.24503,19.845834},{45.24497,19.845731},{45.24483,19.845182},{45.244852,19.845063},{45.244885,19.845006},{45.244902,19.844987},{45.244933,19.844955},{45.245257,19.844789},{45.245297,19.844741},{45.245319,19.844688},{45.245389,19.844667},{45.24595,19.844383},{45.245997,19.844299},{45.24602,19.844218},{45.246028,19.8442},{45.24602,19.844218},{45.245997,19.844299},{45.24595,19.844383},{45.245389,19.844667},{45.245319,19.844688},{45.244896,19.844894},{45.24488,19.844901},{45.24486,19.844911},{45.244771,19.844951},{45.244746,19.844851},{45.244735,19.844808},{45.244661,19.844523},{45.244193,19.842711},{45.243961,19.841819},{45.243951,19.841776},{45.243939,19.841727},{45.2439,19.841564},{45.243864,19.841414},{45.243823,19.841245},{45.243811,19.841192},{45.243445,19.839759},{45.243347,19.839381},{45.243194,19.838774},{45.243015,19.838067},{45.242856,19.837426},{45.242717,19.836888},{45.242707,19.836838},{45.242697,19.836798},{45.242641,19.836562},{45.242594,19.836349},{45.242584,19.836307},{45.242043,19.833898},{45.241965,19.83355},{45.241788,19.832762},{45.241512,19.831468},{45.241498,19.831398},{45.241486,19.831351},{45.241465,19.831256},{45.241434,19.831117},{45.241408,19.830998},{45.241363,19.830798},{45.241354,19.830753},{45.240929,19.829091},{45.240718,19.828321},{45.240515,19.82754},{45.240462,19.827338},{45.240451,19.827295},{45.240372,19.826998},{45.239999,19.825607},{45.239991,19.82557},{45.239924,19.825346},{45.239799,19.825294},{45.239748,19.825296},{45.239685,19.825317},{45.239654,19.825329},{45.239601,19.825354},{45.239457,19.825423},{45.239386,19.825457},{45.239092,19.825602},{45.239045,19.825625},{45.239019,19.825634},{45.238913,19.82569},{45.238884,19.825542},{45.238877,19.825502},{45.238772,19.824786},{45.238692,19.824488},{45.238653,19.82423},{45.238623,19.824089},{45.238601,19.823995},{45.238566,19.823895},{45.238489,19.823745},{45.237847,19.822742},{45.237329,19.821931},{45.237111,19.821597},{45.23691,19.821285},{45.23675,19.821038},{45.236731,19.821008},{45.23661,19.820821},{45.236174,19.820147},{45.235599,19.819284},{45.23501,19.818399},{45.234555,19.818978},{45.234052,19.819619},{45.234003,19.819672},{45.233968,19.819718},{45.23381,19.819929},{45.233792,19.819952},{45.232967,19.82103},{45.232813,19.82123},{45.23276,19.821302},{45.232832,19.821411},{45.232946,19.821583}
+        };
+
+        for (double[] p1 : revPts) {
+            revRoute.getPolylinePoints().add(new PolylinePoint(p1[0], p1[1]));
+        }
+
+        revRoute = routeRepository.save(revRoute);
+
+        Ride ride3 = new Ride();
+        ride3.setRoute(revRoute);
+        if (!driverRepository.findAll().isEmpty()) ride3.setDriver(driverRepository.findAll().get(0));
+        ride3.setDistanceKm(10.743);
+        java.time.LocalDateTime scheduled3 = java.time.LocalDateTime.now().minusDays(2);
+        ride3.setScheduledTime(scheduled3);
+        ride3.setStartTime(scheduled3);
+        ride3.setEndTime(scheduled3.plusMinutes(22));
+        ride3.setPrice(629.716);
+        ride3.setStatus(RideStatus.FINISHED);
+        rideRepository.save(ride3);
+
+        Passenger p3 = new Passenger();
+        p3.setRide(ride3);
+        p3.setUser(user);
+        p3.setRole(PassengerRole.CREATOR);
+        passengerRepository.save(p3);
+    }
+
+    private void seedAvailableDriverNearRoute() {
+        Driver driver1 = new Driver();
+        driver1.setFirstName("Marko");
+        driver1.setLastName("Marković");
+        driver1.setEmail("available.driver@example.com");
+        driver1.setPassword(passwordEncoder.encode("driverPass123"));
+        driver1.setActive(true);
+        driver1.setBlocked(false);
+        driver1.setPhoneNumber("+381609000001");
+        driver1.setAddress("Driver Street");
+        driver1.setProfileImage("/uploads/default.png");
+        driver1.setStatus(DriverStatus.ACTIVE);
+        driver1.setAvailable(true);
+        driver1.setWorkingHoursLast24(1.0);
+        driver1.setRating(4.2);
+        driver1.setJwtTokenValid(true);
+
+        Vehicle vehicle1 = new Vehicle();
+        vehicle1.setLicencePlate("NS123AA");
+        vehicle1.setModel("Standard Model");
+        vehicle1.setLat(45.255);
+        vehicle1.setLon(19.845);
+        vehicle1.setAvailable(true);
+        vehicle1.setRating(4.0);
+        vehicle1.setPetFriendly(true);
+        vehicle1.setChildFriendly(true);
+        vehicle1.setSeatCount(4);
+        vehicle1.setType(VehicleType.STANDARD);
+
+        vehicle1.assignDriver(driver1);
+
+        driverRepository.save(driver1);
+        vehicleRepository.save(vehicle1);
+
+        Driver driver2 = new Driver();
+        driver2.setFirstName("Ana");
+        driver2.setLastName("Petrović");
+        driver2.setEmail("backup.driver@example.com");
+        driver2.setPassword(passwordEncoder.encode("driverPass456"));
+        driver2.setActive(true);
+        driver2.setBlocked(false);
+        driver2.setPhoneNumber("+381609000002");
+        driver2.setAddress("Driver Street 2");
+        driver2.setProfileImage("/uploads/default.png");
+        driver2.setStatus(DriverStatus.ACTIVE);
+        driver2.setAvailable(true);
+        driver2.setWorkingHoursLast24(2.0);
+        driver2.setRating(4.5);
+        driver2.setJwtTokenValid(true);
+
+        Vehicle vehicle2 = new Vehicle();
+        vehicle2.setLicencePlate("NS123AB");
+        vehicle2.setModel("Standard model");
+        vehicle2.setLat(45.260);
+        vehicle2.setLon(19.850);
+        vehicle2.setAvailable(true);
+        vehicle2.setRating(4.3);
+        vehicle2.setPetFriendly(true);
+        vehicle2.setChildFriendly(true);
+        vehicle2.setSeatCount(4);
+        vehicle2.setType(VehicleType.STANDARD);
+
+        vehicle2.assignDriver(driver2);
+
+        driverRepository.save(driver2);
+        vehicleRepository.save(vehicle2);
+
+        Driver driver3 = new Driver();
+        driver3.setFirstName("Stefan");
+        driver3.setLastName("Jovanović");
+        driver3.setEmail("premium.driver@example.com");
+        driver3.setPassword(passwordEncoder.encode("driverPass789"));
+        driver3.setActive(true);
+        driver3.setBlocked(false);
+        driver3.setPhoneNumber("+381609000003");
+        driver3.setAddress("Driver Street 3");
+        driver3.setProfileImage("/uploads/default.png");
+        driver3.setStatus(DriverStatus.ACTIVE);
+        driver3.setAvailable(true);
+        driver3.setWorkingHoursLast24(0.5);
+        driver3.setRating(4.8);
+        driver3.setJwtTokenValid(true);
+
+        Vehicle vehicle3 = new Vehicle();
+        vehicle3.setLicencePlate("NS123AC");
+        vehicle3.setModel("Luxury model");
+        vehicle3.setLat(45.245);
+        vehicle3.setLon(19.840);
+        vehicle3.setAvailable(true);
+        vehicle3.setRating(4.7);
+        vehicle3.setPetFriendly(false);
+        vehicle3.setChildFriendly(true);
+        vehicle3.setSeatCount(4);
+        vehicle3.setType(VehicleType.LUXURY);
+
+        vehicle3.assignDriver(driver3);
+
+        driverRepository.save(driver3);
+        vehicleRepository.save(vehicle3);
+    }
+
+    private void seedMainUser() {
+        RegisteredUser user = new RegisteredUser();
+        user.setFirstName("User1");
+        user.setLastName("User1");
+        user.setEmail(USER_EMAIL);
+        user.setPassword(passwordEncoder.encode(USER_PASSWORD));
+        user.setRole(UserRoles.USER);
+        user.setActive(true);
+        user.setPhoneNumber("+381640000001");
+        user.setAddress("User1 Street");
+        user.setBlocked(false);
+        user.setJwtTokenValid(true);
+        System.out.println("[SEEDER] Setting jwtTokenValid=true for user: " + USER_EMAIL);
+        RegisteredUser savedUser = registeredUserRepository.save(user);
+        System.out.println("[SEEDER] User saved: " + savedUser.getEmail() + ", jwtTokenValid=" + savedUser.isJwtTokenValid() + ", role=" + savedUser.getRole());
+    }
+
+    private void seedGuestUser() {
+        RegisteredUser guest = new RegisteredUser();
+        guest.setFirstName("Guest");
+        guest.setLastName("User");
+        guest.setEmail("user2@gmail.com");
+        guest.setPassword(passwordEncoder.encode(USER_PASSWORD));
+        guest.setRole(UserRoles.USER);
+        guest.setActive(true);
+        guest.setPhoneNumber("+381640000002");
+        guest.setAddress("Guest Street");
+        guest.setBlocked(false);
+        guest.setJwtTokenValid(true);
+        System.out.println("[SEEDER] Setting jwtTokenValid=true for guest: " + guest.getEmail());
+        
+        RegisteredUser savedGuest = registeredUserRepository.save(guest);
+        System.out.println("[SEEDER] Guest saved: " + savedGuest.getEmail() + ", jwtTokenValid=" + savedGuest.isJwtTokenValid());
     }
 
     public void clearAll() {
-        // remove routes and users created by this seeder
-        // Note: this will remove all registered users and routes in test DB; it's acceptable for isolated test profile
-        // delete favorite entries first to avoid FK constraint when deleting routes
         try { favoriteRouteRepository.deleteAll(); } catch (Exception ignored) {}
         try { passengerRepository.deleteAll(); } catch (Exception ignored) {}
         try { rideRepository.deleteAll(); } catch (Exception ignored) {}
         try { vehicleRepository.deleteAll(); } catch (Exception ignored) {}
         try { driverRepository.deleteAll(); } catch (Exception ignored) {}
+        try { priceRepository.deleteAll(); } catch (Exception ignored) {}
         try { routeRepository.deleteAll(); } catch (Exception ignored) {}
         try { registeredUserRepository.deleteAll(); } catch (Exception ignored) {}
     }

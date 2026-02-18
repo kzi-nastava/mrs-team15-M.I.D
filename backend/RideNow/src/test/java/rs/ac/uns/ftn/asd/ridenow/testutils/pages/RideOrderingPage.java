@@ -27,10 +27,7 @@ public class RideOrderingPage {
     public RideOrderingPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
         PageFactory.initElements(driver, this);
-        // wait until main title is present to consider the page loaded
-        wait.until(ExpectedConditions.visibilityOf(title));
     }
 
     public boolean isPageOpened(){
@@ -43,35 +40,20 @@ public class RideOrderingPage {
 
     public void openFavoritesMenu(){
         wait.until(ExpectedConditions.elementToBeClickable(favoritesBtn)).click();
-        // wait for menu to appear
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".custom-dropdown-menu")));
     }
 
     public void chooseFavoriteRoute(String pickUp, String destination, List<String> stops){
         String findBy = createRouteString(pickUp, destination, stops);
-        try{
-            // Try exact match first (route string or favorite name)
-            WebElement routeOpt = null;
-            try {
-                routeOpt = wait.until(ExpectedConditions.elementToBeClickable(
+
+        WebElement routeOpt = null;
+        try {
+            routeOpt = wait.until(ExpectedConditions.elementToBeClickable(
                         By.xpath("//li[normalize-space(text())='"+findBy+"']")));
-            } catch (Exception ignored) {
-            }
+        } catch (Exception ignored) {
 
-            // If not found, try matching by partial pickup text
-            if (routeOpt == null) {
-                routeOpt = wait.until(ExpectedConditions.elementToBeClickable(
-                            By.xpath("//li[contains(normalize-space(text()), '"+pickUp+"')]")));
-
-            }
-
-            // Click the option (use JS for reliability)
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});arguments[0].click();", routeOpt);
-        } catch(Exception e){
             throw new NotFoundException("Route not found in favorites: " + findBy);
         }
-
-
+        routeOpt.click();
     }
 
     public String createRouteString(String pickUp, String destination, List<String> stops){
@@ -103,15 +85,11 @@ public class RideOrderingPage {
     }
 
     public void chooseRoute(){
-        try {
+
             wait.until(ExpectedConditions.visibilityOf(chooseRouteBtn));
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", chooseRouteBtn);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", chooseRouteBtn);
-        } catch (Exception e) {
-            // fallback: click the inner button of the custom component
-            WebElement btn = driver.findElement(By.xpath("//app-button[.//button[contains(normalize-space(.),'Choose route')]]//button"));
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});arguments[0].click();", btn);
-        }
+
     }
 
     public String getPickupAddress() {
@@ -206,5 +184,24 @@ public class RideOrderingPage {
         }
     }
 
+    /**
+     * Check if a route is drawn on the map by verifying the presence of polyline and markers.
+     */
+    public boolean isRouteDrawnOnMap(int stops) {
+        try {
+            // Wait for the polyline (route) to be present on the map
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("path.leaflet-interactive")
+            ));
+            
+            // Check for markers (circle markers)
+            List<WebElement> markers = driver.findElements(By.cssSelector("path.leaflet-interactive"));
+            
+            // Should have at least 3 elements: 1 polyline for route + 2 for start/end markers
+            return markers.size() >= 3+stops;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 }

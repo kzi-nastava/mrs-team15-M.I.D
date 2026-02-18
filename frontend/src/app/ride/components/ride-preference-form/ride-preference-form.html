@@ -3,8 +3,7 @@
 
   <label class="form-label section-label">Vehicle preference</label>
   <div class="w-100 mb-2">
-    <select class="form-select w-100" [(ngModel)]="vehicleType">
-      <option value="">Vehicle type</option>
+    <select class="form-select w-100" [(ngModel)]="vehicleType" (ngModelChange)="onVehicleTypeChange($event)">
       <option value="standard">Standard</option>
       <option value="luxury">Luxury</option>
       <option value="van">Van</option>

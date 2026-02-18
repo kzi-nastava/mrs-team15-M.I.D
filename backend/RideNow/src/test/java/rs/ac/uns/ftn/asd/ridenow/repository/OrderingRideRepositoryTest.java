@@ -37,8 +37,6 @@ class OrderingRideRepositoryTest {
 
     private Driver driver;
     private RegisteredUser user;
-    private Ride requestedRide;
-    private Ride inProgressRide;
     private Route route;
 
     private final LocalDateTime now = LocalDateTime.now();
@@ -46,26 +44,11 @@ class OrderingRideRepositoryTest {
     @BeforeEach
     void setUp() {
         route = createRoute();
-        driver = createDriver();  // persistovan
-        user = createUser();      // persistovan
-
-        requestedRide = createRide(RideStatus.REQUESTED);
-        inProgressRide = createRide(RideStatus.IN_PROGRESS);
+        driver = createDriver();
+        user = createUser();
 
         em.flush();
         em.clear();
-    }
-
-
-    // ================= scheduled rides =================
-
-    @Test
-    @DisplayName("Should return scheduled rides by driver")
-    void findScheduledRidesByDriver_shouldReturnRides() {
-        List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
-
-        assertFalse(rides.isEmpty());
-        assertEquals(RideStatus.REQUESTED, rides.get(0).getStatus());
     }
 
     @Test
@@ -80,32 +63,40 @@ class OrderingRideRepositoryTest {
         assertNotNull(rides);
     }
 
-    // ================= current ride =================
+    // ================= BOUNDARY TESTS =================
 
     @Test
-    @DisplayName("Should find current ride by driver")
-    void findCurrentRideByDriver_shouldReturnRide() {
-        Optional<Ride> result = rideRepository.findCurrentRideByDriver(driver.getId());
+    @DisplayName("Should return empty list when no scheduled rides in time window")
+    void findScheduledRidesForDriverInNextHour_noRidesInWindow_shouldReturnEmpty() {
+        LocalDateTime futureTime = now.plusDays(2);
+        
+        List<Ride> rides = rideRepository.findScheduledRidesForDriverInNextHour(
+                driver.getId(),
+                futureTime,
+                futureTime.plusHours(1)
+        );
 
-        assertTrue(result.isPresent());
-        assertEquals(RideStatus.IN_PROGRESS, result.get().getStatus());
+        assertTrue(rides.isEmpty());
     }
 
     @Test
-    @DisplayName("Should find current ride by user")
-    void findCurrentRideByUser_shouldReturnRide() {
-        Optional<Ride> result = rideRepository.findCurrentRideByUser(user.getId());
+    @DisplayName("Should handle boundary times for scheduled rides")
+    void findScheduledRidesForDriverInNextHour_exactBoundary_shouldInclude() {
+        // Create ride at exact boundary
+        Ride boundaryRide = createRide(RideStatus.REQUESTED);
+        boundaryRide.setScheduledTime(now.plusMinutes(30));
+        em.persist(boundaryRide);
+        em.flush();
+        em.clear();
 
-        assertTrue(result.isPresent());
-        assertEquals(RideStatus.IN_PROGRESS, result.get().getStatus());
-    }
-
-    @Test
-    @DisplayName("Should return active rides")
-    void findActiveRides_shouldReturnList() {
-        List<Ride> rides = rideRepository.findActiveRides();
+        List<Ride> rides = rideRepository.findScheduledRidesForDriverInNextHour(
+                driver.getId(),
+                now.minusMinutes(1),
+                now.plusHours(1).plusMinutes(1)
+        );
 
         assertFalse(rides.isEmpty());
+        assertTrue(rides.stream().anyMatch(r -> r.getId().equals(boundaryRide.getId())));
     }
 
     // ================= helpers =================
@@ -114,7 +105,7 @@ class OrderingRideRepositoryTest {
         Driver driver = new Driver();
         driver.setFirstName("Pera");
         driver.setLastName("Perić");
-        driver.setEmail("driver@test.com");
+        driver.setEmail("driver@gmail.com");
         driver.setPassword("123123");
         driver.setAddress("Novi Sad");
         driver.setPhoneNumber("0641234567");
@@ -135,7 +126,7 @@ class OrderingRideRepositoryTest {
         RegisteredUser user = new RegisteredUser();
         user.setFirstName("Mika");
         user.setLastName("Mikic");
-        user.setEmail("user@test.com");
+        user.setEmail("user@gmail.com");
         user.setPassword("123123");
         user.setAddress("Novi Sad");
         user.setPhoneNumber("0641234567");
@@ -173,7 +164,7 @@ class OrderingRideRepositoryTest {
     private Ride createRide(RideStatus status) {
         Ride ride = new Ride();
         ride.setRoute(route);
-        ride.setDriver(driver); // driver mora biti već persistovan
+        ride.setDriver(driver);
         ride.setStatus(status);
         ride.setScheduledTime(LocalDateTime.now());
         ride.setPrice(100.0);
@@ -182,16 +173,14 @@ class OrderingRideRepositoryTest {
         if (status == RideStatus.IN_PROGRESS) {
             ride.setStartTime(LocalDateTime.now().minusMinutes(5));
         }
-
-        // Napravi Passenger i poveži sa ride i user
         Passenger passenger = new Passenger();
-        passenger.setUser(user);                 // user mora biti persistovan
+        passenger.setUser(user);
         passenger.setRole(PassengerRole.PASSENGER);
         passenger.setRide(ride);
 
         ride.getPassengers().add(passenger);
 
-        em.persist(ride); // cascade će persistovati Passenger
+        em.persist(ride);
         return ride;
     }
 

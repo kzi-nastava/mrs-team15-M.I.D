@@ -155,6 +155,13 @@ public class RideService {
         RegisteredUser mainUser = registeredUserRepository.findByEmail(mainPassenger)
                 .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
 
+        // Check if main passenger has an active ride
+        Optional<Ride> existingActiveRide = rideRepository.findCurrentRideByUser(mainUser.getId());
+        if (existingActiveRide.isPresent()) {
+            logger.info("User {} already has an active ride (ID: {})", mainUser.getEmail(), existingActiveRide.get().getId());
+            throw new IllegalStateException("You already have an active ride. Please complete it before ordering a new one.");
+        }
+
         // Check if driver was found
         if (response.getDriverId() == null) {
             // No driver available - send notification and don't create ride

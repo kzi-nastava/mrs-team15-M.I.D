@@ -264,5 +264,6 @@
     <string name="notification_added_passenger">You have been added as a passenger</string>
     <string name="notification_panic">Panic alert triggered</string>
     <string name="delete_notification">Delete notification</string>
+    <string name="search_user_hint">Search by user name…</string>
 
 </resources>
