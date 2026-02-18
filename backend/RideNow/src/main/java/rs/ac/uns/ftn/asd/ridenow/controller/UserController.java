@@ -46,7 +46,6 @@ public class UserController {
     @GetMapping("")
     public ResponseEntity<UserResponseDTO> getUser() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         return ResponseEntity.ok(userService.getUser(user));
     }
 
@@ -55,7 +54,6 @@ public class UserController {
     public ResponseEntity<Void> updateUser(
             @ModelAttribute UpdateProfileRequestDTO request,
             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
-
         try {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             userService.updateUser(user.getId(),request, profileImage);

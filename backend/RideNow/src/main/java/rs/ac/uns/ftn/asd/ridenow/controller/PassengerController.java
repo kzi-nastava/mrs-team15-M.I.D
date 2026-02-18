@@ -53,7 +53,6 @@ public class PassengerController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/favorite-routes")
     public ResponseEntity<Collection<FavoriteRouteResponseDTO>> getRoutes() {
-
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(passengerService.getRoutes(user.getId()));
     }
@@ -62,7 +61,6 @@ public class PassengerController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/favorite-routes/{id}")
     public ResponseEntity<RouteResponseDTO> getRoute(@PathVariable Long id) {
-
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(passengerService.getRoute(user.getId(), id));
     }

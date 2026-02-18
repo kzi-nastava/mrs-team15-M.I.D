@@ -149,7 +149,7 @@ public class UserHistoryPage {
                 if (routeText.contains(pickup) && routeText.contains(destination)) {
                     int pickIdx = routeText.indexOf(pickup);
                     int destIdx = routeText.indexOf(destination);
-                    // ensure pickup appears before destination in the displayed route (avoid reversed-route match)
+                    // ensure pickup appears before destination in the displayed route
                     if (pickIdx != -1 && destIdx != -1 && pickIdx < destIdx) {
                         matchIndex = i;
                         break;
@@ -164,10 +164,9 @@ public class UserHistoryPage {
             WebElement favIcon = rows.get(matchIndex).findElement(By.cssSelector("td.fav-cell i.bi"));
             wait.until(ExpectedConditions.elementToBeClickable(favIcon));
 
-            // Use JS click to avoid interception by row click handlers
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", favIcon);
 
-            // If add-favorite modal appears, validate stops then click Add
+
             WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//div[@id='addFavoriteModal']//app-button[.//button[contains(text(), 'Add')]]//button")
             ));
@@ -192,7 +191,7 @@ public class UserHistoryPage {
 
             addButton.click();
 
-            // Wait until the icon reflects favorite state (filled star)
+            // Wait until the icon reflects favorite state
             WebElement iconAfter = rows.get(matchIndex).findElement(By.cssSelector("td.fav-cell i.bi"));
             wait.until(ExpectedConditions.attributeContains(iconAfter, "class", "bi-star-fill"));
 
@@ -231,7 +230,7 @@ public class UserHistoryPage {
 
             WebElement favIcon = rows.get(matchIndex).findElement(By.cssSelector("td.fav-cell i.bi"));
             wait.until(ExpectedConditions.elementToBeClickable(favIcon));
-            // Click to open remove modal (frontend opens modal when favorite is true)
+
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", favIcon);
 
             // Wait for Remove button in the modal and click it
@@ -240,9 +239,8 @@ public class UserHistoryPage {
             ));
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", removeButton);
 
-            // capture index for lambda (must be effectively final)
-            final int idx = matchIndex;
 
+            final int idx = matchIndex;
             // Wait until the icon no longer has the filled-star class. Re-query the table each poll to avoid stale references.
             wait.until(drv -> {
                 try {
@@ -255,7 +253,6 @@ public class UserHistoryPage {
                     String cls = icon.getAttribute("class");
                     return cls == null || !cls.contains("bi-star-fill");
                 } catch (StaleElementReferenceException e) {
-                    // DOM changed — retry until timeout
                     return false;
                 } catch (Exception e) {
                     return false;

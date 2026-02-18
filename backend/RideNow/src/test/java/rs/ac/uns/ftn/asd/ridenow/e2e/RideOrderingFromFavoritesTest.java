@@ -1,19 +1,12 @@
 package rs.ac.uns.ftn.asd.ridenow.e2e;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import rs.ac.uns.ftn.asd.ridenow.testutils.data.RideOrderingFromFavoritesSeeder;
-import rs.ac.uns.ftn.asd.ridenow.testutils.pages.FindingDriverPage;
-import rs.ac.uns.ftn.asd.ridenow.testutils.pages.LoginPage;
-import rs.ac.uns.ftn.asd.ridenow.testutils.pages.RideOrderingPage;
-import rs.ac.uns.ftn.asd.ridenow.testutils.pages.RidePreferencePage;
-import rs.ac.uns.ftn.asd.ridenow.testutils.pages.NavbarPage;
-import rs.ac.uns.ftn.asd.ridenow.testutils.pages.UserHistoryPage;
+import rs.ac.uns.ftn.asd.ridenow.testutils.pages.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +14,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 public class RideOrderingFromFavoritesTest extends TestBase {
@@ -39,7 +33,13 @@ public class RideOrderingFromFavoritesTest extends TestBase {
     private final List<String> stops2 = List.of();
     private final String expectedDistance2 = "5.04";
     private final String expectedTime2 = "11";
+    private final Double expectedStandardPrice2 = 372.0;
+    private final Double expectedLuxuryPrice2 = 603.2;
+    private final Double expectedVanPrice2 = 452.4;
 
+
+    private final String driverName1 = "Marko";
+    private final String driverName2 = "Ana";
 
     private final String vehicleType = "STANDARD";
     private final String guestEmail = "user2@gmail.com";
@@ -47,6 +47,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
     private LoginPage loginPage;
     private NavbarPage navbarPage;
+    private UserHistoryPage historyPage;
     private RideOrderingPage orderingPage;
     private RidePreferencePage preferencePage;
     private FindingDriverPage findingDriverPage;
@@ -71,15 +72,16 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         assertTrue(navbarPage.isLoggedIn(), "User should be logged in");
 
-        // Navigate to Ride History via navbar and add the first history entry to favorites
+        // Navigate to Ride History via navbar
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage2 = new UserHistoryPage(driver);
-        historyPage2.waitForPageLoad();
-        historyPage2.toggleFavorite(pickUp2, destination2, stops2);
+        historyPage = new UserHistoryPage(driver);
+        historyPage.waitForPageLoad();
+        historyPage.toggleFavorite(pickUp2, destination2, stops2);
 
         // Return to ordering via navbar and initialize ordering page
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
 
         // Choose the seeded favorite route
         orderingPage.openFavoritesMenu();
@@ -96,7 +98,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         assertTrue(orderingPage.isRouteEstimateShown(expectedDistance2, expectedTime2));
 
         // Verify route is drawn on map
-        assertTrue(orderingPage.isRouteDrawnOnMap(), "Route should be drawn on the map");
+        assertTrue(orderingPage.isRouteDrawnOnMap(stops2.size()), "Route should be drawn on the map");
 
         orderingPage.chooseRoute();
 
@@ -125,13 +127,15 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         boolean searchingShown2 = findingDriverPage.waitForFindingShown(10);
         assertTrue(searchingShown2);
 
-        // Wait for a 'good' driver (rating >= 3.0) for up to 25s; fallback to any driver found
+        // Driver found
         boolean anyFound = findingDriverPage.waitForDriverFound(25);
         assertTrue(anyFound, "Driver info should appear after ordering the ride");
 
 
         String driverName = findingDriverPage.getDriverName();
         assertNotNull(driverName, "Driver name should be displayed when driver is found");
+        System.out.println(driverName);
+        assertEquals(driverName, driverName2);
     }
 
     @Test
@@ -146,13 +150,14 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Navigate to Ride History via navbar
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage2 = new UserHistoryPage(driver);
-        historyPage2.waitForPageLoad();
-        historyPage2.toggleFavorite(pickUp1, destination1, stops1);
+        historyPage = new UserHistoryPage(driver);
+        historyPage.waitForPageLoad();
+        historyPage.toggleFavorite(pickUp1, destination1, stops1);
 
         // Return to ordering via navbar and initialize ordering page
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
 
         // Choose the seeded favorite route
         orderingPage.openFavoritesMenu();
@@ -163,6 +168,9 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Verify estimate
         assertTrue(orderingPage.isRouteEstimateShown(expectedDistance1, expectedTime1));
+
+        // Verify route is drawn on map
+        assertTrue(orderingPage.isRouteDrawnOnMap(stops1.size()), "Route should be drawn on the map");
 
         orderingPage.chooseRoute();
 
@@ -191,13 +199,15 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         boolean searchingShown2 = findingDriverPage.waitForFindingShown(10);
         assertTrue(searchingShown2);
 
-        // Wait for a 'good' driver (rating >= 3.0) for up to 25s; fallback to any driver found
+        // Driver found
         boolean anyFound = findingDriverPage.waitForDriverFound(25);
         assertTrue(anyFound, "Driver info should appear after ordering the ride");
 
 
         String driverName = findingDriverPage.getDriverName();
         assertNotNull(driverName, "Driver name should be displayed when driver is found");
+        System.out.println(driverName);
+        assertEquals(driverName, driverName1);
     }
 
     @Test
@@ -212,12 +222,13 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Add favorite and navigate to preferences
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage = new UserHistoryPage(driver);
         historyPage.waitForPageLoad();
         historyPage.toggleFavorite(pickUp2, destination2, stops2);
 
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
         orderingPage.openFavoritesMenu();
         orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
         orderingPage.chooseRoute();
@@ -245,7 +256,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         boolean searchingShown = findingDriverPage.waitForFindingShown(10);
         assertTrue(searchingShown, "Finding driver page should be shown");
 
-        // Wait for "No drivers available" message (up to 30 seconds to account for backend search time)
+        // Wait for "No drivers available"
         boolean noDriversShown = findingDriverPage.waitForNoDriversAvailable(30);
         assertTrue(noDriversShown, "No drivers available message should appear when no driver exists for VAN type");
 
@@ -270,11 +281,12 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Add favorite from history
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage = new UserHistoryPage(driver);
         historyPage.waitForPageLoad();
         historyPage.toggleFavorite(pickUp1, destination1, stops1);
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
         orderingPage.openFavoritesMenu();
         orderingPage.chooseFavoriteRoute(pickUp1, destination1, stops1);
 
@@ -293,52 +305,6 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
     @Test
     @Order(5)
-    void rideOrderingFromFavorites_choosePlaceholder_noAutoFill() {
-        // Login
-        loginPage.setEmail(seeder.getUserEmail());
-        loginPage.setPassword(seeder.getUserPassword());
-        loginPage.login();
-
-        assertTrue(navbarPage.isLoggedIn(), "User should be logged in");
-
-        // Navigate to Ride History via navbar
-        navbarPage.navigateToHistory();
-        UserHistoryPage historyPage2 = new UserHistoryPage(driver);
-        historyPage2.waitForPageLoad();
-        historyPage2.toggleFavorite(pickUp2, destination2, stops2);
-
-        // Return to ordering via navbar and initialize ordering page
-        navbarPage.navigateToOrdering();
-        orderingPage = new RideOrderingPage(driver);
-
-        // Choose the seeded favorite route
-        orderingPage.openFavoritesMenu();
-        orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
-
-        // Verify inputs are autofilled from the favorite
-        assertTrue(orderingPage.checkAutoinput(pickUp2, destination2, stops2), "Pickup/destination/stops should be populated from favorite");
-
-        // Verify estimate
-        assertTrue(orderingPage.isRouteEstimateShown(expectedDistance2, expectedTime2));
-
-        // Open favorites and choose the placeholder entry
-        orderingPage.choosePlaceholderFavorite();
-
-
-        // Inputs should not be autofilled
-        String actualPickup = orderingPage.getPickupAddress();
-        String actualDestination = orderingPage.getDestinationAddress();
-        assertTrue(actualPickup == null || actualPickup.isEmpty(), "Pickup should be empty after choosing placeholder");
-        assertTrue(actualDestination == null || actualDestination.isEmpty(), "Destination should be empty after choosing placeholder");
-        assertTrue(orderingPage.getStopAddresses().isEmpty(), "Stops should be empty after choosing placeholder");
-        orderingPage.waitForEstimateToDisappear(expectedDistance2, expectedTime2);
-
-        // No estimate should be shown
-        assertFalse(orderingPage.isRouteEstimateShown(expectedDistance2, expectedTime2));
-    }
-
-    @Test
-    @Order(6)
     void rideOrderingFromFavorites_switchBetweenMultipleFavorites_correctAutofill() {
         // Login
         loginPage.setEmail(seeder.getUserEmail());
@@ -349,7 +315,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Add two different favorites
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage = new UserHistoryPage(driver);
         historyPage.waitForPageLoad();
         historyPage.toggleFavorite(pickUp1, destination1, stops1);
         historyPage.toggleFavorite(pickUp2, destination2, stops2);
@@ -357,6 +323,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         // Navigate to ordering
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
 
         // Choose first favorite
         orderingPage.openFavoritesMenu();
@@ -379,11 +346,22 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         orderingPage.chooseFavoriteRoute(pickUp1, destination1, stops1);
         assertTrue(orderingPage.checkAutoinput(pickUp1, destination1, stops1),
                 "Switching back to first favorite should work correctly");
+
+
+        // Open favorites and choose the placeholder entry
+        orderingPage.choosePlaceholderFavorite();
+        // Inputs should not be autofilled
+        String actualPickup = orderingPage.getPickupAddress();
+        String actualDestination = orderingPage.getDestinationAddress();
+        assertTrue(actualPickup == null || actualPickup.isEmpty(), "Pickup should be empty after choosing placeholder");
+        assertTrue(actualDestination == null || actualDestination.isEmpty(), "Destination should be empty after choosing placeholder");
+        assertTrue(orderingPage.getStopAddresses().isEmpty(), "Stops should be empty after choosing placeholder");
+        orderingPage.waitForEstimateToDisappear(expectedDistance2, expectedTime2);
     }
 
 
     @Test
-    @Order(7)
+    @Order(6)
     void rideOrderingFromFavorites_dynamicPriceChange_differentVehicleTypes() {
         // Login
         loginPage.setEmail(seeder.getUserEmail());
@@ -394,13 +372,14 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Add favorite from history
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage = new UserHistoryPage(driver);
         historyPage.waitForPageLoad();
         historyPage.toggleFavorite(pickUp2, destination2, stops2);
 
         // Navigate to ordering and select favorite
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
         orderingPage.openFavoritesMenu();
         orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
 
@@ -419,16 +398,20 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         String standardPrice = preferencePage.getCurrentPrice();
         assertNotNull(standardPrice, "Standard price should be displayed");
         assertFalse(standardPrice.equals("-"), "Standard price should be a valid number");
+        Double price = Double.parseDouble(standardPrice.substring(0, standardPrice.length() - 3));
+        assertEquals(expectedStandardPrice2,price);
 
-        // Test LUXURY vehicle type - price should be different (higher)
+        // Test LUXURY vehicle type
         preferencePage.openVehicleTypesMenu();
         preferencePage.chooseVehicleType("LUXURY");
         String luxuryPrice = preferencePage.getCurrentPrice();
         assertNotNull(luxuryPrice, "Luxury price should be displayed");
         assertFalse(luxuryPrice.equals("-"), "Luxury price should be a valid number");
         assertNotEquals(standardPrice, luxuryPrice, "Luxury price should be different from standard price");
+        price  = Double.parseDouble(luxuryPrice.substring(0, luxuryPrice.length() - 3));
+        assertEquals(expectedLuxuryPrice2,price);
 
-        // Test VAN vehicle type - price should be different
+        // Test VAN vehicle type
         preferencePage.openVehicleTypesMenu();
         preferencePage.chooseVehicleType("VAN");
         String vanPrice = preferencePage.getCurrentPrice();
@@ -436,6 +419,8 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         assertFalse(vanPrice.equals("-"), "Van price should be a valid number");
         assertNotEquals(standardPrice, vanPrice, "Van price should be different from standard price");
         assertNotEquals(luxuryPrice, vanPrice, "Van price should be different from luxury price");
+        price   = Double.parseDouble(vanPrice.substring(0, vanPrice.length() - 3));
+        assertEquals(expectedVanPrice2,price);
 
         // Switch back to STANDARD and verify price returns to original
         preferencePage.openVehicleTypesMenu();
@@ -446,7 +431,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void rideOrderingFromFavorites_scheduledTime_pastTimeValidation() {
         // Login
         loginPage.setEmail(seeder.getUserEmail());
@@ -457,12 +442,13 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Add favorite and navigate to preferences
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage = new UserHistoryPage(driver);
         historyPage.waitForPageLoad();
         historyPage.toggleFavorite(pickUp2, destination2, stops2);
 
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
         orderingPage.openFavoritesMenu();
         orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
         orderingPage.chooseRoute();
@@ -475,9 +461,6 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         String pastTimeStr = pastTime.format(formatter);
         preferencePage.enterScheduledDateTime(pastTimeStr);
-
-        // Wait a moment for validation to trigger
-        try { Thread.sleep(500); } catch (InterruptedException ignored) {}
 
         // Verify error message is shown
         assertTrue(preferencePage.hasScheduledTimeError(),
@@ -493,7 +476,7 @@ public class RideOrderingFromFavoritesTest extends TestBase {
     }
 
     @Test
-    @Order(9)
+    @Order(8)
     void rideOrderingFromFavorites_scheduledTime_tooFarInFutureValidation() {
         // Login
         loginPage.setEmail(seeder.getUserEmail());
@@ -504,12 +487,13 @@ public class RideOrderingFromFavoritesTest extends TestBase {
 
         // Add favorite and navigate to preferences
         navbarPage.navigateToHistory();
-        UserHistoryPage historyPage = new UserHistoryPage(driver);
+        historyPage = new UserHistoryPage(driver);
         historyPage.waitForPageLoad();
         historyPage.toggleFavorite(pickUp2, destination2, stops2);
 
         navbarPage.navigateToOrdering();
         orderingPage = new RideOrderingPage(driver);
+        orderingPage.isPageOpened();
         orderingPage.openFavoritesMenu();
         orderingPage.chooseFavoriteRoute(pickUp2, destination2, stops2);
         orderingPage.chooseRoute();
@@ -522,9 +506,6 @@ public class RideOrderingFromFavoritesTest extends TestBase {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         String futureTimeStr = futureTime.format(formatter);
         preferencePage.enterScheduledDateTime(futureTimeStr);
-
-        // Wait a moment for validation to trigger
-        try { Thread.sleep(500); } catch (InterruptedException ignored) {}
 
         // Verify error message is shown
         assertTrue(preferencePage.hasScheduledTimeError(),

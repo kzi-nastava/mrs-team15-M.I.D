@@ -44,8 +44,8 @@ class OrderingRideRepositoryTest {
     @BeforeEach
     void setUp() {
         route = createRoute();
-        driver = createDriver();  // persistovan
-        user = createUser();      // persistovan
+        driver = createDriver();
+        user = createUser();
 
         em.flush();
         em.clear();
@@ -164,7 +164,7 @@ class OrderingRideRepositoryTest {
     private Ride createRide(RideStatus status) {
         Ride ride = new Ride();
         ride.setRoute(route);
-        ride.setDriver(driver); // driver mora biti već persistovan
+        ride.setDriver(driver);
         ride.setStatus(status);
         ride.setScheduledTime(LocalDateTime.now());
         ride.setPrice(100.0);
@@ -173,16 +173,14 @@ class OrderingRideRepositoryTest {
         if (status == RideStatus.IN_PROGRESS) {
             ride.setStartTime(LocalDateTime.now().minusMinutes(5));
         }
-
-        // Napravi Passenger i poveži sa ride i user
         Passenger passenger = new Passenger();
-        passenger.setUser(user);                 // user mora biti persistovan
+        passenger.setUser(user);
         passenger.setRole(PassengerRole.PASSENGER);
         passenger.setRide(ride);
 
         ride.getPassengers().add(passenger);
 
-        em.persist(ride); // cascade će persistovati Passenger
+        em.persist(ride);
         return ride;
     }
 

@@ -94,7 +94,7 @@ public class DriverController {
         if (user instanceof  Driver driver){
             return ResponseEntity.ok(driverService.requestDriverChanges(driver, request, profileImage));
         }
-        return ResponseEntity.status(403).build();
+        return ResponseEntity.badRequest().build();
 
     }
 

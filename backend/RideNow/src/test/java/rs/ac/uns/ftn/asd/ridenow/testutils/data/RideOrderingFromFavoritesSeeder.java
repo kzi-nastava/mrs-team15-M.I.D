@@ -28,7 +28,6 @@ import rs.ac.uns.ftn.asd.ridenow.repository.PassengerRepository;
 
 /**
  * Test data seeder for ride ordering from favorites E2E tests.
- * 
  * Seeds the following data:
  * - Price configurations: STANDARD (120 DIN + 50 DIN/km), LUXURY (200 DIN + 80 DIN/km), VAN (150 DIN + 60 DIN/km)
  * - Main user: user1@gmail.com
