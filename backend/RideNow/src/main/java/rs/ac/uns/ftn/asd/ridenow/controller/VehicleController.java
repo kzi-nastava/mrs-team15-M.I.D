@@ -29,11 +29,11 @@ public class VehicleController {
     }
 
     @Operation(summary = "Get all available vehicles", description = "Retrieve list of all vehicles available in specified location radius")
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<List<VehicleResponseDTO>> getAll(
-            @RequestParam Double latitude,
-            @RequestParam Double longitude) {
-        List<VehicleResponseDTO> vehicles = vehicleService.getAllVehicles(latitude, longitude);
+            @RequestParam @NotNull Double lat,
+            @RequestParam @NotNull Double lon) {
+        List<VehicleResponseDTO> vehicles = vehicleService.getAllVehicles(lat, lon);
         return ResponseEntity.ok(vehicles);
     }
 
