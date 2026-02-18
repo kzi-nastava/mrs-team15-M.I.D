@@ -71,16 +71,13 @@ export class LoginForm {
           this.navigateAfterLogin(response.role, response.hasCurrentRide);
         } else if (response.role === 'USER' || response.role === 'DRIVER') {
           // Initialize notifications for users and drivers
-          console.log('[LoginForm] Initializing notifications after login');
           // Load notifications and connect to WebSocket in proper sequence
           // Wait for notifications to load before navigating
           this.notificationService.loadAndConnectNotifications(response.token).subscribe({
             next: () => {
-              console.log('[LoginForm] Notifications loaded, proceeding with navigation');
               this.navigateAfterLogin(response.role, response.hasCurrentRide);
             },
             error: (error) => {
-              console.error('[LoginForm] Failed to load notifications:', error);
               // Still navigate even if notifications fail
               this.navigateAfterLogin(response.role, response.hasCurrentRide);
             }

@@ -96,14 +96,6 @@
       <!-- Action Buttons -->
       <div *ngIf="!loading" class="d-flex justify-content-end gap-2 pt-3 border-top">
         <app-button
-          text="Reset Changes"
-          variant="secondary"
-          fontWeight="500"
-          [disabled]="saving"
-          (clicked)="resetChanges()"
-        ></app-button>
-        
-        <app-button
           [text]="saving ? 'Saving...' : 'Save Configuration'"
           variant="primary"
             fontWeight="500"
