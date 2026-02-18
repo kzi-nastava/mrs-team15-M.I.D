@@ -35,7 +35,6 @@ export class NavbarComponent {
   driverStatus = '';
 
   ngOnInit() {
-    console.log('[Navbar] Initializing...');
     if (this.showActivityToggle) {
       this.driverService.getMyStatus().subscribe();
     }
