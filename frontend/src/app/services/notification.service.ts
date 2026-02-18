@@ -1,7 +1,8 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, filter, take } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { SharedWebSocketService } from './shared-websocket.service';
 
 export interface NotificationDTO {
   id: number;
@@ -17,14 +18,13 @@ export interface NotificationDTO {
 })
 export class NotificationService {
   private apiUrl = 'http://localhost:8081/api/notifications';
-  private wsUrl = 'ws://localhost:8081/api/notifications/websocket';
 
-  private socket: WebSocket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 3000;
   private isInitialized = false;
   private currentToken: string | null = null;
+  private messageSubscription: any = null;
 
   // Observables for real-time notifications
   private notificationsSubject = new BehaviorSubject<NotificationDTO[]>([]);
@@ -35,111 +35,93 @@ export class NotificationService {
   public unreadCount$ = this.unreadCountSubject.asObservable();
   public newNotification$ = this.newNotificationSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router, private ngZone: NgZone) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private ngZone: NgZone,
+    private sharedWebSocket: SharedWebSocketService
+  ) {}
 
-  // Connect to WebSocket for real-time notifications
+  // Connect to WebSocket for real-time notifications using the shared service
   connectToNotifications(token: string): void {
     this.currentToken = token;
 
-    if (this.socket?.readyState === WebSocket.OPEN) {
+    // If already subscribed, don't subscribe again
+    if (this.messageSubscription) {
       return;
     }
 
-    if (this.socket?.readyState === WebSocket.CONNECTING) {
-      return;
-    }
+    // Connect the shared WebSocket
+    this.sharedWebSocket.connect();
 
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
-    }
-
-    try {
-      this.socket = new WebSocket(`${this.wsUrl}?token=${encodeURIComponent(token)}`);
-
-      this.socket.onopen = () => {
-        this.ngZone.run(() => {
-          console.log('WebSocket connected for notifications');
-          this.reconnectAttempts = 0;
-
-          // Reload notifications when connected to catch any that arrived before subscription
-          console.log('Reloading notifications after WebSocket connect');
-          this.getAllNotifications().subscribe({
-            next: (notifications) => {
-              console.log('Reloaded notifications after connect:', notifications.length);
-              this.notificationsSubject.next(notifications);
-            },
-            error: (error) => {
-              console.error('Failed to reload notifications:', error);
-            }
-          });
-
-          this.getUnreadCount().subscribe({
-            next: (response) => {
-              console.log('Reloaded unread count:', response.count);
-              this.unreadCountSubject.next(response.count);
-            },
-            error: (error) => {
-              console.error('Failed to reload unread count:', error);
-            }
-          });
-        });
-      };
-
-      this.socket.onmessage = (event) => {
-        this.ngZone.run(() => {
-          try {
-            const data = JSON.parse(event.data);
-            this.handleWebSocketMessage(data);
-          } catch (error) {
-            console.error('Error parsing notification message:', error);
-          }
-        });
-      };
-
-      this.socket.onclose = (event) => {
-        this.socket = null;
-        if (this.currentToken && event.code !== 1000) {
-          this.attemptReconnect();
-        }
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('WebSocket connection error:', error);
-      };
-
-    } catch (error) {
-      console.error('Failed to create WebSocket:', error);
-      this.socket = null;
-      this.attemptReconnect();
-    }
+    // Subscribe to messages from the shared WebSocket
+    this.messageSubscription = this.sharedWebSocket.message$.subscribe(
+      (message: any) => {
+        this.handleWebSocketMessage(message);
+      },
+      (error: any) => {
+        console.error('Error in WebSocket message stream:', error);
+      }
+    );
   }
 
   private handleWebSocketMessage(data: any): void {
-    this.ngZone.run(() => {
-      switch (data.action) {
-        case 'NEW_NOTIFICATION':
-          const notification = data.data as NotificationDTO;
-          this.newNotificationSubject.next(notification);
-          this.updateNotificationsList(notification);
-          this.incrementUnreadCount();
-          this.showBrowserNotification(notification);
-          break;
-        case 'echo':
-          break;
-        default:
-          break;
-      }
-    });
+    console.log('WebSocket message received, action:', data.action);
+    console.log('Full message data:', JSON.stringify(data));
+
+    switch (data.action) {
+      case 'INITIAL_STATE':
+        // Backend sends all notifications on connection
+        const notifications = data.data as NotificationDTO[];
+        console.log('Received INITIAL_STATE with', notifications.length, 'notifications');
+        console.log('Notifications:', JSON.stringify(notifications));
+        this.notificationsSubject.next(notifications);
+
+        // Calculate unread count from initial notifications
+        const unreadCount = notifications.filter(n => !n.seen).length;
+        console.log('Calculated unread count from INITIAL_STATE:', unreadCount);
+        this.unreadCountSubject.next(unreadCount);
+        break;
+
+      case 'NEW_NOTIFICATION':
+        const notification = data.data as NotificationDTO;
+        console.log('NEW_NOTIFICATION received:', notification);
+        console.log('Notification full object:', JSON.stringify(notification));
+        console.log('Before update - Current notifications:', JSON.stringify(this.notificationsSubject.value));
+
+        this.newNotificationSubject.next(notification);
+        this.updateNotificationsList(notification);
+        this.incrementUnreadCount();
+
+        console.log('After update - Current notifications:', JSON.stringify(this.notificationsSubject.value));
+        console.log('After update - Current unread count:', this.unreadCountSubject.value);
+
+        this.showBrowserNotification(notification);
+        break;
+
+      case 'echo':
+        console.log('Echo received');
+        break;
+
+      default:
+        console.log('Unknown action:', data.action);
+        break;
+    }
   }
 
   private updateNotificationsList(newNotification: NotificationDTO): void {
     const current = this.notificationsSubject.value;
-    this.notificationsSubject.next([newNotification, ...current]);
+    console.log('[updateNotificationsList] Current count:', current.length, 'Adding notification:', newNotification.id);
+    const updated = [newNotification, ...current];
+    console.log('[updateNotificationsList] Updated count:', updated.length);
+    this.notificationsSubject.next(updated);
   }
 
   private incrementUnreadCount(): void {
-    this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
+    const current = this.unreadCountSubject.value;
+    const updated = current + 1;
+    console.log('[incrementUnreadCount] From', current, 'to', updated);
+    this.unreadCountSubject.next(updated);
   }
 
   private attemptReconnect(): void {
@@ -160,10 +142,12 @@ export class NotificationService {
   disconnect(): void {
     this.currentToken = null;
 
-    if (this.socket) {
-      this.socket.close(1000, 'User logout');
-      this.socket = null;
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+      this.messageSubscription = null;
     }
+
+    this.sharedWebSocket.disconnect();
 
     this.reconnectAttempts = 0;
     this.isInitialized = false;
@@ -252,35 +236,67 @@ export class NotificationService {
   }
 
   // Load notifications and return observable for sequencing
-  loadAndConnectNotifications(token: string): void {
+  loadAndConnectNotifications(token: string): Observable<boolean> {
     const role = localStorage.getItem('role');
+    console.log('loadAndConnectNotifications called, role:', role);
 
     if (role !== 'USER' && role !== 'DRIVER') {
-      return;
+      console.log('Role not eligible for notifications');
+      return new Observable(observer => {
+        observer.next(false);
+        observer.complete();
+      });
     }
 
-    // Load existing notifications first
-    this.getAllNotifications().subscribe({
-      next: (notifications) => {
-        this.notificationsSubject.next(notifications);
-        // Only connect WebSocket AFTER initial load is complete
-        this.connectToNotifications(token);
-      },
-      error: (error) => {
-        console.error('Failed to load notifications:', error);
-        // Still connect even if load fails
-        this.connectToNotifications(token);
-      }
-    });
+    // Store token for reconnection
+    this.currentToken = token;
 
-    // Load unread count
-    this.getUnreadCount().subscribe({
-      next: (response) => {
-        this.unreadCountSubject.next(response.count);
-      },
-      error: (error) => {
-        console.error('Failed to load unread count:', error);
+    // Return observable that completes when WebSocket is connected
+    return new Observable(observer => {
+      console.log('Connecting to shared WebSocket for notifications...');
+
+      // Connect the shared WebSocket (it handles its own retry logic)
+      this.sharedWebSocket.connect();
+
+      // Wait for INITIAL_STATE message
+      let initialStateReceived = false;
+      const initialStateTimeout = setTimeout(() => {
+        if (!initialStateReceived) {
+          console.warn('[Notification] INITIAL_STATE not received within 2 seconds, completing anyway');
+          initialStateReceived = true;
+          observer.next(true);
+          observer.complete();
+        }
+      }, 2000);
+
+      // Subscribe to messages from the shared WebSocket
+      const subscription = this.sharedWebSocket.message$.subscribe(
+        (message: any) => {
+          // Complete the observable when we receive INITIAL_STATE
+          if (message.action === 'INITIAL_STATE' && !initialStateReceived) {
+            console.log('[Notification] INITIAL_STATE received, completing observable');
+            initialStateReceived = true;
+            clearTimeout(initialStateTimeout);
+            observer.next(true);
+            observer.complete();
+          }
+
+          // Process the message
+          this.handleWebSocketMessage(message);
+        },
+        (error: any) => {
+          console.error('[Notification] Error in WebSocket message stream:', error);
+          initialStateReceived = true;
+          clearTimeout(initialStateTimeout);
+          observer.error(error);
+        }
+      );
+
+      // Store subscription for cleanup
+      if (this.messageSubscription) {
+        this.messageSubscription.unsubscribe();
       }
+      this.messageSubscription = subscription;
     });
   }
 

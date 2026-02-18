@@ -6,8 +6,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
+import rs.ac.uns.ftn.asd.ridenow.dto.notification.NotificationResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.websocket.WebSocketMessageDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
+import rs.ac.uns.ftn.asd.ridenow.repository.NotificationRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.security.JwtUtil;
 import rs.ac.uns.ftn.asd.ridenow.service.PanicAlertService;
@@ -30,6 +32,9 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
 
     @Autowired
     private PanicAlertService panicAlertService;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -70,7 +75,8 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         // Store user session for all notification types
         userSessions.put(user.getId(), session);
         sessionIdToUserId.put(session.getId(), user.getId());
-        System.out.println("DEBUG: User " + user.getId() + " (" + user.getEmail() + ") connected to notifications WebSocket");
+        System.out.println(
+                "DEBUG: User " + user.getId() + " (" + user.getEmail() + ") connected to notifications WebSocket");
         System.out.println("DEBUG: Current sessions: " + userSessions.keySet());
 
         // If user is admin, also store in admin sessions for panic alerts
@@ -80,6 +86,13 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
             // Send current unresolved panic alerts to newly connected admin
             try {
                 sendInitialState(session);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            // For regular users and drivers, send their notifications
+            try {
+                sendInitialNotifications(session, user);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -172,12 +185,29 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     }
 
     private void sendInitialState(WebSocketSession session) {
-        try{
-            WebSocketMessageDTO message = new WebSocketMessageDTO("INITIAL_STATE", panicAlertService.getAllUnresolvedAlerts());
+        try {
+            WebSocketMessageDTO message = new WebSocketMessageDTO("INITIAL_STATE",
+                    panicAlertService.getAllUnresolvedAlerts());
             String payload = objectMapper.writeValueAsString(message);
             session.sendMessage(new TextMessage(payload));
         } catch (Exception e) {
             System.err.println("Failed to send initial state: " + e.getMessage());
+        }
+    }
+
+    private void sendInitialNotifications(WebSocketSession session, User user) {
+        try {
+            var userNotifications = notificationRepository.findByUserOrderByCreatedAtDesc(user)
+                    .stream()
+                    .map(NotificationResponseDTO::new)
+                    .toList();
+            WebSocketMessageDTO message = new WebSocketMessageDTO("INITIAL_STATE", userNotifications);
+            String payload = objectMapper.writeValueAsString(message);
+            session.sendMessage(new TextMessage(payload));
+            System.out.println("Sent " + userNotifications.size() + " initial notifications to user " + user.getId());
+        } catch (Exception e) {
+            System.err.println("Failed to send initial notifications: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -194,7 +224,8 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     public void broadcastToUser(Long userId, String action, Object data) {
         WebSocketSession session = userSessions.get(userId);
         if (session == null) {
-            System.err.println("DEBUG: No session found for userId " + userId + ". Available sessions: " + userSessions.keySet());
+            System.err.println(
+                    "DEBUG: No session found for userId " + userId + ". Available sessions: " + userSessions.keySet());
             return;
         }
 
@@ -258,12 +289,12 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         }
     }
 
-    public void registerRideParticipant(Long rideId, Long userId){
+    public void registerRideParticipant(Long rideId, Long userId) {
         rideParticipants.computeIfAbsent(rideId, k -> ConcurrentHashMap.newKeySet()).add(userId);
         System.out.println("Registered user" + userId + "for ride" + rideId);
     }
 
-    public void registerRideParticipants(Long rideId, List<Long> userIds){
+    public void registerRideParticipants(Long rideId, List<Long> userIds) {
         Set<Long> participants = rideParticipants.computeIfAbsent(rideId, k -> ConcurrentHashMap.newKeySet());
         participants.addAll(userIds);
         System.out.println("Registered " + userIds.size() + " participants for ride " + rideId);
@@ -312,7 +343,8 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
                     }
                 }
             }
-            System.out.println("Broadcast " + action + " to " + successCount + "/" + participants.size() + " participants for ride " + rideId);
+            System.out.println("Broadcast " + action + " to " + successCount + "/" + participants.size()
+                    + " participants for ride " + rideId);
         } catch (Exception e) {
             System.err.println("Failed to broadcast to ride " + rideId + ": " + e.getMessage());
         }

@@ -59,7 +59,7 @@ export class Rating implements OnInit {
     this.rideService.rateRide(this.rideId, ratingData).subscribe({
       next: (response) => {
         console.log('Rating submitted successfully', response);
-        this.router.navigate(['/home']);
+        this.router.navigate(['/ride-ordering']);
       },
       error: (error) => {
         console.error('Error submitting rating', error);

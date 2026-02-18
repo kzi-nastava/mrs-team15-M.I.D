@@ -2,6 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Ride } from '../history/components/ride-history-table/ride-history-table';
 import { CurrentRide } from '../ride/pages/current-ride/current-ride';
+import { SharedWebSocketService } from './shared-websocket.service';
 
 export interface PanicAlert {
   id: number;
@@ -41,8 +42,6 @@ export interface RideEventData {
   providedIn: 'root'
 })
 export class NotificationWebSocketService {
-  private socket: WebSocket | null = null;
-
   // Store all unresolved alerts
   private unresolvedAlertsSubject = new BehaviorSubject<PanicAlert[]>([]);
   private connectionStatusSubject = new BehaviorSubject<boolean>(false);
@@ -58,14 +57,10 @@ export class NotificationWebSocketService {
   public rideStopped$: Observable<RideEventData | null> = this.rideStoppedSubject.asObservable();
   public rideCompleted$: Observable<RideEventData | null> = this.rideCompletedSubject.asObservable();
 
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 3000;
   private audioContext: AudioContext | null = null;
-  private isConnecting = false;
-  private shouldReconnect = true;
+  private messageSubscription: any = null;
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone, private sharedWebSocket: SharedWebSocketService) {}
 
   connect(): void {
     const token = localStorage.getItem('jwtToken');
@@ -74,63 +69,40 @@ export class NotificationWebSocketService {
       return;
     }
 
-    if (this.isConnecting || (this.socket && this.socket.readyState === WebSocket.OPEN)) {
+    // If already subscribed, don't subscribe again
+    if (this.messageSubscription) {
       return;
     }
 
-    this.isConnecting = true;
-    this.shouldReconnect = true;
+    console.log('Connecting to shared WebSocket for panic alerts...');
 
-    try {
-      const wsUrl = `ws://localhost:8081/api/notifications/websocket?token=${encodeURIComponent(token)}`;
-      console.log('Connecting to WebSocket...');
+    // Connect the shared WebSocket
+    this.sharedWebSocket.connect();
 
-      this.socket = new WebSocket(wsUrl);
-
-      this.socket.onopen = () => {
-        this.ngZone.run(() => {
-          console.log('WebSocket connected');
-          this.connectionStatusSubject.next(true);
-          this.reconnectAttempts = 0;
-          this.isConnecting = false;
-        });
-      };
-
-      this.socket.onmessage = (event) => {
-        try {
-          const message: WebSocketMessage = JSON.parse(event.data);
-          console.log('WebSocket message:', message);
-          this.handleWebSocketMessage(message);
-        } catch (error) {
-          console.error('Error parsing message:', error);
-        }
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
+    // Subscribe to messages from the shared WebSocket
+    this.messageSubscription = this.sharedWebSocket.message$.subscribe(
+      (message: any) => {
+        this.handleWebSocketMessage(message);
+        this.connectionStatusSubject.next(true);
+      },
+      (error: any) => {
+        console.error('Error in WebSocket message stream:', error);
         this.connectionStatusSubject.next(false);
-        this.isConnecting = false;
-      };
-
-      this.socket.onclose = (event) => {
-        console.log('WebSocket closed');
+      },
+      () => {
+        console.log('WebSocket message stream completed');
         this.connectionStatusSubject.next(false);
-        this.isConnecting = false;
-        this.socket = null;
+      }
+    );
 
-        if (this.shouldReconnect && event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.reconnectAttempts++;
-          const delay = this.reconnectDelay * this.reconnectAttempts;
-          console.log(`Reconnecting in ${delay}ms...`);
-          setTimeout(() => this.connect(), delay);
+    // Monitor connection status
+    this.sharedWebSocket.connectionStatus$.subscribe(
+      (connected: boolean) => {
+        if (!connected) {
+          this.connectionStatusSubject.next(false);
         }
-      };
-
-    } catch (error) {
-      console.error('Failed to create WebSocket:', error);
-      this.connectionStatusSubject.next(false);
-      this.isConnecting = false;
-    }
+      }
+    );
   }
 
   private handleWebSocketMessage(message: WebSocketMessage): void {
@@ -178,26 +150,20 @@ export class NotificationWebSocketService {
   }
 
   disconnect(): void {
-    this.shouldReconnect = false;
-    this.reconnectAttempts = 0;
-
-    if (this.socket) {
-      console.log('Disconnecting WebSocket...');
-      try {
-        this.socket.close(1000, 'Client disconnect');
-      } catch (error) {
-        console.error('Error closing WebSocket:', error);
-      }
-      this.socket = null;
-      this.connectionStatusSubject.next(false);
+    if (this.messageSubscription) {
+      this.messageSubscription.unsubscribe();
+      this.messageSubscription = null;
     }
+
+    console.log('Disconnecting from shared WebSocket...');
+    this.sharedWebSocket.disconnect();
+
+    this.connectionStatusSubject.next(false);
     this.unresolvedAlertsSubject.next([]);
 
     this.ridePanicSubject.next(null);
     this.rideStoppedSubject.next(null);
     this.rideCompletedSubject.next(null);
-
-    this.isConnecting = false;
   }
 
   private playAlertSound(): void {
@@ -235,7 +201,7 @@ export class NotificationWebSocketService {
   }
 
   isConnected(): boolean {
-    return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
+    return this.sharedWebSocket.isConnected();
   }
 
   reconnect(): void {

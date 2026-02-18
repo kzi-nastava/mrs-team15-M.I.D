@@ -37,7 +37,14 @@ export class App {
       if (role === 'USER' || role === 'DRIVER') {
         console.debug('[App] Initializing notifications for role:', role);
         // Load existing notifications and connect to WebSocket in proper sequence
-        this.notificationService.loadAndConnectNotifications(token);
+        this.notificationService.loadAndConnectNotifications(token).subscribe({
+          next: () => {
+            console.debug('[App] Notifications initialized');
+          },
+          error: (error) => {
+            console.error('[App] Failed to initialize notifications:', error);
+          }
+        });
       }
     }
   }
