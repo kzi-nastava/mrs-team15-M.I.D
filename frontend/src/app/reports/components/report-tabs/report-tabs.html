@@ -7,7 +7,7 @@
       <button class="nav-link" id="tab-distance" data-bs-toggle="tab" data-bs-target="#distance" type="button" role="tab">Distance</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="tab-expense" data-bs-toggle="tab" data-bs-target="#expense" type="button" role="tab">{{ isDriver ? 'Earned' : 'Spent' }}</button>
+      <button class="nav-link" id="tab-expense" data-bs-toggle="tab" data-bs-target="#expense" type="button" role="tab">{{ isAdmin ? 'Money' : (isDriver ? 'Earned' : 'Spent') }}</button>
     </li>
   </ul>
 

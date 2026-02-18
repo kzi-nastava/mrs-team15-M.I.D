@@ -18,4 +18,5 @@ export class ReportTabs {
   @Input() moneySum: number | null = null;
   @Input() moneyAvg: number | null = null;
   @Input() isDriver: boolean = false;
+  @Input() isAdmin: boolean = false;
 }
