@@ -36,4 +36,8 @@ export class AuthService{
     logout(): Observable<any> {
       return this.http.post(`${this.apiURL}/logout`, null);
     }
+
+    getRole(): string | null {
+      return localStorage.getItem('role');
+    }
 }

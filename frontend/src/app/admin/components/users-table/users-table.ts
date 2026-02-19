@@ -133,10 +133,10 @@ export class UsersTable {
     this.showUnblockModal = true;
   }
 
-  confirmBlock(): void {
+  confirmBlock(reason: string): void {
     if (!this.selectedUser) return;
     const id = this.selectedUser.id;
-    this.adminService.blockUser(id).subscribe({
+    this.adminService.blockUser(id, reason).subscribe({
       next: () => {
         this.selectedUser!.blocked = true;
         this.showMessageToast('User blocked.');
