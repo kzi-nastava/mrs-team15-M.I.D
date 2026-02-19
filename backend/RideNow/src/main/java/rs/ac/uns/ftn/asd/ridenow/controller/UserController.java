@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.auth.RegisterResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.driver.DriverChangeRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.passenger.RideHistoryItemDTO;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.BlockedStatusResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
@@ -76,5 +77,13 @@ public class UserController {
                                                        @RequestParam(required = false) @Min(0) Long endDate) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(userService.getReport(startDate, endDate, user.getId()));
+    }
+
+    @Operation(summary = "Get blocked status", description = "Check if current user is blocked and get the reason")
+    @PreAuthorize("hasAnyRole('USER', 'DRIVER')")
+    @GetMapping("/blocked-status")
+    public ResponseEntity<BlockedStatusResponseDTO> getBlockedStatus() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(userService.getBlockedStatus(user.getId()));
     }
 }

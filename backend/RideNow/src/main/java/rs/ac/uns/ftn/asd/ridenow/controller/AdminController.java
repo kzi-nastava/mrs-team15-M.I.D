@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rs.ac.uns.ftn.asd.ridenow.dto.admin.*;
 import jakarta.validation.Valid;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.BlockUserRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
@@ -151,11 +152,11 @@ public class AdminController {
         return ResponseEntity.ok(userService.getUsers(search, sortBy, sortDirection, page, size));
     }
 
-    @Operation(summary = "Block user", description = "Admin blocks a user by ID, preventing them from accessing their account")
+    @Operation(summary = "Block user", description = "Admin blocks a user by ID, preventing them from ordering and taking rides")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/block/{id}")
-    public ResponseEntity<Void> blockUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.blockUser(id));
+    public ResponseEntity<Void> blockUser(@PathVariable Long id, @Valid @RequestBody BlockUserRequestDTO request) {
+        return ResponseEntity.ok(userService.blockUser(id, request.getReason()));
     }
 
     @Operation(summary = "Unblock user", description = "Admin unblocks a user by ID, restoring their access to their account")

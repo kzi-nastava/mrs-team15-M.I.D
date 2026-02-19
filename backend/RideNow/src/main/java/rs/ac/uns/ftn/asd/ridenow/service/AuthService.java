@@ -138,9 +138,7 @@ public class AuthService {
         if(!existingUser.isActive()){
             throw  new Exception("Account is not active. Please activate your account via email.");
         }
-        if(existingUser.isBlocked()){
-            throw   new Exception("Account is blocked. You cannot login again.");
-        }
+        // Blocked users can log in
 
         if(!passwordEncoder.matches(requestDTO.getPassword(), existingUser.getPassword())) {
             throw new Exception("Invalid credentials");
