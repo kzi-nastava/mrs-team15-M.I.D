@@ -93,6 +93,7 @@ public class UpcomingRidesFragment extends Fragment {
             public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
 
+                // Check if response is successful and body is not null before updating the list
                 if (response.isSuccessful() && response.body() != null) {
                     List<UpcomingRideResponseDTO> rides = response.body();
                     displayRides(rides);
@@ -118,7 +119,7 @@ public class UpcomingRidesFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
-
+                // Check if response is successful and body is not null before updating the list
                 if (response.isSuccessful() && response.body() != null) {
                     List<UpcomingRideResponseDTO> rides = response.body();
                     displayRides(rides);
@@ -241,10 +242,12 @@ public class UpcomingRidesFragment extends Fragment {
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
+        // Initialize dialog views
         TextInputEditText etCancelReason = dialogView.findViewById(R.id.etCancelReason);
         Button btnCancel = dialogView.findViewById(R.id.btnDialogCancel);
         Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirm);
 
+        // Show reason input only for users, not drivers
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> {
             String reason = etCancelReason.getText() == null ? "" : etCancelReason.getText().toString().trim();

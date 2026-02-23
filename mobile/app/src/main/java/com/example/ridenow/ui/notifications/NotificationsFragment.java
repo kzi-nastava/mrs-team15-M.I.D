@@ -80,6 +80,7 @@ public class NotificationsFragment extends Fragment {
             public void onResponse(@NonNull Call<List<NotificationResponseDTO>> call, @NonNull Response<List<NotificationResponseDTO>> response) {
                 progressBar.setVisibility(View.GONE);
 
+                // Check if response is successful and body is not null before updating the list
                 if (response.isSuccessful() && response.body() != null) {
                     notificationsList.clear();
                     notificationsList.addAll(response.body());

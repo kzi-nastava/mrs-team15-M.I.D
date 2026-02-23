@@ -59,6 +59,7 @@ public class ActiveRidesFragment extends Fragment {
     }
 
     private void setupSearchFunctionality() {
+        // Add text change listener to search EditText
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -74,6 +75,7 @@ public class ActiveRidesFragment extends Fragment {
     }
 
     private void loadActiveRides() {
+        // Make API call to fetch active rides
         Call<List<ActiveRideDTO>> call = rideService.getActiveRides();
         call.enqueue(new Callback<>() {
             @Override
@@ -96,6 +98,7 @@ public class ActiveRidesFragment extends Fragment {
     }
 
     private void filterRides(String searchText) {
+        // Filter rides based on driver name
         if (searchText.isEmpty()) {
             filteredRides = new ArrayList<>(allRides);
         } else {
@@ -113,6 +116,7 @@ public class ActiveRidesFragment extends Fragment {
     private void displayRides() {
         ridesContainer.removeAllViews();
 
+        // Show empty state if no rides match the search criteria
         if (filteredRides.isEmpty()) {
             View emptyView = LayoutInflater.from(getContext())
                     .inflate(R.layout.item_empty_state, ridesContainer, false);
@@ -120,6 +124,7 @@ public class ActiveRidesFragment extends Fragment {
             return;
         }
 
+        // Create and add a card for each filtered ride
         for (ActiveRideDTO ride : filteredRides) {
             View rideCard = createRideCard(ride);
             ridesContainer.addView(rideCard);
