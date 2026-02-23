@@ -44,22 +44,15 @@ export class AdminService {
   }
 
     getPriceConfigurations(): Observable<any> {
-    console.log('AdminService.getPriceConfigurations() called');
-    console.log('GET request URL:', `${this.apiURL}/price-configs`);
     return this.http.get(`${this.apiURL}/price-configs`);
   }
 
   updatePriceConfigurations(priceData: any): Observable<any> {
-    console.log('AdminService.updatePriceConfigurations() called');
-    console.log('PUT request URL:', `${this.apiURL}/price-configs`);
-    console.log('Request payload:', priceData);
     return this.http.put(`${this.apiURL}/price-configs`, priceData);
   }
 
   getActiveRides(): Observable<any> {
-    console.log('AdminService.getActiveRides() called');
     const activeRidesUrl = 'http://localhost:8081/api/rides/active-rides';
-    console.log('GET request URL:', activeRidesUrl);
     return this.http.get(activeRidesUrl);
   }
 

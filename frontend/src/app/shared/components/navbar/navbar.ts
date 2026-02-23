@@ -39,6 +39,7 @@ export class NavbarComponent {
       this.driverService.getMyStatus().subscribe();
     }
 
+    // Subscribe to driver status updates from the DriverStatusStore, update the local driverStatus and isActive properties accordingly, and trigger change detection to update the UI when the status changes
     this.driverState.status$.subscribe(status => {
       if (!status) return;
       this.driverStatus = status;

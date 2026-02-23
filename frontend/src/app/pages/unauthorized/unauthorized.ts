@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 export class Unauthorized {
   constructor(private location: Location, private router: Router) {}
 
+  // Simple go back function that checks user role and redirects accordingly
   goBack(): void {
     let role = localStorage.getItem('role');
     if (role === 'ADMIN') {

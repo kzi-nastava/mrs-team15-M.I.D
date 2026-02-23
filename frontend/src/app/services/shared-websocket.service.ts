@@ -44,11 +44,13 @@ export class SharedWebSocketService {
     this.shouldReconnect = true;
 
     try {
+      // Construct the WebSocket URL with the token as a query parameter for authentication
       const wsUrl = `ws://localhost:8081/api/notifications/websocket?token=${encodeURIComponent(token)}`;
       console.log('Establishing shared WebSocket connection...');
 
       this.socket = new WebSocket(wsUrl);
 
+      // Handle WebSocket open event, emit a connection status update, and reset reconnection attempts
       this.socket.onopen = () => {
         this.ngZone.run(() => {
           console.log('Shared WebSocket connected');
@@ -58,6 +60,7 @@ export class SharedWebSocketService {
         });
       };
 
+      // Handle incoming WebSocket messages, parse them as JSON, and emit them through the messageSubject for subscribers to consume
       this.socket.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
@@ -72,12 +75,14 @@ export class SharedWebSocketService {
         }
       };
 
+      // Handle WebSocket errors, emit a connection status update, and log the error
       this.socket.onerror = (error) => {
         console.error('Shared WebSocket error:', error);
         this.connectionStatusSubject.next(false);
         this.isConnecting = false;
       };
 
+      // Handle WebSocket closure, emit a connection status update, and if the closure was not normal, emit an error message through the messageSubject for subscribers to consume
       this.socket.onclose = (event) => {
         console.log('Shared WebSocket closed');
         this.connectionStatusSubject.next(false);
@@ -99,6 +104,7 @@ export class SharedWebSocketService {
     }
   }
 
+  // Method to disconnect from the WebSocket, closes the connection and updates the connection status, also prevents automatic reconnection attempts
   disconnect(): void {
     this.shouldReconnect = false;
     this.reconnectAttempts = 0;

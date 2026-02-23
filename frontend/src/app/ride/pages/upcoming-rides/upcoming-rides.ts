@@ -31,15 +31,11 @@ ngOnInit(): void {
   const role = localStorage.getItem('role');
   this.isDriver = role === 'DRIVER';
 
-  if (role !== 'USER' && role !== 'DRIVER') {
-    this.showMessageToast('Access denied');
-    return;
-  }
-
   const ridesObservable = this.isDriver
     ? this.driverService.getUpcomingRides()
     : this.rideService.getMyUpcomingRides();
 
+    // Subscribe to the appropriate observable based on the user role, handles the response to set the upcoming rides and displays a message if there are no rides or if there is an error
   ridesObservable.subscribe({
     next: (rides) => {
       // Transform route addresses to shortened format
@@ -64,6 +60,7 @@ ngOnInit(): void {
     }
   });
   }
+  // Method to handle filtering of upcoming rides based on a selected date, updates the filtered rides list to only include rides that match the selected date or resets the filter if no date is selected
   onFilter(filterDate: string): void {
     if(filterDate){
       filterDate = formatFilterDate(filterDate)

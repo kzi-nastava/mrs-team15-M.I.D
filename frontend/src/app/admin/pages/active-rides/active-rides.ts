@@ -7,6 +7,7 @@ import { ActiveRidesTable } from '../../components/active-rides-table/active-rid
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 
+// Interface representing the structure of an active ride as returned by the backend
 export interface ActiveRide {
   rideId: number;
   startTime: string | null;
@@ -56,17 +57,20 @@ export class ActiveRides implements OnInit {
 
   constructor(private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
+  // On component initialization, load the active rides from the backend
   ngOnInit(): void {
     this.loadActiveRides();
   }
 
+  // Method to load active rides from the backend API
   loadActiveRides(): void {
     console.log('loadActiveRides() called');
     this.loading = true;
     this.refreshing = true;
     this.error = null;
     this.cdr.detectChanges();
-    
+
+    // Call the admin service to get active rides
     this.adminService.getActiveRides().subscribe({
       next: (response: ActiveRide[]) => {
         console.log('Active rides loaded successfully:', response);
@@ -75,7 +79,7 @@ export class ActiveRides implements OnInit {
         this.loading = false;
         this.refreshing = false;
         this.cdr.detectChanges();
-        
+
         // Force UI update with setTimeout
         setTimeout(() => {
           this.cdr.detectChanges();
@@ -88,7 +92,7 @@ export class ActiveRides implements OnInit {
         this.loading = false;
         this.refreshing = false;
         this.cdr.detectChanges();
-        
+
         // Force UI update with setTimeout
         setTimeout(() => {
           this.cdr.detectChanges();
@@ -97,6 +101,7 @@ export class ActiveRides implements OnInit {
     });
   }
 
+  // Method called when the user clicks the refresh button to reload active rides
   onRefresh(): void {
     console.log('onRefresh() called, refreshing:', this.refreshing);
     if (this.refreshing) {
@@ -106,11 +111,13 @@ export class ActiveRides implements OnInit {
     this.loadActiveRides();
   }
 
+  // Method called when the search input value changes, updates the search query and applies the search filter
   onSearchChange(value: string): void {
     this.searchQuery = value;
     this.applySearch();
   }
 
+  // Method to apply the search filter to the list of active rides based on the driver's name
   applySearch(): void {
     if (!this.searchQuery.trim()) {
       this.filteredRides = [...this.activeRides];
@@ -121,6 +128,7 @@ export class ActiveRides implements OnInit {
     }
   }
 
+  // Method to clear the search input and reset the filtered rides to show all active rides
   clearSearch(): void {
     this.searchQuery = '';
     this.applySearch();

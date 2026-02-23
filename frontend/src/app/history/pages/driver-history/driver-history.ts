@@ -39,6 +39,7 @@ export class DriverHistory implements OnInit {
     this.loadRideHistory();
   }
 
+  // Method to load ride history from the backend using the RideHistoryService with pagination, sorting, and filtering parameters
   private loadRideHistory(page: number = 0, sortBy?: string, sortDir?: string, date?: number): void {
     this.rideHistoryService.getDriverRideHistory(page, this.pageSize, sortBy, sortDir, date).subscribe({
       next: (data: PaginatedRideHistoryResponse) => {
@@ -104,6 +105,7 @@ export class DriverHistory implements OnInit {
     });
   }
 
+  // Method called when the filter date is changed, updates the current filter state and reloads the ride history with the new filter applied
   onFilter(filterDate: string): void {
     if (filterDate) {
       // Convert date string (YYYY-MM-DD) to timestamp (Long)
@@ -117,12 +119,14 @@ export class DriverHistory implements OnInit {
     this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
   }
 
+  // Method to clear the current date filter and reload the ride history without any date filtering applied
   onClearFilter(): void {
     this.currentFilterDate = undefined;
     this.currentPage = 0; // Reset to first page
     this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir);
   }
 
+  // Method called when a sorting option is changed, updates the current sorting state and reloads the ride history with the new sorting applied
   onSort(event: { column: string, direction: string }): void {
     this.currentSortBy = event.column;
     this.currentSortDir = event.direction;
@@ -130,6 +134,7 @@ export class DriverHistory implements OnInit {
     this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
   }
 
+  // Methods to navigate to the next and previous pages of the ride history, updates the current page state and reloads the ride history with the new page applied
   goToNextPage(): void {
     if (!this.isLastPage) {
       this.currentPage++;
@@ -137,6 +142,7 @@ export class DriverHistory implements OnInit {
     }
   }
 
+  // Method to navigate to the previous page of the ride history, updates the current page state and reloads the ride history with the new page applied
   goToPreviousPage(): void {
     if (!this.isFirstPage) {
       this.currentPage--;

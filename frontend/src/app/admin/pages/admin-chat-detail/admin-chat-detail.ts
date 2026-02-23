@@ -100,6 +100,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
       return;
     }
 
+    // Handle different types of WebSocket messages (e.g., existing messages, new message)
     if (wsMessage.type === 'existing_messages' && Array.isArray(wsMessage.data)) {
       this.messages = (wsMessage.data as any[]).map(msg => ({
         content: msg.content,
@@ -118,6 +119,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
     }
   }
 
+  // Method to send a new message through the WebSocket connection
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.connected) {
       return;
@@ -127,6 +129,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
     this.newMessage = '';
   }
 
+  // Method to scroll the message container to the bottom, ensuring the latest messages are visible
   scrollToBottom(): void {
     setTimeout(() => {
       if (this.messageContainer) {
@@ -135,6 +138,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
     }, 100);
   }
 
+  // Method to handle the "Go back" button click, closes the chat if open and navigates back to the admin chats list
   goBack(): void {
     if (this.chatId && !this.chatClosed) {
       this.chatClosed = true;
@@ -157,6 +161,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
     }
   }
 
+  // Helper method to normalize timestamps that may come in different formats (e.g., array or ISO string)
   private normalizeTimestamp(timestamp: any): string {
     if (Array.isArray(timestamp)) {
       // Format: [year, month, day, hour, minute, second, nanoseconds]

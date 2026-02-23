@@ -70,6 +70,7 @@ export class UserChat implements OnInit, OnDestroy {
     });
   }
 
+  // Method to connect to the WebSocket for the specific chat ID, subscribes to messages and updates the loading state
   connectToChat(): void {
     const token = localStorage.getItem('jwtToken');
     console.log('Token for WebSocket:', token);
@@ -84,6 +85,7 @@ export class UserChat implements OnInit, OnDestroy {
     this.loading = false;
   }
 
+  // Method to handle incoming WebSocket messages, updates the messages array and scrolls to the bottom of the chat container when new messages are received
   handleWebSocketMessage(wsMessage: WebSocketMessage): void {
     if (wsMessage.error) {
       this.error = wsMessage.error;
@@ -109,6 +111,7 @@ export class UserChat implements OnInit, OnDestroy {
     }
   }
 
+  // Method to send a new message through the WebSocket connection, checks if the message is not empty and if the connection is established before sending
   sendMessage(): void {
     if (!this.newMessage.trim() || !this.connected) {
       return;
@@ -118,6 +121,7 @@ export class UserChat implements OnInit, OnDestroy {
     this.newMessage = '';
   }
 
+  // Method to scroll the chat container to the bottom, called after new messages are added to ensure the latest messages are visible
   scrollToBottom(): void {
     setTimeout(() => {
       if (this.messageContainer) {

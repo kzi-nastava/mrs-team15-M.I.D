@@ -46,6 +46,7 @@ export class AdminChats implements OnInit, OnDestroy {
     }
   }
 
+  // Method to load all chats from the backend using the ChatService
   loadChats(): void {
     this.loading = true;
     this.error = null;
@@ -65,10 +66,12 @@ export class AdminChats implements OnInit, OnDestroy {
     });
   }
 
+  // Method to navigate to the chat detail page for a specific chat ID
   openChat(chatId: number): void {
     this.router.navigate(['/admin-chat', chatId]);
   }
 
+  // Getter to filter chats based on the search term entered by the admin user
   get filteredChats(): Chat[] {
     if (!this.searchTerm.trim()) {
       return this.chats;

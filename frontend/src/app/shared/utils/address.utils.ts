@@ -1,9 +1,5 @@
-/**
- * Formats a full address string to display only street number, street name, and city.
- *
- * @param fullAddress - The complete address string (e.g., "4, Cika Stevina, Нова Детелинара, Detelinara, МЗ Детелинара, Novi Sad, City of Novi Sad, South Backa Administrative District, Vojvodina, 21137, Serbia")
- * @returns A shortened address string (e.g., "4, Cika Stevina, Novi Sad")
- */
+// Formats a full address string to display only street number, street name, and city.
+
 export function formatAddress(fullAddress: string): string {
   // Split the address by commas
   const parts = fullAddress.split(',').map(p => p.trim());

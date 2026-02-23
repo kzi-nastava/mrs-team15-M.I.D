@@ -75,6 +75,10 @@ export class RideHistoryService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
+  // Method to get the ride history for a driver, accepts pagination parameters (page and size),
+  // optional sorting parameters (sortBy and sortDir), and an optional date filter,
+  // constructs the API URL with the provided parameters and makes an HTTP GET request
+  // to retrieve the paginated ride history response from the backend
   getDriverRideHistory(page: number = 0, size: number = 8, sortBy?: string, sortDir?: string, date?: number): Observable<PaginatedRideHistoryResponse> {
     let url = `${this.apiUrl}/driver/ride-history?page=${page}&size=${size}`;
     if (sortBy && sortDir) {

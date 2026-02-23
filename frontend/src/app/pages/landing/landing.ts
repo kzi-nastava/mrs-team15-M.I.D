@@ -12,7 +12,6 @@ import { RideEstimatorComponent } from '../../shared/components/ride-estimator/r
 export class Landing {
   onShowRoute(data: {from: string, to: string}): void {
     console.log('Show route from', data.from, 'to', data.to);
-    // TODO: Implement route display logic
   }
 }
 

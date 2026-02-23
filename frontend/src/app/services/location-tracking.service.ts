@@ -56,6 +56,7 @@ export class LocationTrackingService implements OnDestroy {
     this.driverLicencePlateSubject.next(null);
   }
 
+  // Method to update the current location of the driver using the Geolocation API, updates the current location subject, and sends the location to the backend using the DriverService
   private sendLocation(): void {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
