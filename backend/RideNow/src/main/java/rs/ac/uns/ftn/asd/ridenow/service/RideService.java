@@ -488,14 +488,17 @@ public class RideService {
     }
 
     public TrackVehicleDTO trackRide(Long rideId) {
+        // Validate ride existence and get assigned driver and vehicle
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
 
+        // Check if ride is in progress
         Driver driver = ride.getDriver();
         if (driver == null) {
             throw new EntityNotFoundException("No driver assigned to ride with id " + rideId);
         }
 
+        // Check if driver has a vehicle assigned
         Vehicle vehicle = driver.getVehicle();
         try {
             Route route = ride.getRoute();
@@ -507,6 +510,7 @@ public class RideService {
                 stopLons.add(stop.getLongitude());
             }
 
+            // Use routing service to get updated ETA and distance based on current vehicle location and route
             RideEstimateResponseDTO estimate = routingService.getRouteWithStops(vehicle.getLat(), vehicle.getLon(), route.getEndLocation().getLatitude(), route.getEndLocation().getLongitude(), stopLats, stopLons);
 
             return new TrackVehicleDTO(new Location(vehicle.getLat(), vehicle.getLon()), estimate.getEstimatedDurationMin());
@@ -516,9 +520,11 @@ public class RideService {
     }
 
     public Boolean finishRide(Long rideId, Long driverId) {
+        // Validate ride existence and get assigned driver
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
 
+        // Validate that the driver finishing the ride is the assigned driver
         ride.setStatus(RideStatus.FINISHED);
         ride.setEndTime(LocalDateTime.now());
         ride = rideRepository.save(ride);
@@ -534,7 +540,7 @@ public class RideService {
         webSocketHandler.unregisterRide(rideId);
         System.out.println("Ride " + rideId + " completed and unregistered");
 
-    // Delete old ride-related notifications (passenger added, ride assigned, ride started)
+        // Delete old ride-related notifications (passenger added, ride assigned, ride started)
         notificationService.deleteRideRelatedNotifications(rideId);
 
         // Also delete any notifications for the specific passengers (fallback for notifications without relatedEntityId)
@@ -552,6 +558,7 @@ public class RideService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextHour = now.plusHours(1);
 
+        // Check if driver has scheduled rides in the next hour and automatically assign the next one if exists
         List<Ride> scheduledRides = rideRepository.findScheduledRidesForDriverInNextHour(
                 driverId, now, nextHour);
         System.out.println("Found " + scheduledRides.size() + " scheduled rides for driver " + driverId + " in the next hour after finishing ride " + rideId);
@@ -568,6 +575,7 @@ public class RideService {
             return false;
         }
 
+        // automatically assign the next scheduled ride to the driver
         Ride nextRide = scheduledRides.get(0);
         nextRide.setStatus(RideStatus.IN_PROGRESS);
         nextRide.setStartTime(LocalDateTime.now());
@@ -577,10 +585,12 @@ public class RideService {
     }
 
     public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
+        // Validate user, ride, and passenger existence
         RegisteredUser regUser = registeredUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
         Ride ride = rideRepository.findById(req.getRideId()).orElseThrow(() -> new EntityNotFoundException("Ride with id " + req.getRideId() + " not found"));
         Passenger passenger = passengerRepository.findByUserAndRide(regUser, ride).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
 
+        // Create and save the inconsistency report
         Inconsistency inconsistency = new Inconsistency(ride, passenger, req.getDescription());
         Inconsistency savedInconsistency = inconsistencyRepository.save(inconsistency);
         return new InconsistencyResponseDTO(savedInconsistency);
@@ -899,9 +909,13 @@ public class RideService {
     }
 
     public List<ActiveRideDTO> getActiveRides(){
+        // This method retrieves all active rides from the database, constructs ActiveRideDTO objects for each ride,
+        // and returns a list of these DTOs. It includes details such as the driver's name,
+        // start time, route information, passenger names, and panic alert status.
         List<Ride> activeRides = rideRepository.findActiveRides();
         List<ActiveRideDTO> activeRideDTOs = new ArrayList<>();
         for (Ride ride : activeRides) {
+            // Construct an ActiveRideDTO for each active ride
             ActiveRideDTO dto = new ActiveRideDTO();
             dto.setRideId(ride.getId());
             dto.setDriverName(ride.getDriver().getFirstName() + " " + ride.getDriver().getLastName());
