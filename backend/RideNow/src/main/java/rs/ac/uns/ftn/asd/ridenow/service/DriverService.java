@@ -189,6 +189,8 @@ public class DriverService {
             profileImageURL = authService.generateProfileImageUrl(profileImage);
 
         }
+
+        // build entity
         entity.setProfileImage(profileImageURL);
         entity.setLicensePlate(request.getLicensePlate());
         entity.setVehicleModel(request.getVehicleModel());
@@ -197,6 +199,7 @@ public class DriverService {
         entity.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
         entity.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
 
+        // build response dto
         response.setEmail(request.getEmail());
         response.setFirstName(request.getFirstName());
         response.setLastName(request.getLastName());
@@ -273,6 +276,8 @@ public class DriverService {
     }
 
     public void activateDriverAccountByToken(DriverAccountActivationRequestDTO request) {
+
+        // token validation
         if (request.getToken() == null || request.getToken().isBlank()) {
             throw new IllegalArgumentException("Invalid token");
         }
@@ -281,13 +286,13 @@ public class DriverService {
         if (optionalToken.isEmpty()) {
             throw new IllegalArgumentException("Invalid token");
         }
-
+        // token expired
         ActivationToken activationToken = optionalToken.get();
         if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             handleExpiredActivationToken(activationToken);
             throw new IllegalArgumentException("Token expired. New activation link sent to your email.");
         }
-
+        // token does not belong to a driver
         User user = activationToken.getUser();
         if (!(user instanceof Driver)) {
             throw new IllegalArgumentException("Token does not belong to a driver");

@@ -72,7 +72,7 @@ public class UserService {
             throw new IllegalArgumentException("New password and confirmation do not match");
         }
 
-        // optional: basic length check (model enforces @Size(min = 6) on User.password)
+        // length check (model enforces @Size(min = 6) on User.password)
         if (dto.getNewPassword().length() < 6) {
             throw new IllegalArgumentException("New password must be at least 6 characters long");
         }
@@ -83,7 +83,7 @@ public class UserService {
     }
 
     public UserResponseDTO getUser(User user) {
-
+        // Making UserResponse object from User object
         UserResponseDTO dto = new UserResponseDTO();
 
         dto.setId(user.getId());
@@ -119,6 +119,7 @@ public class UserService {
     public void updateUser(Long userId, UpdateProfileRequestDTO dto, MultipartFile profileImage) throws IOException {
 
         Optional<User> opt = userRepository.findById(userId);
+        // user does not exist
         if (opt.isEmpty()) {
             throw new IllegalArgumentException("User not found with id: " + userId);
         }
@@ -226,6 +227,7 @@ public class UserService {
     }
 
     public Void blockUser(Long id) {
+        // find user and set blocked
         User user = userRepository.findById(id).get();
 
         user.setBlocked(true);
@@ -234,6 +236,7 @@ public class UserService {
     }
 
     public Void unblockUser(Long id) {
+        // find user and delete block
         User user = userRepository.findById(id).get();
 
         user.setBlocked(false);
@@ -288,7 +291,7 @@ public class UserService {
             LocalDateTime earliest = allRelevantRides.stream().map(Ride::getScheduledTime).min(LocalDateTime::compareTo).orElse(defaultEnd);
             defaultStart = earliest;
         } else {
-            // no rides -> default to today
+            // no rides - default to today
             defaultStart = defaultEnd;
         }
         LocalDateTime start = (startDate == null) ? defaultStart : LocalDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.systemDefault());

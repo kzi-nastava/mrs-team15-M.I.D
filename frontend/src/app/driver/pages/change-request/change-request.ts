@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { ChangeRequestForm } from '../../components/change-request-form/change-request-form';
 import { AdminService } from '../../../services/admin.service';
 
+// Page component for reviewing individual driver change requests
+// Displays original vs changed driver data and allows admin to approve or reject
 @Component({
   selector: 'app-change-request',
   standalone: true,
@@ -12,9 +14,12 @@ import { AdminService } from '../../../services/admin.service';
   styleUrl: './change-request.css',
 })
 export class ChangeRequest implements OnInit {
+  // Driver data after requested changes
   changedDriver: any = null;
+  // Flag indicating if using mock data
   isMock = false;
 
+  // Mock data for testing when no real driver data is available
   private readonly MOCK_DRIVER = {
     firstName: 'Ana',
     lastName: 'Marković',
@@ -32,6 +37,7 @@ export class ChangeRequest implements OnInit {
       babyFriendly: false,
     },
   };
+  // Mock original driver data before changes (for comparison)
   private readonly ORIGINAL_DRIVER = {
     firstName: 'Ana',
     lastName: 'Marković',
@@ -49,28 +55,32 @@ export class ChangeRequest implements OnInit {
       babyFriendly: true,
     },
   };
+  // Original driver data before requested changes
   originalDriver: any = null;
+  // Metadata about the change request (id, date, etc.)
   requestMeta: any = null;
+  // Message displayed to user after approve/reject action
   resultMessage = '';
 
   constructor(private router: Router, private adminService: AdminService) {}
 
   ngOnInit(): void {
+    // Extract driver data from router navigation state
     const navigation = this.router.getCurrentNavigation();
     this.changedDriver = navigation?.extras?.state?.['changedDriver'] || history.state?.['changedDriver'] || null;
     this.originalDriver = navigation?.extras?.state?.['originalDriver'] || history.state?.['originalDriver'] || null;
     this.requestMeta = navigation?.extras?.state?.['requestMeta'] || history.state?.['requestMeta'] || null;
 
-    // normalize incoming objects so template comparisons work (phone vs phoneNumber, profileImage vs avatarUrl, vehicle fields)
+    // Normalize incoming objects so template comparisons work 
     this.originalDriver = this.normalizeDriver(this.originalDriver) || this.ORIGINAL_DRIVER;
     this.changedDriver = this.normalizeDriver(this.changedDriver) || this.MOCK_DRIVER;
     if (this.changedDriver === this.MOCK_DRIVER) {
       this.isMock = true;
     }
-    // `requestMeta` must be provided by the caller (table/navigation).
-    // Do not create a mock request id here — the real request id comes from the requests table.
   }
 
+  // Normalizes driver data from different backend formats into consistent structure
+  // Handles various field name variations and nested vehicle data
   private normalizeDriver(d: any): any {
     if (!d) return null;
     const vehicleSource = d.vehicle || {};
@@ -96,6 +106,7 @@ export class ChangeRequest implements OnInit {
     };
   }
 
+  // Gets nested property value from object using dot-notation path (e.g., 'vehicle.model')
   private getValue(obj: any, path: string) {
     try {
       return path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), obj);
@@ -104,12 +115,15 @@ export class ChangeRequest implements OnInit {
     }
   }
 
+  // Checks if a specific field has changed between original and changed driver
   isFieldChanged(path: string): boolean {
     const a = this.getValue(this.originalDriver, path);
     const b = this.getValue(this.changedDriver, path);
     return a !== b;
   }
 
+  // Handles approval of driver change request
+  // Sends approval to backend with optional admin notes
   onApprove(event: any): void {
     const rawId = event?.requestId || this.requestMeta?.id;
     const requestId = this.parseRequestId(rawId);
@@ -132,6 +146,8 @@ export class ChangeRequest implements OnInit {
     });
   }
 
+  // Handles rejection of driver change request
+  // Sends rejection to backend with optional admin notes
   onReject(event: any): void {
     const rawId = event?.requestId || this.requestMeta?.id;
     const requestId = this.parseRequestId(rawId);
@@ -154,6 +170,7 @@ export class ChangeRequest implements OnInit {
     });
   }
 
+  // Retrieves current admin user from local storage
   private getCurrentUser(): any {
     try {
       const raw = localStorage.getItem('user');
@@ -163,6 +180,7 @@ export class ChangeRequest implements OnInit {
     }
   }
 
+  // Parses request ID from various formats (string/number) to valid numeric ID
   private parseRequestId(raw: any): number {
     if (raw == null) return null as any;
     if (typeof raw === 'number') return raw;

@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
 
+// Page component for changing user password
+// Validates current password and new password match before submitting
 @Component({
   selector: 'app-change-password',
   standalone: true,
@@ -11,20 +13,25 @@ import { UserService } from '../../services/user.service';
   styleUrl: './change-password.css',
 })
 export class ChangePasswordPage {
+  // Error message displayed to user
   passwordError: string | null = null;
 
+  // Toggle password visibility flags
   showCurrent = false;
   showNew = false;
   showConfirm = false;
   
+  // Default user ID for development
   private readonly DEV_USER_ID = 9;
 
   constructor(private router: Router, private userService: UserService) {}
 
+  // Navigates back to profile page
   goBack() {
     this.router.navigate(['/profile']);
   }
 
+  // Validates and submits password change request
   changePassword(current: string, next: string, confirm: string) {
     this.passwordError = null;
 
@@ -43,7 +50,7 @@ export class ChangePasswordPage {
       return;
     }
 
-    
+    // Get user ID from localStorage
     let userId = this.DEV_USER_ID;
     try {
       const raw = localStorage.getItem('user');
@@ -52,7 +59,7 @@ export class ChangePasswordPage {
         if (parsed && parsed.id) userId = Number(parsed.id);
       }
     } catch (e) {
-      
+      // Use dev default if parsing fails
     }
 
     const payload = {
@@ -76,6 +83,7 @@ export class ChangePasswordPage {
     });
   }
 
+  // Toggles password visibility for specified field
   toggleShow(field: 'current' | 'new' | 'confirm') {
     if (field === 'current') this.showCurrent = !this.showCurrent;
     if (field === 'new') this.showNew = !this.showNew;

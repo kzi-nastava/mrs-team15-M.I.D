@@ -11,6 +11,7 @@ import { RideService } from '../../../services/ride.service';
 import { PassengerService } from '../../../services/passenger.service';
 import { MapRouteService } from '../../../services/map-route.service';
 
+// Interface for favorite route data structure
 interface FavoriteRoute {
   id?: number | null;
   name: string;
@@ -19,6 +20,8 @@ interface FavoriteRoute {
   stops?: string[];
 }
 
+// Main form component for ordering rides
+// Handles address input, autocomplete suggestions, favorite routes, route estimation and navigation to preferences
 @Component({
   selector: 'app-ride-ordering-form',
   standalone: true,
@@ -27,25 +30,38 @@ interface FavoriteRoute {
   styleUrls: ['./ride-ordering-form.css'],
 })
 export class RideOrderingForm implements OnInit {
+  // Flag indicating if user already has an active ride
   @Input() hasActiveRide: boolean = false;
   
+  // Pickup address input
   pickupAddress: string = '';
+  // Destination address input
   destinationAddress: string = '';
+  // Array of intermediate stop addresses
   stops: string[] = [];
+  // Index of currently dragged stop (for reordering)
   draggedIndex: number | null = null;
+  // Index of stop currently being dragged over
   dragOverIndex: number | null = null;
 
-  // Mocked favorite routes for demo purposes
+  // List of user's favorite routes
   favorites: FavoriteRoute[] = [];
 
+  // Currently selected favorite route name
   selectedFavorite: string | null = null;
+  // Favorite routes dropdown visibility
   favoriteOpen: boolean = false;
 
+  // Form validator instance
   validator: FromValidator = new FromValidator();
+  // Last route estimate from backend
   lastEstimate: any = null;
+  // ID of currently selected favorite route
   currentFavoriteRouteId: number | null = null;
+  // Selected vehicle type for the ride
   selectedVehicleType: 'STANDARD' | 'LUXURY' | 'VAN' = 'STANDARD';
 
+  // Checks if form has any validation errors
   hasErrors(): boolean {
     if (this.validator.addressError(this.pickupAddress) || this.validator.addressError(this.destinationAddress)) return true;
     for (const s of this.stops) {
@@ -54,6 +70,7 @@ export class RideOrderingForm implements OnInit {
     return false;
   }
 
+  // Applies selected favorite route to form fields
   applyFavorite() {
     const fav = this.favorites.find(f => f.name === this.selectedFavorite);
     if (!fav) return;
@@ -62,20 +79,23 @@ export class RideOrderingForm implements OnInit {
     this.stops = fav.stops ? [...fav.stops] : [];
   }
 
+  // Toggles favorite routes dropdown visibility
   toggleFavoriteDropdown() {
     this.favoriteOpen = !this.favoriteOpen;
   }
 
+  // TrackBy function for ngFor performance optimization
   trackByIndex(index: number, _item: any) {
     return index;
   }
 
+  // TrackBy function for favorite routes list
   trackByRouteId(index: number, item: FavoriteRoute) {
   return item.id ?? index;
   }
 
-  
-
+  // Handles favorite route selection from dropdown
+  // Fetches full route details and displays on map
   selectFavorite(name: string) {
     if (name === '') {
       this.selectedFavorite = '';
@@ -166,28 +186,33 @@ export class RideOrderingForm implements OnInit {
     this.favoriteOpen = false;
   }
 
+  // Adds new empty stop to the stops array
   addStop() {
     this.stops.push('');
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
 
+  // Handles drag start event for stop reordering
   onDragStart(event: DragEvent, index: number) {
     this.draggedIndex = index;
     try { event.dataTransfer?.setData('text/plain', String(index)); } catch (e) {}
     if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
   }
 
+  // Handles drag over event for visual feedback
   onDragOver(event: DragEvent, index: number) {
     event.preventDefault();
     this.dragOverIndex = index;
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
   }
 
+  // Clears drag over index when leaving drop zone
   onDragLeave(_event: DragEvent, _index: number) {
     this.dragOverIndex = null;
   }
 
+  // Handles drop event, reorders stops array
   onDrop(event: DragEvent, index: number) {
     event.preventDefault();
     const from = this.draggedIndex !== null ? this.draggedIndex : Number(event.dataTransfer?.getData('text/plain'));
@@ -208,6 +233,7 @@ export class RideOrderingForm implements OnInit {
     this.currentFavoriteRouteId = null;
   }
 
+  // Cleans up drag state when drag ends
   onDragEnd(_event: DragEvent) {
     this.dragOverIndex = null;
     this.draggedIndex = null;
@@ -215,29 +241,33 @@ export class RideOrderingForm implements OnInit {
     this.currentFavoriteRouteId = null;
   }
 
+  // Removes stop at specified index
   removeStop(index: number) {
     this.stops.splice(index, 1);
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
 
-  // address change handlers and map change
+  // Timers for debouncing address changes and suggestions
   private updateTimer: any = null;
   private suggestTimer: any = null;
 
+  // Arrays holding address suggestions for autocomplete
   pickupSuggestions: Array<any> = [];
   destinationSuggestions: Array<any> = [];
   stopSuggestions: Array<Array<any>> = [];
   
-  // suggestion helpers and caching
+  // Constants and helpers for suggestion caching
   private readonly MIN_QUERY_LENGTH = 3;
   private readonly SUGGESTION_LIMIT = 5;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private suggestionCache = new Map<string, { suggestions: any[]; timestamp: number }>();
   private lastFetchController: AbortController | null = null;
 
+  // Flag to restrict suggestions to Novi Sad area
   restrictSuggestionsToNoviSad: boolean = true;
 
+  // Handles pickup address input change
   onPickupChange(val: string) {
     this.pickupAddress = val;
     this.fetchSuggestionsDebounced(val, 'pickup');
@@ -247,6 +277,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onPickupChange', val);
   }
 
+  // Handles destination address input change
   onDestinationChange(val: string) {
     this.destinationAddress = val;
     this.fetchSuggestionsDebounced(val, 'destination');
@@ -256,6 +287,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onDestinationChange', val);
   }
 
+  // Handles stop address input change
   onStopChange(val: string, index: number) {
     this.stops[index] = val;
     this.fetchSuggestionsDebounced(val, 'stop', index);
@@ -265,10 +297,12 @@ export class RideOrderingForm implements OnInit {
     console.debug('onStopChange', index, val);
   }
 
+  // Updates selected vehicle type
   selectVehicleType(type: 'STANDARD' | 'LUXURY' | 'VAN') {
     this.selectedVehicleType = type;
   }
 
+  // Geocodes addresses and displays markers on map
   private async geocodeAndShowMarkers() {
     try {
       const addresses: string[] = [];
@@ -320,12 +354,13 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
-  // Suggestions 
+  // Debounces suggestion fetching to avoid excessive API calls
   private fetchSuggestionsDebounced(query: string, target: 'pickup' | 'destination' | 'stop', index?: number, delay =10) {
     if (this.suggestTimer) clearTimeout(this.suggestTimer);
     this.suggestTimer = setTimeout(() => { this.fetchSuggestions(query, target, index); }, delay);
   }
 
+  // Aborts any ongoing suggestion fetch request
   private abortOngoingFetch(): void {
     if (this.lastFetchController) {
       try { this.lastFetchController.abort(); } catch (e) {}
@@ -333,6 +368,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
+  // Updates suggestions array for specified target field
   private setSuggestionsForTarget(target: 'pickup' | 'destination' | 'stop', suggestions: any[], index?: number) {
     if (target === 'pickup') this.pickupSuggestions = suggestions;
     else if (target === 'destination') this.destinationSuggestions = suggestions;
@@ -344,6 +380,7 @@ export class RideOrderingForm implements OnInit {
     try { this.cdr.detectChanges(); } catch (e) {}
   }
 
+  // Fetches address suggestions from geocoding API with caching
   private async fetchSuggestions(query: string, target: 'pickup' | 'destination' | 'stop', index?: number) {
     try {
       if (!query || query.trim().length < this.MIN_QUERY_LENGTH) {
@@ -385,6 +422,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
+  // Handles selection of pickup address suggestion
   onPickupSuggestion(item: any) {
     if (!item) return;
     const d = item.raw || item;
@@ -397,6 +435,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onPickupSuggestion chosen', { item, pickupAddress: this.pickupAddress, len: (this.pickupAddress || '').length, valid: this.validator.addressError(this.pickupAddress) });
   }
 
+  // Handles selection of destination address suggestion
   onDestinationSuggestion(item: any) {
     if (!item) return;
     const d = item.raw || item;
@@ -408,6 +447,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onDestinationSuggestion chosen', { item, destinationAddress: this.destinationAddress, len: (this.destinationAddress || '').length, valid: this.validator.addressError(this.destinationAddress) });
   }
 
+  // Handles selection of stop address suggestion
   onStopSuggestion(item: any, index: number) {
     if (!item) return;
     const d = item.raw || item;
@@ -419,6 +459,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onStopSuggestion chosen', { index, item, stopValue: this.stops[index], len: (this.stops[index] || '').length, valid: this.validator.addressError(this.stops[index]) });
   }
 
+  // Validates addresses, geocodes them, calls backend for route estimate and displays on map
   async showRoute() {
     const pickupErr = this.validator.addressError(this.pickupAddress);
     const destErr = this.validator.addressError(this.destinationAddress);
@@ -520,12 +561,13 @@ export class RideOrderingForm implements OnInit {
       console.error('Show route failed', err);
     }
   }
-  
 
+  // Flag to show/hide preferences form
   showPreferences: boolean = false;
-  
+  // Flag indicating if route has been chosen
   routeChosen: boolean = false;
 
+  // Shows preferences form after route is validated
   chooseRoute() {
     this.showPreferences = true;
     this.routeChosen = true;
@@ -534,6 +576,8 @@ export class RideOrderingForm implements OnInit {
   }
 
   constructor(private rideService: RideService, private passengerService: PassengerService, private mapRouteService: MapRouteService, private cdr: ChangeDetectorRef, private router: Router) {}
+  
+  // Formats address display name by truncating to first 3 parts
   private formatDisplayName(raw?: string | null): string {
     if (!raw) return '';
     const parts = raw.split(',').map(p => p.trim()).filter(p => p.length > 0);
@@ -546,6 +590,7 @@ export class RideOrderingForm implements OnInit {
     this.mapRouteService.clearRoute();
   }
 
+  // Loads user's favorite routes from backend
   private loadFavoriteRoutes() {
     try {
       console.log('Loading favorite routes from backend');
@@ -600,6 +645,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
+  // Handles confirmation of ride preferences, builds order DTO and navigates to finding driver page
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
     
@@ -721,6 +767,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
+  // Event emitted when order attempt is made (success or error)
   @Output() orderAttempt = new EventEmitter<any>();
 
 }

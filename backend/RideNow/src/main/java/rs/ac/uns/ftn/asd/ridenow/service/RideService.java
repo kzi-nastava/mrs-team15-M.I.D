@@ -115,7 +115,7 @@ public class RideService {
     }
 
     public OrderRideResponseDTO orderRide(OrderRideRequestDTO dto, String mainPassenger) {
-        // validacija tipa vozila
+        // validate vehicle type
         VehicleType vehicleType;
         try {
             vehicleType = VehicleType.valueOf(dto.getVehicleType().toUpperCase());
@@ -123,7 +123,7 @@ public class RideService {
             throw new IllegalArgumentException("Invalid vehicle type: " + dto.getVehicleType());
         }
 
-        // validacija scheduled time - max 5 hours in advance
+        // validate scheduled time - max 5 hours in advance
         LocalDateTime now = LocalDateTime.now();
         if (dto.getScheduledTime() != null) {
             if (dto.getScheduledTime().isBefore(now)) {
@@ -134,16 +134,15 @@ public class RideService {
             }
         }
 
-        // kreiranje nove rute ili korišćenje favorite
+        // creating new route or using favorite route
         Route route = makeRoute(dto);
 
-        // inicijalizacija ride uvek
         Ride ride = new Ride();
 
-        // odredi vremenski okvir za pronalaženje najboljeg vozača
+        // defining time period for the ride
         LocalDateTime endTime = (dto.getScheduledTime() != null) ? dto.getScheduledTime().plusMinutes(0) : now.plusHours(1);
 
-        // pronađi najboljeg vozača
+        // finding the best driver
         OrderRideResponseDTO response = getBestDriver(
                 dto,
                 vehicleType,
@@ -179,27 +178,27 @@ public class RideService {
             return response;
         }
 
-        // dodeli vozača
+        // find driver
         Driver assigned = driverRepository.findById(response.getDriverId())
                 .orElseThrow(() -> new EntityNotFoundException("Driver not found"));
 
-        // mark driver as unavailable ako nije zakazano
+        // mark driver as unavailable if not scheduled
         if (dto.getScheduledTime() == null) {
             assigned.setStatus(DriverStatus.INACTIVE);
         }
         driverRepository.save(assigned);
 
-        // odredi ETA
+        // calculate ETA
         int ETA = (response.getETA() != 0) ? response.getETA() : 0;
 
-        // dodela vozača i status ride
+        // set driver to the ride
         ride.setDriver(assigned);
         ride.setStatus(RideStatus.REQUESTED);
         ride.setDistanceKm(dto.getDistanceKm());
         ride.setPrice(dto.getPriceEstimate());
         ride.setScheduledTime((dto.getScheduledTime() != null) ? dto.getScheduledTime() : now.plusMinutes(ETA));
 
-        // dodavanje glavnog putnika
+        // adding main passanger
         Passenger main = new Passenger();
         main.setUser(mainUser);
         main.setRole(PassengerRole.CREATOR);
@@ -209,7 +208,7 @@ public class RideService {
         ride.setRoute(route);
 
 
-        // dodavanje linked putnika, preskakanje nepostojećih
+        // adding linked passengers and skipping non existent
         if (dto.getLinkedPassengers() != null) {
             for (String email : dto.getLinkedPassengers()) {
                 Optional<RegisteredUser> userOpt = registeredUserRepository.findByEmail(email);
@@ -229,7 +228,7 @@ public class RideService {
             }
         }
 
-        // čuvanje rute i ride
+        // saving route and ride
         if (dto.getFavoriteRouteId() == null) {
             route = routeRepository.save(route);
         }
@@ -247,7 +246,7 @@ public class RideService {
             // Log but don't fail the ride creation
         }
 
-        // popunjavanje response DTO
+        // setting response DTO
         response.setId(ride.getId());
         response.setMainPassengerEmail(mainPassenger);
         response.setStartAddress(dto.getStartAddress());
@@ -270,7 +269,7 @@ public class RideService {
 
 
     public OrderRideResponseDTO getBestDriver(OrderRideRequestDTO dto, VehicleType vehicleType, LocalDateTime now, LocalDateTime nextHour){
-
+        // helper method for getting the best driver for the ordered ride
         OrderRideResponseDTO response = new OrderRideResponseDTO();
 
         final int seats = 1 + (dto.getLinkedPassengers() != null ? dto.getLinkedPassengers().size() : 0);
@@ -397,6 +396,7 @@ public class RideService {
         }
         
         if (assigned != null) {
+            // Found driver
             response.setETA(ETA);
             response.setDriverId(assigned.getId());
             logger.info("Driver {} assigned for ride with ETA {} minutes", assigned.getId(), ETA);
@@ -410,6 +410,7 @@ public class RideService {
     }
 
     private Route makeRoute(OrderRideRequestDTO dto) {
+        // helper method for making a new route or using a favorite
         Route route;
         if (dto.getFavoriteRouteId() == null) {
             // create new route
@@ -820,11 +821,13 @@ public class RideService {
     }
 
     public StartRideResponseDTO passangerPickup(Long id) {
+        // Validate ride exists
         Ride ride = rideRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Ride with id " + id + " not found"));
 
         StartRideResponseDTO responseDTO = new StartRideResponseDTO();
         responseDTO.setId(ride.getId());
+        // Formatting long addresses
         // Start and End Address should be up to third comma
         String startAddress = ride.getRoute().getStartLocation().getAddress();
         String endAddress = ride.getRoute().getEndLocation().getAddress();
