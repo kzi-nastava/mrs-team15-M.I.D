@@ -10,6 +10,7 @@ import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 
+// Forma komponenta za prikaz i izmenu korisničkog profila
 @Component({
   selector: 'app-profile-form',
   standalone: true,
@@ -19,18 +20,25 @@ import { Observable } from 'rxjs';
 })
 export class ProfileForm implements OnInit {
 
+  // Referenca na file input za upload slike
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  // Selektovani fajl profilne slike
   selectedProfileFile: File | null = null;
+  // URL ili SafeUrl profilne slike
   userAvatar: string | SafeUrl = '';
+  // Backend URL za učitavanje slika
   backendUrl = 'http://localhost:8081';
 
 
   
+  // Flag za prikaz toast poruke
   showToast = false;
+  // Tekst toast poruke
   toastMessage = '';
+  // Tip toast poruke
   toastType: 'success' | 'error' = 'success';
 
-  
+  // Podaci o korisniku sa vehicle informacijama
   user = {
     firstName: '',
     lastName: '',
@@ -66,7 +74,7 @@ export class ProfileForm implements OnInit {
     });
   }
 
-  
+  // Mapira backend odgovor u user objekat forme
   private mapUser(res: any): void {
     this.user.firstName = res.firstName;
     this.user.lastName = res.lastName;
@@ -94,9 +102,11 @@ export class ProfileForm implements OnInit {
     this.cdr.detectChanges();
   }
 
-  
+  // Regex pattern za email validaciju
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Regex pattern za telefon validaciju
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
+  // Regex pattern za registarsku tablicu
   private licensePlatePattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
 
   isFieldEmpty(value: string): boolean {
@@ -115,6 +125,7 @@ export class ProfileForm implements OnInit {
     return this.licensePlatePattern.test(plate.toUpperCase());
   }
 
+  // Proverava da li postoje validacione greške u formi
   hasValidationErrors(): boolean {
     if (
       this.isFieldEmpty(this.user.firstName) ||
@@ -181,7 +192,7 @@ export class ProfileForm implements OnInit {
     this.router.navigate(['/change-password']);
   }
 
-  
+  // Čuva izmene profila - za drivere kreira change request, za ostale direktno update
   onSave(): void {
     if (this.hasValidationErrors()) {
       this.showToastMessage('Please fix validation errors.', 'error');

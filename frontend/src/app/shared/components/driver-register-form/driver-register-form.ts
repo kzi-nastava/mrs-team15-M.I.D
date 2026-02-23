@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Button } from '../button/button';
 import { AdminService } from '../../../services/admin.service';
 
+// Forma komponenta za admin registraciju novog drivera
 @Component({
   selector: 'app-driver-register-form',
   standalone: true,
@@ -12,14 +13,21 @@ import { AdminService } from '../../../services/admin.service';
   styleUrl: './driver-register-form.css',
 })
 export class DriverRegisterForm implements OnInit {
+  // Referenca na file input element za upload slike
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
+  // URL avatara korisnika
   userAvatar: string = '';
-  selectedFile: File | null = null; // Store the actual file
+  // Selektovani fajl slike
+  selectedFile: File | null = null;
+  // Flag za prikaz toast poruke
   showToast = false;
+  // Tekst toast poruke
   toastMessage = '';
+  // Tip toast poruke
   toastType: 'success' | 'error' = 'success';
 
+  // Podaci o korisniku
   user = {
     firstName: '',
     lastName: '',
@@ -30,6 +38,7 @@ export class DriverRegisterForm implements OnInit {
     activeHours: 0,
   };
 
+  // Podaci o vozilu
   vehicle: any = {
     licensePlate: '',
     model: '',
@@ -55,6 +64,7 @@ export class DriverRegisterForm implements OnInit {
 
   private licensePlatePattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
 
+  // Validira format registarske tablice (NS123AB)
   isLicensePlateValid(licensePlate: string): boolean {
     if (!licensePlate) return false;
     return this.licensePlatePattern.test(licensePlate.toUpperCase());
@@ -89,11 +99,13 @@ export class DriverRegisterForm implements OnInit {
     return this.isVehicleFieldEmpty(this.vehicle.type) ? 'Type is required' : '';
   }
 
+  // Validira email format
   isEmailValid(email: string): boolean {
     if (!email) return false;
     return this.emailPattern.test(email);
   }
 
+  // Validira format broja telefona
   isPhoneValid(phone: string): boolean {
     if (!phone) return false;
     return this.phonePattern.test(phone);
@@ -119,6 +131,7 @@ export class DriverRegisterForm implements OnInit {
     this.fileInput.nativeElement.click();
   }
 
+  // Handler za selekciju fajla slike
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -148,6 +161,7 @@ export class DriverRegisterForm implements OnInit {
     return 'STANDARD';
   }
 
+  // Submituje formu i šalje podatke na backend pomoću FormData
   onSubmit(): void {
     console.log('DriverRegisterForm.onSubmit called', { user: this.user, vehicle: this.vehicle });
     // basic validation
