@@ -58,6 +58,7 @@ public class ChatService {
     }
 
     public ChatResponseDTO openChatByUser(User user) {
+        // If a chat already exists for this user, return it. Otherwise, create a new chat.
         Optional<Chat> chatOpt = chatRepository.findByUser(user);
         Chat chat;
         chat = chatOpt.orElseGet(() -> createChat(user));

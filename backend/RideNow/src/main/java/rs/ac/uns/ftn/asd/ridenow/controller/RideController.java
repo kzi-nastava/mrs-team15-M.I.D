@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpServerErrorException;
 import rs.ac.uns.ftn.asd.ridenow.dto.ride.CancelRideRequestDTO;
@@ -32,6 +33,7 @@ import java.util.Map;
 @Tag(name = "Rides", description = "Ride management endpoints")
 @RestController
 @RequestMapping("/api/rides")
+@Validated
 public class RideController {
 
     @Autowired

@@ -278,6 +278,7 @@ public class AdminService {
     }
 
     public void updatePriceConfigs(PriceConfigRequestDTO request) {
+        // update each price config; if any config for a vehicle type is missing, throw an error
         for (PriceConfigDTO priceDTO : request.getPrices()) {
             PriceConfig config = priceRepository.findByVehicleType(priceDTO.getVehicleType())
                     .orElseThrow(() -> new IllegalArgumentException("PriceConfig not found for vehicle type: " + priceDTO.getVehicleType()));

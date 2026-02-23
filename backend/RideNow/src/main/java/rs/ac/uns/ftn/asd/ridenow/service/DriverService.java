@@ -18,17 +18,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
 import java.sql.Date;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import static rs.ac.uns.ftn.asd.ridenow.util.AddressUtil.formatAddress;
 
@@ -66,6 +63,7 @@ public class DriverService {
     }
 
   private Page<Ride> getRides(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
+        // Validate sortBy and sortDir
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
 
       LocalDateTime startOfDay = null;
@@ -78,6 +76,7 @@ public class DriverService {
           endOfDay = dateTime.toLocalDate().atTime(23, 59, 59);
       }
 
+      // Different sorting options
       if (sortBy.equals("passengers")) {
           if (sortDir.equals("asc")) {
               return date != null ?
@@ -107,6 +106,7 @@ public class DriverService {
     public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
+        // Validate sortBy and sortDir
         Page<Ride> driverRides = getRides(driverId, pageable, sortBy, sortDir, date);
         for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
@@ -115,12 +115,14 @@ public class DriverService {
             dto.setEndTime(ride.getEndTime());
             dto.setCost(ride.getPrice());
 
+            // Get passenger names
             List<String> passengerNames = new ArrayList<>();
             for (Passenger p : ride.getPassengers()) {
                 passengerNames.add(p == null ? null : p.getUser().getFirstName() + " " + p.getUser().getLastName());
             }
             dto.setPassengers(passengerNames);
 
+            // Check for panic alert
             if (ride.getPanicAlert() != null) {
                 dto.setPanic(true);
                 if (ride.getPanicAlert().getPanicBy() != null) {
@@ -128,6 +130,7 @@ public class DriverService {
                 }
             }
 
+            // Check if ride was cancelled
             dto.setCancelled(ride.getCancelled());
             if(ride.getCancelled()) {
                 dto.setCancelledBy(ride.getCancelledBy());
@@ -137,6 +140,7 @@ public class DriverService {
                 dto.setRating(new RatingDTO(ratingRepository.findByRide(ride)));
             }
 
+            // Get inconsistencies
             List<Inconsistency> inconsistencies = ride.getInconsistencies();
             List<String> inconsistencyStrings = new ArrayList<>();
             if (!inconsistencies.isEmpty()) {
@@ -222,12 +226,14 @@ public class DriverService {
 
 
     public List<UpcomingRideDTO> findScheduledRides(Long driverId) {
+        // Validate driver existence
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
         List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
         List<UpcomingRideDTO> rideDTOs = new ArrayList<>();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
+        // Transform each Ride into an UpcomingRideDTO
         for (Ride ride : rides) {
             UpcomingRideDTO dto = new UpcomingRideDTO();
             dto.setId(ride.getId());

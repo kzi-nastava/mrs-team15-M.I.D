@@ -485,14 +485,17 @@ public class RideService {
     }
 
     public TrackVehicleDTO trackRide(Long rideId) {
+        // Fetch the ride and associated driver and vehicle information
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new EntityNotFoundException("Ride with id " + rideId + " not found"));
 
+        // Check if ride is in progress
         Driver driver = ride.getDriver();
         if (driver == null) {
             throw new EntityNotFoundException("No driver assigned to ride with id " + rideId);
         }
 
+        // The vehicle's current location is stored in the database and updated by the driver app.
         Vehicle vehicle = driver.getVehicle();
         try {
             Route route = ride.getRoute();
@@ -531,7 +534,7 @@ public class RideService {
         webSocketHandler.unregisterRide(rideId);
         System.out.println("Ride " + rideId + " completed and unregistered");
 
-    // Delete old ride-related notifications (passenger added, ride assigned, ride started)
+        // Delete old ride-related notifications (passenger added, ride assigned, ride started)
         notificationService.deleteRideRelatedNotifications(rideId);
 
         // Also delete any notifications for the specific passengers (fallback for notifications without relatedEntityId)
@@ -574,10 +577,12 @@ public class RideService {
     }
 
     public InconsistencyResponseDTO reportInconsistency(InconsistencyRequestDTO req, Long userId) {
+        // Validate that the user is a passenger on the ride they are reporting about
         RegisteredUser regUser = registeredUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User with id " + userId + " not found"));
         Ride ride = rideRepository.findById(req.getRideId()).orElseThrow(() -> new EntityNotFoundException("Ride with id " + req.getRideId() + " not found"));
         Passenger passenger = passengerRepository.findByUserAndRide(regUser, ride).orElseThrow(() -> new EntityNotFoundException("Passenger with not found"));
 
+        // Create and save the inconsistency report
         Inconsistency inconsistency = new Inconsistency(ride, passenger, req.getDescription());
         Inconsistency savedInconsistency = inconsistencyRepository.save(inconsistency);
         return new InconsistencyResponseDTO(savedInconsistency);
