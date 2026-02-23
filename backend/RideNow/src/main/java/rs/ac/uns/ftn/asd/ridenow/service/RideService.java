@@ -153,7 +153,10 @@ public class RideService {
         // Get main passenger
         RegisteredUser mainUser = registeredUserRepository.findByEmail(mainPassenger)
                 .orElseThrow(() -> new EntityNotFoundException("User with email " + mainPassenger + " not found"));
-
+        //Check if main passanger is blocked
+        if (mainUser.isBlocked()){
+            throw new IllegalArgumentException();
+        }
         // Check if main passenger has an active ride
         Optional<Ride> existingActiveRide = rideRepository.findCurrentRideByUser(mainUser.getId());
         if (existingActiveRide.isPresent()) {
@@ -281,6 +284,7 @@ public class RideService {
 
         // filter by vehicle type and seat count and baby/pet and working hours
         List<Driver> matchingDrivers = potentialDrivers.stream()
+                .filter(d -> !d.isBlocked())
                 .filter(d -> d.getVehicle() != null && d.getVehicle().getType() == vehicleType)
                 .filter(d -> d.getVehicle().getSeatCount() >= seats)
                 .filter(d -> !babyFriendly || (d.getVehicle() != null && d.getVehicle().isChildFriendly()))

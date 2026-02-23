@@ -32,6 +32,7 @@ interface FavoriteRoute {
 export class RideOrderingForm implements OnInit {
   // Flag indicating if user already has an active ride
   @Input() hasActiveRide: boolean = false;
+  @Input() disabled: boolean = false;
   
   // Pickup address input
   pickupAddress: string = '';

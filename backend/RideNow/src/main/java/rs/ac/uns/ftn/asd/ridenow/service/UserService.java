@@ -3,16 +3,19 @@ package rs.ac.uns.ftn.asd.ridenow.service;
 import jakarta.validation.constraints.Min;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import rs.ac.uns.ftn.asd.ridenow.dto.user.BlockedStatusResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ChangePasswordRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.ReportResponseDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UpdateProfileRequestDTO;
 import rs.ac.uns.ftn.asd.ridenow.dto.user.UserResponseDTO;
+import rs.ac.uns.ftn.asd.ridenow.model.Blocked;
 import rs.ac.uns.ftn.asd.ridenow.model.Driver;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.Vehicle;
 import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.Ride;
 import rs.ac.uns.ftn.asd.ridenow.model.Passenger;
+import rs.ac.uns.ftn.asd.ridenow.repository.BlockedRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.UserRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RideRepository;
 import rs.ac.uns.ftn.asd.ridenow.repository.RegisteredUserRepository;
@@ -41,14 +44,17 @@ public class UserService {
     private final AuthService authService;
     private final RideRepository rideRepository;
     private final RegisteredUserRepository registeredUserRepository;
+    private final BlockedRepository blockedRepository;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthService authService,
-                       RideRepository rideRepository, RegisteredUserRepository registeredUserRepository) {
+                       RideRepository rideRepository, RegisteredUserRepository registeredUserRepository,
+                       BlockedRepository blockedRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
         this.rideRepository = rideRepository;
         this.registeredUserRepository = registeredUserRepository;
+        this.blockedRepository = blockedRepository;
     }
 
     public void changePassword(Long userId, ChangePasswordRequestDTO dto) {
@@ -232,6 +238,11 @@ public class UserService {
 
         user.setBlocked(true);
         userRepository.save(user);
+
+        // Save blocking reason in Blocked table
+        Blocked blocked = new Blocked(user, reason);
+        blockedRepository.save(blocked);
+        
         return null;
     }
 
@@ -241,7 +252,29 @@ public class UserService {
 
         user.setBlocked(false);
         userRepository.save(user);
+
+        // Remove blocking reason from Blocked table
+        blockedRepository.findByUser(user).ifPresent(blockedRepository::delete);
+        
         return null;
+    }
+
+    public BlockedStatusResponseDTO getBlockedStatus(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        if (!user.isBlocked()) {
+            return new BlockedStatusResponseDTO(false, null, null);
+        }
+
+        Optional<Blocked> blockedOpt = blockedRepository.findByUser(user);
+        if (blockedOpt.isPresent()) {
+            Blocked blocked = blockedOpt.get();
+            return new BlockedStatusResponseDTO(true, blocked.getReason(), blocked.getBlockedAt());
+        }
+
+        // User is blocked but no reason in DB (shouldn't happen, but handle it)
+        return new BlockedStatusResponseDTO(true, "No reason provided", null);
     }
 
     public ReportResponseDTO getReport(@Min(0) Long startDate, @Min(0) Long endDate, Long id) {
