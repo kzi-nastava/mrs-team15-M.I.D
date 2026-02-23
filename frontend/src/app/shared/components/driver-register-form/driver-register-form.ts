@@ -4,6 +4,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Button } from '../button/button';
 import { AdminService } from '../../../services/admin.service';
 
+// Form component for admin to register new drivers
+// Includes personal info, vehicle details and profile image upload
 @Component({
   selector: 'app-driver-register-form',
   standalone: true,
@@ -14,12 +16,18 @@ import { AdminService } from '../../../services/admin.service';
 export class DriverRegisterForm implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
+  // URL for displaying user avatar
   userAvatar: string = '';
-  selectedFile: File | null = null; // Store the actual file
+  // Selected profile image file
+  selectedFile: File | null = null;
+  // Toast visibility
   showToast = false;
+  // Toast message text
   toastMessage = '';
+  // Toast type (success or error)
   toastType: 'success' | 'error' = 'success';
 
+  // Driver personal information
   user = {
     firstName: '',
     lastName: '',
@@ -30,6 +38,7 @@ export class DriverRegisterForm implements OnInit {
     activeHours: 0,
   };
 
+  // Driver vehicle information
   vehicle: any = {
     licensePlate: '',
     model: '',
@@ -42,7 +51,7 @@ export class DriverRegisterForm implements OnInit {
   constructor(private cdr: ChangeDetectorRef, private adminService: AdminService) {}
 
   ngOnInit(): void {
-    // check if user is admin
+    // Check if user is admin
   const role ='ADMIN';
   if (role !== 'ADMIN') {
     this.showToastMessage('Access denied', 'error');
@@ -50,30 +59,35 @@ export class DriverRegisterForm implements OnInit {
   }
 }
 
+  // Regex patterns for validation
   private emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   private phonePattern = /^(\+381|0)[0-9]{9,10}$/;
-
   private licensePlatePattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
 
+  // Validates license plate format (e.g., NS123AB)
   isLicensePlateValid(licensePlate: string): boolean {
     if (!licensePlate) return false;
     return this.licensePlatePattern.test(licensePlate.toUpperCase());
   }
 
+  // Checks if vehicle field is empty
   isVehicleFieldEmpty(field: string): boolean {
     return !field || field.trim() === '';
   }
 
+  // Returns error message for license plate validation
   getLicensePlateErrorMessage(): string {
     if (this.isVehicleFieldEmpty(this.vehicle.licensePlate)) return 'License plate is required';
     if (!this.isLicensePlateValid(this.vehicle.licensePlate)) return 'License plate format is invalid (e.g: NS123AB)';
     return '';
   }
 
+  // Returns error message for vehicle model validation
   getModelErrorMessage(): string {
     return this.isVehicleFieldEmpty(this.vehicle.model) ? 'Car model is required' : '';
   }
 
+  // Returns error message for seats validation
   getSeatsErrorMessage(): string {
     const seatsNum = Number(this.vehicle.seats);
     if (this.vehicle.seats === undefined || this.vehicle.seats === null || this.vehicle.seats === '') {
@@ -85,49 +99,58 @@ export class DriverRegisterForm implements OnInit {
     return '';
   }
 
+  // Returns error message for vehicle type validation
   getTypeErrorMessage(): string {
     return this.isVehicleFieldEmpty(this.vehicle.type) ? 'Type is required' : '';
   }
 
+  // Validates email format
   isEmailValid(email: string): boolean {
     if (!email) return false;
     return this.emailPattern.test(email);
   }
 
+  // Validates phone number format
   isPhoneValid(phone: string): boolean {
     if (!phone) return false;
     return this.phonePattern.test(phone);
   }
 
+  // Returns error message for email validation
   getEmailErrorMessage(): string {
     if (!this.user.email) return 'Email is required';
     if (!this.isEmailValid(this.user.email)) return 'Email is invalid';
     return '';
   }
 
+  // Returns error message for phone validation
   getPhoneErrorMessage(): string {
     if (!this.user.phone) return 'Phone number is required';
     if (!this.isPhoneValid(this.user.phone)) return 'Phone number is invalid (e.g: 0601234567 or +381601234567)';
     return '';
   }
 
+  // Checks if personal field is empty
   isFieldEmpty(field: string): boolean {
     return !field || field.trim() === '';
   }
 
+  // Triggers file input click for photo selection
   onSelectPhoto(): void {
     this.fileInput.nativeElement.click();
   }
 
+  // Handles file selection from input
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      this.selectedFile = file; // Store the file
+      this.selectedFile = file;
       this.userAvatar = URL.createObjectURL(file);
     }
   }
 
+  // Displays toast message for 3 seconds
   private showToastMessage(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastMessage = message;
     this.toastType = type;

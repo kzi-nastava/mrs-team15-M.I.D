@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DriverRequestsTable } from '../../components/driver-requests-table/driver-requests-table';
 
+// Page component that displays list of all driver change requests
+// Allows admin to view and navigate to individual requests for review
 @Component({
   selector: 'app-driver-requests',
   standalone: true,
@@ -13,9 +15,12 @@ import { DriverRequestsTable } from '../../components/driver-requests-table/driv
 export class DriverRequestsPage {
   constructor(private router: Router) {}
 
+  // Opens individual change request for detailed review
+  // Normalizes and passes both original and changed driver data to detail page
   openRequest(req: any) {
-    // navigate to change-request page with both original (prefer stored user) and changed driver
+    // Navigate to change-request page with both original and changed driver
     let original = req.originalDriver;
+    // If detailed user data is available, normalize it into consistent format
     if (req?.originalDriver?._full) {
       const u = req.originalDriver._full;
       const vehicleFromUser = {
@@ -40,6 +45,7 @@ export class DriverRequestsPage {
       };
     }
 
+    // Navigate with all data passed through router state
     this.router.navigate(['/change-request'], {
       state: { changedDriver: req.changedDriver, originalDriver: original, requestMeta: req.requestMeta || { id: req.id, requestedBy: req.requestedBy, submittedAt: req.submittedAt, reason: req.reason } },
     });

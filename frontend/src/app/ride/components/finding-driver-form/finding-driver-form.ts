@@ -6,6 +6,7 @@ import { AdminService } from '../../../services/admin.service';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
+// Interface for ride information
 interface RideInfo {
   startAddress: string;
   endAddress: string;
@@ -16,6 +17,7 @@ interface RideInfo {
   vehicleType?: string;
 }
 
+// Interface for driver information
 interface DriverInfo {
   name: string;
   etaMinutes: number;
@@ -24,6 +26,8 @@ interface DriverInfo {
   photo?: string;
 }
 
+// Component that handles driver search and assignment
+// Shows searching state, then either found driver or not found
 @Component({
   selector: 'app-finding-driver-form',
   imports: [CommonModule],
@@ -31,6 +35,7 @@ interface DriverInfo {
   styleUrl: './finding-driver-form.css',
 })
 export class FindingDriverForm implements OnInit {
+  // Ride information passed from ordering form
   @Input() ride: RideInfo = {
     startAddress: 'Bulevar cara Lazara 80',
     endAddress: 'Nemanjina 4',
@@ -47,8 +52,9 @@ export class FindingDriverForm implements OnInit {
     private cd: ChangeDetectorRef
   ) {}
 
+  // On init, orders ride and searches for driver
   ngOnInit(): void {
-    
+    // If ride doesn't have an id, it's a new order
     if (this.ride && !(this.ride as any).id) {
       this.state = 'searching';
       (async () => {
@@ -124,16 +130,17 @@ export class FindingDriverForm implements OnInit {
     }
   }
 
-  
+  // Current UI state (searching/found/notfound)
   state: 'searching' | 'found' | 'notfound' = 'searching';
 
-  
+  // Driver info when found
   foundDriver: DriverInfo | null = null;
 
-  
+  // Lock flag to prevent state changes during animation
   foundLocked = false;
   private _foundLockTimer: any = null;
 
+  // Enters found state and locks for 3 seconds
   private enterFoundState() {
     this.foundLocked = true;
     this.state = 'found';
@@ -145,10 +152,11 @@ export class FindingDriverForm implements OnInit {
     }, 3000);
   }
 
-  
+  // Lock flag for not found state
   notFoundLocked = false;
   private _notFoundLockTimer: any = null;
 
+  // Enters not found state and locks for 3 seconds
   private enterNotFoundState() {
     this.notFoundLocked = true;
     this.state = 'notfound';
@@ -160,6 +168,7 @@ export class FindingDriverForm implements OnInit {
     }, 3000);
   }
 
+  // Ensures minimum search duration for better UX
   private async ensureMinSearchDuration(startMs: number, minMs: number) {
     const elapsed = Date.now() - startMs;
     if (elapsed < minMs) {
@@ -167,15 +176,18 @@ export class FindingDriverForm implements OnInit {
     }
   }
 
+  // Resets to searching state
   resetSearch() {
     this.foundDriver = null;
     this.state = 'searching';
   }
 
+  // Accepts ride and navigates to upcoming rides
   accept() {
     this.router.navigate(['/upcoming-rides']);
   }
 
+  // Navigates back to ride detail page
   backToRideDetail() {
     // Navigate to the current-ride page and pass the ride info via navigation state
     try {
@@ -193,24 +205,28 @@ export class FindingDriverForm implements OnInit {
     }
   }
 
+  // Cancels ride search and returns to home
   onCancel() {
     this.router.navigate(['/home']);
   }
 
+  // Navigates to ride ordering page
   goToOrdering() {
     this.router.navigate(['/ride-ordering']);
   }
 
+  // Formats distance for display
   formatDistance(): string {
     return (this.ride.distanceKm ?? 0) + ' km';
   }
 
+  // Formats price for display
   formatPrice(): string {
     const p = this.ride.price ?? 0;
     return p.toFixed(2) + ' RSD';
   }
 
-  
+  // Splits address into primary and secondary lines based on commas
   getAddressLines(address: string): { primary: string; secondary: string } {
     if (!address) return { primary: '', secondary: '' };
     const raw = String(address).trim();

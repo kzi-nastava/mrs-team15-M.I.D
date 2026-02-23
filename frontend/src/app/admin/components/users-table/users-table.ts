@@ -8,6 +8,7 @@ import { UnblockUserModal } from '../unblock-users-modal/unblock-user-modal';
 import { AdminService } from '../../../services/admin.service';
 import { environment } from '../../../../environments/environment';
 
+// Interface defining user data structure for admin panel
 export interface AdminUser {
   id: number;
   role: string;
@@ -19,6 +20,8 @@ export interface AdminUser {
   imageUrl?: string | null;
 }
 
+// Admin component for managing all users (view, search, block/unblock)
+// Supports pagination, sorting and search functionality
 @Component({
   selector: 'app-users-table',
   standalone: true,
@@ -27,19 +30,30 @@ export interface AdminUser {
   styleUrl: './users-table.css'
 })
 export class UsersTable {
+  // Toast message text
   message: string = '';
+  // Toast message visibility
   showMessage: boolean = false;
 
+  // List of users to display
   filteredUsers: AdminUser[] = [];
+  // Current search query
   searchQuery: string = '';
+  // Number of users per page
   pageSize: number = 10;
+  // Current page number
   currentPage: number = 1;
+  // Total number of users in database
   totalUsers: number = 0;
+  // User selected for block/unblock action
   selectedUser: AdminUser | null = null;
+  // Block modal visibility
   showBlockModal: boolean = false;
+  // Unblock modal visibility
   showUnblockModal: boolean = false;
-  // sorting
+  // Field to sort by
   sortBy: string | null = null;
+  // Sort direction
   sortDir: 'asc' | 'desc' = 'asc';
 
   constructor(private cdr: ChangeDetectorRef, private adminService: AdminService) {}
@@ -48,6 +62,7 @@ export class UsersTable {
     this.fetchUsers();
   }
 
+  // Fetches users from backend with current filters, sort and pagination
   fetchUsers(): void {
     const pageIndex = Math.max(0, this.currentPage - 1);
     this.adminService.getAllUsers(this.searchQuery || undefined, this.sortBy || undefined, this.sortDir || undefined, pageIndex, this.pageSize).subscribe({
@@ -73,6 +88,7 @@ export class UsersTable {
     });
   }
 
+  // Displays toast message for 3 seconds
   showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;
@@ -80,6 +96,7 @@ export class UsersTable {
     setTimeout(() => { this.showMessage = false; }, 3000);
   }
 
+  // Sets or toggles sort column and direction
   setSort(column: string): void {
     if (this.sortBy === column) {
       this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
@@ -87,18 +104,21 @@ export class UsersTable {
       this.sortBy = column;
       this.sortDir = 'asc';
     }
-    // request sorted data from backend
+    // Request sorted data from backend
     this.fetchUsers();
   }
 
+  // Calculates total number of pages
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.totalUsers / this.pageSize));
   }
 
+  // Returns current page of users
   get pagedUsers(): AdminUser[] {
     return this.filteredUsers;
   }
 
+  // Changes to specified page
   changePage(page: number): void {
     if (page < 1) page = 1;
     if (page > this.totalPages) page = this.totalPages;
@@ -106,37 +126,41 @@ export class UsersTable {
     this.fetchUsers();
   }
 
+  // Updates page size and resets to first page
   onPageSizeChange(size: number): void {
     this.pageSize = size;
     this.currentPage = 1;
     this.fetchUsers();
   }
 
-  // PageHeader handlers
-  onSearch(filterValue: string): void {
+  // Handles search input from page header
+  onSearch(filterValue: string): void{
     this.searchQuery = filterValue || '';
     this.fetchUsers();
   }
 
+  // Clears search filter
   onClearFilter(): void {
     this.searchQuery = '';
     this.fetchUsers();
   }
 
+  // Opens block user modal
   openBlockModal(u: AdminUser): void {
     this.selectedUser = u;
     this.showBlockModal = true;
   }
 
+  // Opens unblock user modal
   openUnblockModal(u: AdminUser): void {
     this.selectedUser = u;
     this.showUnblockModal = true;
   }
 
-  confirmBlock(): void {
+  confirmBlock(reason: string): void {
     if (!this.selectedUser) return;
     const id = this.selectedUser.id;
-    this.adminService.blockUser(id).subscribe({
+    this.adminService.blockUser(id, reason).subscribe({
       next: () => {
         this.selectedUser!.blocked = true;
         this.showMessageToast('User blocked.');
@@ -151,6 +175,7 @@ export class UsersTable {
     });
   }
 
+  // Confirms and executes user unblock action
   confirmUnblock(): void {
     if (!this.selectedUser) return;
     const id = this.selectedUser.id;
@@ -169,6 +194,7 @@ export class UsersTable {
     });
   }
 
+  // Handles profile image load error by hiding image
   onImgError(u: AdminUser): void {
     u.imageUrl = null;
     this.cdr.detectChanges();

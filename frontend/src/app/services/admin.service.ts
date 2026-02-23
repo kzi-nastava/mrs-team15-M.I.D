@@ -34,8 +34,8 @@ export class AdminService {
     return this.http.put(`${this.apiURL}/driver-requests/${requestId}`, dto);
   }
 
-  blockUser(id: number): Observable<any> {
-    return this.http.put(`${this.apiURL}/block/${id}`, null);
+  blockUser(id: number, reason: string): Observable<any> {
+    return this.http.put(`${this.apiURL}/block/${id}`, { reason });
   }
 
   unblockUser(id: number): Observable<any> {

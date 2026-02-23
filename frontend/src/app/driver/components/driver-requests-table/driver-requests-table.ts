@@ -5,6 +5,8 @@ import { ChangeDetectorRef } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
+// Table component that displays all driver change requests for admin review
+// Fetches requests and original driver data, supports filtering and sorting
 @Component({
   selector: 'app-driver-requests-table',
   standalone: true,
@@ -13,17 +15,26 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './driver-requests-table.css',
 })
 export class DriverRequestsTable implements OnInit {
+  // Event emitted when admin clicks to view specific request details
   @Output() viewRequest = new EventEmitter<any>();
+  // List of all driver change requests
   requests: any[] = [];
+  // Current logged in admin's ID
   currentAdminId: number | null = null;
+  // Default admin ID for development
   private DEV_ADMIN_ID = 1;
+  // Currently selected status filter (all/pending/approved/rejected)
   selectedStatus: string = 'all';
+  // Field to sort by
   sortField: string | null = null;
+  // Sort direction (ascending or descending)
   sortDirection: 'asc' | 'desc' = 'asc';
+  // Backend URL from environment
   backendUrl : string = environment.backendUrl;
   constructor(private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
+    // Get current admin ID from localStorage or use dev default
     let adminId = this.DEV_ADMIN_ID;
     try {
       const userJson = localStorage.getItem('user');
@@ -41,6 +52,8 @@ export class DriverRequestsTable implements OnInit {
     this.fetchRequests(adminId);
   }
 
+  // Normalizes user data from backend into consistent format
+  // Falls back to DTO data if full user object is not available
   private normalizeUser(u: any, dtoFallback?: any): any {
     const vehicle = {
       licensePlate: u.licensePlate || dtoFallback?.licensePlate || null,
@@ -67,6 +80,8 @@ export class DriverRequestsTable implements OnInit {
     };
   }
 
+  // Fetches all driver change requests from backend
+  // Also fetches original driver data for each request
   fetchRequests(adminId: number) {
     this.adminService.getDriverRequests().subscribe({
       next: (res: any[]) => {
@@ -145,6 +160,7 @@ export class DriverRequestsTable implements OnInit {
     });
   }
 
+  // Normalizes DTO data into consistent driver format
   private normalizeDto(dto: any): any {
     if (!dto) return null;
     return {
@@ -165,8 +181,7 @@ export class DriverRequestsTable implements OnInit {
       }
     };
   }
-  
-  
+  // Returns filtered and sorted list of requests based on user selections
   get filteredRequests() {
     let list = this.requests;
     if (this.selectedStatus && this.selectedStatus !== 'all') {
@@ -186,11 +201,12 @@ export class DriverRequestsTable implements OnInit {
     }
     return list;
   }
-  
+  // Updates selected status filter
   onFilterChange(status: string) {
     this.selectedStatus = status;
   }
 
+  // Toggles sort field and direction
   sortBy(field: string) {
     if (this.sortField === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -200,6 +216,8 @@ export class DriverRequestsTable implements OnInit {
     }
   }
 
+  // Handles view request button click
+  // Fetches fresh original driver data if not already loaded
   onView(req: any) {    
     const emit = (original: any) => {
       this.viewRequest.emit({

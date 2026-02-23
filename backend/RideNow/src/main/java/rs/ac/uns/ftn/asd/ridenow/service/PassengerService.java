@@ -127,16 +127,18 @@ public class PassengerService {
             }
         }
 
+        // Route not found
         if (found == null) {
             throw new EntityNotFoundException("Favorite route with id " + routeId + " not found for user " + userId);
         }
-
+        // Removing from favorites
         user.getFavoriteRoutes().remove(found);
         found.setUser(null);
         registeredUserRepository.save(user);
     }
 
     public Collection<FavoriteRouteResponseDTO> getRoutes(Long userId) {
+        // Get favorite routes for user
         RegisteredUser user = registeredUserRepository.getReferenceById(userId);
         Collection<FavoriteRouteResponseDTO> dtos = new ArrayList<>();
         List<FavoriteRoute> routes = user.getFavoriteRoutes();
@@ -242,6 +244,7 @@ public class PassengerService {
     }
 
     public RouteResponseDTO getRoute(Long id, Long id1) {
+        // Get favorite route with user id and favorite route id
         RegisteredUser user = registeredUserRepository.getReferenceById(id);
 
         FavoriteRoute found = null;

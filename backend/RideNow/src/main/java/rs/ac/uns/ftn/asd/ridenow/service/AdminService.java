@@ -75,6 +75,7 @@ public class AdminService {
         // load all driver requests ordered by submissionDate (newest first)
         List<DriverRequest> entities = driverRequestRepository.findAll(Sort.by(Sort.Direction.DESC, "submissionDate"));
         for (DriverRequest entity : entities) {
+            // build response dto
             DriverChangeRequestDTO request = new DriverChangeRequestDTO();
             request.setEmail(entity.getEmail());
             request.setFirstName(entity.getFirstName());
@@ -107,6 +108,7 @@ public class AdminService {
             Long requestId,
             AdminChangesReviewRequestDTO dto) {
 
+        // find change request
         DriverRequest req = driverRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("DriverRequest not found: " + requestId));
 
@@ -503,6 +505,7 @@ public class AdminService {
         long daysInRange = java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate()) + 1;
         if (daysInRange <= 0) daysInRange = 1;
 
+        // build response dto
         response.setRidesPerDay(ridesPerDay);
         response.setKmPerDay(kmPerDay);
         response.setMoneyPerDay(moneyPerDay);

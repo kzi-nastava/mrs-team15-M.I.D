@@ -33,4 +33,8 @@ export class UserService {
     return this.http.get(`${this.apiURL}/report`, { params });
   }
 
+  getBlockedStatus(): Observable<any> {
+    return this.http.get(`${this.apiURL}/blocked-status`);
+  }
+
 }

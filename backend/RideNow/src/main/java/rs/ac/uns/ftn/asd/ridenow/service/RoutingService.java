@@ -119,6 +119,7 @@ public class RoutingService {
         lats.add(latStart);
         lons.add(lonStart);
 
+        // validate stops
         if (stopLatitudes != null || stopLongitudes != null) {
             if (stopLatitudes == null || stopLongitudes == null || stopLatitudes.size() != stopLongitudes.size()) {
                 throw new IllegalArgumentException("Stop latitude/longitude lists must be both provided and of equal length");
@@ -140,6 +141,7 @@ public class RoutingService {
             double bLat = lats.get(i + 1);
             double bLon = lons.get(i + 1);
 
+            // calculate distance, duration and route polyline points
             RideEstimateResponseDTO leg = getRoute(aLat, aLon, bLat, bLon);
 
             totalDistanceKm += leg.getDistanceKm();
