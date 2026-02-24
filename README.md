@@ -1,9 +1,9 @@
 # mrs-team15-M.I.D
--Starting web application :
+ - Starting web application :
 cd frontend
 npm install
 npm start
--Starting server : 
+ - Starting server : 
 cd backend
 mvn spring-boot:run
 Starting mobile app
