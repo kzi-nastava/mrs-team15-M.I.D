@@ -208,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView.getMenu().findItem(R.id.login).setVisible(!isLoggedIn);
         //navigationView.getMenu().findItem(R.id.registration).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.reset_password).setVisible(!isLoggedIn);
+        navigationView.getMenu().findItem(R.id.nav_home).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.nav_logout).setVisible(isLoggedIn);
 
         // Role-specific items
@@ -237,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Live support for logged-in non-admin users
         navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
+        navigationView.getMenu().findItem(R.id.notifications).setVisible(isLoggedIn && !isAdmin);
         navigationView.getMenu().findItem(R.id.active_rides).setVisible(isAdmin); // Active Rides
         navigationView.getMenu().findItem(R.id.price_configs).setVisible(isAdmin); // Price Configuration
     }

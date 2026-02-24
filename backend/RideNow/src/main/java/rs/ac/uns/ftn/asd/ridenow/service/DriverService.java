@@ -71,6 +71,7 @@ public class DriverService {
       LocalDateTime startOfDay = null;
       LocalDateTime endOfDay = null;
 
+      // If date filter is provided, calculate start and end of the day
       if (date != null) {
           LocalDateTime dateTime = LocalDateTime.ofInstant(
                   Instant.ofEpochMilli(date), ZoneId.systemDefault());
@@ -78,6 +79,7 @@ public class DriverService {
           endOfDay = dateTime.toLocalDate().atTime(23, 59, 59);
       }
 
+      // Handle sorting by passengers and duration with custom queries
       if (sortBy.equals("passengers")) {
           if (sortDir.equals("asc")) {
               return date != null ?
@@ -107,7 +109,9 @@ public class DriverService {
     public Page<DriverHistoryItemDTO> getDriverHistory(Long driverId, Pageable pageable, String sortBy, String sortDir, Long date) {
         List<DriverHistoryItemDTO> driverHistory = new ArrayList<>();
 
+        // Fetch rides with all necessary relations to avoid N+1 problem
         Page<Ride> driverRides = getRides(driverId, pageable, sortBy, sortDir, date);
+        // Convert each Ride to DriverHistoryItemDTO
         for (Ride ride : driverRides.getContent()) {
             DriverHistoryItemDTO dto = new DriverHistoryItemDTO();
             dto.setRoute(new RouteDTO(ride.getRoute()));
@@ -115,6 +119,7 @@ public class DriverService {
             dto.setEndTime(ride.getEndTime());
             dto.setCost(ride.getPrice());
 
+            // Get passenger names
             List<String> passengerNames = new ArrayList<>();
             for (Passenger p : ride.getPassengers()) {
                 passengerNames.add(p == null ? null : p.getUser().getFirstName() + " " + p.getUser().getLastName());
@@ -167,13 +172,13 @@ public class DriverService {
                 throw new IllegalArgumentException("License plate already in use: " + request.getLicensePlate());
             }
         }
-
+        // build response
         DriverChangeResponseDTO response = new DriverChangeResponseDTO();
         DriverRequest entity = new DriverRequest();
         entity.setSubmissionDate(new Date(System.currentTimeMillis()));
         entity.setRequestStatus(rs.ac.uns.ftn.asd.ridenow.model.enums.DriverChangesStatus.PENDING);
         entity.setDriverId(driver.getId());
-
+        // build entity
         entity.setEmail(request.getEmail());
         entity.setFirstName(request.getFirstName());
         entity.setLastName(request.getLastName());
@@ -185,6 +190,7 @@ public class DriverService {
             profileImageURL = authService.generateProfileImageUrl(profileImage);
 
         }
+        // build entity
         entity.setProfileImage(profileImageURL);
         entity.setLicensePlate(request.getLicensePlate());
         entity.setVehicleModel(request.getVehicleModel());
@@ -192,7 +198,7 @@ public class DriverService {
         entity.setVehicleType(request.getVehicleType());
         entity.setBabyFriendly(request.getBabyFriendly() != null ? request.getBabyFriendly() : false);
         entity.setPetFriendly(request.getPetFriendly() != null ? request.getPetFriendly() : false);
-
+        // build response
         response.setEmail(request.getEmail());
         response.setFirstName(request.getFirstName());
         response.setLastName(request.getLastName());
@@ -222,12 +228,14 @@ public class DriverService {
 
 
     public List<UpcomingRideDTO> findScheduledRides(Long driverId) {
+        // Fetch driver and validate existence
         Driver driver = driverRepository.findById(driverId).orElseThrow(() -> new EntityNotFoundException("Driver with id " + driverId + " not found"));
         List<Ride> rides = rideRepository.findScheduledRidesByDriver(driver);
         List<UpcomingRideDTO> rideDTOs = new ArrayList<>();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
+        // Convert each Ride to UpcomingRideDTO
         for (Ride ride : rides) {
             UpcomingRideDTO dto = new UpcomingRideDTO();
             dto.setId(ride.getId());
@@ -267,21 +275,20 @@ public class DriverService {
     }
 
     public void activateDriverAccountByToken(DriverAccountActivationRequestDTO request) {
+
+        // Token validations
         if (request.getToken() == null || request.getToken().isBlank()) {
             throw new IllegalArgumentException("Invalid token");
         }
-
         Optional<ActivationToken> optionalToken = activationTokenRepository.findByToken(request.getToken());
         if (optionalToken.isEmpty()) {
             throw new IllegalArgumentException("Invalid token");
         }
-
         ActivationToken activationToken = optionalToken.get();
         if (activationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             handleExpiredActivationToken(activationToken);
             throw new IllegalArgumentException("Token expired. New activation link sent to your email.");
         }
-
         User user = activationToken.getUser();
         if (!(user instanceof Driver)) {
             throw new IllegalArgumentException("Token does not belong to a driver");
@@ -324,6 +331,7 @@ public class DriverService {
     }
 
     public DriverLocationResponseDTO updateDriverLocation(Driver driver, DriverLocationRequestDTO request) {
+        // Find the vehicle associated with the driver
         Vehicle vehicle = vehicleRepository.findByDriver(driver);
         if (vehicle == null) {
             throw new IllegalArgumentException("Driver not found");
@@ -332,6 +340,7 @@ public class DriverService {
         vehicle.setLon(request.getLon());
         vehicleRepository.save(vehicle);
 
+        // Build response
         DriverLocationResponseDTO response = new DriverLocationResponseDTO();
         response.setLat(request.getLat());
         response.setLon(request.getLon());
@@ -340,8 +349,10 @@ public class DriverService {
     }
 
     public DriverCanStartRideResponseDTO canDriverStartRide(Driver driver){
+        // Check if driver has pending status that prevents starting a ride
         DriverCanStartRideResponseDTO response = new DriverCanStartRideResponseDTO();
         Optional<Ride> rides = rideRepository.findCurrentRideByDriver(driver.getId());
+        // If there is a ride in progress, driver cannot start a new ride
         if (rides.isPresent()){
             response.setCanStartRide(false);
             return response;

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeRequestForm } from '../../components/change-request-form/change-request-form';
 import { AdminService } from '../../../services/admin.service';
 
+// Page komponenta za prikaz i review pojedinačnog driver change requesta
 @Component({
   selector: 'app-change-request',
   standalone: true,
@@ -12,9 +13,12 @@ import { AdminService } from '../../../services/admin.service';
   styleUrl: './change-request.css',
 })
 export class ChangeRequest implements OnInit {
+  // Izmenjeni podaci drivera
   changedDriver: any = null;
+  // Flag da li se koriste mock podaci
   isMock = false;
 
+  // Mock podaci za testiranje izmenjenog drivera
   private readonly MOCK_DRIVER = {
     firstName: 'Ana',
     lastName: 'Marković',
@@ -32,6 +36,7 @@ export class ChangeRequest implements OnInit {
       babyFriendly: false,
     },
   };
+  // Mock podaci za testiranje originalnog drivera
   private readonly ORIGINAL_DRIVER = {
     firstName: 'Ana',
     lastName: 'Marković',
@@ -49,8 +54,11 @@ export class ChangeRequest implements OnInit {
       babyFriendly: true,
     },
   };
+  // Originalni podaci drivera
   originalDriver: any = null;
+  // Meta podaci o requestu (id, datum, razlog)
   requestMeta: any = null;
+  // Poruka o rezultatu akcije
   resultMessage = '';
 
   constructor(private router: Router, private adminService: AdminService) {}
@@ -71,6 +79,7 @@ export class ChangeRequest implements OnInit {
     // Do not create a mock request id here — the real request id comes from the requests table.
   }
 
+  // Normalizuje driver objekat mapiranjem različitih API formata u jedinstvenu strukturu
   private normalizeDriver(d: any): any {
     if (!d) return null;
     const vehicleSource = d.vehicle || {};
@@ -96,6 +105,7 @@ export class ChangeRequest implements OnInit {
     };
   }
 
+  // Dohvata vrednost iz objekta pomoću dot-notation puta (npr. 'vehicle.licensePlate')
   private getValue(obj: any, path: string) {
     try {
       return path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), obj);
@@ -104,12 +114,14 @@ export class ChangeRequest implements OnInit {
     }
   }
 
+  // Proverava da li se polje razlikuje između originalnog i izmenjenog drivera
   isFieldChanged(path: string): boolean {
     const a = this.getValue(this.originalDriver, path);
     const b = this.getValue(this.changedDriver, path);
     return a !== b;
   }
 
+  // Odobrava change request pozivom admin API-ja
   onApprove(event: any): void {
     const rawId = event?.requestId || this.requestMeta?.id;
     const requestId = this.parseRequestId(rawId);
@@ -132,6 +144,7 @@ export class ChangeRequest implements OnInit {
     });
   }
 
+  // Odbija change request pozivom admin API-ja
   onReject(event: any): void {
     const rawId = event?.requestId || this.requestMeta?.id;
     const requestId = this.parseRequestId(rawId);

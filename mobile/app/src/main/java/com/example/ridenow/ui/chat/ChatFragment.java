@@ -64,6 +64,7 @@ public class ChatFragment extends Fragment implements WebSocketManager.WebSocket
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Extract arguments
         if (getArguments() != null) {
             long argChatId = getArguments().getLong(ARG_CHAT_ID, -1L);
             chatId = argChatId != -1L ? argChatId : null;
@@ -225,9 +226,6 @@ public class ChatFragment extends Fragment implements WebSocketManager.WebSocket
     public void onMessage(WebSocketMessageDTO message) {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                Log.d(TAG, "Received message: content='" + (message.getContent() != null ? message.getContent() : "null") +
-                           "', sender='" + (message.getSender() != null ? message.getSender() : "null") +
-                           "', timestamp='" + (message.getTimestamp() != null ? message.getTimestamp() : "null") + "'");
 
                 // Validate message before adding
                 if (message != null && message.getContent() != null && !message.getContent().trim().isEmpty()) {

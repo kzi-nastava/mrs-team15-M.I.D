@@ -51,6 +51,7 @@ public class NotificationService {
 
     public List<NotificationResponseDTO> getUnseenNotifications(User user) {
         try {
+            // Only fetch unseen notifications for the user, ordered by most recent
             return notificationRepository.findByUserAndSeenOrderByCreatedAtDesc(user, false)
                     .stream()
                     .map(NotificationResponseDTO::new)
@@ -63,6 +64,7 @@ public class NotificationService {
 
     public long getUnseenNotificationCount(User user) {
         try {
+            // Use a count query to get the number of unseen notifications for the user
             return notificationRepository.countUnseenByUser(user);
         } catch (Exception e) {
             logger.error("Error getting unseen notification count for user {}: {}", user.getId(), e.getMessage());
@@ -72,13 +74,16 @@ public class NotificationService {
 
     @Transactional
     public void markNotificationAsSeen(Long notificationId, User user) {
+        // Fetch the notification and check if it belongs to the user
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new EntityNotFoundException("Notification not found with id: " + notificationId));
 
+        // Ensure the notification belongs to the user
         if (!notification.getUser().getId().equals(user.getId())) {
             throw new SecurityException("Access denied - notification belongs to different user");
         }
 
+        // Mark the notification as seen and save
         notification.setSeen(true);
         notificationRepository.save(notification);
         logger.debug("Marked notification {} as seen for user {}", notificationId, user.getId());
@@ -87,6 +92,7 @@ public class NotificationService {
     @Transactional
     public void markAllNotificationsAsSeen(User user) {
         try {
+            // Mark all notifications for the user as seen using a bulk update query
             notificationRepository.markAllAsSeenByUser(user);
             logger.debug("Marked all notifications as seen for user {}", user.getId());
         } catch (Exception e) {
@@ -97,13 +103,16 @@ public class NotificationService {
 
     @Transactional
     public void deleteNotification(Long notificationId, User user) {
+        // Fetch the notification and check if it belongs to the user
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new EntityNotFoundException("Notification not found with id: " + notificationId));
 
+        // Ensure the notification belongs to the user
         if (!notification.getUser().getId().equals(user.getId())) {
             throw new SecurityException("Access denied - notification belongs to different user");
         }
 
+        // Delete the notification
         notificationRepository.delete(notification);
         logger.debug("Deleted notification {} for user {}", notificationId, user.getId());
     }
@@ -111,11 +120,13 @@ public class NotificationService {
     // Create and send notifications
     public void createAndSendPassengerAddedNotification(RegisteredUser passenger, Ride ride) {
         try {
+            // Format the ride time for the notification message
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
             String rideTime = ride.getScheduledTime().format(formatter);
 
             String message = String.format("You have been added as a passenger to a ride scheduled for %s", rideTime);
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(passenger);
             notification.setMessage(message);
@@ -153,11 +164,13 @@ public class NotificationService {
 
     public void createRideAssignedNotification(User driver, Ride ride) {
         try {
+            // Format the ride time for the notification message
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy 'at' HH:mm");
             String rideTime = ride.getScheduledTime().format(formatter);
 
             String message = String.format("You have been assigned a new ride scheduled for %s", rideTime);
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(driver);
             notification.setMessage(message);
@@ -165,6 +178,7 @@ public class NotificationService {
             notification.setRelatedEntityId(ride.getId());
             notification.setSeen(false);
 
+            // Save the notification to the database
             notification = notificationRepository.save(notification);
             logger.info("Created ride assigned notification for driver {}", driver.getId());
 
@@ -180,6 +194,7 @@ public class NotificationService {
         try {
             String message = "Your ride has started. Have a safe journey!";
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(passenger);
             notification.setMessage(message);
@@ -187,6 +202,7 @@ public class NotificationService {
             notification.setRelatedEntityId(ride.getId());
             notification.setSeen(false);
 
+            // Save the notification to the database
             notification = notificationRepository.save(notification);
             logger.info("Created ride started notification for passenger {} for ride {}", passenger.getId(), ride.getId());
 
@@ -214,6 +230,7 @@ public class NotificationService {
 
     public void createRideFinishedNotification(RegisteredUser passenger, Ride ride, boolean isCreator) {
         try {
+            // Format the message differently for ride creator vs other passengers
             String message;
             if (isCreator) {
                 message = "Your ride has been completed. Please rate your experience to help us improve our service.";
@@ -221,6 +238,7 @@ public class NotificationService {
                 message = "Your ride has been completed. Thank you for choosing RideNow!";
             }
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(passenger);
             notification.setMessage(message);
@@ -300,6 +318,7 @@ public class NotificationService {
                 NotificationType.RIDE_STARTED
             );
 
+            // Convert List<RegisteredUser> to List<User> for the repository method
             List<User> users = passengers.stream().map(p -> (User) p).collect(Collectors.toList());
             notificationRepository.deleteByUsersAndTypes(users, typesToDelete);
             logger.info("Deleted ride-related notifications for {} passengers of ride {}", passengers.size(), rideId);
@@ -324,6 +343,7 @@ public class NotificationService {
         try {
             String message = "Unfortunately, there are currently no active drivers available. Please try again later.";
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(passenger);
             notification.setMessage(message);
@@ -345,6 +365,7 @@ public class NotificationService {
         try {
             String message = "Your ride request could not be processed at this time. All drivers are currently busy. Please try again later.";
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(passenger);
             notification.setMessage(message);
@@ -369,6 +390,7 @@ public class NotificationService {
 
             String message = String.format("Your ride request has been accepted! Your ride is scheduled for %s", rideTime);
 
+            // Create the notification entity
             Notification notification = new Notification();
             notification.setUser(passenger);
             notification.setMessage(message);

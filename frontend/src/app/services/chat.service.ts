@@ -71,6 +71,8 @@ export class ChatService {
       this.connectionSubject.next(true);
     };
 
+    // Handle incoming WebSocket messages, parse them as JSON, and emit them through
+    // the messageSubject for subscribers to consume
     this.websocket.onmessage = (event) => {
       try {
         const message: WebSocketMessage = JSON.parse(event.data);
@@ -81,11 +83,13 @@ export class ChatService {
       }
     };
 
+    // Handle WebSocket errors, log them, and emit an error message through the messageSubject
     this.websocket.onerror = (error) => {
       console.error('WebSocket error:', error);
       this.messageSubject.next({ error: 'WebSocket connection error' });
     };
 
+    // Handle WebSocket closure, emit connection status and error message if not closed normally
     this.websocket.onclose = (event) => {
       console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason, 'Clean:', event.wasClean);
       this.websocket = null;

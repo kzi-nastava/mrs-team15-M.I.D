@@ -58,6 +58,7 @@ public class ChatService {
     }
 
     public ChatResponseDTO openChatByUser(User user) {
+        // If a chat already exists for this user, return it. Otherwise, create a new chat.
         Optional<Chat> chatOpt = chatRepository.findByUser(user);
         Chat chat;
         chat = chatOpt.orElseGet(() -> createChat(user));
@@ -68,6 +69,7 @@ public class ChatService {
     }
 
     private Chat createChat(User user) {
+        // Create a new chat for the user
         Chat chat = new Chat();
         chat.setUser(user);
         chat.setTaken(false);
@@ -76,6 +78,7 @@ public class ChatService {
     }
 
     public void changeTakenStatus(Long chatId, Boolean taken) {
+        // Find the chat by ID and update its taken status
         Optional<Chat> chatOpt = chatRepository.findById(chatId);
         if (chatOpt.isEmpty()) {
             throw new IllegalArgumentException("Chat not found with id: " + chatId);
@@ -121,11 +124,13 @@ public class ChatService {
     @Transactional(readOnly = true)
     public void sendExistingMessagesToWebSocket(Long chatId, WebSocketSession session) {
         try {
+            // Retrieve the chat and its messages
             Optional<Chat> chatOpt = chatRepository.findById(chatId);
             if (chatOpt.isEmpty()) {
                 throw new IllegalArgumentException("Chat not found with id: " + chatId);
             }
 
+            // Convert messages to DTOs
             Chat chat = chatOpt.get();
             List<MessageDTO> messages = chat.getMessages().stream()
                     .map(MessageDTO::new)
@@ -142,6 +147,7 @@ public class ChatService {
     }
 
     public Chat validateChatAccess(Long chatId, Long userId) {
+        // Verify that the chat exists and that the user has access to it (either the chat owner or an admin)
         Optional<Chat> chatOpt = chatRepository.findById(chatId);
         if (chatOpt.isEmpty()) {
             throw new IllegalArgumentException("Chat not found with id: " + chatId);
@@ -149,11 +155,13 @@ public class ChatService {
 
         Chat chat = chatOpt.get();
 
+        // Verify user has access to this chat (either the chat owner or an admin)
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("User not found with id: " + userId);
         }
 
+        // Check if the user is an admin or the owner of the chat
         User user = userOpt.get();
         boolean isAdmin = user.getRole() == UserRoles.ADMIN;
         boolean isOwner = chat.getUser().getId().equals(userId);

@@ -105,6 +105,7 @@ public class PriceConfigFragment extends Fragment {
             public void onResponse(@NonNull Call<PriceConfigResponseDTO> call, @NonNull Response<PriceConfigResponseDTO> response) {
                 setLoadingState(false);
 
+                // Check if response is successful and has body
                 if (response.isSuccessful() && response.body() != null) {
                     populateConfigData(response.body());
                     createDynamicCards();
@@ -126,6 +127,7 @@ public class PriceConfigFragment extends Fragment {
         originalConfigs.clear();
         currentConfigs.clear();
 
+        // Populate both original and current configs from response
         if (response.getPrices() != null) {
             for (PriceConfigDTO config : response.getPrices()) {
                 originalConfigs.put(config.getVehicleType(), copyConfig(config));
@@ -187,6 +189,7 @@ public class PriceConfigFragment extends Fragment {
     }
 
     private void updateCurrentConfigsFromCards() {
+        // Update currentConfigs based on the values in the EditTexts
         for (Map.Entry<VehicleType, PriceConfigCardHolder> entry : cardHolders.entrySet()) {
             VehicleType vehicleType = entry.getKey();
             PriceConfigCardHolder cardHolder = entry.getValue();

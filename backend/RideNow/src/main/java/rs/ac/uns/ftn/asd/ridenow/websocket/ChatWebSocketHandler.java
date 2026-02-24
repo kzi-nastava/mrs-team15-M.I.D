@@ -117,6 +117,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     }
 
     private String extractTokenFromQuery(WebSocketSession session) {
+        // Extract token from query parameters
         URI uri = session.getUri();
         if (uri != null && uri.getQuery() != null) {
             String[] params = uri.getQuery().split("&");
@@ -147,10 +148,12 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     }
 
     private User authenticateUser(String token) {
+        // Validate token and retrieve user
         if (token == null || !jwtUtil.validateToken(token)) {
             return null;
         }
 
+        // Extract email from token and find user
         String email = jwtUtil.extractEmail(token);
         Optional<User> userOpt = userRepository.findByEmail(email);
 
@@ -164,6 +167,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     }
 
     private void removeSessionFromChat(WebSocketSession session) {
+        // Remove session from chat room
         Long chatId = (Long) session.getAttributes().get("chatId");
         if (chatId != null) {
             Map<String, WebSocketSession> sessions = chatSessions.get(chatId);
@@ -177,6 +181,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     }
 
     public void broadcastMessageToChat(Long chatId, MessageDTO message) {
+        // Get all sessions for this chat
         Map<String, WebSocketSession> sessions = chatSessions.get(chatId);
         System.out.println(
                 "Broadcasting message to chat " + chatId + ". Sessions: " + (sessions != null ? sessions.size() : 0));

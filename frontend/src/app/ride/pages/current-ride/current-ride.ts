@@ -24,7 +24,7 @@ export class CurrentRide implements OnInit {
     if (navigation?.extras.state) {
       this.ride = navigation.extras.state['ride'];
       this.isAdminView = navigation.extras.state['fromAdmin'] || false;
-      
+
       if (this.ride && this.isAdminView) {
         this.calculateRideInfo();
       }
@@ -34,7 +34,7 @@ export class CurrentRide implements OnInit {
   private calculateRideInfo(): void {
     // Mock distance calculation (you can replace with actual calculation)
     this.estimatedDistanceKm = this.ride.estimatedDuration * 0.8; // Rough estimate
-    
+
     // Calculate remaining time
     if (this.ride.startTime) {
       const start = new Date(this.ride.startTime);

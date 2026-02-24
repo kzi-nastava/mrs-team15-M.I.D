@@ -8,6 +8,7 @@ import { UnblockUserModal } from '../unblock-users-modal/unblock-user-modal';
 import { AdminService } from '../../../services/admin.service';
 import { environment } from '../../../../environments/environment';
 
+// Interface za korisnika u admin tabeli
 export interface AdminUser {
   id: number;
   role: string;
@@ -19,6 +20,7 @@ export interface AdminUser {
   imageUrl?: string | null;
 }
 
+// Tabela komponenta za admin upravljanje korisnicima sa paginacijom i pretragom
 @Component({
   selector: 'app-users-table',
   standalone: true,
@@ -27,19 +29,30 @@ export interface AdminUser {
   styleUrl: './users-table.css'
 })
 export class UsersTable {
+  // Poruka za toast
   message: string = '';
+  // Flag da li se prikazuje toast poruka
   showMessage: boolean = false;
 
+  // Lista korisnika za trenutnu stranicu
   filteredUsers: AdminUser[] = [];
+  // Tekst pretrage
   searchQuery: string = '';
+  // Broj korisnika po stranici
   pageSize: number = 10;
+  // Trenutna stranica
   currentPage: number = 1;
+  // Ukupan broj korisnika
   totalUsers: number = 0;
+  // Trenutno selektovani korisnik za akcije
   selectedUser: AdminUser | null = null;
+  // Flag za prikaz block modala
   showBlockModal: boolean = false;
+  // Flag za prikaz unblock modala
   showUnblockModal: boolean = false;
-  // sorting
+  // Polje za sortiranje
   sortBy: string | null = null;
+  // Smer sortiranja
   sortDir: 'asc' | 'desc' = 'asc';
 
   constructor(private cdr: ChangeDetectorRef, private adminService: AdminService) {}
@@ -48,6 +61,7 @@ export class UsersTable {
     this.fetchUsers();
   }
 
+  // Učitava korisnike sa backend-a sa paginacijom, sortiranjem i pretragom
   fetchUsers(): void {
     const pageIndex = Math.max(0, this.currentPage - 1);
     this.adminService.getAllUsers(this.searchQuery || undefined, this.sortBy || undefined, this.sortDir || undefined, pageIndex, this.pageSize).subscribe({
@@ -80,6 +94,7 @@ export class UsersTable {
     setTimeout(() => { this.showMessage = false; }, 3000);
   }
 
+  // Postavlja sortiranje po koloni
   setSort(column: string): void {
     if (this.sortBy === column) {
       this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
@@ -99,6 +114,7 @@ export class UsersTable {
     return this.filteredUsers;
   }
 
+  // Menja trenutnu stranicu
   changePage(page: number): void {
     if (page < 1) page = 1;
     if (page > this.totalPages) page = this.totalPages;
@@ -133,6 +149,7 @@ export class UsersTable {
     this.showUnblockModal = true;
   }
 
+  // Blokira korisnika sa navedenim razlogom
   confirmBlock(reason: string): void {
     if (!this.selectedUser) return;
     const id = this.selectedUser.id;
@@ -151,6 +168,7 @@ export class UsersTable {
     });
   }
 
+  // Deblokira korisnika
   confirmUnblock(): void {
     if (!this.selectedUser) return;
     const id = this.selectedUser.id;

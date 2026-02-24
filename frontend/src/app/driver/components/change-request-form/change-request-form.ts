@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
 
+// Forma koja prikazuje poređenje originalnih i izmenjenih podataka drivera
 @Component({
   selector: 'app-change-request-form',
   standalone: true,
@@ -11,16 +12,25 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './change-request-form.css',
 })
 export class ChangeRequestForm implements OnInit {
+  // Originalni podaci drivera
   @Input() originalDriver: any | null = null;
+  // Izmenjeni podaci drivera
   @Input() changedDriver: any | null = null;
+  // Meta informacije o requestu
   @Input() requestMeta: any | null = null;
+  // Event emitter za odobravanje requesta
   @Output() approve = new EventEmitter<any>();
+  // Event emitter za odbijanje requesta
   @Output() reject = new EventEmitter<any>();
   backendUrl : string = environment.backendUrl;
 
+  // Flag za mock podatke
   isMock = false;
+  // Admin napomene uz odluku
   adminNotes = '';
+  // Tip akcije koju je admin preduzeo
   actionTaken: 'approved' | 'rejected' | null = null;
+  // Poruka o rezultatu akcije
   resultMessage = '';
 
   
@@ -38,12 +48,14 @@ export class ChangeRequestForm implements OnInit {
     }
   }
 
+  // Proverava da li je polje promenjeno poređenjem originalnog i novog drivera
   isFieldChanged(path: string): boolean {
     const a = this.getValue(this.originalDriver, path);
     const b = this.getValue(this.changedDriver, path);
     return a !== b;
   }
 
+  // Proverava da li je avatar promenjen
   isAvatarChanged(): boolean {
     const a = this.getValue(this.originalDriver, 'avatarUrl');
     const b = this.getValue(this.changedDriver, 'avatarUrl');
@@ -54,6 +66,7 @@ export class ChangeRequestForm implements OnInit {
     history.back();
   }
 
+  // Emituje event za odobravanje requesta
   approveRequest(): void {
     if (this.actionTaken) return;
     this.actionTaken = 'approved';
@@ -64,6 +77,7 @@ export class ChangeRequestForm implements OnInit {
     }, 700);
   }
 
+  // Emituje event za odbijanje requesta
   rejectRequest(): void {
     if (this.actionTaken) return;
     this.actionTaken = 'rejected';

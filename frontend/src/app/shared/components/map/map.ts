@@ -59,11 +59,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.drawRoute(routeData.route, routeData.isAlert || false);
     });
 
+    // Markers subscription - add/update markers without clearing the route,
+    // for better performance and to avoid flickering
     this.markersSubscription = this.mapRouteService.markers$.subscribe(routeData => {
       console.log('Markers subscription fired:', routeData);
       this.drawMarkers(routeData.route, routeData.isAlert || false);
     });
 
+    // Vehicle location subscription - update the tracked vehicle marker position in real-time
     this.vehicleLocationSubscription = this.mapRouteService.vehicleLocation$.subscribe(async location => {
       if (location) {
         const L = await import('leaflet');
@@ -73,6 +76,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }
     });
 
+    // Center on vehicle subscription - when triggered, center the map on the tracked vehicle's current location
     this.centerOnVehicleSubscription = this.mapRouteService.centerOnVehicle$.subscribe(async shouldCenter => {
       if (shouldCenter && this.trackedVehicleMarker && this.map) {
         const latLng = this.trackedVehicleMarker.getLatLng();
@@ -80,6 +84,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }
     });
 
+    // Driver location subscription - update the driver's current location marker in real-time,
+    // allowing the driver to see their own position on the map relative to the route and vehicle
     this.driverLocationSubscription = this.locationTrackingService.currentLocation$.subscribe(async location => {
       if (location) {
         const L = await import('leaflet');
@@ -118,6 +124,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private async initMap(): Promise<void> {
     const L = await import('leaflet');
+    // Initialize the map and set the view to the specified center and zoom level
     this.map = L.map('map').setView([this.centerLat, this.centerLng], this.zoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -129,6 +136,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         this.updateVehicleMarkers(vehicles, L);
       });
 
+      // Start fetching vehicle data when the map is initialized
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -149,11 +157,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Update vehicle markers on the map based on the latest vehicle data,
+  // filtering out the driver's own vehicle if the license plate is known
   private updateVehicleMarkers(vehicles: Vehicle[], L: any): void {
     const filteredVehicles = this.driverLicencePlate
       ? vehicles.filter(v => v.licencePlate !== this.driverLicencePlate)
       : vehicles;
 
+      // Remove markers for vehicles that are no longer in the filtered list
     this.vehicleMarkers.forEach((marker, licencePlate) => {
       if (!filteredVehicles.find(v => v.licencePlate === licencePlate)) {
         this.map.removeLayer(marker);
@@ -161,6 +172,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }
     });
 
+    // Add new markers or update existing ones for the filtered vehicles
     filteredVehicles.forEach(vehicle => {
       let marker = this.vehicleMarkers.get(vehicle.licencePlate);
       if (!marker) {
@@ -180,6 +192,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  // Create a Leaflet marker for a vehicle with a custom icon based on its
+  // availability status, and bind a popup showing the license plate and availability
   private createVehicleMarker(vehicle: Vehicle, L: any): any {
     const iconUrl = this.getVehicleIcon(vehicle.available);
     const icon = L.icon({
@@ -193,6 +207,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .bindPopup(`${vehicle.licencePlate}<br>${vehicle.available ? 'Available' : 'In use'}`);
   }
 
+  // Generate a data URL for a simple SVG icon representing a vehicle,
+  // with color indicating availability (green for available, red for in use)
   private getVehicleIcon(available: boolean): string {
     const color = available ? '#22c55e' : '#ef4444';
     const svgString = `
@@ -330,6 +346,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private async updateTrackedVehicle(lat: number, lng: number, L: any): Promise<void> {
     if (!this.map) return;
 
+    // If the tracked vehicle marker already exists, update its position.
+    // Otherwise, create a new marker with a custom icon and add it to the map.
     if (this.trackedVehicleMarker) {
       this.trackedVehicleMarker.setLatLng([lat, lng]);
     } else {
@@ -357,6 +375,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  // Remove the tracked vehicle marker from the map when
+  // location tracking is stopped or the component is destroyed
   private clearTrackedVehicle(): void {
     if (this.trackedVehicleMarker && this.map) {
       this.map.removeLayer(this.trackedVehicleMarker);
@@ -367,6 +387,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private updateDriverLocation(lat: number, lon: number, L: any): void {
     if (!this.map) return;
 
+    // If the driver location marker already exists, update its position.
     if (this.driverLocationMarker) {
       this.driverLocationMarker.setLatLng([lat, lon]);
     } else {

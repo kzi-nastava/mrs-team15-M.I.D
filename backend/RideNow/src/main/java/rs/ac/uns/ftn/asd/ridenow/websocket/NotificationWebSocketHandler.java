@@ -59,12 +59,14 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String token = extractTokenFromQuery(session);
 
+        // Debugging logs
         if (token == null) {
             System.err.println("DEBUG: No token provided in WebSocket connection");
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("No token provided"));
             return;
         }
 
+        // Authenticate user
         User user = authenticateUser(token);
         if (user == null) {
             System.err.println("DEBUG: Authentication failed for token");
@@ -138,6 +140,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         }
 
         try {
+            // Validate token and extract email
             if (!jwtUtil.validateToken(token)) {
                 return null;
             }
@@ -172,6 +175,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
 
         String[] params = query.split("&");
 
+        // Look for token parameter
         for (int i = 0; i < params.length; i++) {
             String param = params[i];
 
@@ -186,6 +190,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
 
     private void sendInitialState(WebSocketSession session) {
         try {
+            // For admins, send all unresolved panic alerts
             WebSocketMessageDTO message = new WebSocketMessageDTO("INITIAL_STATE",
                     panicAlertService.getAllUnresolvedAlerts());
             String payload = objectMapper.writeValueAsString(message);
@@ -197,10 +202,12 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
 
     private void sendInitialNotifications(WebSocketSession session, User user) {
         try {
+            // For regular users and drivers, send their notifications ordered by most recent first
             var userNotifications = notificationRepository.findByUserOrderByCreatedAtDesc(user)
                     .stream()
                     .map(NotificationResponseDTO::new)
                     .toList();
+            // Send notifications as initial state
             WebSocketMessageDTO message = new WebSocketMessageDTO("INITIAL_STATE", userNotifications);
             String payload = objectMapper.writeValueAsString(message);
             session.sendMessage(new TextMessage(payload));
@@ -229,6 +236,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
             return;
         }
 
+        // Check if session is still open before sending
         if (!session.isOpen()) {
             System.err.println("DEBUG: Session for userId " + userId + " is closed");
             userSessions.remove(userId);
@@ -236,6 +244,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         }
 
         try {
+            // Create message and send to user
             WebSocketMessageDTO message = new WebSocketMessageDTO(action, data);
             String payload = objectMapper.writeValueAsString(message);
             System.out.println("DEBUG: Broadcasting " + action + " to user " + userId);
@@ -269,6 +278,7 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         }
 
         try {
+            // Serialize message once and reuse for all admins
             String payload = objectMapper.writeValueAsString(message);
             TextMessage textMessage = new TextMessage(payload);
 
@@ -295,12 +305,14 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     }
 
     public void registerRideParticipants(Long rideId, List<Long> userIds) {
+        // Use computeIfAbsent to ensure thread-safe initialization of the participant set
         Set<Long> participants = rideParticipants.computeIfAbsent(rideId, k -> ConcurrentHashMap.newKeySet());
         participants.addAll(userIds);
         System.out.println("Registered " + userIds.size() + " participants for ride " + rideId);
     }
 
     public void unregisterRide(Long rideId) {
+        // Remove the entire ride entry, which will remove all participants at once
         rideParticipants.remove(rideId);
         System.out.println("Unregistered all participants from ride " + rideId);
     }
@@ -318,8 +330,10 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     }
 
     private void broadcastToRide(Long rideId, String action, Object data) {
+        // Get participants for this ride
         Set<Long> participants = rideParticipants.get(rideId);
 
+        // If no participants are registered for this ride, log and return
         if (participants == null || participants.isEmpty()) {
             System.out.println("No participants registered for ride " + rideId);
             return;
@@ -328,11 +342,13 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
         WebSocketMessageDTO message = new WebSocketMessageDTO(action, data);
 
         try {
+            // Serialize message once and reuse for all participants
             String payload = objectMapper.writeValueAsString(message);
             TextMessage textMessage = new TextMessage(payload);
 
             int successCount = 0;
             for (Long userId : participants) {
+                // Get session for each participant and send message
                 WebSocketSession session = userSessions.get(userId);
                 if (session != null && session.isOpen()) {
                     try {

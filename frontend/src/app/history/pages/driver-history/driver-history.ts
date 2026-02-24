@@ -40,6 +40,9 @@ export class DriverHistory implements OnInit {
   }
 
   private loadRideHistory(page: number = 0, sortBy?: string, sortDir?: string, date?: number): void {
+    // Call the RideHistoryService to get the driver's ride history with pagination, sorting, and filtering parameters,
+    // handles success and error responses, updates the allRides and filteredRides arrays,
+    // manages pagination state, and triggers change detection to update the UI with the new data or error message.
     this.rideHistoryService.getDriverRideHistory(page, this.pageSize, sortBy, sortDir, date).subscribe({
       next: (data: PaginatedRideHistoryResponse) => {
         this.allRides = this.transformRideData(data.content);
@@ -124,6 +127,8 @@ export class DriverHistory implements OnInit {
   }
 
   onSort(event: { column: string, direction: string }): void {
+    // Update sorting state based on the column and direction received from the sorting event,
+    // reset to the first page, and reload the ride history with the new sorting parameters.
     this.currentSortBy = event.column;
     this.currentSortDir = event.direction;
     this.currentPage = 0; // Reset to first page when sorting
@@ -131,6 +136,8 @@ export class DriverHistory implements OnInit {
   }
 
   goToNextPage(): void {
+    // Check if it's not the last page before navigating to the next page,
+    // then load the ride history for the new page with current sorting and filtering parameters.
     if (!this.isLastPage) {
       this.currentPage++;
       this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);
@@ -138,6 +145,8 @@ export class DriverHistory implements OnInit {
   }
 
   goToPreviousPage(): void {
+    // Check if it's not the first page before navigating to the previous page,
+    // then load the ride history for the new page with current sorting and filtering parameters.
     if (!this.isFirstPage) {
       this.currentPage--;
       this.loadRideHistory(this.currentPage, this.currentSortBy, this.currentSortDir, this.currentFilterDate);

@@ -619,19 +619,15 @@ public class CurrentRideFragment extends Fragment {
 
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Log.d(TAG, "TEST GPS location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
         }
 
         if (location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Log.d(TAG, "TEST Network location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
         }
 
         if (location != null) {
-            Log.d(TAG, "TEST: Current emulator location: " + location.getLatitude() + ", " + location.getLongitude());
             Toast.makeText(getContext(), "Current location: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_LONG).show();
         } else {
-            Log.w(TAG, "TEST: Location is null from all providers");
             Toast.makeText(getContext(), "Location is null", Toast.LENGTH_SHORT).show();
         }
     }
