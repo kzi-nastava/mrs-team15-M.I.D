@@ -2,6 +2,7 @@ package rs.ac.uns.ftn.asd.ridenow.dto.ride;
 
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.ftn.asd.ridenow.model.Location;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public class StopRideResponseDTO {
     private double price;
     private String endAddress;
     private List<RoutePointDTO> route;
+    private List<Location> passedStops;
 }

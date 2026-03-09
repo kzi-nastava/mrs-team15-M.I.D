@@ -767,13 +767,32 @@ public class RideService {
 
         String endAddress = routingService.getReverseGeocode(vehicle.getLat(), vehicle.getLon());
 
+        double totalDistance = haversine(latStart, lonStart, latEnd, lonEnd);
+        List<Location> passedStops = new ArrayList<Location>();
+        for(Location location : ride.getRoute().getStopLocations()){
+            if(haversine(latStart, lonStart, location.getLatitude(), location.getLongitude()) < totalDistance){
+                passedStops.add(location);
+            }
+        }
+
         StopRideResponseDTO responseDTO = new StopRideResponseDTO();
         responseDTO.setDistanceKm(estimation.getDistanceKm());
         responseDTO.setEstimatedDurationMin(estimation.getEstimatedDurationMin());
         responseDTO.setPrice(price);
         responseDTO.setEndAddress(endAddress);
         responseDTO.setRoute(estimation.getRoute());
+        responseDTO.setPassedStops(passedStops);
         return responseDTO;
+    }
+
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
     private void updateRideOnCompletion(Ride ride, StopRideResponseDTO response) throws Exception {
@@ -786,7 +805,7 @@ public class RideService {
         String endAddress = response.getEndAddress();
         Optional<Route> optionalRoute = routeRepository.findByStartAndEndAddress(startAddress, endAddress);
         if(optionalRoute.isEmpty()){
-            updateRideRoute(startAddress, endAddress, ride);
+            updateRideRoute(startAddress, endAddress, ride, response.getPassedStops());
             return;
         }
         Route route = optionalRoute.get();
@@ -794,7 +813,7 @@ public class RideService {
     }
 
     private void updateRideRoute(String startAddress, String endAddress,
-                                 Ride ride) throws Exception {
+                                 Ride ride, List<Location> passedStops) throws Exception {
 
         double latStart = ride.getRoute().getStartLocation().getLatitude();
         double lonStart = ride.getRoute().getStartLocation().getLongitude();
@@ -821,6 +840,10 @@ public class RideService {
         route.setEndLocation(endLocation);
         route.setDistanceKm(estimation.getDistanceKm());
         route.setEstimatedTimeMin(estimation.getEstimatedDurationMin());
+
+        for(Location location : passedStops){
+            route.addStopLocation(location);
+        }
 
         routeRepository.save(route);
 
