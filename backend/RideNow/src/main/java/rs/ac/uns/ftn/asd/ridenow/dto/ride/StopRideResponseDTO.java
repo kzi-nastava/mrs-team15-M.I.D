@@ -15,4 +15,6 @@ public class StopRideResponseDTO {
     private String endAddress;
     private List<RoutePointDTO> route;
     private List<Location> passedStops;
+    private double endLatitude;
+    private double endLongitude;
 }

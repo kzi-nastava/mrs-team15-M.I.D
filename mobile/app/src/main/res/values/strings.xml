@@ -266,4 +266,8 @@
     <string name="delete_notification">Delete notification</string>
     <string name="search_user_hint">Search by user name…</string>
 
+    <string name="stop_ride_title">Stop Ride Early</string>
+    <string name="stop_ride_subtitle">Are you sure you want to stop this ride?</string>
+    <string name="stop_ride_confirm">Stop Ride</string>
+
 </resources>
