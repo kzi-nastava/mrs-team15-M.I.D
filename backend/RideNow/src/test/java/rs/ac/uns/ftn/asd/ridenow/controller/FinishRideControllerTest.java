@@ -199,8 +199,7 @@ public class FinishRideControllerTest {
         when(rideService.finishRide(eq(rideId), eq(driver.getId())))
                 .thenThrow(new RuntimeException("Database connection failed"));
 
-        // RuntimeException is not handled by GlobalExceptionHandler, so it causes a ServletException
-        // We expect the request to fail with a ServletException
+
         Exception exception = null;
         try {
             mockMvc.perform(post("/api/rides/{id}/finish", rideId)
@@ -257,8 +256,6 @@ public class FinishRideControllerTest {
         when(rideService.finishRide(eq(rideId), eq(driver.getId())))
                 .thenThrow(new IllegalStateException("Ride already finished"));
 
-        // IllegalStateException is not handled by GlobalExceptionHandler, so it causes a ServletException
-        // We expect the request to fail with a ServletException
         Exception exception = null;
         try {
             mockMvc.perform(post("/api/rides/{id}/finish", rideId)

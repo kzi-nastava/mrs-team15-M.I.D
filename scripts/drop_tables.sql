@@ -17,5 +17,6 @@ DROP TABLE IF EXISTS public.registered_user CASCADE;
 DROP TABLE IF EXISTS public.forgot_password_token CASCADE;
 DROP TABLE IF EXISTS public.activation_token CASCADE;
 DROP TABLE IF EXISTS public.price_config CASCADE;
+DROP TABLE IF EXISTS public.blocked CASCADE;
 DROP TABLE IF EXISTS public."user" CASCADE;
 DROP TABLE IF EXISTS public.route_polyline_points CASCADE;

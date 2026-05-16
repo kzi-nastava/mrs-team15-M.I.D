@@ -28,6 +28,7 @@ interface FavoriteRoute {
 })
 export class RideOrderingForm implements OnInit {
   @Input() hasActiveRide: boolean = false;
+  @Input() disabled: boolean = false;
   
   pickupAddress: string = '';
   destinationAddress: string = '';

@@ -1,6 +1,16 @@
 <div class="container-fluid py-4">
   <div class="row auth-offset align-items-center justify-content-center">
     <div class="col-12 col-sm-11 col-md-9 col-lg-7 col-xl-6 px-3">
+      <!-- Blocked account warning for drivers -->
+      <div *ngIf="isDriver && isBlocked" class="alert alert-danger mb-4" role="alert">
+        <h5 class="alert-heading">⚠️ Your Account is Blocked</h5>
+        <hr>
+        <p><strong>Reason:</strong> {{ blockReason }}</p>
+        <p class="mb-0"><small><strong>Blocked on:</strong> {{ blockedAt }}</small></p>
+        <hr>
+        <p class="mb-0"><small>If you believe this is a mistake, please contact support.</small></p>
+      </div>
+
       <app-profile-form></app-profile-form>
     </div>
   </div>

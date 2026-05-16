@@ -83,7 +83,7 @@
     </table>
   </div>
 
-  <app-block-user-modal *ngIf="showBlockModal" [user]="selectedUser" (confirmed)="confirmBlock()" (cancelled)="showBlockModal = false"></app-block-user-modal>
+  <app-block-user-modal *ngIf="showBlockModal" [user]="selectedUser" (confirmed)="confirmBlock($event)" (cancelled)="showBlockModal = false"></app-block-user-modal>
   <app-unblock-user-modal *ngIf="showUnblockModal" [user]="selectedUser" (confirmed)="confirmUnblock()" (cancelled)="showUnblockModal = false"></app-unblock-user-modal>
 
   <div *ngIf="totalPages > 1" class="d-flex justify-content-center align-items-center gap-3 mb-3">
