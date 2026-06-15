@@ -766,17 +766,21 @@ public class RideService {
         List<Double> passedStopLats = new ArrayList<>();
         List<Double> passedStopLons = new ArrayList<>();
 
+        Set<String> seen = new HashSet<>();
         for (Location location : ride.getRoute().getStopLocations()) {
-            if (haversine(latStart, lonStart, location.getLatitude(), location.getLongitude()) < totalDistance) {
-                passedStops.add(location);
-                passedStopLats.add(location.getLatitude());
-                passedStopLons.add(location.getLongitude());
+            if (isStopPassed(latStart, lonStart, latEnd, lonEnd, location.getLatitude(), location.getLongitude())) {
+                String key = location.getLatitude() + "," + location.getLongitude();
+                if (seen.add(key)) {
+                    passedStops.add(location);
+                    passedStopLats.add(location.getLatitude());
+                    passedStopLons.add(location.getLongitude());
+                }
             }
         }
 
         RideEstimateResponseDTO estimation;
         if (!passedStopLats.isEmpty()) {
-            estimation = routingService.getRouteWithStops(latStart, lonStart, latEnd, lonEnd,passedStopLats, passedStopLons);
+            estimation = routingService.getRouteWithStops(latStart, lonStart, latEnd, lonEnd, passedStopLats, passedStopLons);
         } else {
             estimation = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
         }
@@ -794,6 +798,15 @@ public class RideService {
         responseDTO.setEndLatitude(latEnd);
         responseDTO.setEndLongitude(lonEnd);
         return responseDTO;
+    }
+
+    private boolean isStopPassed(double latStart, double lonStart, double latCurrent, double lonCurrent, double latStop, double lonStop) {
+        double startToCurrent = haversine(latStart, lonStart, latCurrent, lonCurrent);
+        double startToStop = haversine(latStart, lonStart, latStop, lonStop);
+        double stopToCurrent = haversine(latStop, lonStop, latCurrent, lonCurrent);
+        double THRESHOLD_KM = 0.3;
+
+        return startToStop <= startToCurrent && (startToStop + stopToCurrent - startToCurrent) < THRESHOLD_KM;
     }
 
     private double haversine(double lat1, double lon1, double lat2, double lon2) {

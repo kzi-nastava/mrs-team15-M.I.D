@@ -70,7 +70,13 @@ public class StopRideDialog extends BottomSheetDialogFragment {
                 }else{
                     btnConfirmStop.setEnabled(true);
                     btnConfirmStop.setText(R.string.stop_ride_confirm);
-                    android.widget.Toast.makeText(getContext(), "Failed to stop ride", android.widget.Toast.LENGTH_SHORT).show();
+                    String errorMsg = "Failed to stop ride";
+                    try {
+                        if (response.errorBody() != null) {
+                            errorMsg = response.errorBody().string();
+                        }
+                    } catch (Exception e) {}
+                    android.widget.Toast.makeText(getContext(), errorMsg, android.widget.Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -81,6 +87,5 @@ public class StopRideDialog extends BottomSheetDialogFragment {
                 android.widget.Toast.makeText(getContext(), "Network error: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 }
