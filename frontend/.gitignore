@@ -45,3 +45,7 @@ Thumbs.db
 # Karma/Jasmine
 /karma.conf.js.bak
 /chrome_debug.logq
+
+**/firebase-credentials.json
+**/google-services.json
+

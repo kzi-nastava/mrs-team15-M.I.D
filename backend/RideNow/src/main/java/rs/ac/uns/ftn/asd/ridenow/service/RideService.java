@@ -755,16 +755,37 @@ public class RideService {
     }
 
     private StopRideResponseDTO completeRide(Ride ride, Vehicle vehicle) throws Exception {
-        double latStart =  ride.getRoute().getStartLocation().getLatitude();
-        double lonStart =  ride.getRoute().getStartLocation().getLongitude();
+        double latStart = ride.getRoute().getStartLocation().getLatitude();
+        double lonStart = ride.getRoute().getStartLocation().getLongitude();
 
         double latEnd = vehicle.getLat();
         double lonEnd = vehicle.getLon();
 
-        RideEstimateResponseDTO estimation = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+        double totalDistance = haversine(latStart, lonStart, latEnd, lonEnd);
+        List<Location> passedStops = new ArrayList<>();
+        List<Double> passedStopLats = new ArrayList<>();
+        List<Double> passedStopLons = new ArrayList<>();
 
-        double price = priceService.calculatePrice(vehicle.getType(),estimation.getDistanceKm());
+        Set<String> seen = new HashSet<>();
+        for (Location location : ride.getRoute().getStopLocations()) {
+            if (isStopPassed(latStart, lonStart, latEnd, lonEnd, location.getLatitude(), location.getLongitude())) {
+                String key = location.getLatitude() + "," + location.getLongitude();
+                if (seen.add(key)) {
+                    passedStops.add(location);
+                    passedStopLats.add(location.getLatitude());
+                    passedStopLons.add(location.getLongitude());
+                }
+            }
+        }
 
+        RideEstimateResponseDTO estimation;
+        if (!passedStopLats.isEmpty()) {
+            estimation = routingService.getRouteWithStops(latStart, lonStart, latEnd, lonEnd, passedStopLats, passedStopLons);
+        } else {
+            estimation = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+        }
+
+        double price = priceService.calculatePrice(vehicle.getType(), estimation.getDistanceKm());
         String endAddress = routingService.getReverseGeocode(vehicle.getLat(), vehicle.getLon());
 
         StopRideResponseDTO responseDTO = new StopRideResponseDTO();
@@ -773,7 +794,29 @@ public class RideService {
         responseDTO.setPrice(price);
         responseDTO.setEndAddress(endAddress);
         responseDTO.setRoute(estimation.getRoute());
+        responseDTO.setPassedStops(passedStops);
+        responseDTO.setEndLatitude(latEnd);
+        responseDTO.setEndLongitude(lonEnd);
         return responseDTO;
+    }
+
+    private boolean isStopPassed(double latStart, double lonStart, double latCurrent, double lonCurrent, double latStop, double lonStop) {
+        double startToCurrent = haversine(latStart, lonStart, latCurrent, lonCurrent);
+        double startToStop = haversine(latStart, lonStart, latStop, lonStop);
+        double stopToCurrent = haversine(latStop, lonStop, latCurrent, lonCurrent);
+        double THRESHOLD_KM = 0.3;
+
+        return startToStop <= startToCurrent && (startToStop + stopToCurrent - startToCurrent) < THRESHOLD_KM;
+    }
+
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
     private void updateRideOnCompletion(Ride ride, StopRideResponseDTO response) throws Exception {
@@ -786,24 +829,19 @@ public class RideService {
         String endAddress = response.getEndAddress();
         Optional<Route> optionalRoute = routeRepository.findByStartAndEndAddress(startAddress, endAddress);
         if(optionalRoute.isEmpty()){
-            updateRideRoute(startAddress, endAddress, ride);
+            updateRideRoute(startAddress, endAddress, ride, response);
             return;
         }
-        Route route = optionalRoute.get();
-        ride.setRoute(route);
+        ride.setRoute(optionalRoute.get());
     }
 
     private void updateRideRoute(String startAddress, String endAddress,
-                                 Ride ride) throws Exception {
+                                 Ride ride, StopRideResponseDTO response) throws Exception {
 
         double latStart = ride.getRoute().getStartLocation().getLatitude();
         double lonStart = ride.getRoute().getStartLocation().getLongitude();
-
-        double[] endCoordinate = routingService.getGeocode(endAddress);
-        double latEnd = endCoordinate[0];
-        double lonEnd = endCoordinate[1];
-
-        RideEstimateResponseDTO estimation = routingService.getRoute(latStart, lonStart, latEnd, lonEnd);
+        double latEnd = response.getEndLatitude();
+        double lonEnd = response.getEndLongitude();
 
         Route route = new Route();
 
@@ -819,11 +857,20 @@ public class RideService {
 
         route.setStartLocation(startLocation);
         route.setEndLocation(endLocation);
-        route.setDistanceKm(estimation.getDistanceKm());
-        route.setEstimatedTimeMin(estimation.getEstimatedDurationMin());
+        route.setDistanceKm(response.getDistanceKm());
+        route.setEstimatedTimeMin(response.getEstimatedDurationMin());
+
+        for (Location location : response.getPassedStops()) {
+            route.addStopLocation(location);
+        }
+
+        if (response.getRoute() != null) {
+            for (RoutePointDTO point : response.getRoute()) {
+                route.getPolylinePoints().add(new PolylinePoint(point.getLat(), point.getLng()));
+            }
+        }
 
         routeRepository.save(route);
-
         ride.setRoute(route);
     }
 

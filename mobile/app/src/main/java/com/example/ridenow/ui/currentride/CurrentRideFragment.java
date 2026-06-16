@@ -26,7 +26,10 @@ import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
 import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
 import com.example.ridenow.dto.model.LocationDTO;
+import com.example.ridenow.dto.model.PolylinePointDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
+import com.example.ridenow.dto.ride.RoutePointDTO;
+import com.example.ridenow.dto.ride.StopRideResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.service.DriverService;
 import com.example.ridenow.service.RideService;
@@ -35,6 +38,8 @@ import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -77,6 +82,9 @@ public class CurrentRideFragment extends Fragment {
     private Long adminRideId = null;
     private TokenUtils tokenUtils;
     private LocationManager locationManager;
+
+    private LinearLayout stopRideResultLayout;
+    private TextView resultEndAddressText, resultDistanceText, resultDurationText, resultPriceText;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -135,6 +143,13 @@ public class CurrentRideFragment extends Fragment {
         stopRideButton = view.findViewById(R.id.stopRideButton);
         markCompletedButton = view.findViewById(R.id.markCompletedButton);
 
+        // Stop ride info
+        stopRideResultLayout = view.findViewById(R.id.stopRideResultLayout);
+        resultEndAddressText = view.findViewById(R.id.resultEndAddressText);
+        resultDistanceText   = view.findViewById(R.id.resultDistanceText);
+        resultDurationText   = view.findViewById(R.id.resultDurationText);
+        resultPriceText      = view.findViewById(R.id.resultPriceText);
+
         setupButtonListeners();
     }
 
@@ -151,9 +166,25 @@ public class CurrentRideFragment extends Fragment {
         driverPanicButton.setOnClickListener(v -> triggerPanicButton());
         panicButton.setOnClickListener(v -> triggerPanicButton());
 
-        stopRideButton.setOnClickListener(v ->
-            Toast.makeText(getContext(), "Stop Ride - To be implemented", Toast.LENGTH_SHORT).show()
-        );
+        stopRideButton.setOnClickListener(v -> {
+            StopRideDialog dialog = StopRideDialog.newInstance();
+            dialog.setOnRideStoppedListener(result -> {
+                stopTracking();
+                List<PolylinePointDTO> route  = new ArrayList<>();
+                for(RoutePointDTO point : result.getRoute()){
+                    route.add(new PolylinePointDTO(point.getLat(), point.getLng()));
+                }
+                if (currentRide != null && currentRide.getRoute() != null) {
+                    LocationDTO newEnd = new LocationDTO();
+                    newEnd.setAddress(result.getEndAddress());
+                    newEnd.setLatitude(result.getEndLatitude());
+                    newEnd.setLongitude(result.getEndLongitude());
+                    routeMapView.displayRoute(currentRide.getRoute().getStartLocation(), newEnd, result.getPassedStops(), route);
+                }
+                showStopRideResult(result);
+            });
+            dialog.show(getChildFragmentManager(), "StopRideDialog");
+        });
 
         markCompletedButton.setOnClickListener(v -> {
             if (currentRide != null && currentRide.getRideId() != null) {
@@ -162,6 +193,17 @@ public class CurrentRideFragment extends Fragment {
                 Toast.makeText(getContext(), "No active ride found", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void showStopRideResult(StopRideResponseDTO result) {
+        stopRideResultLayout.setVisibility(View.VISIBLE);
+
+        resultEndAddressText.setText(result.getEndAddress());
+        resultDistanceText.setText(String.format("%.1f km", result.getDistanceKm()));
+        resultDurationText.setText(result.getEstimatedDurationMin() + " min");
+        resultPriceText.setText(String.format("%.2f RSD", result.getPrice()));
+
+        endAddressText.setText(result.getEndAddress());
     }
     private void triggerPanicButton() {
         rideService.triggerPanicAlert().enqueue(new Callback<Map<String, String>>() {

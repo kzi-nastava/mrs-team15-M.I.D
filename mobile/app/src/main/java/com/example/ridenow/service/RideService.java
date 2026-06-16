@@ -7,6 +7,7 @@ import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
 import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
+import com.example.ridenow.dto.ride.StopRideResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.dto.ride.EstimateRouteRequestDTO;
@@ -58,4 +59,7 @@ public interface RideService {
 
     @GET("/api/rides/active-rides")
     Call<List<ActiveRideDTO>> getActiveRides();
+
+    @PUT("rides/stop")
+    Call<StopRideResponseDTO> stopRide();
 }
