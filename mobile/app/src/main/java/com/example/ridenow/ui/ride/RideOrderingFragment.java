@@ -27,7 +27,7 @@ import com.example.ridenow.service.PassengerService;
 import com.example.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import com.example.ridenow.dto.ride.RouteResponseDTO;
 import com.example.ridenow.util.ClientUtils;
-import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
+import com.example.ridenow.dto.ride.RouteResponseDTO;
 import com.example.ridenow.dto.model.PolylinePointDTO;
 import com.example.ridenow.dto.model.LocationDTO;
 import com.example.ridenow.dto.ride.RoutePointDTO;
@@ -90,6 +90,7 @@ public class RideOrderingFragment extends Fragment {
     private java.util.List<Double> stopLatitudesSelected = new java.util.ArrayList<>();
     private java.util.List<Double> stopLongitudesSelected = new java.util.ArrayList<>();
     private java.util.List<String> stopDisplayNames = new java.util.ArrayList<>();
+    private RouteResponseDTO lastEstimate;
 
     private boolean isFormRaised = false; // tracks whether form is shifted to reveal map
     private View formCard;
@@ -631,16 +632,17 @@ public class RideOrderingFragment extends Fragment {
                 req.setEndAddress(endAddr);
             } catch (Exception ignored) {}
 
-            Call<RideEstimateResponseDTO> call = rideService.estimateRoute(req);
+            Call<RouteResponseDTO> call = rideService.estimateRoute(req);
 
-            call.enqueue(new Callback<RideEstimateResponseDTO>() {
+            call.enqueue(new Callback<RouteResponseDTO>() {
                 @Override
-                public void onResponse(Call<RideEstimateResponseDTO> call, Response<RideEstimateResponseDTO> response) {
+                public void onResponse(Call<RouteResponseDTO> call, Response<RouteResponseDTO> response) {
                     showRouteBtn.setEnabled(true);
                     showRouteBtn.setText("Show Route");
 
                     if (response.isSuccessful() && response.body() != null) {
-                        RideEstimateResponseDTO estimate = response.body();
+                        RouteResponseDTO estimate = response.body();
+                        lastEstimate = estimate;
 
                         // convert route points
                         List<PolylinePointDTO> polylinePoints = new ArrayList<>();
@@ -671,8 +673,11 @@ public class RideOrderingFragment extends Fragment {
 
                         // Display estimate details
                         tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f km", estimate.getDistanceKm()));
-                        tvDuration.setText(String.format(Locale.getDefault(), "Duration: %d min", estimate.getEstimatedDurationMin()));
-                        tvCost.setText("");
+                        tvDuration.setText(String.format(Locale.getDefault(), "Duration: %d min", estimate.getEstimatedTimeMinutes()));
+                        tvCost.setText(String.format(Locale.getDefault(), "Standard: %.2f / Luxury: %.2f / Van: %.2f",
+                            estimate.getPriceEstimateStandard(),
+                            estimate.getPriceEstimateLuxury(),
+                            estimate.getPriceEstimateVan()));
 
                         // Show results
                         resultsLayout.setVisibility(View.VISIBLE);
@@ -690,7 +695,7 @@ public class RideOrderingFragment extends Fragment {
                 }
 
                 @Override
-                public void onFailure(Call<RideEstimateResponseDTO> call, Throwable t) {
+                public void onFailure(Call<RouteResponseDTO> call, Throwable t) {
                     showRouteBtn.setEnabled(true);
                     showRouteBtn.setText("Show Route");
                     Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
@@ -713,6 +718,15 @@ public class RideOrderingFragment extends Fragment {
             bundle.putDouble("endLat", selectedEndLat);
             bundle.putDouble("endLon", selectedEndLon);
             bundle.putString("endAddress", selectedEndDisplayName);
+
+            if (lastEstimate != null) {
+                bundle.putDouble("distanceKm", lastEstimate.getDistanceKm());
+                bundle.putInt("estimatedTimeMinutes", lastEstimate.getEstimatedTimeMinutes());
+                bundle.putDouble("priceEstimateStandard", lastEstimate.getPriceEstimateStandard());
+                bundle.putDouble("priceEstimateLuxury", lastEstimate.getPriceEstimateLuxury());
+                bundle.putDouble("priceEstimateVan", lastEstimate.getPriceEstimateVan());
+            }
+            bundle.putLong("favoriteRouteId", currentSelectedFavoriteId != null ? currentSelectedFavoriteId : -1L);
 
             // Polyline flattening: lat/lon parovi
             ArrayList<Double> polylineCoords = new ArrayList<>();
