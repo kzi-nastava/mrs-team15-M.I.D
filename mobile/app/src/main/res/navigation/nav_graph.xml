@@ -180,4 +180,10 @@
     <action
         android:id="@+id/action_adminChats_to_chat"
         app:destination="@id/live_support" />
+
+    <fragment
+        android:id="@+id/finding_driver_fragment"
+        android:name="com.example.ridenow.ui.ride.FindingDriverFragment"
+        android:label="Finding Driver"
+        tools:layout="@layout/fragment_finding_driver" />
 </navigation>
