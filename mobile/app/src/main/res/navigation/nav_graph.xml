@@ -101,6 +101,12 @@
         android:label="Upcoming Rides" />
 
     <fragment
+        android:id="@+id/start_ride_fragment"
+        android:name="com.example.ridenow.ui.ride.StartRideFragement"
+        android:label="Start Ride"
+        tools:layout="@layout/fragment_start_ride" />
+
+    <fragment
         android:id="@+id/current_ride"
         android:name="com.example.ridenow.ui.currentride.CurrentRideFragment"
         android:label="Current Ride" />
