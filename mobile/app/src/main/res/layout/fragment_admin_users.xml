@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/passenger_history_title"
+        android:text="@string/users"
         style="@style/TitleText"
         android:layout_marginBottom="5dp"
         android:layout_gravity="center_horizontal" />
@@ -18,12 +18,12 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/passenger_history_subtitle"
+        android:text="@string/view_of_all_users"
         style="@style/SubtitleText"
-        android:layout_marginBottom="20dp"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center_horizontal" />
 
-    <!-- Filter Section Card -->
+    <!-- Sort Filter Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,26 +46,6 @@
                 android:textColor="@android:color/black"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Date Filter Row -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:hint="Date Filter"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                <EditText
-                    android:id="@+id/etDateFilter"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:focusable="false"
-                    android:clickable="true"
-                    android:inputType="none"
-                    android:hint="Select Date (optional)" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Sort Options Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -121,36 +101,34 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
-            <!-- Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btnClearFilter"
+                    android:id="@+id/btnClear"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:text="@string/clear"
-                    style="@style/ButtonSecondary"/>
+                    style="@style/ButtonSecondary" />
 
                 <Button
-                    android:id="@+id/btnApplyFilter"
+                    android:id="@+id/btnApply"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:text="@string/apply"
-                    style="@style/ButtonPrimary"/>
+                    style="@style/ButtonPrimary" />
 
             </LinearLayout>
-
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Cards Container -->
+    <!-- Users List -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -158,11 +136,9 @@
         android:scrollbars="none">
 
         <LinearLayout
-            android:id="@+id/cardsContainer"
+            android:id="@+id/usersContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
-
     </ScrollView>
-
 </LinearLayout>

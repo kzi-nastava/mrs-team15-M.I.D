@@ -8,6 +8,7 @@ import com.example.ridenow.dto.ride.CurrentRideResponse;
 import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
 import com.example.ridenow.dto.ride.OrderRideRequestDTO;
 import com.example.ridenow.dto.ride.OrderRideResponseDTO;
+import com.example.ridenow.dto.ride.ReorderRideRequestDTO;
 import com.example.ridenow.dto.ride.StartRideResponseDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
 import com.example.ridenow.dto.ride.RouteResponseDTO;
@@ -73,4 +74,7 @@ public interface RideService {
 
     @GET("rides/{rideId}/start")
     Call<StartRideResponseDTO> passengerPickup(@Path("rideId") Long rideId);
+
+    @POST("rides/reorder-ride")
+    Call<Void> reorderRide(@Body ReorderRideRequestDTO request);
 }

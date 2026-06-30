@@ -1,41 +1,42 @@
 package com.example.ridenow.dto.passenger;
 
+import com.example.ridenow.dto.model.RatingDTO;
+import com.example.ridenow.dto.model.RouteDTO;
+
+import java.util.List;
+
 public class RideHistoryItemDTO {
-    private Long id;
-    private String startAddress;
-    private String endAddress;
+    private Long rideId;
+    private RouteDTO route;
     private String startTime;
     private String endTime;
     private boolean cancelled;
     private String cancelledBy;
-    private double price;
-    private boolean panicTriggered;
+    private Double price;
+    private Boolean panic;
+    private String panicBy;
     private Long routeId;
     private boolean favoriteRoute;
+    private List<String> passengers;
+    private RatingDTO rating;
+    private List<String> inconsistencies;
+    private String driver;
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
+
+    public Long getRideId() {
+        return rideId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setRideId(Long rideId) {
+        this.rideId = rideId;
     }
 
-    public String getStartAddress() {
-        return startAddress;
+    public RouteDTO getRoute() {
+        return route;
     }
 
-    public void setStartAddress(String startAddress) {
-        this.startAddress = startAddress;
-    }
-
-    public String getEndAddress() {
-        return endAddress;
-    }
-
-    public void setEndAddress(String endAddress) {
-        this.endAddress = endAddress;
+    public void setRoute(RouteDTO route) {
+        this.route = route;
     }
 
     public String getStartTime() {
@@ -70,20 +71,28 @@ public class RideHistoryItemDTO {
         this.cancelledBy = cancelledBy;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
-    public boolean isPanicTriggered() {
-        return panicTriggered;
+    public Boolean getPanic() {
+        return panic;
     }
 
-    public void setPanicTriggered(boolean panicTriggered) {
-        this.panicTriggered = panicTriggered;
+    public void setPanic(Boolean panic) {
+        this.panic = panic;
+    }
+
+    public String getPanicBy() {
+        return panicBy;
+    }
+
+    public void setPanicBy(String panicBy) {
+        this.panicBy = panicBy;
     }
 
     public Long getRouteId() {
@@ -100,5 +109,37 @@ public class RideHistoryItemDTO {
 
     public void setFavoriteRoute(boolean favoriteRoute) {
         this.favoriteRoute = favoriteRoute;
+    }
+
+    public List<String> getPassengers() {
+        return passengers;
+    }
+
+    public void setPassengers(List<String> passengers) {
+        this.passengers = passengers;
+    }
+
+    public RatingDTO getRating() {
+        return rating;
+    }
+
+    public void setRating(RatingDTO rating) {
+        this.rating = rating;
+    }
+
+    public List<String> getInconsistencies() {
+        return inconsistencies;
+    }
+
+    public void setInconsistencies(List<String> inconsistencies) {
+        this.inconsistencies = inconsistencies;
+    }
+
+    public String getDriver() {
+        return driver;
+    }
+
+    public void setDriver(String driver) {
+        this.driver = driver;
     }
 }

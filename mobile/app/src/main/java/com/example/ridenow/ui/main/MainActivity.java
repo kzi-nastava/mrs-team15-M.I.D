@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
         navigationView.setNavigationItemSelectedListener(item -> {
+            Log.d(TAG, "Clicked item id: " + item.getItemId() + " title: " + item.getTitle());
             if (item.getItemId() == R.id.nav_logout) {
                 handleLogout();
                 drawerLayout.closeDrawers();
@@ -235,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
         navigationView.getMenu().findItem(R.id.admin_chats).setVisible(isAdmin); // Support Chats
+        navigationView.getMenu().findItem(R.id.admin_users).setVisible(isAdmin); // Admin users
 
         // Live support for logged-in non-admin users
         navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
