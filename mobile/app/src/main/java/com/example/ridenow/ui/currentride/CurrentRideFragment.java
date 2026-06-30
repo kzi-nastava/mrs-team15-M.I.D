@@ -294,9 +294,9 @@ public class CurrentRideFragment extends Fragment {
 
             if (isMainPassenger != null && !isMainPassenger) {
                 // Not main passenger - hide report and panic buttons
-                reportInconsistencyButton.setVisibility(View.GONE);
+                reportInconsistencyButton.setVisibility(View.VISIBLE);
                 panicButton.setVisibility(View.GONE);
-                Log.d(TAG, "User is not main passenger - hiding report and panic buttons");
+                Log.d(TAG, "User is not main passenger - hiding panic button");
             } else {
                 // Main passenger - show buttons
                 reportInconsistencyButton.setVisibility(View.VISIBLE);

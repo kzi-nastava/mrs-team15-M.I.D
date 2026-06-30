@@ -69,6 +69,25 @@ public class DateUtils {
         }
     }
 
+    public static LocalDateTime formatISOToLocalDateTime(String isoDateTimeString) {
+        if (isoDateTimeString == null || isoDateTimeString.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+            return LocalDateTime.parse(isoDateTimeString, formatter);
+        } catch (Exception e) {
+            // Try alternative format without 'T'
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                return LocalDateTime.parse(isoDateTimeString, formatter);
+            } catch (Exception e2) {
+                return null; // Return null if parsing fails
+            }
+        }
+    }
+
     /**
      * Calculates duration in minutes between start and end time
      * @param startTimeISO Start time as ISO string

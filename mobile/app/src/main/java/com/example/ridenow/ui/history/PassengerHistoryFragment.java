@@ -10,6 +10,7 @@ import android.hardware.SensorManager;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +39,7 @@ import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.DateUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -372,7 +374,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         cardView.setOnClickListener(v -> openRideDetails(ride));
 
         // Rating button
-        if (btnRating != null) {
+        if (btnRating != null && ride.getRating() == null && !ride.isCancelled() && DateUtils.formatISOToLocalDateTime(ride.getEndTime()).isAfter(LocalDateTime.now().minusDays(3))) {
             btnRating.setVisibility(View.VISIBLE);
             btnRating.setOnClickListener(v -> {
                 try {
@@ -386,6 +388,9 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
                     }
                 }
             });
+        }
+        else {
+            btnRating.setVisibility(View.GONE);
         }
 
         cardsContainer.addView(cardView);
