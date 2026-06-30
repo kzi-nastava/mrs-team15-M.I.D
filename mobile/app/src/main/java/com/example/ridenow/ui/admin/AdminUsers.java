@@ -24,6 +24,7 @@ import com.example.ridenow.dto.user.UserItemDTO;
 import com.example.ridenow.dto.util.PageResponse;
 import com.example.ridenow.service.AdminService;
 import com.example.ridenow.util.ClientUtils;
+import android.widget.Filter;
 
 import java.util.List;
 
@@ -70,18 +71,53 @@ public class AdminUsers extends Fragment {
 
     private void setupDropdowns() {
         String[] sortOptions = {"Name", "Surname", "Role", "Email"};
-        ArrayAdapter<String> sortAdapter = new ArrayAdapter<>(requireContext(), R.layout.dropdown_item, sortOptions);
+        ArrayAdapter<String> sortAdapter = new ArrayAdapter<String>(requireContext(), R.layout.dropdown_item, sortOptions) {
+            @Override
+            public Filter getFilter() {
+                return new Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults results = new FilterResults();
+                        results.values = sortOptions;
+                        results.count = sortOptions.length;
+                        return results;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        notifyDataSetChanged();
+                    }
+                };
+            }
+        };
         spinnerSortBy.setAdapter(sortAdapter);
         spinnerSortBy.setTextColor(Color.BLACK);
         spinnerSortBy.setBackgroundColor(Color.WHITE);
         spinnerSortBy.setText("Name", false);
 
         String[] orderOptions = {"Asc", "Desc"};
-        ArrayAdapter<String> orderAdapter = new ArrayAdapter<>(requireContext(), R.layout.dropdown_item, orderOptions);
+        ArrayAdapter<String> orderAdapter = new ArrayAdapter<String>(requireContext(), R.layout.dropdown_item, orderOptions) {
+            @Override
+            public Filter getFilter() {
+                return new Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults results = new FilterResults();
+                        results.values = orderOptions;
+                        results.count = orderOptions.length;
+                        return results;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        notifyDataSetChanged();
+                    }
+                };
+            }
+        };
         spinnerOrder.setAdapter(orderAdapter);
         spinnerOrder.setTextColor(Color.BLACK);
         spinnerOrder.setBackgroundColor(Color.WHITE);
-
         spinnerOrder.setText("Desc", false);
 
         spinnerSortBy.setOnItemClickListener((parent, v, position, id) -> {
@@ -101,9 +137,7 @@ public class AdminUsers extends Fragment {
 
         btnClear.setOnClickListener(v -> {
             spinnerSortBy.setText("Email", false);
-            spinnerSortBy.setTextColor(Color.BLACK);
-            spinnerOrder.setText("Descending", false);
-            spinnerSortBy.setTextColor(Color.BLACK);
+            spinnerOrder.setText("Desc", false);
             currentSortBy = "email";
             currentSortDir = "desc";
             currentPage = 0;
