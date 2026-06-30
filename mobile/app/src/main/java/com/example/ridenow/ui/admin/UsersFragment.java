@@ -42,8 +42,7 @@ import retrofit2.Response;
 public class UsersFragment extends Fragment {
 
     private static final String TAG = "UsersFragment";
-    private static final String BACKEND_URL = "https://your-backend-url.example.com"; // TODO: wire to environment config
-
+    private static final String BACKEND_URL = "http://10.0.2.2:8081/";
     private ProgressBar progressBar;
     private TextView tvNoUsers;
     private TextView tvPageInfo;

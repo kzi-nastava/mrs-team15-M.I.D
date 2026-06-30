@@ -34,7 +34,7 @@ public interface AdminService {
     @PUT("/api/admins/price-configs")
     Call<Void> updatePriceConfig(@Body PriceConfigRequestDTO dto);
 
-    @GET("api/admins/users")
+    @GET("/api/admins/users")
     Call<PagedResponseDTO<AdminUserResponseDTO>> getAllUsers(
             @Query("search") String search,
             @Query("sortBy") String sortBy,
@@ -43,9 +43,9 @@ public interface AdminService {
             @Query("size") int size
     );
 
-    @PUT("api/admins/users/{id}/block")
+    @PUT("/api/admins/block/{id}")
     Call<Void> blockUser(@Path("id") Long id, @Body BlockUserRequestDTO dto);
 
-    @PUT("api/admins/users/{id}/unblock")
+    @PUT("/api/admins/unblock/{id}")
     Call<Void> unblockUser(@Path("id") Long id);
 }

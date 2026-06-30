@@ -29,12 +29,11 @@
         android:label="Price Configuration"
         tools:layout="@layout/fragment_price_config" />
 
-    <!-- Admin users management (admin) -->
     <fragment
         android:id="@+id/admin_users"
-        android:name="com.example.ridenow.ui.admin.AdminUsersFragment"
+        android:name="com.example.ridenow.ui.admin.UsersFragment"
         android:label="Users"
-        tools:layout="@layout/fragment_admin_users" />
+        tools:layout="@layout/fragment_users" />
 
     <action
         android:id="@+id/action_driverRequests_to_requestDetail"
