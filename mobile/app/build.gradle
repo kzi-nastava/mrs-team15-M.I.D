@@ -60,4 +60,6 @@ dependencies {
 
     // Firebase Cloud Messaging
     implementation 'com.google.firebase:firebase-messaging'
+
+    implementation libs.mpandroidchart
 }

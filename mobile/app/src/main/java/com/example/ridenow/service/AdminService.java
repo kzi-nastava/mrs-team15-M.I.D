@@ -1,10 +1,14 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO;
+import com.example.ridenow.dto.admin.AdminUserResponseDTO;
+import com.example.ridenow.dto.admin.BlockUserRequestDTO;
 import com.example.ridenow.dto.admin.AdminRideHistoryItemDTO;
 import com.example.ridenow.dto.admin.DriverChangeRequestDTO;
+import com.example.ridenow.dto.admin.PagedResponseDTO;
 import com.example.ridenow.dto.admin.PriceConfigRequestDTO;
 import com.example.ridenow.dto.admin.PriceConfigResponseDTO;
+import com.example.ridenow.dto.report.ReportResponseDTO;
 import com.example.ridenow.dto.user.UserItemDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.util.PageResponse;
@@ -34,6 +38,29 @@ public interface AdminService {
     @PUT("/api/admins/price-configs")
     Call<Void> updatePriceConfig(@Body PriceConfigRequestDTO dto);
 
+    @GET("/api/admins/users")
+    Call<PagedResponseDTO<AdminUserResponseDTO>> getAllUsers(
+            @Query("search") String search,
+            @Query("sortBy") String sortBy,
+            @Query("sortDir") String sortDir,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @PUT("/api/admins/block/{id}")
+    Call<Void> blockUser(@Path("id") Long id, @Body BlockUserRequestDTO dto);
+
+    @PUT("/api/admins/unblock/{id}")
+    Call<Void> unblockUser(@Path("id") Long id);
+
+    @GET("/api/admins/report")
+    Call<ReportResponseDTO> getReport(
+            @Query("startDate") Long startDate,
+            @Query("endDate") Long endDate,
+            @Query("drivers") boolean drivers,
+            @Query("users") boolean users,
+            @Query("personId") String personId
+    );
     @GET("/api/admins/all-users")
     Call<PageResponse<UserItemDTO>> getAllUsers(@Query("page") int page, @Query("size") int size,
                                                 @Query("sortBy") String sortBy, @Query("sortDir") String sortDir);
