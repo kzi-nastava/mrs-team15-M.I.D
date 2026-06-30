@@ -95,4 +95,19 @@
     <item
         android:id="@+id/admin_users"
         android:title="Users" />
+
+    <item
+        android:id="@+id/admin_report"
+        android:icon="@drawable/ic_history"
+        android:title="@string/nav_admin_report" />
+
+    <item
+        android:id="@+id/driver_report"
+        android:icon="@drawable/ic_history"
+        android:title="@string/nav_driver_report" />
+
+    <item
+        android:id="@+id/passenger_report"
+        android:icon="@drawable/ic_history"
+        android:title="@string/nav_passenger_report" />
 </menu>

@@ -270,4 +270,8 @@
     <string name="stop_ride_subtitle">Are you sure you want to stop this ride?</string>
     <string name="stop_ride_confirm">Stop Ride</string>
 
+    <string name="nav_admin_report">Reports</string>
+    <string name="nav_driver_report">My Reports</string>
+    <string name="nav_passenger_report">My Reports</string>
+
 </resources>

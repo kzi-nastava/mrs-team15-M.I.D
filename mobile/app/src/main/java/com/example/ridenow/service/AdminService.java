@@ -7,6 +7,7 @@ import com.example.ridenow.dto.admin.DriverChangeRequestDTO;
 import com.example.ridenow.dto.admin.PagedResponseDTO;
 import com.example.ridenow.dto.admin.PriceConfigRequestDTO;
 import com.example.ridenow.dto.admin.PriceConfigResponseDTO;
+import com.example.ridenow.dto.report.ReportResponseDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
 
 import java.util.List;
@@ -48,4 +49,13 @@ public interface AdminService {
 
     @PUT("/api/admins/unblock/{id}")
     Call<Void> unblockUser(@Path("id") Long id);
+
+    @GET("/api/admins/report")
+    Call<ReportResponseDTO> getReport(
+            @Query("startDate") Long startDate,
+            @Query("endDate") Long endDate,
+            @Query("drivers") boolean drivers,
+            @Query("users") boolean users,
+            @Query("personId") String personId
+    );
 }

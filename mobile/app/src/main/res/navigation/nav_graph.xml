@@ -192,4 +192,23 @@
         android:name="com.example.ridenow.ui.ride.FindingDriverFragment"
         android:label="Finding Driver"
         tools:layout="@layout/fragment_finding_driver" />
+
+    <!-- Reports -->
+    <fragment
+        android:id="@+id/admin_report"
+        android:name="com.example.ridenow.ui.report.AdminReportFragment"
+        android:label="Reports"
+        tools:layout="@layout/fragment_admin_report" />
+
+    <fragment
+        android:id="@+id/driver_report"
+        android:name="com.example.ridenow.ui.report.DriverReportFragment"
+        android:label="My Reports"
+        tools:layout="@layout/fragment_driver_report" />
+
+    <fragment
+        android:id="@+id/passenger_report"
+        android:name="com.example.ridenow.ui.report.PassengerReportFragment"
+        android:label="My Reports"
+        tools:layout="@layout/fragment_passenger_report" />
 </navigation>
