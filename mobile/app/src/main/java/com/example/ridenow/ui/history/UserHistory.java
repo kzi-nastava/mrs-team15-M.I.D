@@ -472,6 +472,7 @@ public class UserHistory extends Fragment implements SensorEventListener {
 
     private RideHistoryDTO mapToRideHistoryDTO(AdminRideHistoryItemDTO ride) {
         RideHistoryDTO mapped = new RideHistoryDTO();
+        mapped.setRideId(ride.getRideId());
         mapped.setRoute(ride.getRoute());
         mapped.setPassengers(ride.getPassengers());
         mapped.setDate(null);

@@ -1,27 +1,44 @@
 package com.example.ridenow.ui.history;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.RideHistoryDTO;
+import com.example.ridenow.dto.ride.ReorderRideRequestDTO;
+import com.example.ridenow.service.RideService;
 import com.example.ridenow.ui.components.RouteMapView;
 import com.example.ridenow.util.AddressUtils;
+import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.DateUtils;
+import com.example.ridenow.util.TokenUtils;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Locale;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RideDetailsFragment extends Fragment {
     private RideHistoryDTO rideHistory;
     private RouteMapView routeMapView;
+    private RideService rideService;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,10 +58,180 @@ public class RideDetailsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        rideService = ClientUtils.getClient(RideService.class);
+
         if (rideHistory != null) {
             setupMap(view);
             populateRideDetails(view);
+            setupReorderButton(view);
         }
+    }
+    private void setupReorderButton(View view) {
+        Button btnReorderRide = view.findViewById(R.id.btnReorderRide);
+        if(btnReorderRide == null) { return; }
+
+        TokenUtils tokenUtils = ClientUtils.getTokenUtils();
+        String userRole = tokenUtils.getRole();
+
+        boolean isUser = "USER".equals(userRole);
+        boolean isAdmin = "ADMIN".equals(userRole);
+
+        if ((isAdmin || isUser) && rideHistory.getRideId() != null) {
+            btnReorderRide.setVisibility(View.VISIBLE);
+            btnReorderRide.setOnClickListener(v -> showReorderDialog());
+        } else {
+            btnReorderRide.setVisibility(View.GONE);
+        }
+    }
+
+    private void showReorderDialog() {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_reorder_ride, null);
+
+        LinearLayout llScheduleInputs = dialogView.findViewById(R.id.llScheduleInputs);
+        EditText etReorderDate = dialogView.findViewById(R.id.etReorderDate);
+        EditText etReorderTime = dialogView.findViewById(R.id.etReorderTime);
+        TextView tvReorderError = dialogView.findViewById(R.id.tvReorderError);
+        Button btnBookNow = dialogView.findViewById(R.id.btnBookNow);
+        Button btnScheduleForLater = dialogView.findViewById(R.id.btnScheduleForLater);
+        Button btnConfirmSchedule = dialogView.findViewById(R.id.btnConfirmSchedule);
+        Button btnClose = dialogView.findViewById(R.id.btnReorderClose);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext()).setView(dialogView).create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.drawable.dialog_holo_light_frame);
+        }
+
+        final Calendar[] selectedDate = {null};
+        final Calendar[] selectedTime = {null};
+
+        etReorderDate.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            selectedDate[0] = (Calendar) now.clone();
+            selectedTime[0] = (Calendar) now.clone();
+            SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+            etReorderDate.setText(dateFmt.format(now.getTime()));
+            etReorderTime.setText(timeFmt.format(now.getTime()));
+            new DatePickerDialog(requireContext(),
+                    R.style.CustomDatePickerDialog,
+                    (picker, year, month, day) -> {
+                        Calendar c = Calendar.getInstance();
+                        c.set(year, month, day);
+                        selectedDate[0] = c;
+                        SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        etReorderDate.setText(fmt.format(c.getTime()));
+                    }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
+        etReorderTime.setOnClickListener(v -> {
+            Calendar now = Calendar.getInstance();
+            selectedDate[0] = (Calendar) now.clone();
+            selectedTime[0] = (Calendar) now.clone();
+            SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+
+            etReorderDate.setText(dateFmt.format(now.getTime()));
+            etReorderTime.setText(timeFmt.format(now.getTime()));
+            new TimePickerDialog(requireContext(),
+                    R.style.CustomDatePickerDialog,
+                    (picker, hour, minute) -> {
+                        Calendar c = Calendar.getInstance();
+                        c.set(Calendar.HOUR_OF_DAY, hour);
+                        c.set(Calendar.MINUTE, minute);
+                        selectedTime[0] = c;
+                        SimpleDateFormat fmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                        etReorderTime.setText(fmt.format(c.getTime()));
+                    }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true).show();
+        });
+
+        btnScheduleForLater.setOnClickListener(v -> {
+            llScheduleInputs.setVisibility(View.VISIBLE);
+            btnScheduleForLater.setVisibility(View.GONE);
+            btnBookNow.setVisibility(View.GONE);
+            btnConfirmSchedule.setVisibility(View.VISIBLE);
+
+            Calendar now = Calendar.getInstance();
+            selectedDate[0] = (Calendar) now.clone();
+            selectedTime[0] = (Calendar) now.clone();
+
+            SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            etReorderDate.setText(dateFmt.format(now.getTime()));
+            etReorderTime.setText(timeFmt.format(now.getTime()));
+        });
+
+        btnBookNow.setOnClickListener(v -> {
+            sendReorderRequest(null, dialog);
+        });
+
+        btnConfirmSchedule.setOnClickListener(v -> {
+            if (selectedDate[0] == null || selectedTime[0] == null) {
+                tvReorderError.setText(getString(R.string.reorder_select_date_time_error));
+                tvReorderError.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            Calendar combined = (Calendar) selectedDate[0].clone();
+            combined.set(Calendar.HOUR_OF_DAY, selectedTime[0].get(Calendar.HOUR_OF_DAY));
+            combined.set(Calendar.MINUTE, selectedTime[0].get(Calendar.MINUTE));
+            combined.set(Calendar.SECOND, 0);
+
+            if (combined.getTimeInMillis() < System.currentTimeMillis()) {
+                tvReorderError.setText(getString(R.string.reorder_past_date_error));
+                tvReorderError.setVisibility(View.VISIBLE);
+                return;
+            }
+
+            tvReorderError.setVisibility(View.GONE);
+
+            SimpleDateFormat isoFmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+            String scheduledTime = isoFmt.format(combined.getTime());
+
+            sendReorderRequest(scheduledTime, dialog);
+        });
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private void sendReorderRequest(String scheduledTimeIso, AlertDialog dialog) {
+        ReorderRideRequestDTO request = new ReorderRideRequestDTO();
+        request.setRideId(rideHistory.getRideId());
+
+        if (scheduledTimeIso != null) {
+            request.setScheduledTime(scheduledTimeIso);
+        }
+
+        rideService.reorderRide(request).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), getString(R.string.reorder_success), Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                } else {
+                    String error = getString(R.string.reorder_failed);
+                    try {
+                        if (response.errorBody() != null) {
+                            String body = response.errorBody().string();
+                            if (body != null && !body.isEmpty()) {
+                                error = body.replaceAll("^\"|\"$", "");
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                t.printStackTrace();
+            }
+        });
     }
 
     private void populateRideDetails(View view) {

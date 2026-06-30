@@ -283,5 +283,19 @@
     <string name="order">Order</string>
     <string name="history">History</string>
 
+    <!-- Reorder ride modal -->
+    <string name="reorder_ride">Reorder Ride</string>
+    <string name="reorder_ride_title">Reorder Ride</string>
+    <string name="reorder_ride_subtitle">Do you want to request the same route again? You can book this ride immediately or schedule it for later.</string>
+    <string name="select_date">Select date</string>
+    <string name="select_time">Select time</string>
+    <string name="book_now">Book Now</string>
+    <string name="schedule_for_later">Schedule for Later</string>
+    <string name="confirm_schedule">Confirm Schedule</string>
+    <string name="reorder_select_date_time_error">Please select both date and time</string>
+    <string name="reorder_past_date_error">Selected time must be in the future</string>
+    <string name="reorder_success">Ride reordered successfully</string>
+    <string name="reorder_failed">Failed to reorder ride</string>
+    <string name="close">Close\n</string>
 
 </resources>

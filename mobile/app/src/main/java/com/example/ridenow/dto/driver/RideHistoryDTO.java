@@ -7,19 +7,20 @@ import com.example.ridenow.dto.model.RatingDTO;
 import com.example.ridenow.dto.model.RouteDTO;
 
 public class RideHistoryDTO implements Serializable {
-        private RouteDTO route;
-        private List<String> passengers;
-        private String date;
-        private String startTime;
-        private String endTime;
-        private Double durationMinutes;
-        private Double cost;
-        private Boolean cancelled;
-        private String cancelledBy;
-        private Boolean panic;
-        private String panicBy;
-        private RatingDTO rating;
-        private List<String> inconsistencies;
+    private Long rideId;
+    private RouteDTO route;
+    private List<String> passengers;
+    private String date;
+    private String startTime;
+    private String endTime;
+    private Double durationMinutes;
+    private Double cost;
+    private Boolean cancelled;
+    private String cancelledBy;
+    private Boolean panic;
+    private String panicBy;
+    private RatingDTO rating;
+    private List<String> inconsistencies;
     public RideHistoryDTO() {}
 
     // Getters and setters
@@ -68,4 +69,11 @@ public class RideHistoryDTO implements Serializable {
     public List<String> getInconsistencies() { return inconsistencies; }
     public void setInconsistencies(List<String> inconsistencies) { this.inconsistencies = inconsistencies; }
 
+    public Long getRideId() {
+        return rideId;
+    }
+
+    public void setRideId(Long rideId) {
+        this.rideId = rideId;
+    }
 }

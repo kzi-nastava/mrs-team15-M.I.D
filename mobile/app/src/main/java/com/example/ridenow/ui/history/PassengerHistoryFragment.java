@@ -464,6 +464,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
     private RideHistoryDTO mapToRideHistoryDTO(RideHistoryItemDTO ride) {
         RideHistoryDTO mapped = new RideHistoryDTO();
+        mapped.setRideId(ride.getRideId());
         mapped.setRoute(ride.getRoute());
         mapped.setPassengers(ride.getPassengers());
         mapped.setDate(null);
