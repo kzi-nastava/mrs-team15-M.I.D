@@ -13,22 +13,17 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.user.FcmTokenDTO;
 import com.example.ridenow.service.LogoutService;
 import com.example.ridenow.service.TokenExpirationService;
-import com.example.ridenow.service.UserService;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.messaging.FirebaseMessaging;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -258,8 +253,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLogoutFailure(String error) {
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "Logout failed: " + error, Toast.LENGTH_SHORT).show();
-                    onLogout();
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
                 });
             }
         });
