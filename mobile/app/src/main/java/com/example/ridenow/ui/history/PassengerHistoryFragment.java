@@ -89,7 +89,6 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error initializing page: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-
         return view;
     }
 
@@ -281,8 +280,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
         isLoading = true;
 
-        Call<PageResponse<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory(
-                currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
+        Call<PageResponse<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory(currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
 
         call.enqueue(new Callback<>() {
             @Override
@@ -347,18 +345,14 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         LinearLayout statusContainer = cardView.findViewById(R.id.statusContainer);
         Button btnRating = cardView.findViewById(R.id.btnRating);
 
-        // Route
         String startAddress = AddressUtils.formatAddress(ride.getRoute().getStartLocation().getAddress());
         String endAddress = AddressUtils.formatAddress(ride.getRoute().getEndLocation().getAddress());
         tvRoute.setText(startAddress + " → " + endAddress);
 
-        // Date
         tvDate.setText(DateUtils.formatDateFromISO(ride.getStartTime()));
 
-        // Cost
         tvCost.setText(String.format(Locale.getDefault(), "%.0f RSD", ride.getPrice() != null ? ride.getPrice() : 0.0));
 
-        // Driver instead of passengers, for passenger history
         tvPassengers.setText(ride.getDriver() != null ? ride.getDriver() : "Driver assigned");
 
         // Duration and time range

@@ -223,4 +223,8 @@
         android:id="@+id/action_adminUsers_to_adminUserHistory"
         app:destination="@id/admin_user_history" />
 
+    <action
+        android:id="@+id/action_userHistory_to_rideDetails"
+        app:destination="@id/rideDetailsFragment" />
+
 </navigation>

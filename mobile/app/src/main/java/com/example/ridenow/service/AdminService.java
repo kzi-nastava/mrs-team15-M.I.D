@@ -1,6 +1,7 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO;
+import com.example.ridenow.dto.admin.AdminRideHistoryItemDTO;
 import com.example.ridenow.dto.admin.DriverChangeRequestDTO;
 import com.example.ridenow.dto.admin.PriceConfigRequestDTO;
 import com.example.ridenow.dto.admin.PriceConfigResponseDTO;
@@ -36,4 +37,9 @@ public interface AdminService {
     @GET("/api/admins/all-users")
     Call<PageResponse<UserItemDTO>> getAllUsers(@Query("page") int page, @Query("size") int size,
                                                 @Query("sortBy") String sortBy, @Query("sortDir") String sortDir);
+
+    @GET("/api/admins/ride-history")
+    Call<PageResponse<AdminRideHistoryItemDTO>> getRideHistory( @Query("id") long userId, @Query("page") int page,
+                                                                @Query("size") int size, @Query("sortBy") String sortBy,
+                                                                @Query("sortDir") String sortDir, @Query("date") Long date);
 }
