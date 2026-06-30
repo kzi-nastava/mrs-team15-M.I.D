@@ -4,6 +4,8 @@ import com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO;
 import com.example.ridenow.dto.driver.DriverHistoryResponseDTO;
 import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
 import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
+import com.example.ridenow.dto.driver.DriverStatusRequestDTO;
+import com.example.ridenow.dto.driver.DriverStatusResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
@@ -47,4 +49,10 @@ public interface DriverService {
 
     @PUT("rides/{rideId}/start")
     Call<Void> startRide(@Path("rideId") Long rideId);
+
+    @PUT("driver/change-status")
+    Call<DriverStatusResponseDTO> changeDriverStatus(@Body DriverStatusRequestDTO dto);
+
+    @GET("driver/status")
+    Call<DriverStatusResponseDTO> getDriverStatus();
 }
