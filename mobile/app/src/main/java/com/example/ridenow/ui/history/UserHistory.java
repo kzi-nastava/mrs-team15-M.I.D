@@ -30,10 +30,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.example.ridenow.R;
+import com.example.ridenow.dto.admin.AdminRideHistoryItemDTO;
 import com.example.ridenow.dto.driver.RideHistoryDTO;
-import com.example.ridenow.dto.passenger.RideHistoryItemDTO;
 import com.example.ridenow.dto.util.PageResponse;
-import com.example.ridenow.service.PassengerService;
+import com.example.ridenow.service.AdminService;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.DateUtils;
@@ -45,10 +45,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PassengerHistoryFragment extends Fragment implements SensorEventListener {
+
+public class UserHistory extends Fragment implements SensorEventListener {
+    public UserHistory() {
+    }
     private EditText etDateFilter;
-    private AutoCompleteTextView spinnerSortBy, spinnerOrder;
-    private Button btnApplyFilter, btnClearFilter;
+    private AutoCompleteTextView spinnerSortBy;
+    private AutoCompleteTextView  spinnerOrder;
+    private Button btnApplyFilter;
+    private Button btnClearFilter;
+    private TextView tvUserName;
     private LinearLayout cardsContainer;
     private Calendar selectedDate;
     private SensorManager sensorManager;
@@ -62,21 +68,34 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
     private String currentSortBy = "date";
     private String currentSortDir = "desc";
     private Long currentDateFilter = null;
-    private PassengerService passengerService;
+    private long userId;
+    private String userName;
+    private AdminService adminService;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_passenger_history, container, false);
+        View view = inflater.inflate(R.layout.fragment_user_history, container, false);
 
         try {
+            if (getArguments() != null) {
+                userId = getArguments().getLong("userId");
+                userName = getArguments().getString("userName", "");
+            }
+
             etDateFilter = view.findViewById(R.id.etDateFilter);
             spinnerSortBy = view.findViewById(R.id.spinnerSortBy);
             spinnerOrder = view.findViewById(R.id.spinnerOrder);
             btnApplyFilter = view.findViewById(R.id.btnApplyFilter);
             btnClearFilter = view.findViewById(R.id.btnClearFilter);
             cardsContainer = view.findViewById(R.id.cardsContainer);
+            tvUserName = view.findViewById(R.id.tvUserName);
 
-            passengerService = ClientUtils.getClient(PassengerService.class);
+            tvUserName = view.findViewById(R.id.tvUserName);
+            if (tvUserName != null) {
+                tvUserName.setText(userName != null && !userName.isEmpty() ? userName : "Unknown user");
+            }
+
+            adminService = ClientUtils.getClient(AdminService.class);
 
             spinnerSortBy.setDropDownBackgroundResource(android.R.color.white);
             spinnerOrder.setDropDownBackgroundResource(android.R.color.white);
@@ -97,9 +116,8 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         super.onViewCreated(view, savedInstanceState);
         setupShakeDetection();
     }
-
     private void setupDropdowns() {
-        String[] sortOptions = {"Route", "Start Time", "End Time", "Date"};
+        String[] sortOptions = {"Route", "Start Time", "End Time", "Date", "Cancelled", "Price", "Panic"};
         ArrayAdapter<String> sortAdapter = createCustomAdapter(sortOptions);
         spinnerSortBy.setAdapter(sortAdapter);
         spinnerSortBy.setTextColor(Color.BLACK);
@@ -122,6 +140,19 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         );
     }
 
+    private String convertSortByToApi(String displayName) {
+        switch (displayName) {
+            case "Route": return "route";
+            case "Start Time": return "startTime";
+            case "End Time": return "endTime";
+            case "Cancelled": return "cancelled";
+            case "Price": return "price";
+            case "Panic": return "panic";
+            case "Date":
+            default: return "date";
+        }
+    }
+
     private ArrayAdapter<String> createCustomAdapter(String[] items) {
         return new ArrayAdapter<String>(requireContext(), R.layout.dropdown_item, items) {
             @Override
@@ -142,16 +173,6 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
                 };
             }
         };
-    }
-
-    private String convertSortByToApi(String displayName) {
-        switch (displayName) {
-            case "Route": return "route";
-            case "Start Time": return "startTime";
-            case "End Time": return "endTime";
-            case "Date":
-            default: return "date";
-        }
     }
 
     private void setupShakeDetection() {
@@ -271,7 +292,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
     }
 
     private void loadPassengerHistory() {
-        if (passengerService == null) {
+        if (adminService == null) {
             Toast.makeText(getContext(), "Service not available", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -280,15 +301,15 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
         isLoading = true;
 
-        Call<PageResponse<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory(currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
+        Call<PageResponse<AdminRideHistoryItemDTO>> call = adminService.getRideHistory(userId, currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
 
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<PageResponse<RideHistoryItemDTO>> call, @NonNull Response<PageResponse<RideHistoryItemDTO>> response) {
+            public void onResponse(@NonNull Call<PageResponse<AdminRideHistoryItemDTO>> call, @NonNull Response<PageResponse<AdminRideHistoryItemDTO>> response) {
                 isLoading = false;
 
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<RideHistoryItemDTO> data = response.body();
+                    PageResponse<AdminRideHistoryItemDTO> data = response.body();
 
                     if (currentPage == 0) {
                         cardsContainer.removeAllViews();
@@ -298,10 +319,10 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
                     hasMoreData = !data.isLast();
 
-                    List<RideHistoryItemDTO> rides = data.getContent();
+                    List<AdminRideHistoryItemDTO> rides = data.getContent();
 
                     try {
-                        for (RideHistoryItemDTO ride : rides) {
+                        for (AdminRideHistoryItemDTO ride : rides) {
                             createRideCard(ride);
                         }
                     } catch (Exception e) {
@@ -321,7 +342,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
             }
 
             @Override
-            public void onFailure(@NonNull Call<PageResponse<RideHistoryItemDTO>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<PageResponse<AdminRideHistoryItemDTO>> call, @NonNull Throwable t) {
                 isLoading = false;
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
@@ -330,7 +351,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         });
     }
 
-    private void createRideCard(RideHistoryItemDTO ride) {
+    private void createRideCard(AdminRideHistoryItemDTO ride) {
         if (getContext() == null) return;
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -344,6 +365,10 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         TextView tvTimeRange = cardView.findViewById(R.id.tvTimeRange);
         LinearLayout statusContainer = cardView.findViewById(R.id.statusContainer);
         Button btnRating = cardView.findViewById(R.id.btnRating);
+
+        if (btnRating != null) {
+            btnRating.setVisibility(View.GONE);
+        }
 
         String startAddress = AddressUtils.formatAddress(ride.getRoute().getStartLocation().getAddress());
         String endAddress = AddressUtils.formatAddress(ride.getRoute().getEndLocation().getAddress());
@@ -371,27 +396,10 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         // Click on card -> ride details
         cardView.setOnClickListener(v -> openRideDetails(ride));
 
-        // Rating button
-        if (btnRating != null) {
-            btnRating.setVisibility(View.VISIBLE);
-            btnRating.setOnClickListener(v -> {
-                try {
-                    NavController navController = Navigation.findNavController(v);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("rideId", String.valueOf(ride.getRideId()));
-                    navController.navigate(R.id.rating, bundle);
-                } catch (Exception e) {
-                    if (getContext() != null) {
-                        Toast.makeText(getContext(), "Cannot navigate to rating page", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-        }
-
         cardsContainer.addView(cardView);
     }
 
-    private void addStatusIndicators(LinearLayout statusContainer, RideHistoryItemDTO ride) {
+    private void addStatusIndicators(LinearLayout statusContainer, AdminRideHistoryItemDTO ride) {
         if (statusContainer == null) return;
         statusContainer.removeAllViews();
 
@@ -462,7 +470,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         }
     }
 
-    private RideHistoryDTO mapToRideHistoryDTO(RideHistoryItemDTO ride) {
+    private RideHistoryDTO mapToRideHistoryDTO(AdminRideHistoryItemDTO ride) {
         RideHistoryDTO mapped = new RideHistoryDTO();
         mapped.setRideId(ride.getRideId());
         mapped.setRoute(ride.getRoute());
@@ -481,7 +489,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         return mapped;
     }
 
-    private void openRideDetails(RideHistoryItemDTO ride) {
+    private void openRideDetails(AdminRideHistoryItemDTO ride) {
         try {
             RideHistoryDTO mapped = mapToRideHistoryDTO(ride);
 
@@ -489,7 +497,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
             bundle.putSerializable("ride_history", mapped);
 
             NavController navController = Navigation.findNavController(requireView());
-            navController.navigate(R.id.action_passengerHistory_to_rideDetails, bundle);
+            navController.navigate(R.id.action_userHistory_to_rideDetails, bundle);
         } catch (Exception e) {
             if (getContext() != null) {
                 Toast.makeText(getContext(), "Cannot open ride details", Toast.LENGTH_SHORT).show();

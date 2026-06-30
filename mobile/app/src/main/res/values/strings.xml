@@ -266,6 +266,7 @@
     <string name="delete_notification">Delete notification</string>
     <string name="search_user_hint">Search by user name…</string>
 
+    <!-- Stop ride -->
     <string name="stop_ride_title">Stop Ride Early</string>
     <string name="stop_ride_subtitle">Are you sure you want to stop this ride?</string>
     <string name="stop_ride_confirm">Stop Ride</string>
@@ -273,5 +274,31 @@
     <string name="nav_admin_report">Reports</string>
     <string name="nav_driver_report">My Reports</string>
     <string name="nav_passenger_report">My Reports</string>
+    <!-- Admin users -->
+    <string name="apply">Apply</string>
+    <string name="clear">Clear</string>
+    <string name="search_by_name_or_email">Search by name or email…</string>
+    <string name="search_people">Search people</string>
+    <string name="users">Users</string>
+    <string name="view_of_all_users">View of all users</string>
+    <string name="sort_and_filter">Sort and filter</string>
+    <string name="sort_by">Sort By</string>
+    <string name="order">Order</string>
+    <string name="history">History</string>
+
+    <!-- Reorder ride modal -->
+    <string name="reorder_ride">Reorder Ride</string>
+    <string name="reorder_ride_title">Reorder Ride</string>
+    <string name="reorder_ride_subtitle">Do you want to request the same route again? You can book this ride immediately or schedule it for later.</string>
+    <string name="select_date">Select date</string>
+    <string name="select_time">Select time</string>
+    <string name="book_now">Book Now</string>
+    <string name="schedule_for_later">Schedule for Later</string>
+    <string name="confirm_schedule">Confirm Schedule</string>
+    <string name="reorder_select_date_time_error">Please select both date and time</string>
+    <string name="reorder_past_date_error">Selected time must be in the future</string>
+    <string name="reorder_success">Ride reordered successfully</string>
+    <string name="reorder_failed">Failed to reorder ride</string>
+    <string name="close">Close\n</string>
 
 </resources>

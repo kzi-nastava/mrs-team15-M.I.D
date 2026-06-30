@@ -22,6 +22,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface DriverService {
@@ -43,4 +44,7 @@ public interface DriverService {
 
     @GET("driver/can-start-ride")
     Call<DriverCanStartRideResponseDTO> canStartRide();
+
+    @PUT("rides/{rideId}/start")
+    Call<Void> startRide(@Path("rideId") Long rideId);
 }

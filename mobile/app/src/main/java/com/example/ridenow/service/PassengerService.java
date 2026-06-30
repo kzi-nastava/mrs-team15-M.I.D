@@ -3,6 +3,7 @@ package com.example.ridenow.service;
 import com.example.ridenow.dto.passenger.RideHistoryItemDTO;
 import com.example.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import com.example.ridenow.dto.ride.RouteResponseDTO;
+import com.example.ridenow.dto.util.PageResponse;
 
 import java.util.List;
 
@@ -14,7 +15,8 @@ import retrofit2.http.Query;
 public interface PassengerService {
 
     @GET("passengers/ride-history")
-    Call<List<RideHistoryItemDTO>> getPassengerRideHistory();
+    Call<PageResponse<RideHistoryItemDTO>> getPassengerRideHistory(@Query("page") int page, @Query("size") int size,
+            @Query("sortBy") String sortBy, @Query("sortDir") String sortDir, @Query("date") Long date);
 
     @GET("passengers/favorite-routes")
     Call<List<FavoriteRouteResponseDTO>> getFavoriteRoutes();

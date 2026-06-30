@@ -52,6 +52,10 @@
         android:name="com.example.ridenow.ui.history.PassengerHistoryFragment"
         android:label="My Rides" />
 
+    <action
+        android:id="@+id/action_passengerHistory_to_rideDetails"
+        app:destination="@id/rideDetailsFragment" />
+
     <fragment
         android:id="@+id/login"
         android:name="com.example.ridenow.ui.auth.LoginFragment"
@@ -105,6 +109,12 @@
         android:id="@+id/upcoming_rides"
         android:name="com.example.ridenow.ui.upcoming.UpcomingRidesFragment"
         android:label="Upcoming Rides" />
+
+    <fragment
+        android:id="@+id/start_ride_fragment"
+        android:name="com.example.ridenow.ui.ride.StartRideFragement"
+        android:label="Start Ride"
+        tools:layout="@layout/fragment_start_ride" />
 
     <fragment
         android:id="@+id/current_ride"
@@ -211,4 +221,35 @@
         android:name="com.example.ridenow.ui.report.PassengerReportFragment"
         android:label="My Reports"
         tools:layout="@layout/fragment_passenger_report" />
+
+    <!-- Admin Users -->
+    <fragment
+        android:id="@+id/admin_users"
+        android:name="com.example.ridenow.ui.admin.AdminUsers"
+        android:label="Users"
+        tools:layout="@layout/fragment_admin_users" />
+
+    <!-- Admin User History -->
+    <fragment
+        android:id="@+id/admin_user_history"
+        android:name="com.example.ridenow.ui.history.UserHistory"
+        android:label="User History"
+        tools:layout="@layout/fragment_user_history">
+        <argument
+            android:name="userId"
+            app:argType="long" />
+        <argument
+            android:name="userName"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_adminUsers_to_adminUserHistory"
+        app:destination="@id/admin_user_history" />
+
+    <action
+        android:id="@+id/action_userHistory_to_rideDetails"
+        app:destination="@id/rideDetailsFragment" />
+
 </navigation>

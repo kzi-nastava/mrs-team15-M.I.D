@@ -952,7 +952,11 @@ public class RideService {
         RegisteredUser registeredUser = optionalRegisteredUser.get();
         OrderRideRequestDTO dto = buildOrderRequestFromRide(registeredUser, ride, request);
 
-        orderRide(dto, email);
+        OrderRideResponseDTO result = orderRide(dto, email);
+        if (result.getId() == null) {
+            String reason = result.getRejectionReason() != null ? result.getRejectionReason() : "No available driver found";
+            throw new Exception("Reorder failed: " + reason);
+        }
     }
 
     public List<ActiveRideDTO> getActiveRides(){
