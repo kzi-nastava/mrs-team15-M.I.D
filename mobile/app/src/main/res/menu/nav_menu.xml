@@ -91,4 +91,9 @@
         android:id="@+id/nav_logout"
         android:icon="@drawable/ic_logout"
         android:title="@string/logout" />
+
+    <item
+        android:id="@+id/admin_users"
+        android:icon="@drawable/ic_person_black"
+        android:title="Users" />
 </menu>

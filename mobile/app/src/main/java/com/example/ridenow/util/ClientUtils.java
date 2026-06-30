@@ -15,7 +15,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ClientUtils {
-    private static final String BASE_URL = "http://10.0.2.2:8081/api/";
+    private static final String BASE_URL = "http://192.168.1.6:8081/api/";
     private static TokenUtils tokenUtils;
     private static UnauthorizedListener unauthorizedListener;
     public interface UnauthorizedListener {
