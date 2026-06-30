@@ -29,6 +29,13 @@
         android:label="Price Configuration"
         tools:layout="@layout/fragment_price_config" />
 
+    <!-- Admin users management (admin) -->
+    <fragment
+        android:id="@+id/admin_users"
+        android:name="com.example.ridenow.ui.admin.AdminUsersFragment"
+        android:label="Users"
+        tools:layout="@layout/fragment_admin_users" />
+
     <action
         android:id="@+id/action_driverRequests_to_requestDetail"
         app:destination="@id/driver_request_detail" />
@@ -37,9 +44,9 @@
         android:id="@+id/history"
         android:name="com.example.ridenow.ui.history.DriverHistoryFragment"
         android:label="Profile" />
-        <action
-            android:id="@+id/action_driverHistory_to_rideDetails"
-            app:destination="@id/rideDetailsFragment" />
+    <action
+        android:id="@+id/action_driverHistory_to_rideDetails"
+        app:destination="@id/rideDetailsFragment" />
 
     <fragment
         android:id="@+id/passenger_history"

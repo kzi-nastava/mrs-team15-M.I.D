@@ -1,7 +1,10 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.admin.AdminChangesReviewRequestDTO;
+import com.example.ridenow.dto.admin.AdminUserResponseDTO;
+import com.example.ridenow.dto.admin.BlockUserRequestDTO;
 import com.example.ridenow.dto.admin.DriverChangeRequestDTO;
+import com.example.ridenow.dto.admin.PagedResponseDTO;
 import com.example.ridenow.dto.admin.PriceConfigRequestDTO;
 import com.example.ridenow.dto.admin.PriceConfigResponseDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
@@ -12,6 +15,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface AdminService {
 
@@ -29,4 +33,19 @@ public interface AdminService {
 
     @PUT("/api/admins/price-configs")
     Call<Void> updatePriceConfig(@Body PriceConfigRequestDTO dto);
+
+    @GET("api/admins/users")
+    Call<PagedResponseDTO<AdminUserResponseDTO>> getAllUsers(
+            @Query("search") String search,
+            @Query("sortBy") String sortBy,
+            @Query("sortDir") String sortDir,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @PUT("api/admins/users/{id}/block")
+    Call<Void> blockUser(@Path("id") Long id, @Body BlockUserRequestDTO dto);
+
+    @PUT("api/admins/users/{id}/unblock")
+    Call<Void> unblockUser(@Path("id") Long id);
 }
