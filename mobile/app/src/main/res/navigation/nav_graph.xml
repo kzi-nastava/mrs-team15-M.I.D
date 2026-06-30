@@ -46,6 +46,10 @@
         android:name="com.example.ridenow.ui.history.PassengerHistoryFragment"
         android:label="My Rides" />
 
+    <action
+        android:id="@+id/action_passengerHistory_to_rideDetails"
+        app:destination="@id/rideDetailsFragment" />
+
     <fragment
         android:id="@+id/login"
         android:name="com.example.ridenow.ui.auth.LoginFragment"

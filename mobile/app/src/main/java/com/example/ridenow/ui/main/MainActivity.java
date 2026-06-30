@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
         navigationView.setNavigationItemSelectedListener(item -> {
+            Log.d(TAG, "Clicked item id: " + item.getItemId() + " title: " + item.getTitle());
             if (item.getItemId() == R.id.nav_logout) {
                 handleLogout();
                 drawerLayout.closeDrawers();
