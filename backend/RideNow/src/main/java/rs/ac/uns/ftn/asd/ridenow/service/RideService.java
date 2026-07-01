@@ -534,6 +534,10 @@ public class RideService {
         completionData.put("rideId", rideId);
         completionData.put("triggeredBy", "DRIVER");
         completionData.put("timestamp", new Date());
+        completionData.put("endAddress", ride.getRoute().getEndLocation().getAddress());
+        completionData.put("distanceKm", ride.getDistanceKm());
+        completionData.put("estimatedDurationMin", (int) ride.getRoute().getEstimatedTimeMin());
+        completionData.put("price", ride.getPrice());
 
         webSocketHandler.broadcastRideComplete(rideId, completionData);
         // Websocket cleanup

@@ -7,6 +7,7 @@ public class CurrentRideResponse {
     private RouteDTO route;
     private Long rideId;
     private Boolean isMainPassenger;
+    private Boolean panic;
 
     public int getEstimatedDurationMin() {
         return estimatedDurationMin;
@@ -38,5 +39,13 @@ public class CurrentRideResponse {
 
     public void setMainPassenger(Boolean mainPassenger) {
         isMainPassenger = mainPassenger;
+    }
+
+    public Boolean getPanic() {
+        return panic;
+    }
+
+    public void setPanic(Boolean panic) {
+        this.panic = panic;
     }
 }

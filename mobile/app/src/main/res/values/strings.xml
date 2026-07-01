@@ -328,6 +328,7 @@
     <string name="reorder_failed">Failed to reorder ride</string>
     <string name="close">Close\n</string>
     <string name="driver_status_inactive">inactive\n</string>
+    <string name="panic_alarm">PANIC ALARM</string>
     <string name="resolve_panic">Resolve panic</string>
 
 </resources>
