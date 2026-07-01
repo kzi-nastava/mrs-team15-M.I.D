@@ -1,6 +1,7 @@
 package com.example.ridenow.ui.activrides;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.ridenow.R;
@@ -10,13 +11,18 @@ import com.example.ridenow.util.DateUtils;
 
 public class ActiveRideCardHelper {
 
-    public static void setupCard(View cardView, ActiveRideDTO ride) {
+    public interface OnPanicResolveListener {
+        void onResolve(Long panicAlertId);
+    }
+
+    public static void setupCard(View cardView, ActiveRideDTO ride, OnPanicResolveListener resolveListener) {
         TextView rideIdTextView = cardView.findViewById(R.id.rideIdTextView);
         TextView routeTextView = cardView.findViewById(R.id.routeTextView);
         TextView driverNameTextView = cardView.findViewById(R.id.driverNameTextView);
         TextView passengersTextView = cardView.findViewById(R.id.passengersTextView);
         TextView startTimeTextView = cardView.findViewById(R.id.startTimeTextView);
         TextView panicStatusTextView = cardView.findViewById(R.id.panicStatusTextView);
+        Button resolveButton = cardView.findViewById(R.id.resolvePanicButton);
 
         // Set ride ID
         rideIdTextView.setText(String.valueOf(ride.getRideId()));
@@ -63,7 +69,10 @@ public class ActiveRideCardHelper {
         if (ride.getPanic() != null && ride.getPanic()) {
             panicStatusTextView.setTextColor(cardView.getContext().getColor(R.color.danger));
             panicStatusTextView.setVisibility(View.VISIBLE);
-
+            resolveButton.setVisibility(View.VISIBLE);
+            resolveButton.setOnClickListener(v -> {
+                if (resolveListener != null) resolveListener.onResolve(ride.getPanicAlertId());
+            });
             if (ride.getPanicBy() != null) {
                 panicStatusTextView.setText(cardView.getContext().getString(R.string.panic_alert_by, ride.getPanicBy()));
             } else {
@@ -71,6 +80,7 @@ public class ActiveRideCardHelper {
             }
         } else {
             panicStatusTextView.setVisibility(View.GONE);
+            resolveButton.setVisibility(View.GONE);
         }
     }
 }
