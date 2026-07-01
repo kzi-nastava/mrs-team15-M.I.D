@@ -22,7 +22,7 @@
         android:id="@+id/login"
         android:icon="@drawable/ic_login"
         android:title="@string/nav_login"/>
-
+    
     <item
         android:id="@+id/reset_password"
         android:icon="@drawable/ic_password"
@@ -58,6 +58,11 @@
         android:id="@+id/price_configs"
         android:icon="@drawable/ic_settings"
         android:title="@string/nav_price_configs" />
+
+    <item
+        android:id="@+id/driver_registration"
+        android:icon="@drawable/ic_person_black"
+        android:title="@string/nav_driver_registration" />
 <!--    <item-->
 <!--        android:id="@+id/change_password"-->
 <!--        android:icon="@drawable/ic_password"-->

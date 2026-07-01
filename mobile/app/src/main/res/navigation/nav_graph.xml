@@ -30,6 +30,12 @@
         tools:layout="@layout/fragment_price_config" />
 
     <fragment
+        android:id="@+id/driver_registration"
+        android:name="com.example.ridenow.ui.admin.DriverRegistrationFragment"
+        android:label="Driver Registration"
+        tools:layout="@layout/fragment_driver_registration" />
+
+    <fragment
         android:id="@+id/admin_users"
         android:name="com.example.ridenow.ui.admin.UsersFragment"
         android:label="Users"
@@ -60,6 +66,16 @@
         android:id="@+id/login"
         android:name="com.example.ridenow.ui.auth.LoginFragment"
         android:label="@string/nav_login"/>
+
+    <fragment
+        android:id="@+id/driver_activation"
+        android:name="com.example.ridenow.ui.auth.DriverActivationFragment"
+        android:label="@string/nav_driver_activation">
+        <argument
+            android:name="token"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
 
     <fragment
         android:id="@+id/forgot_password"

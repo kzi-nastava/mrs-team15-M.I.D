@@ -1,5 +1,6 @@
 package com.example.ridenow.ui.profile;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,8 +31,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import com.bumptech.glide.Glide;
 import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
+import com.example.ridenow.dto.user.BlockedStatusResponseDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.service.DriverService;
+import com.example.ridenow.service.UserService;
 import com.example.ridenow.util.ClientUtils;
 
 import java.io.IOException;
@@ -48,6 +51,8 @@ public class DriverProfileInfoFragment extends Fragment {
 
     private Uri selectedImageUri = null;
     private ActivityResultLauncher<String> pickImageLauncher;
+    private boolean isBlockedAccount = false;
+    private String blockedReason = "";
 
     public DriverProfileInfoFragment() {}
 
@@ -112,6 +117,8 @@ public class DriverProfileInfoFragment extends Fragment {
         TextView tvUserName = view.findViewById(R.id.tvUserName);
         // TextView for showing hours worked in last 24h
         TextView tvHoursLast24 = view.findViewById(R.id.tvHoursLast24);
+
+        loadBlockedStatus(btnSave, ivAvatar);
 
         // Load driver profile from backend
         DriverService driverService = ClientUtils.getClient(DriverService.class);
@@ -254,6 +261,56 @@ public class DriverProfileInfoFragment extends Fragment {
         if (ivDropdown != null && spVehicleType != null) {
             ivDropdown.setOnClickListener(v -> spVehicleType.performClick());
         }
+    }
+
+    private void loadBlockedStatus(Button btnSave, ImageView ivAvatar) {
+        try {
+            String role = ClientUtils.getTokenUtils().getRole();
+            if (!"DRIVER".equals(role)) {
+                return;
+            }
+        } catch (IllegalStateException ignored) {
+            return;
+        }
+
+        UserService userService = ClientUtils.getClient(UserService.class);
+        userService.getBlockedStatus().enqueue(new retrofit2.Callback<BlockedStatusResponseDTO>() {
+            @Override
+            public void onResponse(retrofit2.Call<BlockedStatusResponseDTO> call, retrofit2.Response<BlockedStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    BlockedStatusResponseDTO status = response.body();
+                    if (status.isBlocked()) {
+                        isBlockedAccount = true;
+                        blockedReason = status.getReason() == null || status.getReason().trim().isEmpty()
+                                ? "No reason provided"
+                                : status.getReason().trim();
+
+                        if (btnSave != null) {
+                            btnSave.setEnabled(false);
+                            btnSave.setClickable(false);
+                        }
+                        if (ivAvatar != null) {
+                            ivAvatar.setEnabled(false);
+                            ivAvatar.setClickable(false);
+                        }
+
+                        if (isAdded()) {
+                            AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                                    .setTitle("Account blocked")
+                                    .setMessage("Your account is blocked.\n\nReason: " + blockedReason)
+                                    .setPositiveButton("OK", (dialogInterface, which) -> dialogInterface.dismiss())
+                                    .create();
+                            dialog.show();
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<BlockedStatusResponseDTO> call, Throwable t) {
+                Log.w("DriverProfile", "Failed to load blocked status", t);
+            }
+        });
     }
 
     private byte[] readBytesFromUri(Uri uri) throws IOException {

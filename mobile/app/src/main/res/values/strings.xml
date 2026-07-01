@@ -20,6 +20,8 @@
     <string name="nav_driver_changes">Driver Changes</string>
     <string name="nav_live_support">Live Support</string>
     <string name="nav_admin_chats">Support Chats</string>
+    <string name="nav_driver_registration">Driver Registration</string>
+    <string name="nav_driver_activation">Driver Activation</string>
 
     <!-- Chat strings -->
     <string name="chat_title">Live Support</string>
@@ -74,6 +76,22 @@
     <string name="confirm_new_password">Confirm new password</string>
     <string name="reset_password">Reset password</string>
     <string name="upload_photo">Upload photo</string>
+    <string name="profile_image">Profile image</string>
+    <string name="choose_image">Choose image</string>
+    <string name="no_image_selected">No image selected</string>
+    <string name="vehicle_section_title">Vehicle</string>
+    <string name="license_plate">License plate</string>
+    <string name="vehicle_model">Vehicle model</string>
+    <string name="number_of_seats">Number of seats</string>
+    <string name="pet_friendly">Pet friendly</string>
+    <string name="baby_friendly">Baby friendly</string>
+    <string name="register_new_driver">Register new driver</string>
+    <string name="driver_registration_title">Driver Registration</string>
+    <string name="driver_registration_subtitle">Add a new driver, vehicle details, and profile image.</string>
+    <string name="driver_activation_title">Activate driver account</string>
+    <string name="driver_activation_subtitle">Set a password to activate your driver account.</string>
+    <string name="activation_token">Activation token</string>
+    <string name="activate_driver">Activate</string>
 
     <!-- forgot password -->
     <string name="forgot_password_title">Forgot your password?</string>
@@ -149,7 +167,6 @@
     <!-- vehicle -->
     <string name="vehicle_title">Vehicle</string>
     <string name="vehicle_license_plate">License plate</string>
-    <string name="vehicle_model">Vehicle model</string>
     <string name="vehicle_type">Vehicle type</string>
     <string name="vehicle_number_of_seats">Number of seats</string>
     <string name="vehicle_baby_friendly">Baby friendly</string>
