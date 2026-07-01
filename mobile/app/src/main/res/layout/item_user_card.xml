@@ -15,7 +15,6 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- User info -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -47,5 +46,17 @@
                 android:layout_marginTop="2dp" />
 
         </LinearLayout>
+
+        <Button
+            android:id="@+id/btnBlockToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:minWidth="0dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:text="Block"
+            android:textSize="12sp" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

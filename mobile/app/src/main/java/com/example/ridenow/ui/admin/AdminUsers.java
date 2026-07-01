@@ -1,5 +1,6 @@
 package com.example.ridenow.ui.admin;
 
+import android.app.AlertDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -20,13 +21,16 @@ import android.widget.Toast;
 
 import com.example.ridenow.R;
 import com.example.ridenow.dto.user.UserItemDTO;
+import com.example.ridenow.dto.admin.BlockUserRequestDTO; // Proveri da li je putanja tačna
 import com.example.ridenow.dto.util.PageResponse;
 import com.example.ridenow.service.AdminService;
 import com.example.ridenow.util.ClientUtils;
+import com.google.android.material.textfield.TextInputEditText;
 import android.widget.Filter;
 
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -161,7 +165,6 @@ public class AdminUsers extends Fragment {
                     PageResponse<UserItemDTO> data = response.body();
 
                     if (currentPage == 0) { usersContainer.removeAllViews(); }
-
                     else { removeLoadMoreButton();}
 
                     hasMoreData = !data.isLast();
@@ -179,7 +182,7 @@ public class AdminUsers extends Fragment {
                             errorMsg = response.errorBody().string();
                         }
                     } catch (Exception e) {}
-                    android.widget.Toast.makeText(getContext(), errorMsg, android.widget.Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), errorMsg, Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -197,11 +200,22 @@ public class AdminUsers extends Fragment {
         TextView tvFullName = cardView.findViewById(R.id.tvFullName);
         TextView tvEmail    = cardView.findViewById(R.id.tvEmail);
         TextView tvRole     = cardView.findViewById(R.id.tvRole);
+        Button btnBlockToggle = cardView.findViewById(R.id.btnBlockToggle);
 
         tvFullName.setText(user.getName() + " " + user.getSurname());
         tvEmail.setText(user.getEmail());
         tvRole.setText(user.getRole());
 
+        // Povezivanje logike za Block/Unblock dugme
+        if (user.isBlocked()) {
+            btnBlockToggle.setText("Unblock");
+            btnBlockToggle.setOnClickListener(v -> openUnblockDialog(user));
+        } else {
+            btnBlockToggle.setText("Block");
+            btnBlockToggle.setOnClickListener(v -> openBlockDialog(user));
+        }
+
+        // Klik na samu karticu i dalje vodi na istoriju (koleginicin deo)
         cardView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putLong("userId", user.getId());
@@ -212,6 +226,115 @@ public class AdminUsers extends Fragment {
         cardView.setClickable(true);
         cardView.setFocusable(true);
         usersContainer.addView(cardView);
+    }
+
+    private void openBlockDialog(UserItemDTO user) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_block_user, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextView tvInfo = dialogView.findViewById(R.id.tvBlockUserInfo);
+        TextInputEditText etReason = dialogView.findViewById(R.id.etBlockReason);
+        Button btnCancel = dialogView.findViewById(R.id.btnDialogCancelBlock);
+        Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirmBlock);
+
+        tvInfo.setText("Are you sure you want to block " + user.getName() + " " + user.getSurname()
+                + " (" + user.getEmail() + ")?");
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            String reason = etReason.getText() == null ? "" : etReason.getText().toString().trim();
+            if (reason.isEmpty()) {
+                etReason.setError("Reason is required");
+                Toast.makeText(requireContext(), "Please provide a reason", Toast.LENGTH_LONG).show();
+                return;
+            }
+            dialog.dismiss();
+            performBlock(user.getId(), reason);
+        });
+
+        dialog.show();
+    }
+
+    private void openUnblockDialog(UserItemDTO user) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_unblock_user, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextView tvInfo = dialogView.findViewById(R.id.tvUnblockUserInfo);
+        Button btnCancel = dialogView.findViewById(R.id.btnDialogCancelUnblock);
+        Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirmUnblock);
+
+        tvInfo.setText("Are you sure you want to unblock " + user.getName() + " " + user.getSurname()
+                + " (" + user.getEmail() + ")?");
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            performUnblock(user.getId());
+        });
+
+        dialog.show();
+    }
+
+    private void performBlock(Long id, String reason) {
+        BlockUserRequestDTO dto = new BlockUserRequestDTO(reason);
+        adminService.blockUser(id, dto).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "User blocked.", Toast.LENGTH_SHORT).show();
+                    currentPage = 0; // Osvežavamo prikaz od prve stranice
+                    loadUsers();
+                } else {
+                    showRequestError(response, "Failed to block user.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void performUnblock(Long id) {
+        adminService.unblockUser(id).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "User unblocked.", Toast.LENGTH_SHORT).show();
+                    currentPage = 0; // Osvežavamo prikaz od prve stranice
+                    loadUsers();
+                } else {
+                    showRequestError(response, "Failed to unblock user.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showRequestError(Response<Void> response, String fallbackMessage) {
+        String errorMessage = fallbackMessage;
+        try (ResponseBody errorBody = response.errorBody()) {
+            if (errorBody != null) {
+                errorMessage = errorBody.string();
+                if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                    errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                }
+            }
+        } catch (Exception e) {
+            errorMessage = fallbackMessage + " (code: " + response.code() + ")";
+        }
+        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
     }
 
     private void addLoadMoreButton() {
