@@ -93,14 +93,20 @@ public class LoginFragment extends Fragment {
                                 if (getActivity() instanceof MainActivity) {
                                     ((MainActivity) getActivity()).onLoginSuccess();
                                 }
-                                switch (resp.getRole()){
-                                    case "USER":
-                                    case "DRIVER":
-                                        NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.upcoming_rides);
-                                        break;
-                                    case "ADMIN":
-                                        NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.active_rides);
-                                        break;
+
+                                if (resp.getHasCurrentRide()) {;
+                                    NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.current_ride);
+                                } else {
+
+                                    switch (resp.getRole()) {
+                                        case "USER":
+                                        case "DRIVER":
+                                            NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.upcoming_rides);
+                                            break;
+                                        case "ADMIN":
+                                            NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.active_rides);
+                                            break;
+                                    }
                                 }
                             }
                             else{

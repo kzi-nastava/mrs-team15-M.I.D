@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class RideWebSocketManager extends WebSocketListener {
     private static final String TAG = "RideWebSocketManager";
-    private static final String WS_BASE_URL = "ws://10.0.2.2:8081/api/notifications/websocket";
+    private static final String WS_BASE_URL = "ws://192.168.1.144:8081/api/notifications/websocket";
 
     private WebSocket webSocket;
     private final OkHttpClient client;

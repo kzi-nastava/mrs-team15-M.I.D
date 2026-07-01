@@ -523,5 +523,70 @@ public class AdminService {
 
         return response;
     }
+
+    public RegisterDriverResponseDTO registerMobile(@Valid RegisterDriverRequestDTO request, MultipartFile profileImage) throws IOException {
+        // create Vehicle
+        Vehicle vehicle = new Vehicle();
+        vehicle.setLicencePlate(request.getLicensePlate());
+        vehicle.setModel(request.getVehicleModel());
+        vehicle.setType(request.getVehicleType());
+        vehicle.setSeatCount(request.getNumberOfSeats());
+        vehicle.setChildFriendly(request.isBabyFriendly());
+        vehicle.setPetFriendly(request.isPetFriendly());
+
+        // generate profile image URL
+        String profileImageURL = authService.generateProfileImageUrl(profileImage);
+
+        // create Driver
+        Driver driver = new Driver();
+        driver.setEmail(request.getEmail());
+        // password is required in User - set a random placeholder or empty; application should handle password set later
+        driver.setPassword("1234567");
+        driver.setFirstName(request.getFirstName());
+        driver.setLastName(request.getLastName());
+        driver.setPhoneNumber(request.getPhoneNumber());
+        driver.setProfileImage(profileImageURL);
+        driver.setAddress(request.getAddress());
+        // mark admin-created drivers as inactive until they set their password
+        driver.setActive(false);
+        driver.setBlocked(false);
+        driver.setStatus(DriverStatus.INACTIVE);
+        driver.setAvailable(false);
+        driver.setRole(UserRoles.DRIVER);
+
+        // attach activation token so frontend can show activation link for initial password set
+        ActivationToken token = new ActivationToken(UUID.randomUUID().toString(), LocalDateTime.now().plusHours(24), driver);
+        driver.setActivationToken(token);
+
+        // associate
+        driver.assignVehicle(vehicle);
+
+        // save (cascade will save vehicle and activation token)
+        Driver saved = driverRepository.save(driver);
+
+        // send activation email (don't fail the request if email sending fails)
+        try {
+            emailService.sendDriverActivationMailMobile(saved.getEmail(), saved.getActivationToken());
+        } catch (Exception e) {
+            System.err.println("Failed to send activation email: " + e.getMessage());
+        }
+
+        RegisterDriverResponseDTO response = new RegisterDriverResponseDTO();
+        response.setId(saved.getId());
+        response.setEmail(saved.getEmail());
+        response.setFirstName(saved.getFirstName());
+        response.setLastName(saved.getLastName());
+        response.setPhoneNumber(saved.getPhoneNumber());
+        response.setProfileImage(saved.getProfileImage());
+        response.setAddress(saved.getAddress());
+        response.setLicensePlate(saved.getVehicle() != null ? saved.getVehicle().getLicencePlate() : null);
+        response.setVehicleModel(saved.getVehicle() != null ? saved.getVehicle().getModel() : null);
+        response.setVehicleType(saved.getVehicle() != null ? saved.getVehicle().getType() : null);
+        response.setNumberOfSeats(saved.getVehicle() != null ? saved.getVehicle().getSeatCount() : 0);
+        response.setBabyFriendly(saved.getVehicle() != null && saved.getVehicle().isChildFriendly());
+        response.setPetFriendly(saved.getVehicle() != null && saved.getVehicle().isPetFriendly());
+
+        return response;
+    }
 }
 
