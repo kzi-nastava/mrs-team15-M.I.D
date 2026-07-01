@@ -80,13 +80,16 @@ public class CurrentRideFragment extends Fragment {
     private Handler trackingHandler;
     private Runnable trackingRunnable;
     private static final long TRACKING_INTERVAL = 10000; // 10 seconds
-
+    private boolean isPanicRide = false;
     private boolean isDriver = false;
     private boolean isAdminView = false;
     private Long adminRideId = null;
     private TokenUtils tokenUtils;
     private LocationManager locationManager;
     private RideWebSocketManager rideWebSocketManager;
+
+    private int currentPolyIndex = 0;
+
     private LinearLayout stopRideResultLayout;
     private TextView resultEndAddressText, resultDistanceText, resultDurationText, resultPriceText;
 
@@ -99,12 +102,14 @@ public class CurrentRideFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
         // Check if this is an admin view
         Bundle args = getArguments();
         if (args != null) {
             isAdminView = args.getBoolean("isAdminView", false);
             adminRideId = args.getLong("rideId", -1);
             if (adminRideId == -1) adminRideId = null;
+            isPanicRide = args.getBoolean("isPanic", false);
         }
 
         initViews(view);
@@ -574,6 +579,10 @@ public class CurrentRideFragment extends Fragment {
             startAddressText.setText(startAddress);
             endAddressText.setText(endAddress);
 
+            if (isPanicRide) {
+                routeMapView.setPanicMode(true);
+            }
+
             // Display route on map
             routeMapView.displayRoute(
                 currentRide.getRoute().getStartLocation(),
@@ -629,6 +638,7 @@ public class CurrentRideFragment extends Fragment {
                     TrackVehicleResponseDTO trackData = response.body();
                     updateVehicleLocation(trackData.getLocation());
                     updateRemainingTime(trackData.getRemainingTimeInMinutes());
+                    Log.w("CurrentRideFragment", "da li radi ovo" + trackData.getRemainingTimeInMinutes().toString());
                 }
             }
 
@@ -639,35 +649,82 @@ public class CurrentRideFragment extends Fragment {
         });
     }
 
+//    private void updateDriverLocation() {
+//        Log.d(TAG, "updateDriverLocation() called");
+//
+//        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            Log.w(TAG, "Location permission not granted");
+//            return;
+//        }
+//
+//        Log.d(TAG, "Getting last known location from LocationManager...");
+//
+//        // Try GPS provider first, then network provider
+//        android.location.Location location = null;
+//
+//        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+//            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//            Log.d(TAG, "GPS location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
+//        }
+//
+//        if (location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+//            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//            Log.d(TAG, "Network location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
+//        }
+//
+//        if (location != null) {
+//            Log.d(TAG, "Location received: " + location.getLatitude() + ", " + location.getLongitude());
+//
+//            // Store final values for callback usage
+//            final double latitude = location.getLatitude();
+//            final double longitude = location.getLongitude();
+//
+//            // Send location to server
+//            DriverLocationRequestDTO request = new DriverLocationRequestDTO(latitude, longitude);
+//
+//            Call<DriverLocationResponseDTO> call = driverService.updateDriverLocation(request);
+//            call.enqueue(new Callback<>() {
+//                @Override
+//                public void onResponse(@NonNull Call<DriverLocationResponseDTO> call, @NonNull Response<DriverLocationResponseDTO> response) {
+//                    if (response.isSuccessful() && response.body() != null) {
+//                        Log.d(TAG, "Location updated on server successfully");
+//
+//                        // Update driver marker on map
+//                        LocationDTO driverLocation = new LocationDTO();
+//                        driverLocation.setLatitude(latitude);
+//                        driverLocation.setLongitude(longitude);
+//                        driverLocation.setAddress("Current Location");
+//
+//                        routeMapView.updateDriverMarker(driverLocation);
+//                        routeMapView.centerOnLocation(driverLocation);
+//                    } else {
+//                        Log.w(TAG, "Failed to update location on server: " + response.code());
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(@NonNull Call<DriverLocationResponseDTO> call, @NonNull Throwable t) {
+//                    Log.e(TAG, "Failed to update location on server", t);
+//                }
+//            });
+//        } else {
+//            Log.w(TAG, "Location is null from all providers");
+//            Toast.makeText(getContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
     private void updateDriverLocation() {
-        Log.d(TAG, "updateDriverLocation() called");
+            if (currentRide == null || currentRide.getRoute() == null || currentRide.getRoute().getPolylinePoints() == null) {
+                Log.w(TAG, "Current ride or route is null, cannot update driver location");
+                return;
+            }
 
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "Location permission not granted");
-            return;
-        }
+            if (currentPolyIndex <= currentRide.getRoute().getPolylinePoints().size() - 2) {
+                currentPolyIndex++; // Update index
+            }
 
-        Log.d(TAG, "Getting last known location from LocationManager...");
-
-        // Try GPS provider first, then network provider
-        android.location.Location location = null;
-
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Log.d(TAG, "GPS location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
-        }
-
-        if (location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Log.d(TAG, "Network location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
-        }
-
-        if (location != null) {
-            Log.d(TAG, "Location received: " + location.getLatitude() + ", " + location.getLongitude());
-
-            // Store final values for callback usage
-            final double latitude = location.getLatitude();
-            final double longitude = location.getLongitude();
+            final double latitude = currentRide.getRoute().getPolylinePoints().get(currentPolyIndex).getLatitude();
+            final double longitude = currentRide.getRoute().getPolylinePoints().get(currentPolyIndex).getLongitude();
 
             // Send location to server
             DriverLocationRequestDTO request = new DriverLocationRequestDTO(latitude, longitude);
@@ -697,10 +754,6 @@ public class CurrentRideFragment extends Fragment {
                     Log.e(TAG, "Failed to update location on server", t);
                 }
             });
-        } else {
-            Log.w(TAG, "Location is null from all providers");
-            Toast.makeText(getContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void updateVehicleLocation(LocationDTO vehicleLocation) {
@@ -773,7 +826,6 @@ public class CurrentRideFragment extends Fragment {
     }
 
     private void testCurrentLocation() {
-        Log.d(TAG, "testCurrentLocation() called - checking emulator location");
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Location permission not granted for test");
@@ -791,9 +843,7 @@ public class CurrentRideFragment extends Fragment {
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
 
-        if (location != null) {
-            Toast.makeText(getContext(), "Current location: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_LONG).show();
-        } else {
+        if (location == null) {
             Toast.makeText(getContext(), "Location is null", Toast.LENGTH_SHORT).show();
         }
     }

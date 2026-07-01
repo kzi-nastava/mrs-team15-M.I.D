@@ -36,6 +36,9 @@ public class PanicAlertService {
     private UserRepository userRepository;
 
     @Autowired
+    private FcmService fcmService;
+
+    @Autowired
     public PanicAlertService(@Lazy NotificationWebSocketHandler webSocketHandler) {
         this.webSocketHandler = webSocketHandler;
     }
@@ -72,6 +75,13 @@ public class PanicAlertService {
         webSocketHandler.broadcastRidePanic(ride.getId(), panicData);
         System.out.println("Panic alert created and broadcast for ride #" + ride.getId());
         System.out.println("Panic alert triggered for ride " + ride.getId() + " by " + panicAlert.getPanicByRole());
+
+        List<User> admins = userRepository.findByRole(UserRoles.ADMIN);
+        for(User admin : admins){
+            fcmService.sendPanicAlertNotification(admin, ride, panicAlert.getPanicBy());
+        }
+        System.out.println("Panic alert created and broadcast for ride #" + ride.getId());
+
         return dto;
     }
 

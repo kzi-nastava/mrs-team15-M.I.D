@@ -15,4 +15,5 @@ public class ActiveRideDTO {
     private Boolean panic;
     private String panicBy;
     private RouteDTO route;
+    private Long PanicAlertId;
 }

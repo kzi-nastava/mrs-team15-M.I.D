@@ -985,9 +985,11 @@ public class RideService {
             if(ride.getPanicAlert() != null){
                 dto.setPanic(true);
                 dto.setPanicBy(ride.getPanicAlert().getPanicBy());
+                dto.setPanicAlertId(ride.getPanicAlert().getId());
             }else{
                 dto.setPanic(false);
                 dto.setPanicBy(null);
+                dto.setPanicAlertId(null);
             }
             activeRideDTOs.add(dto);
         }

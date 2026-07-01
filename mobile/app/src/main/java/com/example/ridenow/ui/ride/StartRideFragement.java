@@ -218,7 +218,7 @@ public class StartRideFragement extends Fragment {
             badge.setLayoutParams(badgeParams);
             badge.setGravity(Gravity.CENTER);
             badge.setText(getInitials(passenger.name));
-            badge.setTextColor(getResources().getColor(R.color.white, requireContext().getTheme()));
+            badge.setTextColor(getResources().getColor(R.color.black, requireContext().getTheme()));
             badge.setBackgroundResource(R.drawable.rounded_background_light);
 
             LinearLayout textColumn = new LinearLayout(requireContext());
@@ -229,14 +229,14 @@ public class StartRideFragement extends Fragment {
             TextView nameText = new TextView(requireContext());
             nameText.setText(passenger.name);
             nameText.setTextSize(16f);
-            nameText.setTextColor(getResources().getColor(R.color.white, requireContext().getTheme()));
+            nameText.setTextColor(getResources().getColor(R.color.black, requireContext().getTheme()));
             nameText.setSingleLine(true);
             nameText.setEllipsize(TextUtils.TruncateAt.END);
 
             TextView statusText = new TextView(requireContext());
             statusText.setText(passenger.present ? "Present" : "Tap to mark present");
             statusText.setTextSize(12f);
-            statusText.setTextColor(getResources().getColor(R.color.light_on_primary_container, requireContext().getTheme()));
+            statusText.setTextColor(getResources().getColor(R.color.black, requireContext().getTheme()));
 
             textColumn.addView(nameText);
             textColumn.addView(statusText);
@@ -266,8 +266,8 @@ public class StartRideFragement extends Fragment {
                 ? getResources().getColor(R.color.success, requireContext().getTheme())
                 : getResources().getColor(R.color.divider_color, requireContext().getTheme());
         int textColor = passenger.present
-                ? getResources().getColor(R.color.text_primary, requireContext().getTheme())
-                : getResources().getColor(R.color.light_on_primary_container, requireContext().getTheme());
+                ? getResources().getColor(R.color.black, requireContext().getTheme())
+                : getResources().getColor(R.color.black, requireContext().getTheme());
 
         cardView.setCardBackgroundColor(backgroundColor);
         cardView.setStrokeColor(strokeColor);

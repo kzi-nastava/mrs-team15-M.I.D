@@ -248,7 +248,7 @@
     <string name="driver_label">Driver</string>
     <string name="passengers_label">Passengers</string>
     <string name="start_time_label">Started</string>
-    <string name="panic_alert">PANIC ALERT!</string>
+    <string name="panic_alert">PANIC ALERT</string>
     <string name="panic_alert_by">PANIC ALERT! - %1$s</string>
     <string name="no_active_rides">No active rides</string>
     <string name="no_active_rides_description">There are currently no active rides in the system</string>
@@ -329,5 +329,6 @@
     <string name="close">Close\n</string>
     <string name="driver_status_inactive">inactive\n</string>
     <string name="panic_alarm">PANIC ALARM</string>
+    <string name="resolve_panic">Resolve panic</string>
 
 </resources>
