@@ -134,6 +134,14 @@ public class NotificationsFragment extends Fragment {
             }
             // For panic notifications, navigate to current ride
             navController.navigate(R.id.current_ride);
+        } else if (notification.getType() == NotificationType.SCHEDULED_RIDE_REMINDER) {
+            navController.navigate(R.id.upcoming_rides);
+        } else if (notification.getType() == NotificationType.NO_DRIVERS_AVAILABLE) {
+            navController.navigate(R.id.ride_ordering);
+        } else if (notification.getType() == NotificationType.RIDE_REQUEST_REJECTED) {
+            navController.navigate(R.id.ride_ordering);
+        } else if (notification.getType() == NotificationType.RIDE_REQUEST_ACCEPTED) {
+            navController.navigate(R.id.upcoming_rides);
         }
     }
 

@@ -7,6 +7,7 @@ import com.google.firebase.messaging.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import rs.ac.uns.ftn.asd.ridenow.model.RegisteredUser;
 import rs.ac.uns.ftn.asd.ridenow.model.Ride;
 import rs.ac.uns.ftn.asd.ridenow.model.User;
 import rs.ac.uns.ftn.asd.ridenow.model.enums.NotificationType;
@@ -156,6 +157,46 @@ public class FcmService {
             panicInitiator, ride.getId());
         return sendPushNotification(admin, title, body,
             NotificationType.PANIC, ride.getId());
+    }
+
+    /**
+     * Send No Drivers Available Notification
+     */
+    public boolean sendNoDriversAvailableNotification(User user) {
+        String title = "No Drivers Available";
+        String body = "Unfortunately, there are no drivers available for your requested ride.";
+        return sendPushNotification(user, title, body,
+            NotificationType.NO_DRIVERS_AVAILABLE, null);
+    }
+
+    /**
+     * Send Ride Request Rejected Notification
+     */
+    public boolean sendRideRequestRejectedNotification(User user) {
+        String title = "Ride Request Rejected";
+        String body = "Your request for ride has been rejected.";
+        return sendPushNotification(user, title, body,
+            NotificationType.RIDE_REQUEST_REJECTED, null);
+    }
+
+    /**
+     * Send Ride Request Accepted Notification
+     */
+    public boolean sendRideRequestAcceptedNotification(User user, Ride ride) {
+        String title = "Ride Request Accepted";
+        String body = "Your request for ride has been accepted.";
+        return sendPushNotification(user, title, body,
+            NotificationType.RIDE_REQUEST_ACCEPTED, ride.getId());
+    }
+
+    /**
+     * Send Ride Reminder Notification
+     */
+    public boolean sendRideReminderNotification(User user, Ride ride,String endAddress, int minutesUntilRide, String rideTime) {
+        String title = "Ride Reminder";
+        String body = String.format("Reminder: Your ride to %s is scheduled for %s (in %d minutes)", endAddress, rideTime, minutesUntilRide);
+        return sendPushNotification(user, title, body,
+            NotificationType.SCHEDULED_RIDE_REMINDER, ride.getId());
     }
 
     /**
