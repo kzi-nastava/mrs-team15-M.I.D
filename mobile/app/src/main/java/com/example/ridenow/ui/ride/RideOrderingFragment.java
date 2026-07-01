@@ -1144,8 +1144,16 @@ public class RideOrderingFragment extends Fragment {
 
                             // show estimates if available
                             try {
+                                // keep lastEstimate in sync so "Choose route" carries real
+                                // distance/price data through to RidePreferenceFragment
+                                lastEstimate = r;
+
                                 tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f km", r.getDistanceKm()));
                                 tvDuration.setText(String.format(Locale.getDefault(), "Duration: %d min", r.getEstimatedTimeMinutes()));
+                                tvCost.setText(String.format(Locale.getDefault(), "Standard: %.2f / Luxury: %.2f / Van: %.2f",
+                                        r.getPriceEstimateStandard(),
+                                        r.getPriceEstimateLuxury(),
+                                        r.getPriceEstimateVan()));
                                 resultsLayout.setVisibility(View.VISIBLE);
                             } catch (Exception ignored) {}
                         } catch (Exception e) {
