@@ -50,7 +50,7 @@ public interface AdminService {
     Call<PagedResponseDTO<AdminUserResponseDTO>> getAllUsers(
             @Query("search") String search,
             @Query("sortBy") String sortBy,
-            @Query("sortDir") String sortDir,
+            @Query("sortDirection") String sortDirection,
             @Query("page") int page,
             @Query("size") int size
     );
