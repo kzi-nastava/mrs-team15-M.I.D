@@ -10,7 +10,6 @@ import android.hardware.SensorManager;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,11 +19,13 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Filter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -32,6 +33,7 @@ import androidx.navigation.Navigation;
 
 import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.RideHistoryDTO;
+import com.example.ridenow.dto.model.RouteDTO;
 import com.example.ridenow.dto.passenger.RideHistoryItemDTO;
 import com.example.ridenow.dto.util.PageResponse;
 import com.example.ridenow.service.PassengerService;
@@ -39,7 +41,6 @@ import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.DateUtils;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -202,7 +203,6 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
     private void onShakeDetected() {
         String previousSortBy = currentSortBy;
-
         currentSortBy = "date";
 
         if ("date".equals(previousSortBy)) {
@@ -282,11 +282,13 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
         isLoading = true;
 
-        Call<PageResponse<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory(currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
+        Call<PageResponse<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory(
+                currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
 
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<PageResponse<RideHistoryItemDTO>> call, @NonNull Response<PageResponse<RideHistoryItemDTO>> response) {
+            public void onResponse(@NonNull Call<PageResponse<RideHistoryItemDTO>> call,
+                                   @NonNull Response<PageResponse<RideHistoryItemDTO>> response) {
                 isLoading = false;
 
                 if (response.isSuccessful() && response.body() != null) {
@@ -338,6 +340,9 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View cardView = inflater.inflate(R.layout.item_ride_card, cardsContainer, false);
 
+        // Tag the card with its routeId for bulk-update on favorite toggle
+        cardView.setTag(ride.getRouteId());
+
         TextView tvRoute = cardView.findViewById(R.id.tvRoute);
         TextView tvDate = cardView.findViewById(R.id.tvDate);
         TextView tvCost = cardView.findViewById(R.id.tvCost);
@@ -346,6 +351,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         TextView tvTimeRange = cardView.findViewById(R.id.tvTimeRange);
         LinearLayout statusContainer = cardView.findViewById(R.id.statusContainer);
         Button btnRating = cardView.findViewById(R.id.btnRating);
+        ImageView ivFavorite = cardView.findViewById(R.id.ivFavorite);
 
         String startAddress = AddressUtils.formatAddress(ride.getRoute().getStartLocation().getAddress());
         String endAddress = AddressUtils.formatAddress(ride.getRoute().getEndLocation().getAddress());
@@ -353,11 +359,11 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
 
         tvDate.setText(DateUtils.formatDateFromISO(ride.getStartTime()));
 
-        tvCost.setText(String.format(Locale.getDefault(), "%.0f RSD", ride.getPrice() != null ? ride.getPrice() : 0.0));
+        tvCost.setText(String.format(Locale.getDefault(), "%.0f RSD",
+                ride.getPrice() != null ? ride.getPrice() : 0.0));
 
         tvPassengers.setText(ride.getDriver() != null ? ride.getDriver() : "Driver assigned");
 
-        // Duration and time range
         if (ride.getStartTime() != null && ride.getEndTime() != null) {
             long durationMinutes = DateUtils.calculateDurationMinutes(ride.getStartTime(), ride.getEndTime());
             tvDuration.setText(durationMinutes > 0 ? durationMinutes + " min" : "N/A");
@@ -367,14 +373,21 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
             tvTimeRange.setText("N/A");
         }
 
-        // Status badges
         addStatusIndicators(statusContainer, ride);
 
-        // Click on card -> ride details
+        // --- Favorite star ---
+        updateStarIcon(ivFavorite, ride.isFavoriteRoute());
+        ivFavorite.setOnClickListener(v -> {
+            if (ride.isFavoriteRoute()) {
+                showRemoveFavoriteDialog(ride, ivFavorite);
+            } else {
+                showAddFavoriteDialog(ride, ivFavorite);
+            }
+        });
+
         cardView.setOnClickListener(v -> openRideDetails(ride));
 
-        // Rating button
-        if (btnRating != null && ride.getRating() == null && !ride.isCancelled() && DateUtils.formatISOToLocalDateTime(ride.getEndTime()).isAfter(LocalDateTime.now().minusDays(3))) {
+        if (btnRating != null) {
             btnRating.setVisibility(View.VISIBLE);
             btnRating.setOnClickListener(v -> {
                 try {
@@ -389,12 +402,139 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
                 }
             });
         }
-        else {
-            btnRating.setVisibility(View.GONE);
-        }
 
         cardsContainer.addView(cardView);
     }
+
+    // -------------------------------------------------------------------------
+    // Favorite dialogs — mirrors Angular add-favorite-modal / remove-favorite-modal
+    // -------------------------------------------------------------------------
+
+    private void showAddFavoriteDialog(RideHistoryItemDTO ride, ImageView ivFavorite) {
+        if (getContext() == null) return;
+
+        String message = buildRouteInfoMessage(ride);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Add to Favorites")
+                .setMessage("Do you want to add this route to your favorites?\n\n" + message)
+                .setPositiveButton("Add", (dialog, which) -> callAddFavorite(ride, ivFavorite))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showRemoveFavoriteDialog(RideHistoryItemDTO ride, ImageView ivFavorite) {
+        if (getContext() == null) return;
+
+        String message = buildRouteInfoMessage(ride);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove from Favorites")
+                .setMessage("Remove this route from your favorites?\n\n" + message)
+                .setPositiveButton("Remove", (dialog, which) -> callRemoveFavorite(ride, ivFavorite))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private String buildRouteInfoMessage(RideHistoryItemDTO ride) {
+        StringBuilder sb = new StringBuilder();
+        RouteDTO route = ride.getRoute();
+
+        if (route != null) {
+            if (route.getStartLocation() != null && route.getStartLocation().getAddress() != null) {
+                sb.append("Pickup: ").append(AddressUtils.formatAddress(route.getStartLocation().getAddress())).append("\n");
+            }
+            if (route.getEndLocation() != null && route.getEndLocation().getAddress() != null) {
+                sb.append("Destination: ").append(AddressUtils.formatAddress(route.getEndLocation().getAddress()));
+            }
+            if (route.getStopLocations() != null && !route.getStopLocations().isEmpty()) {
+                sb.append("\nStops:");
+                for (var stop : route.getStopLocations()) {
+                    if (stop.getAddress() != null) {
+                        sb.append("\n  • ").append(AddressUtils.formatAddress(stop.getAddress()));
+                    }
+                }
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private void callAddFavorite(RideHistoryItemDTO ride, ImageView ivFavorite) {
+        if (ride.getRouteId() == null) return;
+
+        passengerService.addFavorite(ride.getRouteId()).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    // Update the DTO state and all visible cards sharing this routeId
+                    ride.setFavoriteRoute(true);
+                    updateAllCardsWithRouteId(ride.getRouteId(), true);
+                    Toast.makeText(getContext(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Failed to add favorite", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void callRemoveFavorite(RideHistoryItemDTO ride, ImageView ivFavorite) {
+        if (ride.getRouteId() == null) return;
+
+        passengerService.removeFavorite(ride.getRouteId()).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    ride.setFavoriteRoute(false);
+                    updateAllCardsWithRouteId(ride.getRouteId(), false);
+                    Toast.makeText(getContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Failed to remove favorite", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * after toggling one ride, all cards that share
+     * the same routeId get their star updated (since it's the same route).
+     */
+    private void updateAllCardsWithRouteId(Long routeId, boolean isFavorite) {
+        for (int i = 0; i < cardsContainer.getChildCount(); i++) {
+            View child = cardsContainer.getChildAt(i);
+            Object tag = child.getTag();
+            if (tag instanceof Long && tag.equals(routeId)) {
+                ImageView star = child.findViewById(R.id.ivFavorite);
+                if (star != null) {
+                    updateStarIcon(star, isFavorite);
+                }
+            }
+        }
+    }
+
+    private void updateStarIcon(ImageView ivFavorite, boolean isFavorite) {
+        ivFavorite.setImageResource(isFavorite
+                ? android.R.drawable.btn_star_big_on
+                : android.R.drawable.btn_star_big_off);
+    }
+
+    // -------------------------------------------------------------------------
+    // Status badges
+    // -------------------------------------------------------------------------
 
     private void addStatusIndicators(LinearLayout statusContainer, RideHistoryItemDTO ride) {
         if (statusContainer == null) return;
@@ -436,6 +576,10 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         return badge;
     }
 
+    // -------------------------------------------------------------------------
+    // Load more
+    // -------------------------------------------------------------------------
+
     private void addLoadMoreButton() {
         Button btn = new Button(getContext());
         btn.setText(R.string.driver_history_load_more);
@@ -466,6 +610,10 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
             }
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Navigation helpers
+    // -------------------------------------------------------------------------
 
     private RideHistoryDTO mapToRideHistoryDTO(RideHistoryItemDTO ride) {
         RideHistoryDTO mapped = new RideHistoryDTO();
