@@ -1,6 +1,7 @@
 package com.example.ridenow.ui.admin;
 
 import android.app.AlertDialog;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -251,9 +252,11 @@ public class AdminUsers extends Fragment {
         // Povezivanje logike za Block/Unblock dugme
         if (user.isBlocked()) {
             btnBlockToggle.setText("Unblock");
+            btnBlockToggle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#388E3C")));
             btnBlockToggle.setOnClickListener(v -> openUnblockDialog(user));
         } else {
             btnBlockToggle.setText("Block");
+            btnBlockToggle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D32F2F")));
             btnBlockToggle.setOnClickListener(v -> openBlockDialog(user));
         }
 

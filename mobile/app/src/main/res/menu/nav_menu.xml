@@ -97,14 +97,6 @@
         android:icon="@drawable/ic_person_black"
         android:title="@string/users" />
 
-    <item
-        android:id="@+id/nav_logout"
-        android:icon="@drawable/ic_logout"
-        android:title="@string/logout" />
-
-    <item
-        android:id="@+id/admin_users"
-        android:title="Users" />
 
     <item
         android:id="@+id/admin_report"
@@ -120,4 +112,10 @@
         android:id="@+id/passenger_report"
         android:icon="@drawable/ic_history"
         android:title="@string/nav_passenger_report" />
+
+    <item
+        android:id="@+id/nav_logout"
+        android:icon="@drawable/ic_logout"
+        android:title="@string/logout" />
+
 </menu>

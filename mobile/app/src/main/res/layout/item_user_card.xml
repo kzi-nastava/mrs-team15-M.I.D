@@ -56,7 +56,7 @@
             android:paddingStart="14dp"
             android:paddingEnd="14dp"
             android:text="Block"
-            android:textSize="12sp" />
+            android:textSize="12sp"
             android:backgroundTint="#D32F2F"
             android:textColor="#FFFFFF" />
 
