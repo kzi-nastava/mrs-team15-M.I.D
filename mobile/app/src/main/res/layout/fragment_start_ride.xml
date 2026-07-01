@@ -146,7 +146,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Passengers"
-                        android:textColor="?attr/colorOnSecondary"
+                        android:textColor="@color/background_light"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -156,7 +156,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="0 / 0 passengers present"
-                        android:textColor="?attr/colorOnSecondary"
+                        android:textColor="@color/background_light"
                         android:textSize="13sp" />
 
                     <LinearLayout
@@ -187,8 +187,8 @@
                 android:text="Start ride"
                 android:textAllCaps="true"
                 app:cornerRadius="14dp"
-                app:backgroundTint="?attr/colorOnSecondary"
-                android:textColor="?attr/colorSecondary" />
+                app:backgroundTint="@color/light_secondary"
+                android:textColor="@color/background_light" />
 
         </LinearLayout>
     </ScrollView>
