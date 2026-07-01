@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DriverRequestsTable } from '../../components/driver-requests-table/driver-requests-table';
 
+// Page komponenta za prikaz liste svih driver change requestova
 @Component({
   selector: 'app-driver-requests',
   standalone: true,
@@ -13,6 +14,7 @@ import { DriverRequestsTable } from '../../components/driver-requests-table/driv
 export class DriverRequestsPage {
   constructor(private router: Router) {}
 
+  // Otvara pojedinačni request za pregled, normalizuje podatke i navigira na detail page
   openRequest(req: any) {
     // navigate to change-request page with both original (prefer stored user) and changed driver
     let original = req.originalDriver;

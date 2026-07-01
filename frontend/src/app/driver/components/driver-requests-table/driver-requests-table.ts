@@ -5,6 +5,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
+// Tabela komponenta za prikaz driver change requestova sa filterovanjem i sortiranjem
 @Component({
   selector: 'app-driver-requests-table',
   standalone: true,
@@ -13,12 +14,19 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './driver-requests-table.css',
 })
 export class DriverRequestsTable implements OnInit {
+  // Event emitter kada korisnik želi da vidi detalje requesta
   @Output() viewRequest = new EventEmitter<any>();
+  // Lista svih requestova
   requests: any[] = [];
+  // ID trenutno ulogovanog admina
   currentAdminId: number | null = null;
+  // Development default admin ID
   private DEV_ADMIN_ID = 1;
+  // Selektovani status za filtriranje ('all', 'pending', 'approved', 'rejected')
   selectedStatus: string = 'all';
+  // Polje po kom se sortira
   sortField: string | null = null;
+  // Smer sortiranja
   sortDirection: 'asc' | 'desc' = 'asc';
   backendUrl : string = environment.backendUrl;
   constructor(private adminService: AdminService, private cdr: ChangeDetectorRef) {}
@@ -41,6 +49,7 @@ export class DriverRequestsTable implements OnInit {
     this.fetchRequests(adminId);
   }
 
+  // Normalizuje user objekat iz backend API odgovora u uniform format
   private normalizeUser(u: any, dtoFallback?: any): any {
     const vehicle = {
       licensePlate: u.licensePlate || dtoFallback?.licensePlate || null,
@@ -67,6 +76,7 @@ export class DriverRequestsTable implements OnInit {
     };
   }
 
+  // Učitava listu requestova sa backend-a i paralelno dohvata user podatke za svakog drivera
   fetchRequests(adminId: number) {
     this.adminService.getDriverRequests().subscribe({
       next: (res: any[]) => {
@@ -145,6 +155,7 @@ export class DriverRequestsTable implements OnInit {
     });
   }
 
+  // Normalizuje DTO objekat iz admin requesta u driver format
   private normalizeDto(dto: any): any {
     if (!dto) return null;
     return {
@@ -167,6 +178,7 @@ export class DriverRequestsTable implements OnInit {
   }
   
   
+  // Vraća filtriranu i sortiranu listu requestova
   get filteredRequests() {
     let list = this.requests;
     if (this.selectedStatus && this.selectedStatus !== 'all') {
@@ -187,10 +199,12 @@ export class DriverRequestsTable implements OnInit {
     return list;
   }
   
+  // Handler za promenu filtera statusa
   onFilterChange(status: string) {
     this.selectedStatus = status;
   }
 
+  // Sortira tabelu po zadatom polju, toggle-uje smer ako je isto polje
   sortBy(field: string) {
     if (this.sortField === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -200,6 +214,7 @@ export class DriverRequestsTable implements OnInit {
     }
   }
 
+  // Handler za prikaz detalja requesta, učitava user podatke ako nisu već učitani
   onView(req: any) {    
     const emit = (original: any) => {
       this.viewRequest.emit({

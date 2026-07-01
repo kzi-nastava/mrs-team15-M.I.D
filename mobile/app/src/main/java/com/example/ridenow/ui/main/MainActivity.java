@@ -1,9 +1,15 @@
 package com.example.ridenow.ui.main;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -11,31 +17,41 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.user.FcmTokenDTO;
+import com.example.ridenow.dto.driver.DriverStatusRequestDTO;
+import com.example.ridenow.dto.driver.DriverStatusResponseDTO;
+import com.example.ridenow.dto.enums.DriverStatus;
+import com.example.ridenow.service.DriverService;
 import com.example.ridenow.service.LogoutService;
 import com.example.ridenow.service.TokenExpirationService;
-import com.example.ridenow.service.UserService;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private static final int NOTIFICATION_PERMISSION_CODE = 100;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private TokenExpirationService tokenExpirationService;
     private NavController navController;
+    private SwitchMaterial switchDriverStatus;
+    private View driverStatusContainer;
+    private TextView tvDriverStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ClientUtils.init(this);
+
+        requestNotificationPermission();
+
 
         Toolbar toolbar = findViewById(R.id.toolbar);
 
@@ -57,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
             v.setLayoutParams(params);
 
             v.setPadding(v.getPaddingLeft(), statusBarHeight, v.getPaddingRight(), v.getPaddingBottom());
-
             return insets;
         });
 
@@ -75,7 +93,15 @@ public class MainActivity extends AppCompatActivity {
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            TokenUtils tokenUtils = ClientUtils.getTokenUtils();
+            if ("DRIVER".equals(tokenUtils.getRole())) {
+                fetchDriverStatus();
+            }
+        });
+
         navigationView.setNavigationItemSelectedListener(item -> {
+            Log.d(TAG, "Clicked item id: " + item.getItemId() + " title: " + item.getTitle());
             if (item.getItemId() == R.id.nav_logout) {
                 handleLogout();
                 drawerLayout.closeDrawers();
@@ -87,6 +113,19 @@ public class MainActivity extends AppCompatActivity {
             }
             return handled;
         });
+
+        View headerView = navigationView.getHeaderView(0);
+        driverStatusContainer = headerView.findViewById(R.id.driverStatusContainer);
+        switchDriverStatus = headerView.findViewById(R.id.switchDriverStatus);
+        tvDriverStatus = headerView.findViewById(R.id.tvDriverStatus);
+
+        switchDriverStatus.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) {
+                return;
+            }
+            updateDriverStatus(isChecked);
+        });
+
         toggle.syncState();
         setupTokenUtils();
         updateMenuVisibility();
@@ -206,8 +245,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Authentication related items
         navigationView.getMenu().findItem(R.id.login).setVisible(!isLoggedIn);
+        //navigationView.getMenu().findItem(R.id.driver_activation).setVisible(!isLoggedIn);
         //navigationView.getMenu().findItem(R.id.registration).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.reset_password).setVisible(!isLoggedIn);
+        navigationView.getMenu().findItem(R.id.nav_home).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.nav_logout).setVisible(isLoggedIn);
 
         // Role-specific items
@@ -215,15 +256,22 @@ public class MainActivity extends AppCompatActivity {
         boolean isUser = "USER".equals(userRole);
         boolean isAdmin = "ADMIN".equals(userRole);
 
+        driverStatusContainer.setVisibility(isDriver ? View.VISIBLE : View.GONE);
+        if (isDriver) {
+            fetchDriverStatus();
+        }
+
         // Driver-only items
         navigationView.getMenu().findItem(R.id.history).setVisible(isDriver); // Driver History
         navigationView.getMenu().findItem(R.id.upcoming_rides).setVisible(isDriver || isUser); // Upcoming Rides
         navigationView.getMenu().findItem(R.id.driver_profile).setVisible(isDriver);
+        navigationView.getMenu().findItem(R.id.driver_report).setVisible(isDriver);
 
         // User-only items
         navigationView.getMenu().findItem(R.id.profile).setVisible(isUser);
         navigationView.getMenu().findItem(R.id.ride_ordering).setVisible(isUser);
         navigationView.getMenu().findItem(R.id.passenger_history).setVisible(isUser);
+        navigationView.getMenu().findItem(R.id.passenger_report).setVisible(isUser);
 
         // Common logged-in user items
         //navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
@@ -233,10 +281,14 @@ public class MainActivity extends AppCompatActivity {
 
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
+        navigationView.getMenu().findItem(R.id.driver_registration).setVisible(isAdmin); // Driver Registration
         navigationView.getMenu().findItem(R.id.admin_chats).setVisible(isAdmin); // Support Chats
+        navigationView.getMenu().findItem(R.id.admin_users).setVisible(isAdmin); // Admin users
+        navigationView.getMenu().findItem(R.id.admin_report).setVisible(isAdmin); // Admin Reports
 
         // Live support for logged-in non-admin users
         navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
+        navigationView.getMenu().findItem(R.id.notifications).setVisible(isLoggedIn && !isAdmin);
         navigationView.getMenu().findItem(R.id.active_rides).setVisible(isAdmin); // Active Rides
         navigationView.getMenu().findItem(R.id.price_configs).setVisible(isAdmin); // Price Configuration
     }
@@ -254,8 +306,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLogoutFailure(String error) {
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "Logout failed: " + error, Toast.LENGTH_SHORT).show();
-                    onLogout();
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -274,6 +325,57 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.login);
             } catch (Exception e) {
                 Log.e(TAG, "Error navigating to login during logout", e);
+            }
+        }
+    }
+
+    private void fetchDriverStatus() {
+        DriverService driverService = ClientUtils.getClient(DriverService.class);
+        driverService.getDriverStatus().enqueue(new Callback<DriverStatusResponseDTO>() {
+            @Override
+            public void onResponse(Call<DriverStatusResponseDTO> call, Response<DriverStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    applyStatusToUi(response.body().getStatus(), response.body().getPendingStatus());
+                }
+            }
+            @Override
+            public void onFailure(Call<DriverStatusResponseDTO> call, Throwable t) { }
+        });
+    }
+
+    private void updateDriverStatus(boolean active) {
+        DriverStatusRequestDTO dto = new DriverStatusRequestDTO();
+        dto.setStatus(active ? DriverStatus.ACTIVE : DriverStatus.INACTIVE);
+
+        DriverService driverService = ClientUtils.getClient(DriverService.class);
+        driverService.changeDriverStatus(dto).enqueue(new Callback<DriverStatusResponseDTO>() {
+            @Override
+            public void onResponse(Call<DriverStatusResponseDTO> call, Response<DriverStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    applyStatusToUi(response.body().getStatus(), response.body().getPendingStatus());
+                    Toast.makeText(MainActivity.this, "Status updated", Toast.LENGTH_SHORT).show();
+                } else {
+                    fetchDriverStatus();
+                }
+            }
+            @Override
+            public void onFailure(Call<DriverStatusResponseDTO> call, Throwable t) {
+                fetchDriverStatus();
+            }
+        });
+    }
+    private void applyStatusToUi(DriverStatus status, DriverStatus pendingStatus) {
+        boolean checked = status == DriverStatus.ACTIVE;
+        switchDriverStatus.setChecked(checked);
+        tvDriverStatus.setText(checked ? "Active" : "Inactive");
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE);
             }
         }
     }

@@ -89,7 +89,7 @@ public class UserService {
     }
 
     public UserResponseDTO getUser(User user) {
-
+        // Make user response dto object from user object
         UserResponseDTO dto = new UserResponseDTO();
 
         dto.setId(user.getId());
@@ -232,6 +232,7 @@ public class UserService {
     }
 
     public Void blockUser(Long id, String reason) {
+        // find and user to the table blocked
         User user = userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
 
@@ -246,6 +247,7 @@ public class UserService {
     }
 
     public Void unblockUser(Long id) {
+        // find and unblock user
         User user = userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
 
@@ -259,6 +261,8 @@ public class UserService {
     }
 
     public BlockedStatusResponseDTO getBlockedStatus(Long userId) {
+        // find user and check blocked status
+
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 

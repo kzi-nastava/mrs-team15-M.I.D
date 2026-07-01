@@ -11,6 +11,7 @@ import { RideService } from '../../../services/ride.service';
 import { PassengerService } from '../../../services/passenger.service';
 import { MapRouteService } from '../../../services/map-route.service';
 
+// Interface za omiljene rute
 interface FavoriteRoute {
   id?: number | null;
   name: string;
@@ -19,6 +20,7 @@ interface FavoriteRoute {
   stops?: string[];
 }
 
+// Glavna forma komponenta za poručivanje vožnje sa adresama, stajalištima i omiljenim rutama
 @Component({
   selector: 'app-ride-ordering-form',
   standalone: true,
@@ -27,26 +29,40 @@ interface FavoriteRoute {
   styleUrls: ['./ride-ordering-form.css'],
 })
 export class RideOrderingForm implements OnInit {
+  // Flag da li korisnik ima aktivnu vožnju
   @Input() hasActiveRide: boolean = false;
+  // Flag da li je forma disabled
   @Input() disabled: boolean = false;
   
+  // Adresa polaska
   pickupAddress: string = '';
+  // Adresa destinacije
   destinationAddress: string = '';
+  // Lista međustajališta
   stops: string[] = [];
+  // Index elementa koji se trenutno dragguje
   draggedIndex: number | null = null;
+  // Index elementa preko kog se dragguje
   dragOverIndex: number | null = null;
 
-  // Mocked favorite routes for demo purposes
+  // Lista omiljenih ruta učitanih sa backend-a
   favorites: FavoriteRoute[] = [];
 
+  // Naziv trenutno selektovane omiljene rute
   selectedFavorite: string | null = null;
+  // Flag da li je favorite dropdown otvoren
   favoriteOpen: boolean = false;
 
+  // Validator za adrese
   validator: FromValidator = new FromValidator();
+  // Poslednji estimate odgovor sa backend-a (distanca, vreme, cena)
   lastEstimate: any = null;
+  // ID trenutno učitane omiljene rute
   currentFavoriteRouteId: number | null = null;
+  // Selektovani tip vozila
   selectedVehicleType: 'STANDARD' | 'LUXURY' | 'VAN' = 'STANDARD';
 
+  // Proverava da li postoje greške u adresama
   hasErrors(): boolean {
     if (this.validator.addressError(this.pickupAddress) || this.validator.addressError(this.destinationAddress)) return true;
     for (const s of this.stops) {
@@ -55,6 +71,7 @@ export class RideOrderingForm implements OnInit {
     return false;
   }
 
+  // Primenjuje odabranu omiljenu rutu na formu
   applyFavorite() {
     const fav = this.favorites.find(f => f.name === this.selectedFavorite);
     if (!fav) return;
@@ -75,8 +92,7 @@ export class RideOrderingForm implements OnInit {
   return item.id ?? index;
   }
 
-  
-
+  // Selektuje omiljenu rutu i učitava njene detalje sa backend-a
   selectFavorite(name: string) {
     if (name === '') {
       this.selectedFavorite = '';
@@ -167,18 +183,21 @@ export class RideOrderingForm implements OnInit {
     this.favoriteOpen = false;
   }
 
+  // Dodaje novo prazno međustajalište
   addStop() {
     this.stops.push('');
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
 
+  // Handler za početak drag operacije međustajališta
   onDragStart(event: DragEvent, index: number) {
     this.draggedIndex = index;
     try { event.dataTransfer?.setData('text/plain', String(index)); } catch (e) {}
     if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
   }
 
+  // Handler za drag over event
   onDragOver(event: DragEvent, index: number) {
     event.preventDefault();
     this.dragOverIndex = index;
@@ -189,6 +208,7 @@ export class RideOrderingForm implements OnInit {
     this.dragOverIndex = null;
   }
 
+  // Handler za drop event - reorderuje međustajališta
   onDrop(event: DragEvent, index: number) {
     event.preventDefault();
     const from = this.draggedIndex !== null ? this.draggedIndex : Number(event.dataTransfer?.getData('text/plain'));
@@ -216,29 +236,39 @@ export class RideOrderingForm implements OnInit {
     this.currentFavoriteRouteId = null;
   }
 
+  // Uklanja međustajalište sa zadatog indexa
   removeStop(index: number) {
     this.stops.splice(index, 1);
     this.lastEstimate = null;
     this.currentFavoriteRouteId = null;
   }
 
-  // address change handlers and map change
+  // Timeri za debounce pri ažuriranju mape i sugestija
   private updateTimer: any = null;
   private suggestTimer: any = null;
 
+  // Sugestije adresa za pickup
   pickupSuggestions: Array<any> = [];
+  // Sugestije adresa za destination
   destinationSuggestions: Array<any> = [];
+  // Sugestije adresa za svako međustajalište
   stopSuggestions: Array<Array<any>> = [];
   
-  // suggestion helpers and caching
+  // Minimalna dužina queryja za sugestije
   private readonly MIN_QUERY_LENGTH = 3;
+  // Maksimalan broj sugestija
   private readonly SUGGESTION_LIMIT = 5;
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  // Vreme trajanja keša sugestija (5 minuta)
+  private readonly CACHE_DURATION = 5 * 60 * 1000;
+  // Keš za sugestije
   private suggestionCache = new Map<string, { suggestions: any[]; timestamp: number }>();
+  // AbortController za trenutni fetch request
   private lastFetchController: AbortController | null = null;
 
+  // Flag da li treba ograničiti sugestije na Novi Sad
   restrictSuggestionsToNoviSad: boolean = true;
 
+  // Handler za promenu pickup adrese
   onPickupChange(val: string) {
     this.pickupAddress = val;
     this.fetchSuggestionsDebounced(val, 'pickup');
@@ -248,6 +278,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onPickupChange', val);
   }
 
+  // Handler za promenu destinacijske adrese
   onDestinationChange(val: string) {
     this.destinationAddress = val;
     this.fetchSuggestionsDebounced(val, 'destination');
@@ -257,6 +288,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onDestinationChange', val);
   }
 
+  // Handler za promenu adrese međustajališta
   onStopChange(val: string, index: number) {
     this.stops[index] = val;
     this.fetchSuggestionsDebounced(val, 'stop', index);
@@ -270,6 +302,7 @@ export class RideOrderingForm implements OnInit {
     this.selectedVehicleType = type;
   }
 
+  // Geocoduje sve adrese i prikazuje ih na mapi sa rutom
   private async geocodeAndShowMarkers() {
     try {
       const addresses: string[] = [];
@@ -321,7 +354,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
-  // Suggestions 
+  // Debounced funkcija za učitavanje sugestija adresa
   private fetchSuggestionsDebounced(query: string, target: 'pickup' | 'destination' | 'stop', index?: number, delay =10) {
     if (this.suggestTimer) clearTimeout(this.suggestTimer);
     this.suggestTimer = setTimeout(() => { this.fetchSuggestions(query, target, index); }, delay);
@@ -345,6 +378,7 @@ export class RideOrderingForm implements OnInit {
     try { this.cdr.detectChanges(); } catch (e) {}
   }
 
+  // Učitava sugestije sa keširanjem i debounce logikom
   private async fetchSuggestions(query: string, target: 'pickup' | 'destination' | 'stop', index?: number) {
     try {
       if (!query || query.trim().length < this.MIN_QUERY_LENGTH) {
@@ -386,6 +420,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
+  // Handler za selekciju pickup sugestije
   onPickupSuggestion(item: any) {
     if (!item) return;
     const d = item.raw || item;
@@ -398,6 +433,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onPickupSuggestion chosen', { item, pickupAddress: this.pickupAddress, len: (this.pickupAddress || '').length, valid: this.validator.addressError(this.pickupAddress) });
   }
 
+  // Handler za selekciju destination sugestije
   onDestinationSuggestion(item: any) {
     if (!item) return;
     const d = item.raw || item;
@@ -409,6 +445,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onDestinationSuggestion chosen', { item, destinationAddress: this.destinationAddress, len: (this.destinationAddress || '').length, valid: this.validator.addressError(this.destinationAddress) });
   }
 
+  // Handler za selekciju stop sugestije
   onStopSuggestion(item: any, index: number) {
     if (!item) return;
     const d = item.raw || item;
@@ -420,6 +457,7 @@ export class RideOrderingForm implements OnInit {
     console.debug('onStopSuggestion chosen', { index, item, stopValue: this.stops[index], len: (this.stops[index] || '').length, valid: this.validator.addressError(this.stops[index]) });
   }
 
+  // Prikazuje rutu na mapi sa estimatom distance, vremena i cene
   async showRoute() {
     const pickupErr = this.validator.addressError(this.pickupAddress);
     const destErr = this.validator.addressError(this.destinationAddress);
@@ -523,10 +561,13 @@ export class RideOrderingForm implements OnInit {
   }
   
 
+  // Flag da li se prikazuje preference forma
   showPreferences: boolean = false;
   
+  // Flag da li je ruta odabrana
   routeChosen: boolean = false;
 
+  // Otvara formu za izbor preferencija vožnje
   chooseRoute() {
     this.showPreferences = true;
     this.routeChosen = true;
@@ -547,6 +588,7 @@ export class RideOrderingForm implements OnInit {
     this.mapRouteService.clearRoute();
   }
 
+  // Učitava omiljene rute sa backend-a
   private loadFavoriteRoutes() {
     try {
       console.log('Loading favorite routes from backend');
@@ -601,6 +643,7 @@ export class RideOrderingForm implements OnInit {
     }
   }
 
+  // Handler za potvrdu preferencija - kreira order DTO i navigira na finding-driver
   async onPreferencesConfirm(prefs: any) {
     console.log('Preferences confirmed from form:', prefs);
     

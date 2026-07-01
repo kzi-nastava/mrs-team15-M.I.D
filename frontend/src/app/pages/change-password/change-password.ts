@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
 
+// Page komponenta za promenu lozinke korisnika
 @Component({
   selector: 'app-change-password',
   standalone: true,
@@ -11,12 +12,17 @@ import { UserService } from '../../services/user.service';
   styleUrl: './change-password.css',
 })
 export class ChangePasswordPage {
+  // Greška pri validaciji ili promeni lozinke
   passwordError: string | null = null;
 
+  // Flag za prikaz trenutne lozinke
   showCurrent = false;
+  // Flag za prikaz nove lozinke
   showNew = false;
+  // Flag za prikaz potvrde lozinke
   showConfirm = false;
   
+  // Development user ID
   private readonly DEV_USER_ID = 9;
 
   constructor(private router: Router, private userService: UserService) {}
@@ -25,6 +31,7 @@ export class ChangePasswordPage {
     this.router.navigate(['/profile']);
   }
 
+  // Validira i menja lozinku korisnika
   changePassword(current: string, next: string, confirm: string) {
     this.passwordError = null;
 
@@ -76,6 +83,7 @@ export class ChangePasswordPage {
     });
   }
 
+  // Toggle-uje vidljivost lozinke za dato polje
   toggleShow(field: 'current' | 'new' | 'confirm') {
     if (field === 'current') this.showCurrent = !this.showCurrent;
     if (field === 'new') this.showNew = !this.showNew;

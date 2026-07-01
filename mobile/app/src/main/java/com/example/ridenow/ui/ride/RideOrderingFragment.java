@@ -1,5 +1,6 @@
 package com.example.ridenow.ui.ride;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,8 +27,9 @@ import com.example.ridenow.service.RideService;
 import com.example.ridenow.service.PassengerService;
 import com.example.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import com.example.ridenow.dto.ride.RouteResponseDTO;
+import com.example.ridenow.dto.user.BlockedStatusResponseDTO;
 import com.example.ridenow.util.ClientUtils;
-import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
+import com.example.ridenow.dto.ride.RouteResponseDTO;
 import com.example.ridenow.dto.model.PolylinePointDTO;
 import com.example.ridenow.dto.model.LocationDTO;
 import com.example.ridenow.dto.ride.RoutePointDTO;
@@ -90,9 +92,12 @@ public class RideOrderingFragment extends Fragment {
     private java.util.List<Double> stopLatitudesSelected = new java.util.ArrayList<>();
     private java.util.List<Double> stopLongitudesSelected = new java.util.ArrayList<>();
     private java.util.List<String> stopDisplayNames = new java.util.ArrayList<>();
+    private RouteResponseDTO lastEstimate;
 
     private boolean isFormRaised = false; // tracks whether form is shifted to reveal map
     private View formCard;
+    private boolean isBlockedAccount = false;
+    private String blockedReason = "";
 
     public RideOrderingFragment() {
         // Required empty constructor
@@ -101,6 +106,63 @@ public class RideOrderingFragment extends Fragment {
     private int dpToPx(int dp) {
         float density = requireContext().getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
+    }
+
+    private void loadBlockedStatus() {
+        try {
+            String role = ClientUtils.getTokenUtils().getRole();
+            if (!"USER".equals(role)) {
+                return;
+            }
+        } catch (IllegalStateException ignored) {
+            return;
+        }
+
+        com.example.ridenow.service.UserService userService = ClientUtils.getClient(com.example.ridenow.service.UserService.class);
+        userService.getBlockedStatus().enqueue(new Callback<BlockedStatusResponseDTO>() {
+            @Override
+            public void onResponse(Call<BlockedStatusResponseDTO> call, Response<BlockedStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    BlockedStatusResponseDTO status = response.body();
+                    if (status.isBlocked()) {
+                        applyBlockedState(status.getReason());
+                    } else {
+                        clearBlockedState();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<BlockedStatusResponseDTO> call, Throwable t) {
+                Log.w("RideOrdering", "Failed to load blocked status", t);
+            }
+        });
+    }
+
+    private void applyBlockedState(String reason) {
+        isBlockedAccount = true;
+        blockedReason = reason == null || reason.trim().isEmpty() ? "No reason provided" : reason.trim();
+
+        if (chooseRouteBtn != null) {
+            chooseRouteBtn.setEnabled(false);
+            chooseRouteBtn.setClickable(false);
+        }
+
+        if (!isAdded()) {
+            return;
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Account blocked")
+                .setMessage("Your account is blocked.\n\nReason: " + blockedReason)
+                .setPositiveButton("OK", (dialogInterface, which) -> dialogInterface.dismiss())
+                .create();
+        dialog.show();
+    }
+
+    private void clearBlockedState() {
+        isBlockedAccount = false;
+        blockedReason = "";
     }
 
     // Transliterate Serbian Cyrillic to Latin for display
@@ -302,6 +364,8 @@ public class RideOrderingFragment extends Fragment {
             // ClientUtils not initialized; default to enabled (will fail server-side if not authenticated)
         }
 
+        loadBlockedStatus();
+
         // setup suggestions popup (anchored to inputs)
         suggestionsAdapter = new SuggestionAdapter(requireContext(), new java.util.ArrayList<>());
         suggestionsPopup = new ListPopupWindow(requireContext());
@@ -468,7 +532,7 @@ public class RideOrderingFragment extends Fragment {
                                 formCard.bringToFront();
                                 formCard.setClickable(true);
                                 formCard.setFocusable(true);
-                                if (chooseRouteBtn != null) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
+                                if (chooseRouteBtn != null && !isBlockedAccount) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
                             } catch (Exception ignored) {}
                         }).start();
                         isFormRaised = false;
@@ -533,7 +597,7 @@ public class RideOrderingFragment extends Fragment {
                             formCard.bringToFront();
                             formCard.setClickable(true);
                             formCard.setFocusable(true);
-                            if (chooseRouteBtn != null) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
+                            if (chooseRouteBtn != null && !isBlockedAccount) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
                         } catch (Exception ignored) {}
                     }).start();
                     isFormRaised = false;
@@ -631,16 +695,17 @@ public class RideOrderingFragment extends Fragment {
                 req.setEndAddress(endAddr);
             } catch (Exception ignored) {}
 
-            Call<RideEstimateResponseDTO> call = rideService.estimateRoute(req);
+            Call<RouteResponseDTO> call = rideService.estimateRoute(req);
 
-            call.enqueue(new Callback<RideEstimateResponseDTO>() {
+            call.enqueue(new Callback<RouteResponseDTO>() {
                 @Override
-                public void onResponse(Call<RideEstimateResponseDTO> call, Response<RideEstimateResponseDTO> response) {
+                public void onResponse(Call<RouteResponseDTO> call, Response<RouteResponseDTO> response) {
                     showRouteBtn.setEnabled(true);
                     showRouteBtn.setText("Show Route");
 
                     if (response.isSuccessful() && response.body() != null) {
-                        RideEstimateResponseDTO estimate = response.body();
+                        RouteResponseDTO estimate = response.body();
+                        lastEstimate = estimate;
 
                         // convert route points
                         List<PolylinePointDTO> polylinePoints = new ArrayList<>();
@@ -671,8 +736,11 @@ public class RideOrderingFragment extends Fragment {
 
                         // Display estimate details
                         tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f km", estimate.getDistanceKm()));
-                        tvDuration.setText(String.format(Locale.getDefault(), "Duration: %d min", estimate.getEstimatedDurationMin()));
-                        tvCost.setText("");
+                        tvDuration.setText(String.format(Locale.getDefault(), "Duration: %d min", estimate.getEstimatedTimeMinutes()));
+                        tvCost.setText(String.format(Locale.getDefault(), "Standard: %.2f / Luxury: %.2f / Van: %.2f",
+                            estimate.getPriceEstimateStandard(),
+                            estimate.getPriceEstimateLuxury(),
+                            estimate.getPriceEstimateVan()));
 
                         // Show results
                         resultsLayout.setVisibility(View.VISIBLE);
@@ -690,7 +758,7 @@ public class RideOrderingFragment extends Fragment {
                 }
 
                 @Override
-                public void onFailure(Call<RideEstimateResponseDTO> call, Throwable t) {
+                public void onFailure(Call<RouteResponseDTO> call, Throwable t) {
                     showRouteBtn.setEnabled(true);
                     showRouteBtn.setText("Show Route");
                     Toast.makeText(getContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
@@ -699,6 +767,10 @@ public class RideOrderingFragment extends Fragment {
         });
 
         chooseRouteBtn.setOnClickListener(v -> {
+            if (isBlockedAccount) {
+                applyBlockedState(blockedReason);
+                return;
+            }
             if (!hasSelectedStart || !hasSelectedEnd) {
                 Toast.makeText(requireContext(), "Please select pickup and destination from suggestions", Toast.LENGTH_SHORT).show();
                 return;
@@ -713,6 +785,15 @@ public class RideOrderingFragment extends Fragment {
             bundle.putDouble("endLat", selectedEndLat);
             bundle.putDouble("endLon", selectedEndLon);
             bundle.putString("endAddress", selectedEndDisplayName);
+
+            if (lastEstimate != null) {
+                bundle.putDouble("distanceKm", lastEstimate.getDistanceKm());
+                bundle.putInt("estimatedTimeMinutes", lastEstimate.getEstimatedTimeMinutes());
+                bundle.putDouble("priceEstimateStandard", lastEstimate.getPriceEstimateStandard());
+                bundle.putDouble("priceEstimateLuxury", lastEstimate.getPriceEstimateLuxury());
+                bundle.putDouble("priceEstimateVan", lastEstimate.getPriceEstimateVan());
+            }
+            bundle.putLong("favoriteRouteId", currentSelectedFavoriteId != null ? currentSelectedFavoriteId : -1L);
 
             // Polyline flattening: lat/lon parovi
             ArrayList<Double> polylineCoords = new ArrayList<>();
@@ -1063,8 +1144,16 @@ public class RideOrderingFragment extends Fragment {
 
                             // show estimates if available
                             try {
+                                // keep lastEstimate in sync so "Choose route" carries real
+                                // distance/price data through to RidePreferenceFragment
+                                lastEstimate = r;
+
                                 tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f km", r.getDistanceKm()));
                                 tvDuration.setText(String.format(Locale.getDefault(), "Duration: %d min", r.getEstimatedTimeMinutes()));
+                                tvCost.setText(String.format(Locale.getDefault(), "Standard: %.2f / Luxury: %.2f / Van: %.2f",
+                                        r.getPriceEstimateStandard(),
+                                        r.getPriceEstimateLuxury(),
+                                        r.getPriceEstimateVan()));
                                 resultsLayout.setVisibility(View.VISIBLE);
                             } catch (Exception ignored) {}
                         } catch (Exception e) {

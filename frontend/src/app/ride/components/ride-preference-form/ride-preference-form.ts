@@ -5,6 +5,7 @@ import { InputComponent } from '../../../shared/components/input-component/input
 import { Button } from '../../../shared/components/button/button';
 import { FromValidator } from '../../../shared/components/form-validator';
 
+// Interface za preferencije vožnje
 export interface RidePreferences {
   vehicleType: string;
   babySeat: boolean;
@@ -13,6 +14,7 @@ export interface RidePreferences {
   scheduledTime?: string | null;
 }
 
+// Forma komponenta za izbor preferencija vožnje (tip vozila, dodatne opcije, zakazivanje)
 @Component({
   selector: 'app-ride-preference-form',
   standalone: true,
@@ -22,24 +24,37 @@ export interface RidePreferences {
 })
 export class RidePreferenceForm {
   constructor(private cdr: ChangeDetectorRef) {}
+  // Estimate objekat sa cenom i podacima o ruti
   @Input() estimate: any;
+  // Prethodno selektovan tip vozila
   @Input() selectedVehicleType: string = 'STANDARD';
 
+  // Tip vozila (standard/luxury/van)
   vehicleType: string = 'standard';
+  // Da li je potrebno bebi sedište
   babySeat: boolean = false;
+  // Da li je vozilo pet-friendly
   petFriendly: boolean = false;
+  // Lista email adresa gostiju
   guests: string[] = [];
+  // Vreme zakazane vožnje
   scheduledTime: string | null = null;
+  // Minimalno vreme za zakazivanje
   minDatetime: string | null = null;
+  // Maksimalno vreme za zakazivanje (5h unapred)
   maxDatetime: string | null = null;
+  // Error poruka za scheduled time
   scheduledTimeError: string | null = null;
+  // Validator za email adrese
   validator: FromValidator = new FromValidator();
 
   trackByIndex(index: number, _item: any) {
     return index;
   }
 
+  // Event emitter za potvrdu preferencija
   @Output() confirm = new EventEmitter<RidePreferences>();
+  // Event emitter za otkazivanje
   @Output() cancel = new EventEmitter<void>();
 
   ngOnChanges(changes: SimpleChanges) {
@@ -55,6 +70,7 @@ export class RidePreferenceForm {
     } catch(e) {}
   }
 
+  // Vraća cenu za trenutno selektovan tip vozila
   getSelectedPrice(): string {
     if (!this.estimate) return '-';
     const vt = (this.vehicleType || '').toLowerCase();
@@ -74,6 +90,7 @@ export class RidePreferenceForm {
     return this._formatPrice(this.estimate.priceEstimate ?? null);
   }
 
+  // Formatira cenu u string sa 3 decimale
   private _formatPrice(val: any): string {
     if (val === null || val === undefined) return '-';
     const n = Number(val);
@@ -81,6 +98,7 @@ export class RidePreferenceForm {
     return n.toFixed(3);
   }
 
+  // Dodaje prazno polje za guest email
   addEmptyGuest() {
     this.guests.push('');
   }
@@ -89,6 +107,7 @@ export class RidePreferenceForm {
     
   }
 
+  // Handler za promenu scheduled time sa validacijom
   onScheduledTimeChange(val: string | null) {
     this.scheduledTime = val;
     this.scheduledTimeError = null;
@@ -105,12 +124,14 @@ export class RidePreferenceForm {
     } catch(e) {}
   }
 
+  // Uklanja gosta sa zadatog indexa
   removeGuest(idx: number) {
     console.log('removeGuest called, idx=', idx);
     this.guests.splice(idx, 1);
     console.log('guest removed, guests=', this.guests);
   }
 
+  // Potvrđuje preferencije i emituje event
   onConfirm() {
     // validate scheduled time before emitting
     if (this.scheduledTime && this._isInPast(this.scheduledTime)) {

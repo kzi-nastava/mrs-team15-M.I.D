@@ -80,6 +80,7 @@ public class NotificationsFragment extends Fragment {
             public void onResponse(@NonNull Call<List<NotificationResponseDTO>> call, @NonNull Response<List<NotificationResponseDTO>> response) {
                 progressBar.setVisibility(View.GONE);
 
+                // Check if response is successful and body is not null before updating the list
                 if (response.isSuccessful() && response.body() != null) {
                     notificationsList.clear();
                     notificationsList.addAll(response.body());
@@ -125,8 +126,22 @@ public class NotificationsFragment extends Fragment {
         } else if (notification.getType() == NotificationType.RIDE_ASSIGNED) {
             navController.navigate(R.id.upcoming_rides);
         } else if (notification.getType() == NotificationType.PANIC) {
+            Bundle bundle = new Bundle();
+            if(notification.getRelatedEntityId() != null){
+                bundle.putLong("rideId", notification.getRelatedEntityId());
+                bundle.putBoolean("isAdminView", true);
+                bundle.putBoolean("isPanic", true);
+            }
             // For panic notifications, navigate to current ride
             navController.navigate(R.id.current_ride);
+        } else if (notification.getType() == NotificationType.SCHEDULED_RIDE_REMINDER) {
+            navController.navigate(R.id.upcoming_rides);
+        } else if (notification.getType() == NotificationType.NO_DRIVERS_AVAILABLE) {
+            navController.navigate(R.id.ride_ordering);
+        } else if (notification.getType() == NotificationType.RIDE_REQUEST_REJECTED) {
+            navController.navigate(R.id.ride_ordering);
+        } else if (notification.getType() == NotificationType.RIDE_REQUEST_ACCEPTED) {
+            navController.navigate(R.id.upcoming_rides);
         }
     }
 

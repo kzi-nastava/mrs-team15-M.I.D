@@ -15,3 +15,6 @@
 local.properties
 copilot.data.migration*
 .copilot/
+
+**/firebase-credentials.json
+**/google-services.json

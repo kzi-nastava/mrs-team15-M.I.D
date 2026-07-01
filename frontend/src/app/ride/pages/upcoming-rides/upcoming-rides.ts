@@ -76,7 +76,9 @@ ngOnInit(): void {
     this.filteredUpcomingRides = [...this.allUpcomingRides];
   }
 
-
+  // Utility method to show a temporary message toast to the user, which can be
+  // used for success or error notifications. It sets the message and visibility state,
+  // triggers change detection to update the UI, and then hides the message after a short delay.
   showMessageToast(message: string): void {
     this.message = message;
     this.showMessage = true;

@@ -6,7 +6,13 @@ import com.example.ridenow.dto.ride.ActiveRideDTO;
 import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
 import com.example.ridenow.dto.ride.InconsistencyRequestDTO;
+import com.example.ridenow.dto.ride.OrderRideRequestDTO;
+import com.example.ridenow.dto.ride.OrderRideResponseDTO;
+import com.example.ridenow.dto.ride.ReorderRideRequestDTO;
+import com.example.ridenow.dto.ride.StartRideResponseDTO;
 import com.example.ridenow.dto.ride.RideEstimateResponseDTO;
+import com.example.ridenow.dto.ride.RouteResponseDTO;
+import com.example.ridenow.dto.ride.StopRideResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.dto.ride.EstimateRouteRequestDTO;
@@ -14,6 +20,7 @@ import com.example.ridenow.dto.ride.EstimateRouteRequestDTO;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -45,7 +52,7 @@ public interface RideService {
                                            @Query("endLongitude") Double endLongitude);
 
     @POST("rides/estimate-route")
-    Call<RideEstimateResponseDTO> estimateRoute(@Body EstimateRouteRequestDTO request);
+    Call<RouteResponseDTO> estimateRoute(@Body EstimateRouteRequestDTO request);
 
     @PUT("rides/{id}/cancel")
     Call<Void> cancel(@Path("id") Long id, @Body CancelRideRequestDTO request);
@@ -58,4 +65,16 @@ public interface RideService {
 
     @GET("/api/rides/active-rides")
     Call<List<ActiveRideDTO>> getActiveRides();
+
+    @PUT("rides/stop")
+    Call<StopRideResponseDTO> stopRide();
+
+    @POST("rides/order-ride")
+    Call<OrderRideResponseDTO> orderRide(@Body OrderRideRequestDTO request);
+
+    @GET("rides/{rideId}/start")
+    Call<StartRideResponseDTO> passengerPickup(@Path("rideId") Long rideId);
+
+    @POST("rides/reorder-ride")
+    Call<Void> reorderRide(@Body ReorderRideRequestDTO request);
 }

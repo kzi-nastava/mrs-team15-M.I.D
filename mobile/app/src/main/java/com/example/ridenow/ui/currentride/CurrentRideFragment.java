@@ -26,15 +26,22 @@ import com.example.ridenow.R;
 import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
 import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
 import com.example.ridenow.dto.model.LocationDTO;
+import com.example.ridenow.dto.model.PolylinePointDTO;
 import com.example.ridenow.dto.ride.CurrentRideResponse;
+import com.example.ridenow.dto.ride.RoutePointDTO;
+import com.example.ridenow.dto.ride.StopRideResponseDTO;
 import com.example.ridenow.dto.ride.TrackVehicleResponseDTO;
 import com.example.ridenow.service.DriverService;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.ui.components.RouteMapView;
 import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
+import com.example.ridenow.util.RideWebSocketManager;
 import com.example.ridenow.util.TokenUtils;
+import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -47,6 +54,8 @@ public class CurrentRideFragment extends Fragment {
     private TextView startAddressText;
     private TextView endAddressText;
     private TextView remainingTimeText;
+    private LinearLayout panicBannerLayout;
+    private TextView panicStatusText;
 
     // Admin view elements
     private LinearLayout adminDriverLayout;
@@ -71,12 +80,18 @@ public class CurrentRideFragment extends Fragment {
     private Handler trackingHandler;
     private Runnable trackingRunnable;
     private static final long TRACKING_INTERVAL = 10000; // 10 seconds
-
+    private boolean isPanicRide = false;
     private boolean isDriver = false;
     private boolean isAdminView = false;
     private Long adminRideId = null;
     private TokenUtils tokenUtils;
     private LocationManager locationManager;
+    private RideWebSocketManager rideWebSocketManager;
+
+    private int currentPolyIndex = 0;
+
+    private LinearLayout stopRideResultLayout;
+    private TextView resultEndAddressText, resultDistanceText, resultDurationText, resultPriceText;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -87,16 +102,19 @@ public class CurrentRideFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
         // Check if this is an admin view
         Bundle args = getArguments();
         if (args != null) {
             isAdminView = args.getBoolean("isAdminView", false);
             adminRideId = args.getLong("rideId", -1);
             if (adminRideId == -1) adminRideId = null;
+            isPanicRide = args.getBoolean("isPanic", false);
         }
 
         initViews(view);
         initServices();
+        setupWebSocket();
         checkUserRole();
         setupButtonVisibility();
 
@@ -110,6 +128,113 @@ public class CurrentRideFragment extends Fragment {
         }
 
         getCurrentRide();
+    }
+
+    private void setupWebSocket() {
+        rideWebSocketManager = new RideWebSocketManager();
+        rideWebSocketManager.setCallback(new RideWebSocketManager.RideWebSocketCallback() {
+            @Override
+            public void onRidePanic(JsonObject data) {
+                requireActivity().runOnUiThread(() -> {
+                    routeMapView.setPanicMode(true);
+                    String triggeredBy = (data != null && data.has("triggeredBy"))
+                            ? data.get("triggeredBy").getAsString() : "user";
+                    showPanicBanner(triggeredBy);
+                });
+            }
+
+            @Override
+            public void onRideStopped(JsonObject data) {
+                requireActivity().runOnUiThread(() -> {
+                    stopTracking();
+                    hidePanicBanner();
+                    routeMapView.setPanicMode(false);
+
+                    if (data != null) {
+                        String endAddress = data.has("endAddress") ? data.get("endAddress").getAsString() : "-";
+                        double distance = data.has("distanceKm") ? data.get("distanceKm").getAsDouble() : 0;
+                        double price = data.has("price") ? data.get("price").getAsDouble() : 0;
+                        double duration = data.has("estimatedDurationMin") ? data.get("estimatedDurationMin").getAsDouble() : 0;
+
+                        stopRideResultLayout.setVisibility(View.VISIBLE);
+                        resultEndAddressText.setText(endAddress);
+                        resultDistanceText.setText(String.format("%.1f km", distance));
+                        resultDurationText.setText(duration + " min");
+                        resultPriceText.setText(String.format("%.2f RSD", price));
+                        endAddressText.setText(endAddress);
+
+                        if (data.has("route") && currentRide != null && currentRide.getRoute() != null) {
+                            List<PolylinePointDTO> route = new ArrayList<>();
+                            for (com.google.gson.JsonElement el : data.getAsJsonArray("route")) {
+                                JsonObject p = el.getAsJsonObject();
+                                route.add(new PolylinePointDTO(p.get("lat").getAsDouble(), p.get("lng").getAsDouble()));
+                            }
+                            LocationDTO newEnd = new LocationDTO();
+                            newEnd.setAddress(endAddress);
+                            routeMapView.displayRoute(currentRide.getRoute().getStartLocation(), newEnd, null, route);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Ride stopped", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onRideCompleted(JsonObject data) {
+                requireActivity().runOnUiThread(() -> {
+                    stopTracking();
+                    hidePanicBanner();
+                    routeMapView.setPanicMode(false);
+                    if(data != null){
+                        String endAddress = data.has("endAddress") ? data.get("endAddress").getAsString() : "-";
+                        double distance = data.has("distanceKm") ? data.get("distanceKm").getAsDouble() : 0;
+                        double price = data.has("price") ? data.get("price").getAsDouble() : 0;
+                        double duration = data.has("estimatedDurationMin") ? data.get("estimatedDurationMin").getAsDouble() : 0;
+
+                        stopRideResultLayout.setVisibility(View.VISIBLE);
+
+                        resultPriceText.setText(String.format("%.2f RSD", price));
+                        resultEndAddressText.setText(endAddress);
+                        endAddressText.setText(endAddress);
+                        resultDistanceText.setText(String.format("%.1f km", distance));
+                        resultDurationText.setText(duration + " min");
+                    }else {
+                        Toast.makeText(getContext(), "Ride completed", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onConnected() {
+                Log.d(TAG, "Ride WebSocket connected");
+            }
+
+            @Override
+            public void onDisconnected() {
+                Log.d(TAG, "Ride WebSocket disconnected");
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Ride WebSocket error: " + error);
+            }
+        });
+
+        String token = tokenUtils.getToken();
+        rideWebSocketManager.connect(token);
+    }
+
+    private void showPanicBanner(String triggeredBy) {
+        if (panicBannerLayout != null && panicStatusText != null) {
+            panicStatusText.setText("Triggered by: " + triggeredBy);
+            panicBannerLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hidePanicBanner() {
+        if (panicBannerLayout != null) {
+            panicBannerLayout.setVisibility(View.GONE);
+        }
     }
 
     private void initViews(View view) {
@@ -135,6 +260,15 @@ public class CurrentRideFragment extends Fragment {
         stopRideButton = view.findViewById(R.id.stopRideButton);
         markCompletedButton = view.findViewById(R.id.markCompletedButton);
 
+        // Stop ride info
+        stopRideResultLayout = view.findViewById(R.id.stopRideResultLayout);
+        resultEndAddressText = view.findViewById(R.id.resultEndAddressText);
+        resultDistanceText   = view.findViewById(R.id.resultDistanceText);
+        resultDurationText   = view.findViewById(R.id.resultDurationText);
+        resultPriceText      = view.findViewById(R.id.resultPriceText);
+
+        panicBannerLayout = view.findViewById(R.id.panicBannerLayout);
+        panicStatusText = view.findViewById(R.id.panicStatusText);
         setupButtonListeners();
     }
 
@@ -151,9 +285,25 @@ public class CurrentRideFragment extends Fragment {
         driverPanicButton.setOnClickListener(v -> triggerPanicButton());
         panicButton.setOnClickListener(v -> triggerPanicButton());
 
-        stopRideButton.setOnClickListener(v ->
-            Toast.makeText(getContext(), "Stop Ride - To be implemented", Toast.LENGTH_SHORT).show()
-        );
+        stopRideButton.setOnClickListener(v -> {
+            StopRideDialog dialog = StopRideDialog.newInstance();
+            dialog.setOnRideStoppedListener(result -> {
+                stopTracking();
+                List<PolylinePointDTO> route  = new ArrayList<>();
+                for(RoutePointDTO point : result.getRoute()){
+                    route.add(new PolylinePointDTO(point.getLat(), point.getLng()));
+                }
+                if (currentRide != null && currentRide.getRoute() != null) {
+                    LocationDTO newEnd = new LocationDTO();
+                    newEnd.setAddress(result.getEndAddress());
+                    newEnd.setLatitude(result.getEndLatitude());
+                    newEnd.setLongitude(result.getEndLongitude());
+                    routeMapView.displayRoute(currentRide.getRoute().getStartLocation(), newEnd, result.getPassedStops(), route);
+                }
+                showStopRideResult(result);
+            });
+            dialog.show(getChildFragmentManager(), "StopRideDialog");
+        });
 
         markCompletedButton.setOnClickListener(v -> {
             if (currentRide != null && currentRide.getRideId() != null) {
@@ -163,6 +313,17 @@ public class CurrentRideFragment extends Fragment {
             }
         });
     }
+
+    private void showStopRideResult(StopRideResponseDTO result) {
+        stopRideResultLayout.setVisibility(View.VISIBLE);
+
+        resultEndAddressText.setText(result.getEndAddress());
+        resultDistanceText.setText(String.format("%.1f km", result.getDistanceKm()));
+        resultDurationText.setText(result.getEstimatedDurationMin() + " min");
+        resultPriceText.setText(String.format("%.2f RSD", result.getPrice()));
+
+        endAddressText.setText(result.getEndAddress());
+    }
     private void triggerPanicButton() {
         rideService.triggerPanicAlert().enqueue(new Callback<Map<String, String>>() {
             @Override
@@ -170,6 +331,7 @@ public class CurrentRideFragment extends Fragment {
                 panicButton.setEnabled(true);
                 if(response.isSuccessful()){
                     routeMapView.setPanicMode(true);
+                    showPanicBanner(isDriver ? "DRIVER" : "PASSENGER");
                     if(currentRide != null && currentRide.getRoute() != null){
                         routeMapView.displayRoute(currentRide.getRoute().getStartLocation(),
                                 currentRide.getRoute().getEndLocation(),
@@ -252,9 +414,9 @@ public class CurrentRideFragment extends Fragment {
 
             if (isMainPassenger != null && !isMainPassenger) {
                 // Not main passenger - hide report and panic buttons
-                reportInconsistencyButton.setVisibility(View.GONE);
+                reportInconsistencyButton.setVisibility(View.VISIBLE);
                 panicButton.setVisibility(View.GONE);
-                Log.d(TAG, "User is not main passenger - hiding report and panic buttons");
+                Log.d(TAG, "User is not main passenger - hiding panic button");
             } else {
                 // Main passenger - show buttons
                 reportInconsistencyButton.setVisibility(View.VISIBLE);
@@ -276,6 +438,12 @@ public class CurrentRideFragment extends Fragment {
                 public void onResponse(@NonNull Call<CurrentRideResponse> call, @NonNull Response<CurrentRideResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         currentRide = response.body();
+                        if (Boolean.TRUE.equals(currentRide.getPanic())) {
+                            showPanicBanner("user");
+                            routeMapView.setPanicMode(true);
+                        } else {
+                            hidePanicBanner();
+                        }
                         setupRideInfo();
                         updateUserButtonVisibility(); // Update button visibility based on isMainPassenger
                         if (isDriver) {
@@ -411,6 +579,10 @@ public class CurrentRideFragment extends Fragment {
             startAddressText.setText(startAddress);
             endAddressText.setText(endAddress);
 
+            if (isPanicRide) {
+                routeMapView.setPanicMode(true);
+            }
+
             // Display route on map
             routeMapView.displayRoute(
                 currentRide.getRoute().getStartLocation(),
@@ -466,6 +638,7 @@ public class CurrentRideFragment extends Fragment {
                     TrackVehicleResponseDTO trackData = response.body();
                     updateVehicleLocation(trackData.getLocation());
                     updateRemainingTime(trackData.getRemainingTimeInMinutes());
+                    Log.w("CurrentRideFragment", "da li radi ovo" + trackData.getRemainingTimeInMinutes().toString());
                 }
             }
 
@@ -476,35 +649,82 @@ public class CurrentRideFragment extends Fragment {
         });
     }
 
+//    private void updateDriverLocation() {
+//        Log.d(TAG, "updateDriverLocation() called");
+//
+//        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            Log.w(TAG, "Location permission not granted");
+//            return;
+//        }
+//
+//        Log.d(TAG, "Getting last known location from LocationManager...");
+//
+//        // Try GPS provider first, then network provider
+//        android.location.Location location = null;
+//
+//        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+//            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//            Log.d(TAG, "GPS location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
+//        }
+//
+//        if (location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+//            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//            Log.d(TAG, "Network location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
+//        }
+//
+//        if (location != null) {
+//            Log.d(TAG, "Location received: " + location.getLatitude() + ", " + location.getLongitude());
+//
+//            // Store final values for callback usage
+//            final double latitude = location.getLatitude();
+//            final double longitude = location.getLongitude();
+//
+//            // Send location to server
+//            DriverLocationRequestDTO request = new DriverLocationRequestDTO(latitude, longitude);
+//
+//            Call<DriverLocationResponseDTO> call = driverService.updateDriverLocation(request);
+//            call.enqueue(new Callback<>() {
+//                @Override
+//                public void onResponse(@NonNull Call<DriverLocationResponseDTO> call, @NonNull Response<DriverLocationResponseDTO> response) {
+//                    if (response.isSuccessful() && response.body() != null) {
+//                        Log.d(TAG, "Location updated on server successfully");
+//
+//                        // Update driver marker on map
+//                        LocationDTO driverLocation = new LocationDTO();
+//                        driverLocation.setLatitude(latitude);
+//                        driverLocation.setLongitude(longitude);
+//                        driverLocation.setAddress("Current Location");
+//
+//                        routeMapView.updateDriverMarker(driverLocation);
+//                        routeMapView.centerOnLocation(driverLocation);
+//                    } else {
+//                        Log.w(TAG, "Failed to update location on server: " + response.code());
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(@NonNull Call<DriverLocationResponseDTO> call, @NonNull Throwable t) {
+//                    Log.e(TAG, "Failed to update location on server", t);
+//                }
+//            });
+//        } else {
+//            Log.w(TAG, "Location is null from all providers");
+//            Toast.makeText(getContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
     private void updateDriverLocation() {
-        Log.d(TAG, "updateDriverLocation() called");
+            if (currentRide == null || currentRide.getRoute() == null || currentRide.getRoute().getPolylinePoints() == null) {
+                Log.w(TAG, "Current ride or route is null, cannot update driver location");
+                return;
+            }
 
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "Location permission not granted");
-            return;
-        }
+            if (currentPolyIndex <= currentRide.getRoute().getPolylinePoints().size() - 2) {
+                currentPolyIndex++; // Update index
+            }
 
-        Log.d(TAG, "Getting last known location from LocationManager...");
-
-        // Try GPS provider first, then network provider
-        android.location.Location location = null;
-
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Log.d(TAG, "GPS location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
-        }
-
-        if (location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Log.d(TAG, "Network location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
-        }
-
-        if (location != null) {
-            Log.d(TAG, "Location received: " + location.getLatitude() + ", " + location.getLongitude());
-
-            // Store final values for callback usage
-            final double latitude = location.getLatitude();
-            final double longitude = location.getLongitude();
+            final double latitude = currentRide.getRoute().getPolylinePoints().get(currentPolyIndex).getLatitude();
+            final double longitude = currentRide.getRoute().getPolylinePoints().get(currentPolyIndex).getLongitude();
 
             // Send location to server
             DriverLocationRequestDTO request = new DriverLocationRequestDTO(latitude, longitude);
@@ -534,10 +754,6 @@ public class CurrentRideFragment extends Fragment {
                     Log.e(TAG, "Failed to update location on server", t);
                 }
             });
-        } else {
-            Log.w(TAG, "Location is null from all providers");
-            Toast.makeText(getContext(), "Unable to get current location", Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void updateVehicleLocation(LocationDTO vehicleLocation) {
@@ -598,6 +814,9 @@ public class CurrentRideFragment extends Fragment {
         if (routeMapView != null) {
             routeMapView.onDestroy();
         }
+        if (rideWebSocketManager != null) {
+            rideWebSocketManager.disconnect();
+        }
     }
 
     private void stopTracking() {
@@ -607,7 +826,6 @@ public class CurrentRideFragment extends Fragment {
     }
 
     private void testCurrentLocation() {
-        Log.d(TAG, "testCurrentLocation() called - checking emulator location");
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.w(TAG, "Location permission not granted for test");
@@ -619,19 +837,13 @@ public class CurrentRideFragment extends Fragment {
 
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Log.d(TAG, "TEST GPS location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
         }
 
         if (location == null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Log.d(TAG, "TEST Network location: " + (location != null ? location.getLatitude() + ", " + location.getLongitude() : "null"));
         }
 
-        if (location != null) {
-            Log.d(TAG, "TEST: Current emulator location: " + location.getLatitude() + ", " + location.getLongitude());
-            Toast.makeText(getContext(), "Current location: " + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_LONG).show();
-        } else {
-            Log.w(TAG, "TEST: Location is null from all providers");
+        if (location == null) {
             Toast.makeText(getContext(), "Location is null", Toast.LENGTH_SHORT).show();
         }
     }
@@ -663,6 +875,7 @@ public class CurrentRideFragment extends Fragment {
 
         // Stop any ongoing tracking
         stopTracking();
+        hidePanicBanner();
 
         Call<Boolean> call = rideService.finishRide(currentRide.getRideId().toString());
         call.enqueue(new Callback<>() {

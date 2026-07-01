@@ -31,11 +31,13 @@ public class VehicleService {
     }
 
     public VehicleResponseDTO updateVehicleLocation(String licencePlate, Double lat, Double lon) {
+        // Find the vehicle by licence plate
         Vehicle vehicle = vehicleRepository.findByLicencePlate(licencePlate);
         if (vehicle == null) {
             throw new EntityNotFoundException("Vehicle with licence plate " + licencePlate + " not found.");
         }
 
+        // Update the vehicle's location
         vehicle.setLat(lat);
         vehicle.setLon(lon);
         vehicleRepository.save(vehicle);

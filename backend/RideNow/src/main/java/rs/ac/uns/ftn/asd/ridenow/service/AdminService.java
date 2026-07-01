@@ -179,8 +179,7 @@ public class AdminService {
             // link vehicle and driver
             driver.assignVehicle(vehicle);
 
-            // Save driver (cascade will save vehicle). If vehicle was existing and detached from previous driver above,
-            // this will update driver_id on vehicle rather than inserting a duplicate.
+            // Save driver
             Driver saved = driverRepository.save(driver);
             // update driverId in request in case it was a new driver
             req.setDriverId(saved.getId());
@@ -278,6 +277,7 @@ public class AdminService {
     }
 
     public void updatePriceConfigs(PriceConfigRequestDTO request) {
+        // for each price config in request, find existing config by vehicle type and update fields; if not found, throw error
         for (PriceConfigDTO priceDTO : request.getPrices()) {
             PriceConfig config = priceRepository.findByVehicleType(priceDTO.getVehicleType())
                     .orElseThrow(() -> new IllegalArgumentException("PriceConfig not found for vehicle type: " + priceDTO.getVehicleType()));

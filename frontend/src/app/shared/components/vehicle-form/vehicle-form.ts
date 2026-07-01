@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 
+// Reusable forma komponenta za unos i prikaz podataka o vozilu
 @Component({
   selector: 'app-vehicle-form',
   standalone: true,
@@ -11,6 +12,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './vehicle-form.css',
 })
 export class VehicleForm {
+  // Input objekat sa podacima o vozilu
   @Input() vehicle: any = {
     licensePlate: 'NS123AB',
     model: 'Golf 7',
@@ -22,6 +24,7 @@ export class VehicleForm {
 
   private licensePlatePattern = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/;
 
+  // Validira format registarske tablice
   isLicensePlateValid(licensePlate: string): boolean {
     if (!licensePlate) return false;
     return this.licensePlatePattern.test(licensePlate.toUpperCase());
@@ -31,16 +34,19 @@ export class VehicleForm {
     return !field || field.trim() === '';
   }
 
+  // Vraća error poruku za registarsku tablicu
   getLicensePlateErrorMessage(): string {
     if (this.isFieldEmpty(this.vehicle.licensePlate)) return 'License plate is required';
     if (!this.isLicensePlateValid(this.vehicle.licensePlate)) return 'License plate format is invalid (e.g: NS123AB)';
     return '';
   }
 
+  // Vraća error poruku za model vozila
   getModelErrorMessage(): string {
     return this.isFieldEmpty(this.vehicle.model) ? 'Car model is required' : '';
   }
 
+  // Vraća error poruku za broj sedišta
   getSeatsErrorMessage(): string {
     const seatsNum = Number(this.vehicle.seats);
     if (this.vehicle.seats === undefined || this.vehicle.seats === null || this.vehicle.seats === '') {

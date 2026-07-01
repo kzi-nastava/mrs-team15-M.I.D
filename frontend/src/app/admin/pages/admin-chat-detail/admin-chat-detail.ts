@@ -100,6 +100,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
       return;
     }
 
+    // Handle different message types (e.g., existing messages, new message) and update the messages array accordingly, also normalizes timestamps and scrolls to the bottom of the chat when new messages arrive.
     if (wsMessage.type === 'existing_messages' && Array.isArray(wsMessage.data)) {
       this.messages = (wsMessage.data as any[]).map(msg => ({
         content: msg.content,
@@ -135,6 +136,7 @@ export class AdminChatDetail implements OnInit, OnDestroy {
     }, 100);
   }
 
+  // Method to go back to the admin chats list, closes the chat if it's not already closed, disconnects from the WebSocket, and navigates back to the admin chats page.
   goBack(): void {
     if (this.chatId && !this.chatClosed) {
       this.chatClosed = true;

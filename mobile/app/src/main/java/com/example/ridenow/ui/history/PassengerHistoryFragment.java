@@ -1,24 +1,43 @@
 package com.example.ridenow.ui.history;
 
+import android.app.DatePickerDialog;
+import android.content.Context;
+import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.example.ridenow.R;
+import com.example.ridenow.dto.driver.RideHistoryDTO;
+import com.example.ridenow.dto.model.RouteDTO;
 import com.example.ridenow.dto.passenger.RideHistoryItemDTO;
+import com.example.ridenow.dto.util.PageResponse;
 import com.example.ridenow.service.PassengerService;
+import com.example.ridenow.util.AddressUtils;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.DateUtils;
 
@@ -29,9 +48,23 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PassengerHistoryFragment extends Fragment {
-
+public class PassengerHistoryFragment extends Fragment implements SensorEventListener {
+    private EditText etDateFilter;
+    private AutoCompleteTextView spinnerSortBy, spinnerOrder;
+    private Button btnApplyFilter, btnClearFilter;
     private LinearLayout cardsContainer;
+    private Calendar selectedDate;
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private static final float SHAKE_THRESHOLD = 12.0f;
+    private static final int SHAKE_TIMEOUT = 1000;
+    private long lastShakeTime = 0;
+    private int currentPage = 0;
+    private boolean isLoading = false;
+    private boolean hasMoreData = true;
+    private String currentSortBy = "date";
+    private String currentSortDir = "desc";
+    private Long currentDateFilter = null;
     private PassengerService passengerService;
 
     @Override
@@ -39,15 +72,204 @@ public class PassengerHistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_passenger_history, container, false);
 
         try {
-            passengerService = ClientUtils.getClient(PassengerService.class);
+            etDateFilter = view.findViewById(R.id.etDateFilter);
+            spinnerSortBy = view.findViewById(R.id.spinnerSortBy);
+            spinnerOrder = view.findViewById(R.id.spinnerOrder);
+            btnApplyFilter = view.findViewById(R.id.btnApplyFilter);
+            btnClearFilter = view.findViewById(R.id.btnClearFilter);
             cardsContainer = view.findViewById(R.id.cardsContainer);
+
+            passengerService = ClientUtils.getClient(PassengerService.class);
+
+            spinnerSortBy.setDropDownBackgroundResource(android.R.color.white);
+            spinnerOrder.setDropDownBackgroundResource(android.R.color.white);
+
+            setupDropdowns();
+            setupDatePicker();
+            setupButtons();
 
             loadPassengerHistory();
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error initializing page: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupShakeDetection();
+    }
+
+    private void setupDropdowns() {
+        String[] sortOptions = {"Route", "Start Time", "End Time", "Date"};
+        ArrayAdapter<String> sortAdapter = createCustomAdapter(sortOptions);
+        spinnerSortBy.setAdapter(sortAdapter);
+        spinnerSortBy.setTextColor(Color.BLACK);
+        spinnerSortBy.setBackgroundColor(Color.WHITE);
+        spinnerSortBy.setText("Date", false);
+
+        String[] orderOptions = {"Asc", "Desc"};
+        ArrayAdapter<String> orderAdapter = createCustomAdapter(orderOptions);
+        spinnerOrder.setAdapter(orderAdapter);
+        spinnerOrder.setTextColor(Color.BLACK);
+        spinnerOrder.setBackgroundColor(Color.WHITE);
+        spinnerOrder.setText("Desc", false);
+
+        spinnerSortBy.setOnItemClickListener((parent, v, position, id) ->
+                currentSortBy = convertSortByToApi(sortOptions[position])
+        );
+
+        spinnerOrder.setOnItemClickListener((parent, v, position, id) ->
+                currentSortDir = position == 0 ? "asc" : "desc"
+        );
+    }
+
+    private ArrayAdapter<String> createCustomAdapter(String[] items) {
+        return new ArrayAdapter<String>(requireContext(), R.layout.dropdown_item, items) {
+            @Override
+            public Filter getFilter() {
+                return new Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults results = new FilterResults();
+                        results.values = items;
+                        results.count = items.length;
+                        return results;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        notifyDataSetChanged();
+                    }
+                };
+            }
+        };
+    }
+
+    private String convertSortByToApi(String displayName) {
+        switch (displayName) {
+            case "Route": return "route";
+            case "Start Time": return "startTime";
+            case "End Time": return "endTime";
+            case "Date":
+            default: return "date";
+        }
+    }
+
+    private void setupShakeDetection() {
+        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (accelerometer != null) {
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
+
+            double acceleration = Math.sqrt(x * x + y * y + z * z) - SensorManager.GRAVITY_EARTH;
+
+            if (acceleration > SHAKE_THRESHOLD) {
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastShakeTime > SHAKE_TIMEOUT) {
+                    lastShakeTime = currentTime;
+                    onShakeDetected();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    private void onShakeDetected() {
+        String previousSortBy = currentSortBy;
+        currentSortBy = "date";
+
+        if ("date".equals(previousSortBy)) {
+            currentSortDir = currentSortDir.equals("asc") ? "desc" : "asc";
+        } else {
+            currentSortDir = "desc";
+        }
+
+        spinnerSortBy.setText("Date", false);
+        spinnerOrder.setText(currentSortDir.equals("asc") ? "Asc" : "Desc", false);
+
+        currentPage = 0;
+        loadPassengerHistory();
+        Toast.makeText(getContext(), "Sorted by date: " + (currentSortDir.equals("asc") ? "Oldest first" : "Newest first"), Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupDatePicker() {
+        etDateFilter.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
+                    R.style.CustomDatePickerDialog,
+                    (view, selectedYear, selectedMonth, selectedDay) -> {
+                        selectedDate = Calendar.getInstance();
+                        selectedDate.set(selectedYear, selectedMonth, selectedDay);
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        etDateFilter.setText(dateFormat.format(selectedDate.getTime()));
+                    }, year, month, day);
+
+            datePickerDialog.show();
+        });
+    }
+
+    private void setupButtons() {
+        btnApplyFilter.setOnClickListener(v -> {
+            if (selectedDate != null) {
+                currentDateFilter = selectedDate.getTimeInMillis();
+            } else {
+                currentDateFilter = null;
+            }
+
+            currentPage = 0;
+            loadPassengerHistory();
+            Toast.makeText(getContext(), "Filters applied", Toast.LENGTH_SHORT).show();
+        });
+
+        btnClearFilter.setOnClickListener(v -> clearFilter());
+    }
+
+    private void clearFilter() {
+        etDateFilter.setText("");
+        selectedDate = null;
+        currentDateFilter = null;
+        currentPage = 0;
+
+        spinnerSortBy.setText("Date", false);
+        spinnerOrder.setText("Desc", false);
+
+        currentSortBy = "date";
+        currentSortDir = "desc";
+
+        loadPassengerHistory();
+        Toast.makeText(getContext(), "All filters cleared", Toast.LENGTH_SHORT).show();
     }
 
     private void loadPassengerHistory() {
@@ -56,24 +278,46 @@ public class PassengerHistoryFragment extends Fragment {
             return;
         }
 
-        Call<List<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory();
+        if (isLoading) return;
 
-        call.enqueue(new Callback<List<RideHistoryItemDTO>>() {
+        isLoading = true;
+
+        Call<PageResponse<RideHistoryItemDTO>> call = passengerService.getPassengerRideHistory(
+                currentPage, 10, currentSortBy, currentSortDir, currentDateFilter);
+
+        call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<List<RideHistoryItemDTO>> call, @NonNull Response<List<RideHistoryItemDTO>> response) {
-                Log.d("PassengerHistory", "Response code: " + response.code());
+            public void onResponse(@NonNull Call<PageResponse<RideHistoryItemDTO>> call,
+                                   @NonNull Response<PageResponse<RideHistoryItemDTO>> response) {
+                isLoading = false;
+
                 if (response.isSuccessful() && response.body() != null) {
-                    Log.d("PassengerHistory", "Number of rides: " + response.body().size());
+                    PageResponse<RideHistoryItemDTO> data = response.body();
+
+                    if (currentPage == 0) {
+                        cardsContainer.removeAllViews();
+                    } else {
+                        removeLoadMoreButton();
+                    }
+
+                    hasMoreData = !data.isLast();
+
+                    List<RideHistoryItemDTO> rides = data.getContent();
+
                     try {
-                        populatePassengerHistoryCards(response.body());
+                        for (RideHistoryItemDTO ride : rides) {
+                            createRideCard(ride);
+                        }
                     } catch (Exception e) {
-                        Log.e("PassengerHistory", "Error populating cards: " + e.getMessage(), e);
                         if (getContext() != null) {
                             Toast.makeText(getContext(), "Error displaying rides: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     }
+
+                    if (hasMoreData) {
+                        addLoadMoreButton();
+                    }
                 } else {
-                    Log.w("PassengerHistory", "Response not successful or body is null");
                     if (getContext() != null) {
                         Toast.makeText(getContext(), "Failed to load passenger history", Toast.LENGTH_SHORT).show();
                     }
@@ -81,8 +325,8 @@ public class PassengerHistoryFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<RideHistoryItemDTO>> call, @NonNull Throwable t) {
-                Log.e("PassengerHistory", "Network error: " + t.getMessage(), t);
+            public void onFailure(@NonNull Call<PageResponse<RideHistoryItemDTO>> call, @NonNull Throwable t) {
+                isLoading = false;
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
@@ -90,40 +334,15 @@ public class PassengerHistoryFragment extends Fragment {
         });
     }
 
-    private void populatePassengerHistoryCards(List<RideHistoryItemDTO> rides) {
-        Log.d("PassengerHistory", "populatePassengerHistoryCards called with " + rides.size() + " rides");
-        if (getContext() == null) {
-            Log.w("PassengerHistory", "Context is null, cannot populate cards");
-            return;
-        }
-
-        cardsContainer.removeAllViews();
-
-        for (int i = 0; i < rides.size(); i++) {
-            RideHistoryItemDTO ride = rides.get(i);
-            Log.d("PassengerHistory", "Processing ride " + i + ": " + ride.getId());
-            try {
-                View cardView = createRideCard(ride);
-                if (cardView != null) {
-                    cardsContainer.addView(cardView);
-                    Log.d("PassengerHistory", "Successfully added card for ride " + ride.getId());
-                } else {
-                    Log.w("PassengerHistory", "Card view is null for ride " + ride.getId());
-                }
-            } catch (Exception e) {
-                Log.e("PassengerHistory", "Error creating card for ride " + ride.getId() + ": " + e.getMessage(), e);
-            }
-        }
-        Log.d("PassengerHistory", "Finished populating cards");
-    }
-
-    private View createRideCard(RideHistoryItemDTO ride) {
-        if (getContext() == null) return new View(getContext());
+    private void createRideCard(RideHistoryItemDTO ride) {
+        if (getContext() == null) return;
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View cardView = inflater.inflate(R.layout.item_ride_card, cardsContainer, false);
 
-        // Populate the card views
+        // Tag the card with its routeId for bulk-update on favorite toggle
+        cardView.setTag(ride.getRouteId());
+
         TextView tvRoute = cardView.findViewById(R.id.tvRoute);
         TextView tvDate = cardView.findViewById(R.id.tvDate);
         TextView tvCost = cardView.findViewById(R.id.tvCost);
@@ -132,60 +351,50 @@ public class PassengerHistoryFragment extends Fragment {
         TextView tvTimeRange = cardView.findViewById(R.id.tvTimeRange);
         LinearLayout statusContainer = cardView.findViewById(R.id.statusContainer);
         Button btnRating = cardView.findViewById(R.id.btnRating);
+        ImageView ivFavorite = cardView.findViewById(R.id.ivFavorite);
 
-        // Set route
-        String startAddress = ride.getStartAddress() != null ? ride.getStartAddress() : "Unknown";
-        String endAddress = ride.getEndAddress() != null ? ride.getEndAddress() : "Unknown";
-        String route = startAddress + " → " + endAddress;
-        tvRoute.setText(route);
+        String startAddress = AddressUtils.formatAddress(ride.getRoute().getStartLocation().getAddress());
+        String endAddress = AddressUtils.formatAddress(ride.getRoute().getEndLocation().getAddress());
+        tvRoute.setText(startAddress + " → " + endAddress);
 
-        // Set date
         tvDate.setText(DateUtils.formatDateFromISO(ride.getStartTime()));
 
-        // Set cost
-        tvCost.setText(String.format(Locale.getDefault(), "%.0f RSD", ride.getPrice()));
+        tvCost.setText(String.format(Locale.getDefault(), "%.0f RSD",
+                ride.getPrice() != null ? ride.getPrice() : 0.0));
 
-        // Set passengers - for passenger history, this might not be relevant or might show driver
-        tvPassengers.setText("Driver assigned");
+        tvPassengers.setText(ride.getDriver() != null ? ride.getDriver() : "Driver assigned");
 
-        // Set duration and time range
-        long durationMinutes = DateUtils.calculateDurationMinutes(ride.getStartTime(), ride.getEndTime());
-        if (durationMinutes > 0) {
-            tvDuration.setText(durationMinutes + " min");
+        if (ride.getStartTime() != null && ride.getEndTime() != null) {
+            long durationMinutes = DateUtils.calculateDurationMinutes(ride.getStartTime(), ride.getEndTime());
+            tvDuration.setText(durationMinutes > 0 ? durationMinutes + " min" : "N/A");
+            tvTimeRange.setText(DateUtils.formatTimeRange(ride.getStartTime(), ride.getEndTime()));
         } else {
             tvDuration.setText("N/A");
+            tvTimeRange.setText("N/A");
         }
 
-        String timeRange = DateUtils.formatTimeRange(ride.getStartTime(), ride.getEndTime());
-        tvTimeRange.setText(timeRange);
+        addStatusIndicators(statusContainer, ride);
 
-        // Add status indicators
-        if (statusContainer != null) {
-            statusContainer.removeAllViews();
-            if (ride.isCancelled()) {
-                TextView cancelledBadge = createStatusBadge("Cancelled");
-                if (cancelledBadge != null) {
-                    statusContainer.addView(cancelledBadge);
-                }
+        // --- Favorite star ---
+        ivFavorite.setVisibility(View.VISIBLE);
+        updateStarIcon(ivFavorite, ride.isFavoriteRoute());
+        ivFavorite.setOnClickListener(v -> {
+            if (ride.isFavoriteRoute()) {
+                showRemoveFavoriteDialog(ride);
+            } else {
+                showAddFavoriteDialog(ride);
             }
+        });
 
-            if (ride.isPanicTriggered()) {
-                TextView panicBadge = createStatusBadge("Panic");
-                if (panicBadge != null) {
-                    statusContainer.addView(panicBadge);
-                }
-            }
-        }
+        cardView.setOnClickListener(v -> openRideDetails(ride));
 
-        // Set up rating button
         if (btnRating != null) {
-            btnRating.setVisibility(View.VISIBLE); // Ensure it's visible for passenger history
+            btnRating.setVisibility(View.VISIBLE);
             btnRating.setOnClickListener(v -> {
                 try {
                     NavController navController = Navigation.findNavController(v);
                     Bundle bundle = new Bundle();
-                    // Convert Long to String to match RatingFragment expectation
-                    bundle.putString("rideId", String.valueOf(ride.getId()));
+                    bundle.putString("rideId", String.valueOf(ride.getRideId()));
                     navController.navigate(R.id.rating, bundle);
                 } catch (Exception e) {
                     if (getContext() != null) {
@@ -195,27 +404,288 @@ public class PassengerHistoryFragment extends Fragment {
             });
         }
 
-        return cardView;
+        cardsContainer.addView(cardView);
     }
 
-    private TextView createStatusBadge(String text) {
-        if (getContext() == null) return null;
+    // -------------------------------------------------------------------------
+    // Favorite dialogs — mirrors Angular add-favorite-modal / remove-favorite-modal
+    // -------------------------------------------------------------------------
 
+    private void showAddFavoriteDialog(RideHistoryItemDTO ride) {
+        if (getContext() == null) return;
+
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_favorite, null, false);
+        bindFavoriteDialogContent(dialogView, ride);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        Button cancelButton = dialogView.findViewById(R.id.btnDialogCancelAddFavorite);
+        Button confirmButton = dialogView.findViewById(R.id.btnDialogConfirmAddFavorite);
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            callAddFavorite(ride);
+        });
+
+        dialog.show();
+    }
+
+    private void showRemoveFavoriteDialog(RideHistoryItemDTO ride) {
+        if (getContext() == null) return;
+
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_remove_favorite, null, false);
+        bindFavoriteDialogContent(dialogView, ride);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        Button cancelButton = dialogView.findViewById(R.id.btnDialogCancelRemoveFavorite);
+        Button confirmButton = dialogView.findViewById(R.id.btnDialogConfirmRemoveFavorite);
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            callRemoveFavorite(ride);
+        });
+
+        dialog.show();
+    }
+
+    private void bindFavoriteDialogContent(View dialogView, RideHistoryItemDTO ride) {
+        TextView tvPickup = dialogView.findViewById(R.id.tvDialogPickup);
+        TextView tvDestination = dialogView.findViewById(R.id.tvDialogDestination);
+        TextView tvStopsLabel = dialogView.findViewById(R.id.tvDialogStopsLabel);
+        TextView tvStops = dialogView.findViewById(R.id.tvDialogStops);
+
+        RouteDTO route = ride.getRoute();
+        String pickup = "—";
+        String destination = "—";
+        StringBuilder stopsBuilder = new StringBuilder();
+
+        if (route != null) {
+            if (route.getStartLocation() != null && route.getStartLocation().getAddress() != null) {
+                pickup = AddressUtils.formatAddress(route.getStartLocation().getAddress());
+            }
+            if (route.getEndLocation() != null && route.getEndLocation().getAddress() != null) {
+                destination = AddressUtils.formatAddress(route.getEndLocation().getAddress());
+            }
+            if (route.getStopLocations() != null && !route.getStopLocations().isEmpty()) {
+                for (var stop : route.getStopLocations()) {
+                    if (stop.getAddress() != null) {
+                        if (stopsBuilder.length() > 0) {
+                            stopsBuilder.append("\n");
+                        }
+                        stopsBuilder.append(AddressUtils.formatAddress(stop.getAddress()));
+                    }
+                }
+            }
+        }
+
+        tvPickup.setText(pickup);
+        tvDestination.setText(destination);
+
+        if (stopsBuilder.length() > 0) {
+            tvStopsLabel.setVisibility(View.VISIBLE);
+            tvStops.setVisibility(View.VISIBLE);
+            tvStops.setText(stopsBuilder.toString());
+        } else {
+            tvStopsLabel.setVisibility(View.GONE);
+            tvStops.setVisibility(View.GONE);
+        }
+    }
+
+    private void callAddFavorite(RideHistoryItemDTO ride) {
+        if (ride.getRouteId() == null) return;
+
+        passengerService.addFavorite(ride.getRouteId()).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    // Update the DTO state and all visible cards sharing this routeId
+                    ride.setFavoriteRoute(true);
+                    updateAllCardsWithRouteId(ride.getRouteId(), true);
+                    Toast.makeText(getContext(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Failed to add favorite", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void callRemoveFavorite(RideHistoryItemDTO ride) {
+        if (ride.getRouteId() == null) return;
+
+        passengerService.removeFavorite(ride.getRouteId()).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    ride.setFavoriteRoute(false);
+                    updateAllCardsWithRouteId(ride.getRouteId(), false);
+                    Toast.makeText(getContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Failed to remove favorite", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * after toggling one ride, all cards that share
+     * the same routeId get their star updated (since it's the same route).
+     */
+    private void updateAllCardsWithRouteId(Long routeId, boolean isFavorite) {
+        for (int i = 0; i < cardsContainer.getChildCount(); i++) {
+            View child = cardsContainer.getChildAt(i);
+            Object tag = child.getTag();
+            if (tag instanceof Long && tag.equals(routeId)) {
+                ImageView star = child.findViewById(R.id.ivFavorite);
+                if (star != null) {
+                    updateStarIcon(star, isFavorite);
+                }
+            }
+        }
+    }
+
+    private void updateStarIcon(ImageView ivFavorite, boolean isFavorite) {
+        ivFavorite.setImageResource(isFavorite
+                ? android.R.drawable.btn_star_big_on
+                : android.R.drawable.btn_star_big_off);
+    }
+
+    // -------------------------------------------------------------------------
+    // Status badges
+    // -------------------------------------------------------------------------
+
+    private void addStatusIndicators(LinearLayout statusContainer, RideHistoryItemDTO ride) {
+        if (statusContainer == null) return;
+        statusContainer.removeAllViews();
+
+        if (ride.isCancelled()) {
+            statusContainer.addView(createStatusBadge("CANCELLED", Color.parseColor("#F44336")));
+        }
+
+        if (Boolean.TRUE.equals(ride.getPanic())) {
+            statusContainer.addView(createStatusBadge("PANIC", Color.parseColor("#FF5722")));
+        }
+
+        if (!ride.isCancelled() && !Boolean.TRUE.equals(ride.getPanic())) {
+            statusContainer.addView(createStatusBadge("COMPLETED", Color.parseColor("#4CAF50")));
+        }
+    }
+
+    private TextView createStatusBadge(String text, int backgroundColor) {
         TextView badge = new TextView(getContext());
         badge.setText(text);
-        badge.setTextColor(ContextCompat.getColor(getContext(), android.R.color.white));
-        badge.setTextSize(12);
-        badge.setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4));
-        badge.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.danger));
+        badge.setTextSize(10);
+        badge.setTextColor(Color.WHITE);
+        badge.setGravity(Gravity.CENTER);
+        badge.setPadding(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
+
+        badge.setBackground(ContextCompat.getDrawable(requireContext(), R.drawable.red_rounded_background));
+        if (badge.getBackground() != null) {
+            badge.getBackground().setTint(backgroundColor);
+        }
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        params.setMargins(0, 0, dpToPx(8), 0);
+        params.setMargins(0, 0, dpToPx(4), 0);
         badge.setLayoutParams(params);
 
         return badge;
+    }
+
+    // -------------------------------------------------------------------------
+    // Load more
+    // -------------------------------------------------------------------------
+
+    private void addLoadMoreButton() {
+        Button btn = new Button(getContext());
+        btn.setText(R.string.driver_history_load_more);
+        btn.setTag("load_more_button");
+        btn.setBackgroundColor(Color.BLACK);
+        btn.setTextColor(Color.WHITE);
+
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        p.setMargins(0, dpToPx(16), 0, dpToPx(16));
+        btn.setLayoutParams(p);
+
+        btn.setOnClickListener(v -> {
+            removeLoadMoreButton();
+            currentPage++;
+            loadPassengerHistory();
+        });
+
+        cardsContainer.addView(btn);
+    }
+
+    private void removeLoadMoreButton() {
+        for (int i = cardsContainer.getChildCount() - 1; i >= 0; i--) {
+            View child = cardsContainer.getChildAt(i);
+            if (child instanceof Button && "load_more_button".equals(child.getTag())) {
+                cardsContainer.removeViewAt(i);
+                break;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Navigation helpers
+    // -------------------------------------------------------------------------
+
+    private RideHistoryDTO mapToRideHistoryDTO(RideHistoryItemDTO ride) {
+        RideHistoryDTO mapped = new RideHistoryDTO();
+        mapped.setRideId(ride.getRideId());
+        mapped.setRoute(ride.getRoute());
+        mapped.setPassengers(ride.getPassengers());
+        mapped.setDate(null);
+        mapped.setStartTime(ride.getStartTime());
+        mapped.setEndTime(ride.getEndTime());
+        mapped.setDurationMinutes(0.0);
+        mapped.setCost(ride.getPrice() != null ? ride.getPrice() : 0.0);
+        mapped.setCancelled(ride.isCancelled());
+        mapped.setCancelledBy(ride.getCancelledBy());
+        mapped.setPanic(ride.getPanic());
+        mapped.setPanicBy(ride.getPanicBy());
+        mapped.setRating(ride.getRating());
+        mapped.setInconsistencies(ride.getInconsistencies());
+        return mapped;
+    }
+
+    private void openRideDetails(RideHistoryItemDTO ride) {
+        try {
+            RideHistoryDTO mapped = mapToRideHistoryDTO(ride);
+
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("ride_history", mapped);
+
+            NavController navController = Navigation.findNavController(requireView());
+            navController.navigate(R.id.action_passengerHistory_to_rideDetails, bundle);
+        } catch (Exception e) {
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Cannot open ride details", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private int dpToPx(int dp) {

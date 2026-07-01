@@ -109,18 +109,17 @@ export class NotificationService {
     }
   }
 
+  // Update the notifications list with a new notification, placing it at the top of the list
   private updateNotificationsList(newNotification: NotificationDTO): void {
     const current = this.notificationsSubject.value;
-    console.log('[updateNotificationsList] Current count:', current.length, 'Adding notification:', newNotification.id);
     const updated = [newNotification, ...current];
-    console.log('[updateNotificationsList] Updated count:', updated.length);
     this.notificationsSubject.next(updated);
   }
 
+  // Increment the unread count by 1 when a new notification is received
   private incrementUnreadCount(): void {
     const current = this.unreadCountSubject.value;
     const updated = current + 1;
-    console.log('[incrementUnreadCount] From', current, 'to', updated);
     this.unreadCountSubject.next(updated);
   }
 
@@ -161,6 +160,7 @@ export class NotificationService {
       return;
     }
 
+    // Request permission and show notification if granted
     if (Notification.permission === 'granted') {
       new Notification('RideNow', {
         body: notification.message,
@@ -215,6 +215,7 @@ export class NotificationService {
 
     this.isInitialized = true;
 
+    // Load initial notifications and unread count before connecting to WebSocket to ensure we have the latest data
     this.getAllNotifications().subscribe({
       next: (notifications) => {
         this.notificationsSubject.next(notifications);
@@ -225,6 +226,7 @@ export class NotificationService {
       }
     });
 
+    // Load unread count separately to ensure it's accurate before WebSocket updates
     this.getUnreadCount().subscribe({
       next: (response) => {
         this.unreadCountSubject.next(response.count);
@@ -305,6 +307,7 @@ export class NotificationService {
     this.unreadCountSubject.next(current);
   }
 
+  // Remove a notification from the list and update unread count if it was unseen
   removeNotificationFromList(notificationId: number): void {
     const current = this.notificationsSubject.value;
     const notification = current.find(n => n.id === notificationId);
@@ -317,6 +320,7 @@ export class NotificationService {
     this.notificationsSubject.next(updated);
   }
 
+  // Handle notification click, mark as seen if not already, and navigate based on notification type
   handleNotificationClick(notification: NotificationDTO): void {
     if (!notification.seen) {
       this.markNotificationAsSeen(notification.id).subscribe({

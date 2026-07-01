@@ -6,6 +6,7 @@ import { AdminService } from '../../../services/admin.service';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
+// Interface za informacije o vožnji
 interface RideInfo {
   startAddress: string;
   endAddress: string;
@@ -16,6 +17,7 @@ interface RideInfo {
   vehicleType?: string;
 }
 
+// Interface za informacije o driveru
 interface DriverInfo {
   name: string;
   etaMinutes: number;
@@ -24,6 +26,7 @@ interface DriverInfo {
   photo?: string;
 }
 
+// Komponenta za prikaz traženja drivera, pronađenog drivera ili greške
 @Component({
   selector: 'app-finding-driver-form',
   imports: [CommonModule],
@@ -31,6 +34,7 @@ interface DriverInfo {
   styleUrl: './finding-driver-form.css',
 })
 export class FindingDriverForm implements OnInit {
+  // Input objekat sa informacijama o vožnji
   @Input() ride: RideInfo = {
     startAddress: 'Bulevar cara Lazara 80',
     endAddress: 'Nemanjina 4',
@@ -124,16 +128,18 @@ export class FindingDriverForm implements OnInit {
     }
   }
 
-  
+  // Trenutno stanje komponente (searching/found/notfound)
   state: 'searching' | 'found' | 'notfound' = 'searching';
 
-  
+  // Informacije o pronađenom driveru
   foundDriver: DriverInfo | null = null;
 
-  
+  // Lock flag za found stanje (sprečava promenu tokom animacije)
   foundLocked = false;
+  // Timer za automatsko otključavanje after 3s
   private _foundLockTimer: any = null;
 
+  // Ulazi u found stanje sa lock mehanizmom
   private enterFoundState() {
     this.foundLocked = true;
     this.state = 'found';
@@ -145,10 +151,12 @@ export class FindingDriverForm implements OnInit {
     }, 3000);
   }
 
-  
+  // Lock flag za notfound stanje
   notFoundLocked = false;
+  // Timer za otključavanje notfound stanja
   private _notFoundLockTimer: any = null;
 
+  // Ulazi u notfound stanje sa lock mehanizmom
   private enterNotFoundState() {
     this.notFoundLocked = true;
     this.state = 'notfound';
@@ -201,16 +209,18 @@ export class FindingDriverForm implements OnInit {
     this.router.navigate(['/ride-ordering']);
   }
 
+  // Formatira distancu u string
   formatDistance(): string {
     return (this.ride.distanceKm ?? 0) + ' km';
   }
 
+  // Formatira cenu u string sa 2 decimale
   formatPrice(): string {
     const p = this.ride.price ?? 0;
     return p.toFixed(2) + ' RSD';
   }
 
-  
+  // Razdvaja adresu na primarni i sekundarni deo za prikaz
   getAddressLines(address: string): { primary: string; secondary: string } {
     if (!address) return { primary: '', secondary: '' };
     const raw = String(address).trim();

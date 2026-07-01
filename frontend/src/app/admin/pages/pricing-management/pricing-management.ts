@@ -37,14 +37,15 @@ export class PricingManagement implements OnInit {
   }
 
   loadPriceConfigurations(): void {
-    console.log('loadPriceConfigurations() called');
     this.loading = true;
     this.error = null;
     this.cdr.detectChanges();
 
+    // Call the AdminService to get price configurations, handles success and error responses,
+    // updates the priceConfigs and originalPriceConfigs arrays, manages loading state,
+    // and triggers change detection to update the UI with the new data or error message.
     this.adminService.getPriceConfigurations().subscribe({
       next: (response: PriceConfigResponse) => {
-        console.log('Price configurations loaded successfully:', response);
         this.priceConfigs = [...response.prices];
         this.originalPriceConfigs = [...response.prices];
         this.loading = false;
@@ -52,7 +53,6 @@ export class PricingManagement implements OnInit {
       },
       error: (error) => {
         console.error('Error loading price configurations:', error);
-        console.log('Full error object:', error);
         this.error = 'Failed to load price configurations. Please try again.';
         this.loading = false;
         this.cdr.detectChanges();
@@ -62,15 +62,10 @@ export class PricingManagement implements OnInit {
 
   hasChanges(): boolean {
     const hasChanges = JSON.stringify(this.priceConfigs) !== JSON.stringify(this.originalPriceConfigs);
-    console.log('hasChanges():', hasChanges);
-    console.log('Current configs:', this.priceConfigs);
-    console.log('Original configs:', this.originalPriceConfigs);
     return hasChanges;
   }
 
   saveChanges(): void {
-    console.log('saveChanges() called');
-    console.log('Proceeding with save request');
 
     this.saving = true;
     this.error = null;
@@ -81,8 +76,10 @@ export class PricingManagement implements OnInit {
       prices: this.priceConfigs
     };
 
-    console.log('Sending update request with data:', updateData);
 
+    // Call the AdminService to update price configurations, handles success and error responses,
+    // updates the originalPriceConfigs on success, manages saving state,
+    // and triggers change detection to update the UI with success or error messages.
     this.adminService.updatePriceConfigurations(updateData).subscribe({
       next: (response) => {
         console.log('Update successful, response:', response);
@@ -99,7 +96,6 @@ export class PricingManagement implements OnInit {
       },
       error: (error) => {
         console.error('Error updating price configurations:', error);
-        console.log('Full error object:', error);
         this.error = 'Failed to update price configurations. Please try again.';
         this.saving = false;
         this.cdr.detectChanges();
@@ -123,18 +119,16 @@ export class PricingManagement implements OnInit {
   // Validation methods
   isValidPrice(price: number): boolean {
     const isValid = price >= 0 && price <= 10000;
-    console.log('isValidPrice():', price, 'isValid:', isValid);
     return isValid;
   }
 
   onPriceChange(field: 'basePrice' | 'pricePerKm', value: number, config: PriceConfig): void {
-    console.log('onPriceChange():', config.vehicleType, field, 'new value:', value);
-    console.log('Updated config:', config);
     this.cdr.detectChanges();
   }
 
+  // Method to validate the price input and update the corresponding field in the price configuration if valid,
+  // otherwise sets an error message. Also logs the validation process and results for debugging purposes.
   validateAndUpdatePrice(config: PriceConfig, field: 'basePrice' | 'pricePerKm', value: number): void {
-    console.log('validateAndUpdatePrice():', config.vehicleType, field, value);
     if (this.isValidPrice(value)) {
       config[field] = value;
       this.error = null;

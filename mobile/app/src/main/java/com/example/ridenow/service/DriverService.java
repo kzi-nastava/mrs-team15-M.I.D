@@ -1,9 +1,12 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO;
+import com.example.ridenow.dto.driver.DriverAccountActivationRequestDTO;
 import com.example.ridenow.dto.driver.DriverHistoryResponseDTO;
 import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
 import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
+import com.example.ridenow.dto.driver.DriverStatusRequestDTO;
+import com.example.ridenow.dto.driver.DriverStatusResponseDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.dto.driver.DriverChangeResponseDTO;
@@ -22,6 +25,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface DriverService {
@@ -43,4 +47,16 @@ public interface DriverService {
 
     @GET("driver/can-start-ride")
     Call<DriverCanStartRideResponseDTO> canStartRide();
+
+    @PUT("rides/{rideId}/start")
+    Call<Void> startRide(@Path("rideId") Long rideId);
+
+    @PUT("driver/change-status")
+    Call<DriverStatusResponseDTO> changeDriverStatus(@Body DriverStatusRequestDTO dto);
+
+    @GET("driver/status")
+    Call<DriverStatusResponseDTO> getDriverStatus();
+
+    @PUT("driver/activate-account")
+    Call<Map<String, String>> activateDriverAccount(@Body DriverAccountActivationRequestDTO dto);
 }

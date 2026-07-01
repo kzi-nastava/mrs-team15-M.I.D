@@ -41,3 +41,6 @@ build/
 
 # Ignore ChromeDriver
 chromedriver.exe
+
+**/firebase-credentials.json
+**/google-services.json

@@ -15,9 +15,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO;
 import com.example.ridenow.dto.ride.CancelRideRequestDTO;
 import com.example.ridenow.dto.ride.UpcomingRideResponseDTO;
 import com.example.ridenow.service.DriverService;
@@ -93,6 +94,7 @@ public class UpcomingRidesFragment extends Fragment {
             public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
 
+                // Check if response is successful and body is not null before updating the list
                 if (response.isSuccessful() && response.body() != null) {
                     List<UpcomingRideResponseDTO> rides = response.body();
                     displayRides(rides);
@@ -118,7 +120,7 @@ public class UpcomingRidesFragment extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<UpcomingRideResponseDTO>> call, @NonNull Response<List<UpcomingRideResponseDTO>> response) {
                 showLoading(false);
-
+                // Check if response is successful and body is not null before updating the list
                 if (response.isSuccessful() && response.body() != null) {
                     List<UpcomingRideResponseDTO> rides = response.body();
                     displayRides(rides);
@@ -241,10 +243,12 @@ public class UpcomingRidesFragment extends Fragment {
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
 
+        // Initialize dialog views
         TextInputEditText etCancelReason = dialogView.findViewById(R.id.etCancelReason);
         Button btnCancel = dialogView.findViewById(R.id.btnDialogCancel);
         Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirm);
 
+        // Show reason input only for users, not drivers
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         btnConfirm.setOnClickListener(v -> {
             String reason = etCancelReason.getText() == null ? "" : etCancelReason.getText().toString().trim();
@@ -301,54 +305,14 @@ public class UpcomingRidesFragment extends Fragment {
     }
 
     private void handleStartRide(UpcomingRideResponseDTO ride) {
-        // Show loading state
-        showLoading(true);
+        Bundle args = new Bundle();
+        args.putLong("rideId", ride.getId() == null ? -1L : ride.getId());
+        args.putString("route", ride.getRoute());
+        args.putString("startTime", ride.getStartTime());
+        args.putString("passengers", ride.getPassengers());
 
-        // Call canStartRide API
-        Call<DriverCanStartRideResponseDTO> call = driverService.canStartRide();
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<DriverCanStartRideResponseDTO> call,
-                                 @NonNull Response<DriverCanStartRideResponseDTO> response) {
-                showLoading(false);
-
-                if (response.isSuccessful() && response.body() != null) {
-                    DriverCanStartRideResponseDTO result = response.body();
-
-                    // Check if the driver can start a ride (positive response)
-                    if (result.isCanStart()) {
-                        Log.d(TAG, "Driver can start ride. Navigating to home page...");
-                        Toast.makeText(requireContext(), "Ride started successfully!", Toast.LENGTH_SHORT).show();
-                        navigateToHomePage();
-                    } else {
-                        // Driver cannot start ride
-                        Toast.makeText(requireContext(), "Cannot start ride at this time", Toast.LENGTH_LONG).show();
-                        Log.w(TAG, "Driver cannot start ride");
-                    }
-                } else {
-                    Log.e(TAG, "Failed to check if driver can start ride: " + response.code());
-                    Toast.makeText(requireContext(), "Failed to start ride. Please try again.", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO> call, @NonNull Throwable t) {
-                showLoading(false);
-                Log.e(TAG, "Network error checking if driver can start ride", t);
-                Toast.makeText(requireContext(), "Network error. Please check your connection.", Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    private void navigateToHomePage() {
-        try {
-            androidx.navigation.NavController navController =
-                androidx.navigation.Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-            navController.navigate(R.id.nav_home);
-        } catch (Exception e) {
-            Log.e(TAG, "Error navigating to home page", e);
-            Toast.makeText(requireContext(), "Navigation error occurred", Toast.LENGTH_SHORT).show();
-        }
+        NavController navController = Navigation.findNavController(requireView());
+        navController.navigate(R.id.start_ride_fragment, args);
     }
 
     private void showLoading(boolean show) {

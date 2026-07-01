@@ -58,7 +58,6 @@ export class UserChat implements OnInit, OnDestroy {
     // Get user's chat (creates one if doesn't exist)
     this.chatService.getUserChat().subscribe({
       next: (chat: Chat) => {
-        console.log('Got user chat:', chat);
         this.chatId = chat.id;
         this.connectToChat();
       },
@@ -72,8 +71,6 @@ export class UserChat implements OnInit, OnDestroy {
 
   connectToChat(): void {
     const token = localStorage.getItem('jwtToken');
-    console.log('Token for WebSocket:', token);
-    console.log('Connecting to chat ID:', this.chatId);
     if (!token || !this.chatId) {
       this.error = 'Authentication required';
       this.loading = false;
@@ -91,6 +88,8 @@ export class UserChat implements OnInit, OnDestroy {
       return;
     }
 
+    // Handle different types of WebSocket messages: existing messages when first connecting and
+    // new messages as they arrive.
     if (wsMessage.type === 'existing_messages' && Array.isArray(wsMessage.data)) {
       this.messages = (wsMessage.data as any[]).map(msg => ({
         content: msg.content,
@@ -98,6 +97,8 @@ export class UserChat implements OnInit, OnDestroy {
         timestamp: this.normalizeTimestamp(msg.timestamp)
       }));
       setTimeout(() => this.scrollToBottom(), 100);
+      // When we first connect, we receive all existing messages in the chat. We map them to our Message format,
+      // normalize the timestamps, and then scroll to the bottom of the chat to show the latest messages.
     } else if (wsMessage.type === 'message' && wsMessage.data) {
       const msg = wsMessage.data as any;
       this.messages.push({
@@ -118,6 +119,8 @@ export class UserChat implements OnInit, OnDestroy {
     this.newMessage = '';
   }
 
+  // Scroll the message container to the bottom to show the latest messages when
+  // new messages arriveor when existing messages are loaded.
   scrollToBottom(): void {
     setTimeout(() => {
       if (this.messageContainer) {

@@ -7,6 +7,7 @@ import { ActiveRidesTable } from '../../components/active-rides-table/active-rid
 import { Button } from '../../../shared/components/button/button';
 import { InputComponent } from '../../../shared/components/input-component/input-component';
 
+// Interface representing the structure of an active ride, including details about the ride, driver, passengers, route, and panic status.
 export interface ActiveRide {
   rideId: number;
   startTime: string | null;
@@ -60,13 +61,15 @@ export class ActiveRides implements OnInit {
     this.loadActiveRides();
   }
 
+  // Method to load active rides from the backend using the AdminService, handles loading state, error handling, and updates the activeRides and filteredRides arrays accordingly, also triggers change detection to update the UI with the new data.
   loadActiveRides(): void {
     console.log('loadActiveRides() called');
     this.loading = true;
     this.refreshing = true;
     this.error = null;
     this.cdr.detectChanges();
-    
+
+    // Call the AdminService to get active rides, handles success and error responses, updates the activeRides and filteredRides arrays, manages loading and refreshing states, and triggers change detection to update the UI with the new data or error message.
     this.adminService.getActiveRides().subscribe({
       next: (response: ActiveRide[]) => {
         console.log('Active rides loaded successfully:', response);
@@ -75,7 +78,7 @@ export class ActiveRides implements OnInit {
         this.loading = false;
         this.refreshing = false;
         this.cdr.detectChanges();
-        
+
         // Force UI update with setTimeout
         setTimeout(() => {
           this.cdr.detectChanges();
@@ -88,7 +91,7 @@ export class ActiveRides implements OnInit {
         this.loading = false;
         this.refreshing = false;
         this.cdr.detectChanges();
-        
+
         // Force UI update with setTimeout
         setTimeout(() => {
           this.cdr.detectChanges();
@@ -111,6 +114,7 @@ export class ActiveRides implements OnInit {
     this.applySearch();
   }
 
+  // Method to apply search filtering to the active rides based on the search query, updates the filteredRides array to only include rides where the driver's name includes the search query (case-insensitive), or resets to all active rides if the search query is empty.
   applySearch(): void {
     if (!this.searchQuery.trim()) {
       this.filteredRides = [...this.activeRides];

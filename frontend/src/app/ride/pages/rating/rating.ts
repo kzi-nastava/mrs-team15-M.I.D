@@ -56,6 +56,8 @@ export class Rating implements OnInit {
       vehicleComment: this.vehicleComment
     };
 
+    // Call the RideService to submit the rating for the specific ride ID,
+    // handles success and error responses accordingly
     this.rideService.rateRide(this.rideId, ratingData).subscribe({
       next: (response) => {
         console.log('Rating submitted successfully', response);

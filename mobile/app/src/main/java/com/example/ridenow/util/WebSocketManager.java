@@ -1,6 +1,9 @@
 package com.example.ridenow.util;
 
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.example.ridenow.dto.chat.MessageRequestDTO;
 import com.example.ridenow.dto.chat.WebSocketMessageDTO;
 import com.google.gson.Gson;
@@ -63,7 +66,6 @@ public class WebSocketManager extends WebSocketListener {
 
     private void connectWithQueryParam(Long chatId, String token) {
         String url = WS_BASE_URL + "/" + chatId + "?token=" + token;
-        Log.d(TAG, "Connecting to WebSocket with query param: " + url);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -76,9 +78,7 @@ public class WebSocketManager extends WebSocketListener {
         if (webSocket != null && isConnected()) {
             MessageRequestDTO message = new MessageRequestDTO(content);
             String json = gson.toJson(message);
-            Log.d(TAG, "Sending WebSocket message: " + json);
             webSocket.send(json);
-            Log.d(TAG, "Sent message with content: " + content);
         } else {
             Log.e(TAG, "WebSocket is not connected");
             if (callback != null) {
@@ -99,26 +99,23 @@ public class WebSocketManager extends WebSocketListener {
     }
 
     @Override
-    public void onOpen(WebSocket webSocket, Response response) {
-        Log.d(TAG, "WebSocket connected");
+    public void onOpen(@NonNull WebSocket webSocket, @NonNull Response response) {
         if (callback != null) {
             callback.onConnected();
         }
     }
 
     @Override
-    public void onMessage(WebSocket webSocket, String text) {
-        Log.d(TAG, "Received raw WebSocket message: " + text);
+    public void onMessage(@NonNull WebSocket webSocket, @NonNull String text) {
         try {
             JsonElement jsonElement = JsonParser.parseString(text);
             JsonObject jsonObject = jsonElement.getAsJsonObject();
 
             String messageType = jsonObject.get("type").getAsString();
-            Log.d(TAG, "Message type: " + messageType);
 
+            // Check for error field in the response
             if (jsonObject.has("error")) {
                 String error = jsonObject.get("error").getAsString();
-                Log.e(TAG, "WebSocket message contains error: " + error);
                 if (callback != null) {
                     callback.onError(error);
                 }
@@ -133,10 +130,6 @@ public class WebSocketManager extends WebSocketListener {
                 WebSocketMessageDTO message = new WebSocketMessageDTO();
                 message.setType(messageType);
                 message.setData(messageData);
-
-                Log.d(TAG, "Parsed single message: content='" + message.getContent() +
-                           "', sender='" + message.getSender() +
-                           "', timestamp='" + message.getTimestamp() + "'");
 
                 if (callback != null) {
                     callback.onMessage(message);
@@ -154,10 +147,6 @@ public class WebSocketManager extends WebSocketListener {
                     message.setType("message"); // Treat each existing message as a regular message
                     message.setData(messageData);
 
-                    Log.d(TAG, "Parsed existing message: content='" + message.getContent() +
-                               "', sender='" + message.getSender() +
-                               "', timestamp='" + message.getTimestamp() + "'");
-
                     if (callback != null) {
                         callback.onMessage(message);
                     }
@@ -167,7 +156,6 @@ public class WebSocketManager extends WebSocketListener {
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Error parsing WebSocket message: " + text, e);
             if (callback != null) {
                 callback.onError("Error parsing message: " + e.getMessage());
             }
@@ -175,12 +163,12 @@ public class WebSocketManager extends WebSocketListener {
     }
 
     @Override
-    public void onClosing(WebSocket webSocket, int code, String reason) {
+    public void onClosing(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
         Log.d(TAG, "WebSocket closing. Code: " + code + ", Reason: " + reason);
     }
 
     @Override
-    public void onClosed(WebSocket webSocket, int code, String reason) {
+    public void onClosed(@NonNull WebSocket webSocket, int code, @NonNull String reason) {
         Log.d(TAG, "WebSocket closed. Code: " + code + ", Reason: " + reason);
         if (callback != null) {
             callback.onDisconnected();
@@ -188,8 +176,7 @@ public class WebSocketManager extends WebSocketListener {
     }
 
     @Override
-    public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-        Log.e(TAG, "WebSocket error", t);
+    public void onFailure(@NonNull WebSocket webSocket, @NonNull Throwable t, Response response) {
 
         String errorMsg = "Connection failed";
         if (response != null) {

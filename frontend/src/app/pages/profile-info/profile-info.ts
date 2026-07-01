@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProfileForm } from '../../shared/components/profile-form/profile-form';
 import { UserService } from '../../services/user.service';
@@ -26,7 +26,8 @@ export class ProfileInfo implements OnInit {
 
   constructor(
     private userService: UserService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -43,9 +44,11 @@ export class ProfileInfo implements OnInit {
             this.blockReason = status.reason || 'No reason provided';
             this.blockedAt = status.blockedAt ? new Date(status.blockedAt).toLocaleString() : 'Unknown';
           }
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error checking blocked status:', err);
+          this.cdr.detectChanges();
         }
       });
     }

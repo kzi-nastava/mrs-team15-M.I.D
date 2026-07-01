@@ -20,6 +20,8 @@
     <string name="nav_driver_changes">Driver Changes</string>
     <string name="nav_live_support">Live Support</string>
     <string name="nav_admin_chats">Support Chats</string>
+    <string name="nav_driver_registration">Driver Registration</string>
+    <string name="nav_driver_activation">Driver Activation</string>
 
     <!-- Chat strings -->
     <string name="chat_title">Live Support</string>
@@ -74,6 +76,22 @@
     <string name="confirm_new_password">Confirm new password</string>
     <string name="reset_password">Reset password</string>
     <string name="upload_photo">Upload photo</string>
+    <string name="profile_image">Profile image</string>
+    <string name="choose_image">Choose image</string>
+    <string name="no_image_selected">No image selected</string>
+    <string name="vehicle_section_title">Vehicle</string>
+    <string name="license_plate">License plate</string>
+    <string name="vehicle_model">Vehicle model</string>
+    <string name="number_of_seats">Number of seats</string>
+    <string name="pet_friendly">Pet friendly</string>
+    <string name="baby_friendly">Baby friendly</string>
+    <string name="register_new_driver">Register new driver</string>
+    <string name="driver_registration_title">Driver Registration</string>
+    <string name="driver_registration_subtitle">Add a new driver, vehicle details, and profile image.</string>
+    <string name="driver_activation_title">Activate driver account</string>
+    <string name="driver_activation_subtitle">Set a password to activate your driver account.</string>
+    <string name="activation_token">Activation token</string>
+    <string name="activate_driver">Activate</string>
 
     <!-- forgot password -->
     <string name="forgot_password_title">Forgot your password?</string>
@@ -90,6 +108,16 @@
     <!-- passenger history -->
     <string name="passenger_history_title">My Ride History</string>
     <string name="passenger_history_subtitle">Review your ride history and rate past rides</string>
+    <string name="passenger_history_favorite_hint">Tap the star on a ride to add or remove it from favorites.</string>
+    <string name="favorite_dialog_add_title">Add to Favorites</string>
+    <string name="favorite_dialog_add_message">Do you want to add this route to your favorites?</string>
+    <string name="favorite_dialog_remove_title">Remove from Favorites</string>
+    <string name="favorite_dialog_remove_message">Remove this route from your favorites?</string>
+    <string name="favorite_dialog_pickup">Pickup</string>
+    <string name="favorite_dialog_destination">Destination</string>
+    <string name="favorite_dialog_stops">Stops</string>
+    <string name="favorite_dialog_add_confirm">Add</string>
+    <string name="favorite_dialog_remove_confirm">Remove</string>
 
     <!-- driver history table headers -->
     <string name="driver_history_route">Route</string>
@@ -149,7 +177,6 @@
     <!-- vehicle -->
     <string name="vehicle_title">Vehicle</string>
     <string name="vehicle_license_plate">License plate</string>
-    <string name="vehicle_model">Vehicle model</string>
     <string name="vehicle_type">Vehicle type</string>
     <string name="vehicle_number_of_seats">Number of seats</string>
     <string name="vehicle_baby_friendly">Baby friendly</string>
@@ -221,7 +248,7 @@
     <string name="driver_label">Driver</string>
     <string name="passengers_label">Passengers</string>
     <string name="start_time_label">Started</string>
-    <string name="panic_alert">PANIC ALERT!</string>
+    <string name="panic_alert">PANIC ALERT</string>
     <string name="panic_alert_by">PANIC ALERT! - %1$s</string>
     <string name="no_active_rides">No active rides</string>
     <string name="no_active_rides_description">There are currently no active rides in the system</string>
@@ -265,5 +292,43 @@
     <string name="notification_panic">Panic alert triggered</string>
     <string name="delete_notification">Delete notification</string>
     <string name="search_user_hint">Search by user name…</string>
+
+    <!-- Stop ride -->
+    <string name="stop_ride_title">Stop Ride Early</string>
+    <string name="stop_ride_subtitle">Are you sure you want to stop this ride?</string>
+    <string name="stop_ride_confirm">Stop Ride</string>
+
+    <string name="nav_admin_report">Reports</string>
+    <string name="nav_driver_report">My Reports</string>
+    <string name="nav_passenger_report">My Reports</string>
+    <!-- Admin users -->
+    <string name="apply">Apply</string>
+    <string name="clear">Clear</string>
+    <string name="search_by_name_or_email">Search by name or email…</string>
+    <string name="search_people">Search people</string>
+    <string name="users">Users</string>
+    <string name="view_of_all_users">View of all users</string>
+    <string name="sort_and_filter">Sort and filter</string>
+    <string name="sort_by">Sort By</string>
+    <string name="order">Order</string>
+    <string name="history">History</string>
+
+    <!-- Reorder ride modal -->
+    <string name="reorder_ride">Reorder Ride</string>
+    <string name="reorder_ride_title">Reorder Ride</string>
+    <string name="reorder_ride_subtitle">Do you want to request the same route again? You can book this ride immediately or schedule it for later.</string>
+    <string name="select_date">Select date</string>
+    <string name="select_time">Select time</string>
+    <string name="book_now">Book Now</string>
+    <string name="schedule_for_later">Schedule for Later</string>
+    <string name="confirm_schedule">Confirm Schedule</string>
+    <string name="reorder_select_date_time_error">Please select both date and time</string>
+    <string name="reorder_past_date_error">Selected time must be in the future</string>
+    <string name="reorder_success">Ride reordered successfully</string>
+    <string name="reorder_failed">Failed to reorder ride</string>
+    <string name="close">Close\n</string>
+    <string name="driver_status_inactive">inactive\n</string>
+    <string name="panic_alarm">PANIC ALARM</string>
+    <string name="resolve_panic">Resolve panic</string>
 
 </resources>

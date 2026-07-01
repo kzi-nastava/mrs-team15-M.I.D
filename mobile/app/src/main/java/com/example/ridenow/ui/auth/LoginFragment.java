@@ -93,7 +93,15 @@ public class LoginFragment extends Fragment {
                                 if (getActivity() instanceof MainActivity) {
                                     ((MainActivity) getActivity()).onLoginSuccess();
                                 }
-                                NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.nav_home);
+                                switch (resp.getRole()){
+                                    case "USER":
+                                    case "DRIVER":
+                                        NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.upcoming_rides);
+                                        break;
+                                    case "ADMIN":
+                                        NavHostFragment.findNavController(LoginFragment.this).navigate(R.id.active_rides);
+                                        break;
+                                }
                             }
                             else{
                                 String errorMessage = "Login failed";

@@ -21,6 +21,7 @@ import { PassangerReport } from './reports/pages/passanger-report/passanger-repo
 import { DriverReport } from './reports/pages/driver-report/driver-report';
 import { UpcomingRides } from './ride/pages/upcoming-rides/upcoming-rides';
 import { AdminHistory } from './history/pages/admin-history/admin-history';
+import { RoleGuard } from './guards/role.guard';
 import { AdminUsers } from './admin/pages/users/users';
 import { HistoryRideDetails } from './history/pages/history-ride-details/history-ride-details';
 import { CurrentRide } from './ride/pages/current-ride/current-ride';
@@ -36,6 +37,7 @@ import { AdminChats } from './admin/pages/admin-chats/admin-chats';
 import { AdminChatDetail } from './admin/pages/admin-chat-detail/admin-chat-detail';
 import { UserChat } from './pages/user-chat/user-chat';
 import { PanicAlerts } from './admin/pages/panic-alerts/panic-alerts';
+import { Unauthorized } from './pages/unauthorized/unauthorized';
 
 export const routes: Routes = [
     { path: '', component: Home },         // Default route (home page)
@@ -45,36 +47,37 @@ export const routes: Routes = [
     { path: 'reset-password/:token', component: ResetPassword},
     { path: 'driver-activation/:token', component: DriverActivation},
     { path: 'registration', component: Registration},
-    { path: 'profile', component: ProfileInfo },
-    { path: 'change-request', component: ChangeRequest },
-    { path: 'driver-requests', component: DriverRequestsPage },
+    { path: 'profile', component: ProfileInfo, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'USER', 'DRIVER'] } },
+    { path: 'change-request', component: ChangeRequest, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'driver-requests', component: DriverRequestsPage, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
     { path: 'driver-registration', component: DriverRegistration },
     { path: 'change-password', component: ChangePasswordPage },
-    { path: 'driver-history', component: DriverHistory },
-    { path: 'driver-rides', component: DriverAppointedRides },
-    { path: 'ride-details/:id', component: RideDetails },
-    { path: 'user-history', component: UserHistory },
-    { path: 'passanger-report', component: PassangerReport },
-    { path: 'driver-report', component: DriverReport },
+    { path: 'driver-history', component: DriverHistory, canActivate: [RoleGuard], data: { roles: ['DRIVER'] } },
+    { path: 'driver-rides', component: DriverAppointedRides, canActivate: [RoleGuard], data: { roles: ['DRIVER'] } },
+    { path: 'ride-details/:id', component: RideDetails, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'USER', 'DRIVER'] } },
+    { path: 'user-history', component: UserHistory, canActivate: [RoleGuard], data: { roles: ['USER'] } },
+    { path: 'passanger-report', component: PassangerReport, canActivate: [RoleGuard], data: { roles: ['USER'] } },
+    { path: 'driver-report', component: DriverReport, canActivate: [RoleGuard], data: { roles: ['DRIVER'] } },
     { path: 'home', component: Home },
     { path: 'ride-estimation', component: RideEstimation },
-    { path: 'rating/:id', component: Rating },
-    { path: 'upcoming-rides', component: UpcomingRides },
-    { path: 'admin-history/:id', component: AdminHistory },
-    { path: 'admin-users', component: AdminUsers },
+    { path: 'rating/:id', component: Rating, canActivate: [RoleGuard], data: { roles: ['AUSER'] } },
+    { path: 'upcoming-rides', component: UpcomingRides, canActivate: [RoleGuard], data: { roles: ['USER', 'DRIVER'] } },
+    { path: 'admin-history/:id', component: AdminHistory, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin-users', component: AdminUsers, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
     { path: 'history-ride-details/:id', component: HistoryRideDetails },
-    { path: 'current-ride', component: CurrentRide },
-    { path: 'start-ride', component: StartRide },
-    { path: 'finding-driver', component: FindingDriver },
-    { path: 'ride-ordering', component: RideOrdering },
-    { path: 'admin-pricing', component: PricingManagement },
-    { path: 'admin-report', component: AdminReport },
-    { path: 'admin-history-overview', component: AdminHistoryOverview},
-    { path: 'admin-active-rides', component: ActiveRides },
-    { path: 'admin-chats', component: AdminChats },
-    { path: 'admin-chat/:id', component: AdminChatDetail },
-    { path: 'user-chat', component: UserChat },
+    { path: 'current-ride', component: CurrentRide, canActivate: [RoleGuard], data: { roles: ['ADMIN', 'USER', 'DRIVER'] } },
+    { path: 'start-ride', component: StartRide, canActivate: [RoleGuard], data: { roles: ['DRIVER'] } },
+    { path: 'finding-driver', component: FindingDriver, canActivate: [RoleGuard], data: { roles: ['USER'] } },
+    { path: 'ride-ordering', component: RideOrdering, canActivate: [RoleGuard], data: { roles: ['USER'] } },
+    { path: 'admin-pricing', component: PricingManagement, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin-report', component: AdminReport, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin-history-overview', component: AdminHistoryOverview, canActivate: [RoleGuard], data: { roles: ['ADMIN'] }},
+    { path: 'admin-active-rides', component: ActiveRides, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin-chats', component: AdminChats, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'admin-chat/:id', component: AdminChatDetail, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
+    { path: 'user-chat', component: UserChat, canActivate: [RoleGuard], data: { roles: ['USER'] } },
     { path: 'activate/:token', component: ActivationPage },
-    { path: 'panic-alerts', component: PanicAlerts },
+    { path: 'unauthorized', component: Unauthorized },
+    { path: 'panic-alerts', component: PanicAlerts, canActivate: [RoleGuard], data: { roles: ['ADMIN'] } },
 
 ];

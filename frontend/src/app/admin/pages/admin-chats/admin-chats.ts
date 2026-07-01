@@ -50,6 +50,9 @@ export class AdminChats implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
+    // Call the AdminService to get all chats, handles success and error responses,
+    // updates the chats array, manages loading state, and triggers change detection
+    // to update the UI with the new data or error message.
     this.chatService.getAllChats().subscribe({
       next: (chats) => {
         this.chats = chats;
@@ -74,6 +77,7 @@ export class AdminChats implements OnInit, OnDestroy {
       return this.chats;
     }
 
+    // Filter chats based on the search term, matching either the user's name or the chat ID (converted to string), case-insensitive.
     const term = this.searchTerm.toLowerCase();
     return this.chats.filter(chat =>
       chat.user.toLowerCase().includes(term) ||

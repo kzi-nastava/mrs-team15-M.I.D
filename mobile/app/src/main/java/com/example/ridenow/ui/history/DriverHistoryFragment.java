@@ -185,6 +185,7 @@ public class DriverHistoryFragment extends Fragment implements SensorEventListen
         }
     }
 
+    // Shake detection logic
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {

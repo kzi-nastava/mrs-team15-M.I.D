@@ -29,6 +29,7 @@ public class ClientUtils {
                 public Response intercept(@NonNull Chain chain) throws IOException {
                     Request.Builder requestBuilder = chain.request().newBuilder();
 
+                    // Add Authorization header if token is available
                     if (tokenUtils != null) {
                         String token = tokenUtils.getToken();
                         if (token != null && !token.isEmpty()) {
@@ -38,6 +39,7 @@ public class ClientUtils {
                     return chain.proceed(requestBuilder.build());
                 }
             })
+            // Logging interceptor to log request and response details, and handle 401 Unauthorized responses
             .addInterceptor(new Interceptor() {
                 @NonNull
                 @Override

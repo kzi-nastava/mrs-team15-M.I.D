@@ -93,7 +93,7 @@ public class AdminChatsFragment extends Fragment {
     }
 
     private void loadChats() {
-        chatService.getAllChats().enqueue(new Callback<List<ChatResponseDTO>>() {
+        chatService.getAllChats().enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<List<ChatResponseDTO>> call,
                                  @NonNull Response<List<ChatResponseDTO>> response) {
@@ -101,6 +101,7 @@ public class AdminChatsFragment extends Fragment {
                     List<ChatResponseDTO> chats = response.body();
                     Log.d(TAG, "Loaded " + chats.size() + " chats");
 
+                    // Show empty state if no chats, otherwise show the list
                     if (chats.isEmpty()) {
                         showEmptyState();
                     } else {
