@@ -126,13 +126,19 @@ public class AdminUsers extends Fragment {
         spinnerOrder.setText("Desc", false);
 
         spinnerSortBy.setOnItemClickListener((parent, v, position, id) -> {
-            String[] apiFields = {"firstName", "surname", "role", "email"};
+            String[] apiFields = {"firstName", "lastName", "role", "email"};
             currentSortBy = apiFields[position];
+            currentPage = 0;
+            hasMoreData = true;
+            loadUsers();
         });
 
-        spinnerOrder.setOnItemClickListener((parent, v, position, id) ->
-                currentSortDir = position == 0 ? "asc" : "desc"
-        );
+        spinnerOrder.setOnItemClickListener((parent, v, position, id) -> {
+            currentSortDir = position == 0 ? "asc" : "desc";
+            currentPage = 0;
+            hasMoreData = true;
+            loadUsers();
+        });
     }
     private void setupButtons() {
         btnApply.setOnClickListener(v -> {
