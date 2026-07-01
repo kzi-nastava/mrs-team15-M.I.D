@@ -49,6 +49,8 @@ public class AdminUsers extends Fragment {
     private boolean hasMoreData = true;
     private String currentSortBy = "email";
     private String currentSortDir = "desc";
+    private Call<PagedResponseDTO<AdminUserResponseDTO>> currentUsersCall;
+    private long usersRequestToken = 0L;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -135,6 +137,7 @@ public class AdminUsers extends Fragment {
     private void setupButtons() {
         btnApply.setOnClickListener(v -> {
             currentPage = 0;
+            hasMoreData = true;
             loadUsers();
         });
 
@@ -144,18 +147,31 @@ public class AdminUsers extends Fragment {
             currentSortBy = "email";
             currentSortDir = "desc";
             currentPage = 0;
+            hasMoreData = true;
             loadUsers();
         });
     }
 
     private void loadUsers() {
-        if (isLoading) {
+        if (!isAdded()) {
             return;
         }
 
+        if (currentUsersCall != null) {
+            currentUsersCall.cancel();
+            currentUsersCall = null;
+        }
+
+        if (currentPage == 0) {
+            usersContainer.removeAllViews();
+        } else {
+            removeLoadMoreButton();
+        }
+
+        final long requestToken = ++usersRequestToken;
         isLoading = true;
 
-        Call<PagedResponseDTO<AdminUserResponseDTO>> call = adminService.getAllUsers(
+        currentUsersCall = adminService.getAllUsers(
                 null,
                 currentSortBy,
                 currentSortDir,
@@ -163,15 +179,18 @@ public class AdminUsers extends Fragment {
                 10
         );
 
-        call.enqueue(new Callback<>() {
+        currentUsersCall.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<PagedResponseDTO<AdminUserResponseDTO>> call, @NonNull Response<PagedResponseDTO<AdminUserResponseDTO>> response) {
+                if (!isAdded() || requestToken != usersRequestToken) {
+                    return;
+                }
+
                 isLoading = false;
+                currentUsersCall = null;
+
                 if (response.isSuccessful() && response.body() != null) {
                     PagedResponseDTO<AdminUserResponseDTO> data = response.body();
-
-                    if (currentPage == 0) { usersContainer.removeAllViews(); }
-                    else { removeLoadMoreButton();}
 
                     hasMoreData = currentPage + 1 < data.getTotalPages();
 
@@ -194,8 +213,16 @@ public class AdminUsers extends Fragment {
 
             @Override
             public void onFailure(@NonNull Call<PagedResponseDTO<AdminUserResponseDTO>> call, @NonNull Throwable t) {
+                if (!isAdded() || requestToken != usersRequestToken) {
+                    return;
+                }
+
                 isLoading = false;
-                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                currentUsersCall = null;
+
+                if (!call.isCanceled()) {
+                    Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
