@@ -300,5 +300,6 @@
     <string name="reorder_success">Ride reordered successfully</string>
     <string name="reorder_failed">Failed to reorder ride</string>
     <string name="close">Close\n</string>
+    <string name="driver_status_inactive">inactive\n</string>
 
 </resources>

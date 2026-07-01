@@ -3,7 +3,10 @@ package com.example.ridenow.ui.main;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,20 +16,24 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.user.FcmTokenDTO;
+import com.example.ridenow.dto.driver.DriverStatusRequestDTO;
+import com.example.ridenow.dto.driver.DriverStatusResponseDTO;
+import com.example.ridenow.dto.enums.DriverStatus;
+import com.example.ridenow.service.DriverService;
 import com.example.ridenow.service.LogoutService;
 import com.example.ridenow.service.TokenExpirationService;
-import com.example.ridenow.service.UserService;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.util.TokenUtils;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
@@ -36,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private TokenExpirationService tokenExpirationService;
     private NavController navController;
+    private SwitchMaterial switchDriverStatus;
+    private View driverStatusContainer;
+    private TextView tvDriverStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            TokenUtils tokenUtils = ClientUtils.getTokenUtils();
+            if ("DRIVER".equals(tokenUtils.getRole())) {
+                fetchDriverStatus();
+            }
+        });
+
         navigationView.setNavigationItemSelectedListener(item -> {
             Log.d(TAG, "Clicked item id: " + item.getItemId() + " title: " + item.getTitle());
             if (item.getItemId() == R.id.nav_logout) {
@@ -88,6 +105,19 @@ public class MainActivity extends AppCompatActivity {
             }
             return handled;
         });
+
+        View headerView = navigationView.getHeaderView(0);
+        driverStatusContainer = headerView.findViewById(R.id.driverStatusContainer);
+        switchDriverStatus = headerView.findViewById(R.id.switchDriverStatus);
+        tvDriverStatus = headerView.findViewById(R.id.tvDriverStatus);
+
+        switchDriverStatus.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) {
+                return;
+            }
+            updateDriverStatus(isChecked);
+        });
+
         toggle.syncState();
         setupTokenUtils();
         updateMenuVisibility();
@@ -217,6 +247,11 @@ public class MainActivity extends AppCompatActivity {
         boolean isUser = "USER".equals(userRole);
         boolean isAdmin = "ADMIN".equals(userRole);
 
+        driverStatusContainer.setVisibility(isDriver ? View.VISIBLE : View.GONE);
+        if (isDriver) {
+            fetchDriverStatus();
+        }
+
         // Driver-only items
         navigationView.getMenu().findItem(R.id.history).setVisible(isDriver); // Driver History
         navigationView.getMenu().findItem(R.id.upcoming_rides).setVisible(isDriver || isUser); // Upcoming Rides
@@ -258,8 +293,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLogoutFailure(String error) {
                 runOnUiThread(() -> {
-                    Toast.makeText(MainActivity.this, "Logout failed: " + error, Toast.LENGTH_SHORT).show();
-                    onLogout();
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -280,5 +314,46 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "Error navigating to login during logout", e);
             }
         }
+    }
+
+    private void fetchDriverStatus() {
+        DriverService driverService = ClientUtils.getClient(DriverService.class);
+        driverService.getDriverStatus().enqueue(new Callback<DriverStatusResponseDTO>() {
+            @Override
+            public void onResponse(Call<DriverStatusResponseDTO> call, Response<DriverStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    applyStatusToUi(response.body().getStatus(), response.body().getPendingStatus());
+                }
+            }
+            @Override
+            public void onFailure(Call<DriverStatusResponseDTO> call, Throwable t) { }
+        });
+    }
+
+    private void updateDriverStatus(boolean active) {
+        DriverStatusRequestDTO dto = new DriverStatusRequestDTO();
+        dto.setStatus(active ? DriverStatus.ACTIVE : DriverStatus.INACTIVE);
+
+        DriverService driverService = ClientUtils.getClient(DriverService.class);
+        driverService.changeDriverStatus(dto).enqueue(new Callback<DriverStatusResponseDTO>() {
+            @Override
+            public void onResponse(Call<DriverStatusResponseDTO> call, Response<DriverStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    applyStatusToUi(response.body().getStatus(), response.body().getPendingStatus());
+                    Toast.makeText(MainActivity.this, "Status updated", Toast.LENGTH_SHORT).show();
+                } else {
+                    fetchDriverStatus();
+                }
+            }
+            @Override
+            public void onFailure(Call<DriverStatusResponseDTO> call, Throwable t) {
+                fetchDriverStatus();
+            }
+        });
+    }
+    private void applyStatusToUi(DriverStatus status, DriverStatus pendingStatus) {
+        boolean checked = status == DriverStatus.ACTIVE;
+        switchDriverStatus.setChecked(checked);
+        tvDriverStatus.setText(checked ? "Active" : "Inactive");
     }
 }
