@@ -167,7 +167,6 @@
     <!-- vehicle -->
     <string name="vehicle_title">Vehicle</string>
     <string name="vehicle_license_plate">License plate</string>
-    <string name="vehicle_model">Vehicle model</string>
     <string name="vehicle_type">Vehicle type</string>
     <string name="vehicle_number_of_seats">Number of seats</string>
     <string name="vehicle_baby_friendly">Baby friendly</string>
