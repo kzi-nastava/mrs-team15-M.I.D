@@ -62,6 +62,7 @@ public class CurrentRideFragment extends Fragment {
     private LinearLayout adminPassengersLayout;
     private TextView adminDriverText;
     private TextView adminPassengersText;
+    private LinearLayout remainingTimeBox;
 
     // User buttons
     private LinearLayout userButtonsLayout;
@@ -79,7 +80,7 @@ public class CurrentRideFragment extends Fragment {
     private CurrentRideResponse currentRide;
     private Handler trackingHandler;
     private Runnable trackingRunnable;
-    private static final long TRACKING_INTERVAL = 10000; // 10 seconds
+    private static final long TRACKING_INTERVAL = 1000; // 10 seconds
     private boolean isPanicRide = false;
     private boolean isDriver = false;
     private boolean isAdminView = false;
@@ -242,6 +243,7 @@ public class CurrentRideFragment extends Fragment {
         startAddressText = view.findViewById(R.id.startAddressText);
         endAddressText = view.findViewById(R.id.endAddressText);
         remainingTimeText = view.findViewById(R.id.remainingTimeText);
+        remainingTimeBox = view.findViewById(R.id.remainingTimeBox);
 
         // Admin view elements
         adminDriverLayout = view.findViewById(R.id.adminDriverLayout);
@@ -400,6 +402,7 @@ public class CurrentRideFragment extends Fragment {
             if (isDriver) {
                 userButtonsLayout.setVisibility(View.GONE);
                 driverButtonsLayout.setVisibility(View.VISIBLE);
+                remainingTimeBox.setVisibility(View.GONE);
             } else {
                 userButtonsLayout.setVisibility(View.VISIBLE);
                 driverButtonsLayout.setVisibility(View.GONE);

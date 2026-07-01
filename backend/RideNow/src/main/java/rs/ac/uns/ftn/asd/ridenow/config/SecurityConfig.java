@@ -40,7 +40,7 @@ public class SecurityConfig {
                                 "/api/auth/login", "/api/auth/register",
                                 "/api/auth/activate", "/api/auth/forgot-password",
                                 "/api/auth/reset-password", "/api/rides/estimate", "/api/auth/verify-reset-code",
-                                "api/auth/activate-code", "api/auth/resend-activation-email")
+                                "api/auth/activate-code", "api/auth/resend-activation-email", "/redirect/**")
                         .permitAll()
                         // Static resources
                         .requestMatchers("/uploads/**").permitAll()
@@ -96,7 +96,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

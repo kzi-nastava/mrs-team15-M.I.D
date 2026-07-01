@@ -11,7 +11,8 @@ import android.view.ViewGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.content.Intent;
+import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -133,6 +134,39 @@ public class MainActivity extends AppCompatActivity {
         // Handle notification click from FCM
         if (getIntent().getBooleanExtra("navigateToNotifications", false)) {
             navController.navigate(R.id.notifications);
+        }
+
+        handleDeepLink(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleDeepLink(intent);
+    }
+
+    private void handleDeepLink(Intent intent) {
+        if (intent == null) return;
+
+        Uri data = intent.getData();
+        if (data == null) return;
+
+        if ("ridenow".equals(data.getScheme()) && "driver-activation".equals(data.getHost())) {
+            String token = data.getLastPathSegment();
+            if (token != null && !token.isEmpty()) {
+                navigateToDriverActivation(token);
+            }
+        }
+    }
+
+    private void navigateToDriverActivation(String token) {
+        Bundle args = new Bundle();
+        args.putString("token", token);  
+        try {
+            navController.navigate(R.id.driver_activation, args);
+        } catch (Exception e) {
+            Log.e(TAG, "Error navigating to driver activation screen", e);
         }
     }
 

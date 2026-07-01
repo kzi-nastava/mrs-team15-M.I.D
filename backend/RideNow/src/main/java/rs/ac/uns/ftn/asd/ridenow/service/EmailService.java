@@ -1,11 +1,14 @@
 package rs.ac.uns.ftn.asd.ridenow.service;
 
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.ftn.asd.ridenow.model.ActivationToken;
 import rs.ac.uns.ftn.asd.ridenow.model.ForgotPasswordToken;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 
 @Service
 public class EmailService {
@@ -20,6 +23,9 @@ public class EmailService {
     private static final String RATING_URL = FRONTEND_URL + "/rating/";
     private static final String UPCOMING_RIDES_URL = FRONTEND_URL + "/upcoming-rides";
     private static final String CURRENCY = "DIN";
+    private static final String MOBILE_URL = "http://192.168.1.144:8081";
+    private static final String MOBILE_REDIRECT_URL = MOBILE_URL + "/redirect/driver-activation/";
+
 
     public void sendActivationMail(String to, ActivationToken token) {
         SimpleMailMessage mail = new SimpleMailMessage();
@@ -193,6 +199,31 @@ public class EmailService {
             sendSimpleEmail(passengerEmail, subject, emailBody);
         } catch (Exception e) {
             System.err.println("Failed to send ride finished email: " + e.getMessage());
+        }
+    }
+
+    public void sendDriverActivationMailMobile(String email, ActivationToken activationToken) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Activate your RideNow account");
+
+            String link = MOBILE_REDIRECT_URL + activationToken.getToken();
+            String htmlBody =
+                    "<html><body>" +
+                            "<p>Welcome to RideNow!</p>" +
+                            "<p>Your account is almost ready.</p>" +
+                            "<p>Click the link below to activate it:</p>" +
+                            "<p><a href=\"" + link + "\">Activate my account</a></p>" +
+                    "<p>See you on the road,<br>RideNow Team</p>" +
+                    "</body></html>";
+
+            helper.setText(htmlBody, true);
+            mailSender.send(mimeMessage);
+        } catch (MessagingException e) {
+            System.err.println("Failed to send driver activation email: " + e.getMessage());
         }
     }
 }

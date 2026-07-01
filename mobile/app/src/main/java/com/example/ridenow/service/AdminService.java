@@ -62,7 +62,7 @@ public interface AdminService {
     Call<Void> unblockUser(@Path("id") Long id);
 
         @Multipart
-        @POST("/api/admins/driver-register")
+        @POST("/api/admins/driver-register-mobile")
         Call<Map<String, Object>> registerDriver(@PartMap Map<String, RequestBody> partMap,
                                                                                          @Part MultipartBody.Part profileImage);
 

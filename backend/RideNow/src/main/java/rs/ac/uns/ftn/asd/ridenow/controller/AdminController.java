@@ -112,6 +112,19 @@ public class AdminController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @Operation(summary = "Register new driver in mobile app", description = "Admin registers a new driver with profile information and optional profile image")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value = "/driver-register-mobile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> registerMobile(
+            @Valid @ModelAttribute RegisterDriverRequestDTO request,
+            @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
+        try {
+            RegisterDriverResponseDTO responseDTO = adminService.registerMobile(request, profileImage);
+            return ResponseEntity.status(201).body(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     @Operation(summary = "Get driver change requests", description = "Retrieve a list of pending driver profile change requests for admin review")
     @PreAuthorize("hasRole('ADMIN')")
