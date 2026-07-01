@@ -179,6 +179,34 @@
 
             </LinearLayout>
 
+            <!-- Panic Banner -->
+            <LinearLayout
+                android:id="@+id/panicBannerLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_background_light"
+                android:padding="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/panic_alarm"
+                    android:textStyle="bold"
+                    android:textColor="#B71C1C"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/panicStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#B71C1C"
+                    android:textSize="13sp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+
             <!-- Buttons for Users (Passengers) -->
             <LinearLayout
                 android:id="@+id/userButtonsLayout"
