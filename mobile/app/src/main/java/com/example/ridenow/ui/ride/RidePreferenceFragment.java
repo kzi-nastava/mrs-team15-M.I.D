@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import androidx.core.content.ContextCompat;
@@ -123,6 +124,9 @@ public class RidePreferenceFragment extends Fragment {
         vehicleSpinner.setBackgroundResource(R.drawable.edittext_with_bg);
         vehicleSpinner.setSelection(0);
 
+        Bundle args = getArguments();
+        bindPricePreview(vehicleSpinner, finalPrice, args);
+
         // add initial guest input
         addGuestInput(guestsContainer);
 
@@ -226,8 +230,6 @@ public class RidePreferenceFragment extends Fragment {
         }
 
 
-        // placeholder price
-        finalPrice.setText("");
     }
 
     @Override
@@ -546,6 +548,47 @@ public class RidePreferenceFragment extends Fragment {
             return van;
         }
         return fallback;
+    }
+
+    private void bindPricePreview(Spinner vehicleSpinner,
+                                  TextView finalPrice,
+                                  @Nullable Bundle args) {
+        AdapterView.OnItemSelectedListener listener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updatePricePreview(finalPrice, args, vehicleSpinner.getSelectedItem() != null
+                        ? vehicleSpinner.getSelectedItem().toString()
+                        : null);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                finalPrice.setText("");
+            }
+        };
+
+        vehicleSpinner.setOnItemSelectedListener(listener);
+        updatePricePreview(finalPrice, args, vehicleSpinner.getSelectedItem() != null
+                ? vehicleSpinner.getSelectedItem().toString()
+                : null);
+    }
+
+    private void updatePricePreview(TextView finalPrice,
+                                    @Nullable Bundle args,
+                                    @Nullable String selectedVehicleType) {
+        String normalizedVehicleType = normalizeVehicleType(selectedVehicleType);
+        if (normalizedVehicleType == null || args == null) {
+            finalPrice.setText("");
+            return;
+        }
+
+        double distanceKm = args.getDouble("distanceKm", 0d);
+        double priceEstimate = resolvePriceEstimateFromArgs(args, normalizedVehicleType, distanceKm);
+        if (priceEstimate > 0) {
+            finalPrice.setText(String.format(Locale.getDefault(), "Estimated price: %.2f", priceEstimate));
+        } else {
+            finalPrice.setText("");
+        }
     }
 
     public void showRouteOnMap(LocationDTO start, LocationDTO end,

@@ -11,18 +11,28 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import com.example.ridenow.dto.user.UserResponseDTO;
 import com.example.ridenow.R;
+import com.example.ridenow.service.AdminService;
+import com.example.ridenow.util.ClientUtils;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class FindingDriverFragment extends Fragment {
 
     private LinearLayout layoutSearching, layoutFound, layoutNotFound;
     private TextView tvSearchingPickup, tvSearchingDestination, tvDriverName, tvDriverVehicle, tvDriverEta;
     private Button btnCancelSearch, btnAcceptAndBack, btnGoToOrdering;
+    private AdminService adminService;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_finding_driver, container, false);
+
+        adminService = ClientUtils.getClient(AdminService.class);
 
         // Initialize state containers
         layoutSearching = view.findViewById(R.id.layoutSearching);
@@ -96,11 +106,71 @@ public class FindingDriverFragment extends Fragment {
         }
 
         if (driverId > 0) {
-            renderState("found", "Driver #" + driverId, vehicleType.isEmpty() ? "Assigned ride" : vehicleType, eta);
+            loadDriverDetails(driverId, eta);
             return;
         }
 
         renderState("searching", null, null, 0);
+    }
+
+    private void loadDriverDetails(long driverId, int eta) {
+        adminService.getUserById(driverId).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<UserResponseDTO> call, @NonNull Response<UserResponseDTO> response) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                if (response.isSuccessful() && response.body() != null) {
+                    UserResponseDTO driver = response.body();
+                    String driverName = formatDriverName(driver, driverId);
+                    String vehicleInfo = formatVehicleInfo(driver);
+                    renderState("found", driverName, vehicleInfo, eta);
+                } else {
+                    renderState("found", "Driver #" + driverId, "Assigned ride", eta);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserResponseDTO> call, @NonNull Throwable t) {
+                if (!isAdded()) {
+                    return;
+                }
+
+                renderState("found", "Driver #" + driverId, "Assigned ride", eta);
+            }
+        });
+    }
+
+    private String formatDriverName(@Nullable UserResponseDTO driver, long driverId) {
+        if (driver == null) {
+            return "Driver #" + driverId;
+        }
+
+        String firstName = driver.getFirstName() == null ? "" : driver.getFirstName().trim();
+        String lastName = driver.getLastName() == null ? "" : driver.getLastName().trim();
+        String fullName = (firstName + " " + lastName).trim();
+        return fullName.isEmpty() ? "Driver #" + driverId : fullName;
+    }
+
+    private String formatVehicleInfo(@Nullable UserResponseDTO driver) {
+        if (driver == null) {
+            return "";
+        }
+
+        String licensePlate = driver.getLicensePlate() == null ? "" : driver.getLicensePlate().trim();
+        String vehicleModel = driver.getVehicleModel() == null ? "" : driver.getVehicleModel().trim();
+
+        if (licensePlate.isEmpty() && vehicleModel.isEmpty()) {
+            return "Assigned ride";
+        }
+        if (licensePlate.isEmpty()) {
+            return "Vehicle model: " + vehicleModel;
+        }
+        if (vehicleModel.isEmpty()) {
+            return "License plate: " + licensePlate;
+        }
+        return "License plate: " + licensePlate + "\nVehicle model: " + vehicleModel;
     }
 
     private void showSearchingState() {
@@ -115,16 +185,22 @@ public class FindingDriverFragment extends Fragment {
         switch (state.toLowerCase()) {
             case "found":
                 layoutFound.setVisibility(View.VISIBLE);
-                if (driverName != null) tvDriverName.setText(driverName);
-                if (vehicleInfo != null) tvDriverVehicle.setText(vehicleInfo);
-                tvDriverEta.setText("ETA: " + eta + " min");
+                tvDriverName.setText(driverName != null ? driverName : "");
+                tvDriverVehicle.setText(vehicleInfo != null ? vehicleInfo : "");
+                tvDriverEta.setText(eta > 0 ? "ETA: " + eta + " min" : "ETA: --");
                 break;
             case "notfound":
                 layoutNotFound.setVisibility(View.VISIBLE);
+                tvDriverName.setText("");
+                tvDriverVehicle.setText("");
+                tvDriverEta.setText("");
                 break;
             case "searching":
             default:
                 layoutSearching.setVisibility(View.VISIBLE);
+                tvDriverName.setText("");
+                tvDriverVehicle.setText("");
+                tvDriverEta.setText("");
                 break;
         }
     }
