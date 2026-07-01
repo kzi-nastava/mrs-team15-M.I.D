@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -42,6 +43,8 @@ public class AdminChatsFragment extends Fragment {
     private List<ChatResponseDTO> allChats;
     private List<ChatResponseDTO> filteredChats;
 
+    private Button refreshButton;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +71,9 @@ public class AdminChatsFragment extends Fragment {
         chatsRecyclerView = view.findViewById(R.id.chatsRecyclerView);
         emptyStateLayout = view.findViewById(R.id.emptyStateLayout);
         searchInput = view.findViewById(R.id.searchInput);
+
+        refreshButton = view.findViewById(R.id.refreshButton);
+        refreshButton.setOnClickListener(v -> loadChats());
 
         // Setup search listener
         searchInput.addTextChangedListener(new TextWatcher() {

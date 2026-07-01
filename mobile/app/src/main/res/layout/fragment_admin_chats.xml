@@ -32,17 +32,32 @@
 
     </LinearLayout>
 
-    <!-- Search Input -->
-    <EditText
-        android:id="@+id/searchInput"
+    <!-- Search and Refresh Row -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="12dp"
-        android:padding="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:baselineAligned="false">
+
+        <EditText
+        android:id="@+id/searchInput"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
         android:hint="@string/search_user_hint"
-        android:inputType="text"
-        style="@style/TextInput" />
+        android:inputType="text" />
+
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Refresh"
+            android:textColor="@color/text_primary"
+            style="?attr/materialButtonOutlinedStyle" />
+    </LinearLayout>
 
     <!-- Chats RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
@@ -72,11 +87,15 @@
             android:src="@drawable/ic_chat" />
 
         <TextView
+            android:id="@+id/newBadge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/no_chats_available"
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:text="New"
+            android:backgroundTint="@color/black"
+            android:textColor="@color/white"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 

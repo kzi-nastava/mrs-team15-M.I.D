@@ -55,12 +55,15 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
         private final TextView chatUserText;
         private final TextView chatIdText;
         private final TextView statusBadge;
+        private final TextView newBadge;
 
         public ChatViewHolder(@NonNull View itemView) {
             super(itemView);
             chatUserText = itemView.findViewById(R.id.chatUserText);
             chatIdText = itemView.findViewById(R.id.chatIdText);
             statusBadge = itemView.findViewById(R.id.statusBadge);
+            newBadge = itemView.findViewById(R.id.newBadge);
+
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
@@ -74,15 +77,19 @@ public class AdminChatAdapter extends RecyclerView.Adapter<AdminChatAdapter.Chat
             chatUserText.setText(chat.getUser() != null ? chat.getUser() : "Anonymous User");
             chatIdText.setText("Chat #" + chat.getId());
 
-            if (chat.isTaken()) {
-                statusBadge.setText(itemView.getContext().getString(R.string.chat_taken));
-                statusBadge.setBackgroundTintList(
-                    itemView.getContext().getColorStateList(R.color.error)
+            if (chat.getHasNewMessages()) {
+                newBadge.setVisibility(View.VISIBLE);
+
+                // Highlight the background of the entire row (e.g., using a subtle color from your colors.xml)
+                itemView.setBackgroundColor(
+                        itemView.getContext().getColor(R.color.black) // Replace with your actual highlight color
                 );
             } else {
-                statusBadge.setText(itemView.getContext().getString(R.string.chat_available));
-                statusBadge.setBackgroundTintList(
-                    itemView.getContext().getColorStateList(R.color.success)
+                newBadge.setVisibility(View.GONE);
+
+                // Reset background to default transparent when there are no new messages
+                itemView.setBackgroundColor(
+                        itemView.getContext().getColor(android.R.color.transparent)
                 );
             }
         }

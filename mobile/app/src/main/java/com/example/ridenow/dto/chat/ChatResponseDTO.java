@@ -3,7 +3,7 @@ package com.example.ridenow.dto.chat;
 public class ChatResponseDTO {
     private Long id;
     private String user;
-    private boolean taken;
+    private boolean hasNewMessages;
 
     public ChatResponseDTO() {}
 
@@ -13,6 +13,6 @@ public class ChatResponseDTO {
     public String getUser() { return user; }
     public void setUser(String user) { this.user = user; }
 
-    public boolean isTaken() { return taken; }
-    public void setTaken(boolean taken) { this.taken = taken; }
+    public boolean getHasNewMessages() { return hasNewMessages; }
+    public void setHasNewMessages(boolean hasNewMessages) { this.hasNewMessages = hasNewMessages; }
 }
