@@ -57,6 +57,8 @@
             android:paddingEnd="14dp"
             android:text="Block"
             android:textSize="12sp" />
+            android:backgroundTint="#D32F2F"
+            android:textColor="#FFFFFF" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>
