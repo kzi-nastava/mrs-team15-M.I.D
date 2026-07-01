@@ -108,6 +108,16 @@
     <!-- passenger history -->
     <string name="passenger_history_title">My Ride History</string>
     <string name="passenger_history_subtitle">Review your ride history and rate past rides</string>
+    <string name="passenger_history_favorite_hint">Tap the star on a ride to add or remove it from favorites.</string>
+    <string name="favorite_dialog_add_title">Add to Favorites</string>
+    <string name="favorite_dialog_add_message">Do you want to add this route to your favorites?</string>
+    <string name="favorite_dialog_remove_title">Remove from Favorites</string>
+    <string name="favorite_dialog_remove_message">Remove this route from your favorites?</string>
+    <string name="favorite_dialog_pickup">Pickup</string>
+    <string name="favorite_dialog_destination">Destination</string>
+    <string name="favorite_dialog_stops">Stops</string>
+    <string name="favorite_dialog_add_confirm">Add</string>
+    <string name="favorite_dialog_remove_confirm">Remove</string>
 
     <!-- driver history table headers -->
     <string name="driver_history_route">Route</string>

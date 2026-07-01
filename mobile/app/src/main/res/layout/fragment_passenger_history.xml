@@ -23,6 +23,15 @@
         android:layout_marginBottom="20dp"
         android:layout_gravity="center_horizontal"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/passenger_history_favorite_hint"
+        android:textColor="#666666"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
     <!-- Filter Section Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"

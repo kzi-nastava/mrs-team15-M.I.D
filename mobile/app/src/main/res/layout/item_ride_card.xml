@@ -57,14 +57,24 @@
                 android:orientation="vertical"
                 android:gravity="end">
 
+                <!-- Star icon -->
+                <ImageView
+                    android:id="@+id/ivFavorite"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="end"
+                    android:layout_marginBottom="4dp"
+                    android:padding="2dp"
+                    android:src="@android:drawable/btn_star_big_off"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Toggle favorite"
+                    android:visibility="gone" />
+
                 <LinearLayout
                     android:id="@+id/statusContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
-
-                    <!-- Status indicators will be added dynamically -->
-
                 </LinearLayout>
 
                 <TextView
@@ -156,9 +166,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
-
-            <!-- Will be used for inconsistencies or other details -->
-
         </LinearLayout>
 
         <!-- Rating Button -->
