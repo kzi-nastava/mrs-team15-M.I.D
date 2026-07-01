@@ -20,9 +20,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.user.UserItemDTO;
+import com.example.ridenow.dto.admin.AdminUserResponseDTO;
 import com.example.ridenow.dto.admin.BlockUserRequestDTO; // Proveri da li je putanja tačna
-import com.example.ridenow.dto.util.PageResponse;
+import com.example.ridenow.dto.admin.PagedResponseDTO;
 import com.example.ridenow.service.AdminService;
 import com.example.ridenow.util.ClientUtils;
 import com.google.android.material.textfield.TextInputEditText;
@@ -155,23 +155,29 @@ public class AdminUsers extends Fragment {
 
         isLoading = true;
 
-        Call<PageResponse<UserItemDTO>> call = adminService.getAllUsers(currentPage, 10, currentSortBy, currentSortDir);
+        Call<PagedResponseDTO<AdminUserResponseDTO>> call = adminService.getAllUsers(
+                null,
+                currentSortBy,
+                currentSortDir,
+                currentPage,
+                10
+        );
 
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<PageResponse<UserItemDTO>> call, @NonNull Response<PageResponse<UserItemDTO>> response) {
+            public void onResponse(@NonNull Call<PagedResponseDTO<AdminUserResponseDTO>> call, @NonNull Response<PagedResponseDTO<AdminUserResponseDTO>> response) {
                 isLoading = false;
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<UserItemDTO> data = response.body();
+                    PagedResponseDTO<AdminUserResponseDTO> data = response.body();
 
                     if (currentPage == 0) { usersContainer.removeAllViews(); }
                     else { removeLoadMoreButton();}
 
-                    hasMoreData = !data.isLast();
+                    hasMoreData = currentPage + 1 < data.getTotalPages();
 
-                    List<UserItemDTO> users = data.getContent();
+                    List<AdminUserResponseDTO> users = data.getContent();
 
-                    for (UserItemDTO user : users) { createUserCard(user);}
+                    for (AdminUserResponseDTO user : users) { createUserCard(user);}
 
                     if (hasMoreData) { addLoadMoreButton();}
 
@@ -187,14 +193,14 @@ public class AdminUsers extends Fragment {
             }
 
             @Override
-            public void onFailure(@NonNull Call<PageResponse<UserItemDTO>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<PagedResponseDTO<AdminUserResponseDTO>> call, @NonNull Throwable t) {
                 isLoading = false;
                 Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void createUserCard(UserItemDTO user) {
+    private void createUserCard(AdminUserResponseDTO user) {
         View cardView = LayoutInflater.from(getContext()).inflate(R.layout.item_user_card, usersContainer, false);
 
         TextView tvFullName = cardView.findViewById(R.id.tvFullName);
@@ -202,7 +208,10 @@ public class AdminUsers extends Fragment {
         TextView tvRole     = cardView.findViewById(R.id.tvRole);
         Button btnBlockToggle = cardView.findViewById(R.id.btnBlockToggle);
 
-        tvFullName.setText(user.getName() + " " + user.getSurname());
+        String firstName = user.getFirstName() == null ? "" : user.getFirstName();
+        String lastName = user.getLastName() == null ? "" : user.getLastName();
+
+        tvFullName.setText((firstName + " " + lastName).trim());
         tvEmail.setText(user.getEmail());
         tvRole.setText(user.getRole());
 
@@ -219,7 +228,7 @@ public class AdminUsers extends Fragment {
         cardView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putLong("userId", user.getId());
-            bundle.putString("userName", user.getName() + " " + user.getSurname());
+            bundle.putString("userName", (firstName + " " + lastName).trim());
             NavController nav = Navigation.findNavController(requireView());
             nav.navigate(R.id.action_adminUsers_to_adminUserHistory, bundle);
         });
@@ -228,7 +237,7 @@ public class AdminUsers extends Fragment {
         usersContainer.addView(cardView);
     }
 
-    private void openBlockDialog(UserItemDTO user) {
+    private void openBlockDialog(AdminUserResponseDTO user) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_block_user, null);
@@ -240,7 +249,7 @@ public class AdminUsers extends Fragment {
         Button btnCancel = dialogView.findViewById(R.id.btnDialogCancelBlock);
         Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirmBlock);
 
-        tvInfo.setText("Are you sure you want to block " + user.getName() + " " + user.getSurname()
+        tvInfo.setText("Are you sure you want to block " + user.getFirstName() + " " + user.getLastName()
                 + " (" + user.getEmail() + ")?");
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
@@ -258,7 +267,7 @@ public class AdminUsers extends Fragment {
         dialog.show();
     }
 
-    private void openUnblockDialog(UserItemDTO user) {
+    private void openUnblockDialog(AdminUserResponseDTO user) {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_unblock_user, null);
@@ -269,7 +278,7 @@ public class AdminUsers extends Fragment {
         Button btnCancel = dialogView.findViewById(R.id.btnDialogCancelUnblock);
         Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirmUnblock);
 
-        tvInfo.setText("Are you sure you want to unblock " + user.getName() + " " + user.getSurname()
+        tvInfo.setText("Are you sure you want to unblock " + user.getFirstName() + " " + user.getLastName()
                 + " (" + user.getEmail() + ")?");
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
