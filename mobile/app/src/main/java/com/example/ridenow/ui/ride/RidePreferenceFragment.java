@@ -50,7 +50,7 @@ public class RidePreferenceFragment extends Fragment {
     private RideService rideService;
 
     public RidePreferenceFragment() {
-        // Required empty constructor
+
     }
 
     private int dpToPx(int dp) {
@@ -120,17 +120,17 @@ public class RidePreferenceFragment extends Fragment {
             new String[]{"Select vehicle type", "Standard", "Luxury", "Van"});
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item_dark);
         vehicleSpinner.setAdapter(adapter);
-        // Match other inputs: dark background with white border/text
+
         vehicleSpinner.setBackgroundResource(R.drawable.edittext_with_bg);
         vehicleSpinner.setSelection(0);
 
         Bundle args = getArguments();
         bindPricePreview(vehicleSpinner, finalPrice, args);
 
-        // add initial guest input
+
         addGuestInput(guestsContainer);
 
-        // show Date and Time pickers when scheduledTime is clicked
+
         scheduledTime.setFocusable(false);
         scheduledTime.setClickable(true);
         scheduledTime.setOnClickListener(v -> {
@@ -191,20 +191,20 @@ public class RidePreferenceFragment extends Fragment {
         // clicking the card now toggles between raised and lowered
         if (formCard != null) {
 
-            formCard.post(() -> {   // čeka da se layout izmeri
+            formCard.post(() -> {
 
                 formCard.setOnClickListener(v -> {
 
                     int parentHeight = ((View) formCard.getParent()).getHeight();
                     int formHeight = formCard.getHeight();
 
-                    // Koliko želiš da ostane vidljivo kada se spusti (npr 100dp)
+
                     int visiblePart = dpToPx(100);
 
-                    // Koliko maksimalno može da se spusti
+
                     int shiftDown = parentHeight - visiblePart;
 
-                    // Osiguranje da ne ode skroz van
+
                     shiftDown = Math.min(shiftDown, formHeight - visiblePart);
 
                     if (isFormRaised) {
@@ -595,7 +595,7 @@ public class RidePreferenceFragment extends Fragment {
                                @Nullable List<LocationDTO> stops,
                                @NonNull List<PolylinePointDTO> polylinePoints) {
 
-        routeMapView.setShowMarkers(true); // Markeri su uključeni
+        routeMapView.setShowMarkers(true);
         routeMapView.displayRoute(start, end, stops, polylinePoints);
     }
 }

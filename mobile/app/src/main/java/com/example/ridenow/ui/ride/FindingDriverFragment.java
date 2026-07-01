@@ -23,7 +23,7 @@ import retrofit2.Response;
 public class FindingDriverFragment extends Fragment {
 
     private LinearLayout layoutSearching, layoutFound, layoutNotFound;
-    private TextView tvSearchingPickup, tvSearchingDestination, tvDriverName, tvDriverVehicle, tvDriverEta;
+    private TextView tvSearchingPickup, tvSearchingDestination, tvDriverName, tvDriverVehicle;
     private Button btnCancelSearch, btnAcceptAndBack, btnGoToOrdering;
     private AdminService adminService;
 
@@ -44,7 +44,7 @@ public class FindingDriverFragment extends Fragment {
         tvSearchingDestination = view.findViewById(R.id.tvSearchingDestination);
         tvDriverName = view.findViewById(R.id.tvDriverName);
         tvDriverVehicle = view.findViewById(R.id.tvDriverVehicle);
-        tvDriverEta = view.findViewById(R.id.tvDriverEta);
+        //tvDriverEta = view.findViewById(R.id.tvDriverEta);
 
         // Initialize actions
         btnCancelSearch = view.findViewById(R.id.btnCancelSearch);
@@ -70,10 +70,6 @@ public class FindingDriverFragment extends Fragment {
         return view;
     }
 
-    /**
-     * Updates the active view layout depending on backend synchronization lifecycle metrics.
-     * Use this method when a WebSocket message is received.
-     */
     public void updateState(@NonNull String state, @Nullable String driverName, @Nullable String vehicleInfo, int eta) {
         if (getActivity() == null) return;
 
@@ -101,7 +97,7 @@ public class FindingDriverFragment extends Fragment {
                     ? rejectionReason
                     : "No driver could be assigned");
             tvDriverVehicle.setText("");
-            tvDriverEta.setText("");
+            //.setText("");
             return;
         }
 
@@ -187,20 +183,20 @@ public class FindingDriverFragment extends Fragment {
                 layoutFound.setVisibility(View.VISIBLE);
                 tvDriverName.setText(driverName != null ? driverName : "");
                 tvDriverVehicle.setText(vehicleInfo != null ? vehicleInfo : "");
-                tvDriverEta.setText(eta > 0 ? "ETA: " + eta + " min" : "ETA: --");
+                //tvDriverEta.setText(eta > 0 ? "ETA: " + eta + " min" : "ETA: --");
                 break;
             case "notfound":
                 layoutNotFound.setVisibility(View.VISIBLE);
                 tvDriverName.setText("");
                 tvDriverVehicle.setText("");
-                tvDriverEta.setText("");
+                //tvDriverEta.setText("");
                 break;
             case "searching":
             default:
                 layoutSearching.setVisibility(View.VISIBLE);
                 tvDriverName.setText("");
                 tvDriverVehicle.setText("");
-                tvDriverEta.setText("");
+                //tvDriverEta.setText("");
                 break;
         }
     }

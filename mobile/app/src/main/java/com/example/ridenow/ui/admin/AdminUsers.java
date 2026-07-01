@@ -249,7 +249,7 @@ public class AdminUsers extends Fragment {
         tvEmail.setText(user.getEmail());
         tvRole.setText(user.getRole());
 
-        // Povezivanje logike za Block/Unblock dugme
+
         if (user.isBlocked()) {
             btnBlockToggle.setText("Unblock");
             btnBlockToggle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#388E3C")));
@@ -260,7 +260,7 @@ public class AdminUsers extends Fragment {
             btnBlockToggle.setOnClickListener(v -> openBlockDialog(user));
         }
 
-        // Klik na samu karticu i dalje vodi na istoriju (koleginicin deo)
+
         cardView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putLong("userId", user.getId());
@@ -353,7 +353,7 @@ public class AdminUsers extends Fragment {
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(requireContext(), "User unblocked.", Toast.LENGTH_SHORT).show();
-                    currentPage = 0; // Osvežavamo prikaz od prve stranice
+                    currentPage = 0;
                     loadUsers();
                 } else {
                     showRequestError(response, "Failed to unblock user.");

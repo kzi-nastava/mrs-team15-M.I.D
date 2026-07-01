@@ -127,15 +127,7 @@
                     android:textColor="#9aa4b2"
                     android:layout_marginTop="4dp" />
 
-                <TextView
-                    android:id="@+id/tvDriverEta"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ETA: 5 min"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primary"
-                    android:layout_marginTop="12dp" />
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
