@@ -185,6 +185,9 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(driver.getId(), "NEW_NOTIFICATION", dto);
+
+
+            fcmService.sendRideAssignedNotification(driver, ride);
         } catch (Exception e) {
             logger.error("Error creating ride assigned notification: {}", e.getMessage(), e);
         }
@@ -356,6 +359,8 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+            fcmService.sendNoDriversAvailableNotification(passenger);
+
         } catch (Exception e) {
             logger.error("Error creating no drivers available notification: {}", e.getMessage(), e);
         }
@@ -378,6 +383,8 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+
+            fcmService.sendRideRequestRejectedNotification(passenger);
         } catch (Exception e) {
             logger.error("Error creating ride request rejected notification: {}", e.getMessage(), e);
         }
@@ -404,6 +411,8 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+
+            fcmService.sendRideRequestAcceptedNotification(passenger, ride);
         } catch (Exception e) {
             logger.error("Error creating ride request accepted notification: {}", e.getMessage(), e);
         }
@@ -436,6 +445,7 @@ public class NotificationService {
             // Send real-time notification via WebSocket
             NotificationResponseDTO dto = new NotificationResponseDTO(notification);
             webSocketHandler.broadcastToUser(passenger.getId(), "NEW_NOTIFICATION", dto);
+            fcmService.sendRideReminderNotification(passenger, ride,  endAddress, minutesUntilRide,rideTime);
         } catch (Exception e) {
             logger.error("Error creating scheduled ride reminder notification: {}", e.getMessage(), e);
         }

@@ -1,5 +1,7 @@
 package com.example.ridenow.ui.admin;
 
+import android.app.AlertDialog;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -19,14 +21,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ridenow.R;
-import com.example.ridenow.dto.user.UserItemDTO;
-import com.example.ridenow.dto.util.PageResponse;
+import com.example.ridenow.dto.admin.AdminUserResponseDTO;
+import com.example.ridenow.dto.admin.BlockUserRequestDTO; // Proveri da li je putanja tačna
+import com.example.ridenow.dto.admin.PagedResponseDTO;
 import com.example.ridenow.service.AdminService;
 import com.example.ridenow.util.ClientUtils;
+import com.google.android.material.textfield.TextInputEditText;
 import android.widget.Filter;
 
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -45,6 +50,8 @@ public class AdminUsers extends Fragment {
     private boolean hasMoreData = true;
     private String currentSortBy = "email";
     private String currentSortDir = "desc";
+    private Call<PagedResponseDTO<AdminUserResponseDTO>> currentUsersCall;
+    private long usersRequestToken = 0L;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -120,17 +127,24 @@ public class AdminUsers extends Fragment {
         spinnerOrder.setText("Desc", false);
 
         spinnerSortBy.setOnItemClickListener((parent, v, position, id) -> {
-            String[] apiFields = {"firstName", "surname", "role", "email"};
+            String[] apiFields = {"firstName", "lastName", "role", "email"};
             currentSortBy = apiFields[position];
+            currentPage = 0;
+            hasMoreData = true;
+            loadUsers();
         });
 
-        spinnerOrder.setOnItemClickListener((parent, v, position, id) ->
-                currentSortDir = position == 0 ? "asc" : "desc"
-        );
+        spinnerOrder.setOnItemClickListener((parent, v, position, id) -> {
+            currentSortDir = position == 0 ? "asc" : "desc";
+            currentPage = 0;
+            hasMoreData = true;
+            loadUsers();
+        });
     }
     private void setupButtons() {
         btnApply.setOnClickListener(v -> {
             currentPage = 0;
+            hasMoreData = true;
             loadUsers();
         });
 
@@ -140,35 +154,56 @@ public class AdminUsers extends Fragment {
             currentSortBy = "email";
             currentSortDir = "desc";
             currentPage = 0;
+            hasMoreData = true;
             loadUsers();
         });
     }
 
     private void loadUsers() {
-        if (isLoading) {
+        if (!isAdded()) {
             return;
         }
 
+        if (currentUsersCall != null) {
+            currentUsersCall.cancel();
+            currentUsersCall = null;
+        }
+
+        if (currentPage == 0) {
+            usersContainer.removeAllViews();
+        } else {
+            removeLoadMoreButton();
+        }
+
+        final long requestToken = ++usersRequestToken;
         isLoading = true;
 
-        Call<PageResponse<UserItemDTO>> call = adminService.getAllUsers(currentPage, 10, currentSortBy, currentSortDir);
+        currentUsersCall = adminService.getAllUsers(
+                null,
+                currentSortBy,
+                currentSortDir,
+                currentPage,
+                10
+        );
 
-        call.enqueue(new Callback<>() {
+        currentUsersCall.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<PageResponse<UserItemDTO>> call, @NonNull Response<PageResponse<UserItemDTO>> response) {
+            public void onResponse(@NonNull Call<PagedResponseDTO<AdminUserResponseDTO>> call, @NonNull Response<PagedResponseDTO<AdminUserResponseDTO>> response) {
+                if (!isAdded() || requestToken != usersRequestToken) {
+                    return;
+                }
+
                 isLoading = false;
+                currentUsersCall = null;
+
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<UserItemDTO> data = response.body();
+                    PagedResponseDTO<AdminUserResponseDTO> data = response.body();
 
-                    if (currentPage == 0) { usersContainer.removeAllViews(); }
+                    hasMoreData = currentPage + 1 < data.getTotalPages();
 
-                    else { removeLoadMoreButton();}
+                    List<AdminUserResponseDTO> users = data.getContent();
 
-                    hasMoreData = !data.isLast();
-
-                    List<UserItemDTO> users = data.getContent();
-
-                    for (UserItemDTO user : users) { createUserCard(user);}
+                    for (AdminUserResponseDTO user : users) { createUserCard(user);}
 
                     if (hasMoreData) { addLoadMoreButton();}
 
@@ -179,39 +214,172 @@ public class AdminUsers extends Fragment {
                             errorMsg = response.errorBody().string();
                         }
                     } catch (Exception e) {}
-                    android.widget.Toast.makeText(getContext(), errorMsg, android.widget.Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), errorMsg, Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<PageResponse<UserItemDTO>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<PagedResponseDTO<AdminUserResponseDTO>> call, @NonNull Throwable t) {
+                if (!isAdded() || requestToken != usersRequestToken) {
+                    return;
+                }
+
                 isLoading = false;
-                Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                currentUsersCall = null;
+
+                if (!call.isCanceled()) {
+                    Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
-    private void createUserCard(UserItemDTO user) {
+    private void createUserCard(AdminUserResponseDTO user) {
         View cardView = LayoutInflater.from(getContext()).inflate(R.layout.item_user_card, usersContainer, false);
 
         TextView tvFullName = cardView.findViewById(R.id.tvFullName);
         TextView tvEmail    = cardView.findViewById(R.id.tvEmail);
         TextView tvRole     = cardView.findViewById(R.id.tvRole);
+        Button btnBlockToggle = cardView.findViewById(R.id.btnBlockToggle);
 
-        tvFullName.setText(user.getName() + " " + user.getSurname());
+        String firstName = user.getFirstName() == null ? "" : user.getFirstName();
+        String lastName = user.getLastName() == null ? "" : user.getLastName();
+
+        tvFullName.setText((firstName + " " + lastName).trim());
         tvEmail.setText(user.getEmail());
         tvRole.setText(user.getRole());
 
+        // Povezivanje logike za Block/Unblock dugme
+        if (user.isBlocked()) {
+            btnBlockToggle.setText("Unblock");
+            btnBlockToggle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#388E3C")));
+            btnBlockToggle.setOnClickListener(v -> openUnblockDialog(user));
+        } else {
+            btnBlockToggle.setText("Block");
+            btnBlockToggle.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D32F2F")));
+            btnBlockToggle.setOnClickListener(v -> openBlockDialog(user));
+        }
+
+        // Klik na samu karticu i dalje vodi na istoriju (koleginicin deo)
         cardView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putLong("userId", user.getId());
-            bundle.putString("userName", user.getName() + " " + user.getSurname());
+            bundle.putString("userName", (firstName + " " + lastName).trim());
             NavController nav = Navigation.findNavController(requireView());
             nav.navigate(R.id.action_adminUsers_to_adminUserHistory, bundle);
         });
         cardView.setClickable(true);
         cardView.setFocusable(true);
         usersContainer.addView(cardView);
+    }
+
+    private void openBlockDialog(AdminUserResponseDTO user) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_block_user, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextView tvInfo = dialogView.findViewById(R.id.tvBlockUserInfo);
+        TextInputEditText etReason = dialogView.findViewById(R.id.etBlockReason);
+        Button btnCancel = dialogView.findViewById(R.id.btnDialogCancelBlock);
+        Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirmBlock);
+
+        tvInfo.setText("Are you sure you want to block " + user.getFirstName() + " " + user.getLastName()
+                + " (" + user.getEmail() + ")?");
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            String reason = etReason.getText() == null ? "" : etReason.getText().toString().trim();
+            if (reason.isEmpty()) {
+                etReason.setError("Reason is required");
+                Toast.makeText(requireContext(), "Please provide a reason", Toast.LENGTH_LONG).show();
+                return;
+            }
+            dialog.dismiss();
+            performBlock(user.getId(), reason);
+        });
+
+        dialog.show();
+    }
+
+    private void openUnblockDialog(AdminUserResponseDTO user) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_unblock_user, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextView tvInfo = dialogView.findViewById(R.id.tvUnblockUserInfo);
+        Button btnCancel = dialogView.findViewById(R.id.btnDialogCancelUnblock);
+        Button btnConfirm = dialogView.findViewById(R.id.btnDialogConfirmUnblock);
+
+        tvInfo.setText("Are you sure you want to unblock " + user.getFirstName() + " " + user.getLastName()
+                + " (" + user.getEmail() + ")?");
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            performUnblock(user.getId());
+        });
+
+        dialog.show();
+    }
+
+    private void performBlock(Long id, String reason) {
+        BlockUserRequestDTO dto = new BlockUserRequestDTO(reason);
+        adminService.blockUser(id, dto).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "User blocked.", Toast.LENGTH_SHORT).show();
+                    currentPage = 0; // Osvežavamo prikaz od prve stranice
+                    loadUsers();
+                } else {
+                    showRequestError(response, "Failed to block user.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void performUnblock(Long id) {
+        adminService.unblockUser(id).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "User unblocked.", Toast.LENGTH_SHORT).show();
+                    currentPage = 0; // Osvežavamo prikaz od prve stranice
+                    loadUsers();
+                } else {
+                    showRequestError(response, "Failed to unblock user.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                Toast.makeText(requireContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showRequestError(Response<Void> response, String fallbackMessage) {
+        String errorMessage = fallbackMessage;
+        try (ResponseBody errorBody = response.errorBody()) {
+            if (errorBody != null) {
+                errorMessage = errorBody.string();
+                if (errorMessage.startsWith("\"") && errorMessage.endsWith("\"")) {
+                    errorMessage = errorMessage.substring(1, errorMessage.length() - 1);
+                }
+            }
+        } catch (Exception e) {
+            errorMessage = fallbackMessage + " (code: " + response.code() + ")";
+        }
+        Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show();
     }
 
     private void addLoadMoreButton() {

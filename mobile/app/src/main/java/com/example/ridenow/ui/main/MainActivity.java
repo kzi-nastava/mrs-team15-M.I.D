@@ -1,6 +1,9 @@
 package com.example.ridenow.ui.main;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +17,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
@@ -39,6 +44,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+    private static final int NOTIFICATION_PERMISSION_CODE = 100;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private TokenExpirationService tokenExpirationService;
@@ -55,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ClientUtils.init(this);
 
+        requestNotificationPermission();
+
+
         Toolbar toolbar = findViewById(R.id.toolbar);
 
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
@@ -67,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
             v.setLayoutParams(params);
 
             v.setPadding(v.getPaddingLeft(), statusBarHeight, v.getPaddingRight(), v.getPaddingBottom());
-
             return insets;
         });
 
@@ -360,5 +368,15 @@ public class MainActivity extends AppCompatActivity {
         boolean checked = status == DriverStatus.ACTIVE;
         switchDriverStatus.setChecked(checked);
         tvDriverStatus.setText(checked ? "Active" : "Inactive");
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE);
+            }
+        }
     }
 }
