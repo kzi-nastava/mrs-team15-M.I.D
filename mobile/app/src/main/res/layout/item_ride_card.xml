@@ -67,7 +67,8 @@
                     android:padding="2dp"
                     android:src="@android:drawable/btn_star_big_off"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Toggle favorite" />
+                    android:contentDescription="Toggle favorite"
+                    android:visibility="gone" />
 
                 <LinearLayout
                     android:id="@+id/statusContainer"

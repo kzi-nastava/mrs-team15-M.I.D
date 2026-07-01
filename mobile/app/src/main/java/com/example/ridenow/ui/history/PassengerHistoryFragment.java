@@ -376,12 +376,13 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         addStatusIndicators(statusContainer, ride);
 
         // --- Favorite star ---
+        ivFavorite.setVisibility(View.VISIBLE);
         updateStarIcon(ivFavorite, ride.isFavoriteRoute());
         ivFavorite.setOnClickListener(v -> {
             if (ride.isFavoriteRoute()) {
-                showRemoveFavoriteDialog(ride, ivFavorite);
+                showRemoveFavoriteDialog(ride);
             } else {
-                showAddFavoriteDialog(ride, ivFavorite);
+                showAddFavoriteDialog(ride);
             }
         });
 
@@ -410,57 +411,94 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
     // Favorite dialogs — mirrors Angular add-favorite-modal / remove-favorite-modal
     // -------------------------------------------------------------------------
 
-    private void showAddFavoriteDialog(RideHistoryItemDTO ride, ImageView ivFavorite) {
+    private void showAddFavoriteDialog(RideHistoryItemDTO ride) {
         if (getContext() == null) return;
 
-        String message = buildRouteInfoMessage(ride);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_add_favorite, null, false);
+        bindFavoriteDialogContent(dialogView, ride);
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Add to Favorites")
-                .setMessage("Do you want to add this route to your favorites?\n\n" + message)
-                .setPositiveButton("Add", (dialog, which) -> callAddFavorite(ride, ivFavorite))
-                .setNegativeButton("Cancel", null)
-                .show();
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        Button cancelButton = dialogView.findViewById(R.id.btnDialogCancelAddFavorite);
+        Button confirmButton = dialogView.findViewById(R.id.btnDialogConfirmAddFavorite);
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            callAddFavorite(ride);
+        });
+
+        dialog.show();
     }
 
-    private void showRemoveFavoriteDialog(RideHistoryItemDTO ride, ImageView ivFavorite) {
+    private void showRemoveFavoriteDialog(RideHistoryItemDTO ride) {
         if (getContext() == null) return;
 
-        String message = buildRouteInfoMessage(ride);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_remove_favorite, null, false);
+        bindFavoriteDialogContent(dialogView, ride);
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Remove from Favorites")
-                .setMessage("Remove this route from your favorites?\n\n" + message)
-                .setPositiveButton("Remove", (dialog, which) -> callRemoveFavorite(ride, ivFavorite))
-                .setNegativeButton("Cancel", null)
-                .show();
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .create();
+
+        Button cancelButton = dialogView.findViewById(R.id.btnDialogCancelRemoveFavorite);
+        Button confirmButton = dialogView.findViewById(R.id.btnDialogConfirmRemoveFavorite);
+
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            callRemoveFavorite(ride);
+        });
+
+        dialog.show();
     }
 
-    private String buildRouteInfoMessage(RideHistoryItemDTO ride) {
-        StringBuilder sb = new StringBuilder();
+    private void bindFavoriteDialogContent(View dialogView, RideHistoryItemDTO ride) {
+        TextView tvPickup = dialogView.findViewById(R.id.tvDialogPickup);
+        TextView tvDestination = dialogView.findViewById(R.id.tvDialogDestination);
+        TextView tvStopsLabel = dialogView.findViewById(R.id.tvDialogStopsLabel);
+        TextView tvStops = dialogView.findViewById(R.id.tvDialogStops);
+
         RouteDTO route = ride.getRoute();
+        String pickup = "—";
+        String destination = "—";
+        StringBuilder stopsBuilder = new StringBuilder();
 
         if (route != null) {
             if (route.getStartLocation() != null && route.getStartLocation().getAddress() != null) {
-                sb.append("Pickup: ").append(AddressUtils.formatAddress(route.getStartLocation().getAddress())).append("\n");
+                pickup = AddressUtils.formatAddress(route.getStartLocation().getAddress());
             }
             if (route.getEndLocation() != null && route.getEndLocation().getAddress() != null) {
-                sb.append("Destination: ").append(AddressUtils.formatAddress(route.getEndLocation().getAddress()));
+                destination = AddressUtils.formatAddress(route.getEndLocation().getAddress());
             }
             if (route.getStopLocations() != null && !route.getStopLocations().isEmpty()) {
-                sb.append("\nStops:");
                 for (var stop : route.getStopLocations()) {
                     if (stop.getAddress() != null) {
-                        sb.append("\n  • ").append(AddressUtils.formatAddress(stop.getAddress()));
+                        if (stopsBuilder.length() > 0) {
+                            stopsBuilder.append("\n");
+                        }
+                        stopsBuilder.append(AddressUtils.formatAddress(stop.getAddress()));
                     }
                 }
             }
         }
 
-        return sb.toString();
+        tvPickup.setText(pickup);
+        tvDestination.setText(destination);
+
+        if (stopsBuilder.length() > 0) {
+            tvStopsLabel.setVisibility(View.VISIBLE);
+            tvStops.setVisibility(View.VISIBLE);
+            tvStops.setText(stopsBuilder.toString());
+        } else {
+            tvStopsLabel.setVisibility(View.GONE);
+            tvStops.setVisibility(View.GONE);
+        }
     }
 
-    private void callAddFavorite(RideHistoryItemDTO ride, ImageView ivFavorite) {
+    private void callAddFavorite(RideHistoryItemDTO ride) {
         if (ride.getRouteId() == null) return;
 
         passengerService.addFavorite(ride.getRouteId()).enqueue(new Callback<>() {
@@ -485,7 +523,7 @@ public class PassengerHistoryFragment extends Fragment implements SensorEventLis
         });
     }
 
-    private void callRemoveFavorite(RideHistoryItemDTO ride, ImageView ivFavorite) {
+    private void callRemoveFavorite(RideHistoryItemDTO ride) {
         if (ride.getRouteId() == null) return;
 
         passengerService.removeFavorite(ride.getRouteId()).enqueue(new Callback<>() {
