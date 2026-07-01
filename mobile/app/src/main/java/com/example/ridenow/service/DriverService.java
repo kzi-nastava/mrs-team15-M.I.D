@@ -1,6 +1,7 @@
 package com.example.ridenow.service;
 
 import com.example.ridenow.dto.driver.DriverCanStartRideResponseDTO;
+import com.example.ridenow.dto.driver.DriverAccountActivationRequestDTO;
 import com.example.ridenow.dto.driver.DriverHistoryResponseDTO;
 import com.example.ridenow.dto.driver.DriverLocationRequestDTO;
 import com.example.ridenow.dto.driver.DriverLocationResponseDTO;
@@ -55,4 +56,7 @@ public interface DriverService {
 
     @GET("driver/status")
     Call<DriverStatusResponseDTO> getDriverStatus();
+
+    @PUT("driver/activate-account")
+    Call<Map<String, String>> activateDriverAccount(@Body DriverAccountActivationRequestDTO dto);
 }

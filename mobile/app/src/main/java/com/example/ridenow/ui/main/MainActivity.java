@@ -237,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Authentication related items
         navigationView.getMenu().findItem(R.id.login).setVisible(!isLoggedIn);
+        //navigationView.getMenu().findItem(R.id.driver_activation).setVisible(!isLoggedIn);
         //navigationView.getMenu().findItem(R.id.registration).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.reset_password).setVisible(!isLoggedIn);
         navigationView.getMenu().findItem(R.id.nav_home).setVisible(!isLoggedIn);
@@ -256,11 +257,13 @@ public class MainActivity extends AppCompatActivity {
         navigationView.getMenu().findItem(R.id.history).setVisible(isDriver); // Driver History
         navigationView.getMenu().findItem(R.id.upcoming_rides).setVisible(isDriver || isUser); // Upcoming Rides
         navigationView.getMenu().findItem(R.id.driver_profile).setVisible(isDriver);
+        navigationView.getMenu().findItem(R.id.driver_report).setVisible(isDriver);
 
         // User-only items
         navigationView.getMenu().findItem(R.id.profile).setVisible(isUser);
         navigationView.getMenu().findItem(R.id.ride_ordering).setVisible(isUser);
         navigationView.getMenu().findItem(R.id.passenger_history).setVisible(isUser);
+        navigationView.getMenu().findItem(R.id.passenger_report).setVisible(isUser);
 
         // Common logged-in user items
         //navigationView.getMenu().findItem(R.id.change_password).setVisible(isLoggedIn);
@@ -270,8 +273,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Admin-only items
         navigationView.getMenu().findItem(R.id.driver_requests).setVisible(isAdmin); // Driver Requests
+        navigationView.getMenu().findItem(R.id.driver_registration).setVisible(isAdmin); // Driver Registration
         navigationView.getMenu().findItem(R.id.admin_chats).setVisible(isAdmin); // Support Chats
         navigationView.getMenu().findItem(R.id.admin_users).setVisible(isAdmin); // Admin users
+        navigationView.getMenu().findItem(R.id.admin_report).setVisible(isAdmin); // Admin Reports
 
         // Live support for logged-in non-admin users
         navigationView.getMenu().findItem(R.id.live_support).setVisible(isLoggedIn && !isAdmin);
