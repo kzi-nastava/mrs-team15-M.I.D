@@ -1,5 +1,6 @@
 package com.example.ridenow.ui.ride;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,6 +27,7 @@ import com.example.ridenow.service.RideService;
 import com.example.ridenow.service.PassengerService;
 import com.example.ridenow.dto.ride.FavoriteRouteResponseDTO;
 import com.example.ridenow.dto.ride.RouteResponseDTO;
+import com.example.ridenow.dto.user.BlockedStatusResponseDTO;
 import com.example.ridenow.util.ClientUtils;
 import com.example.ridenow.dto.ride.RouteResponseDTO;
 import com.example.ridenow.dto.model.PolylinePointDTO;
@@ -94,6 +96,8 @@ public class RideOrderingFragment extends Fragment {
 
     private boolean isFormRaised = false; // tracks whether form is shifted to reveal map
     private View formCard;
+    private boolean isBlockedAccount = false;
+    private String blockedReason = "";
 
     public RideOrderingFragment() {
         // Required empty constructor
@@ -102,6 +106,63 @@ public class RideOrderingFragment extends Fragment {
     private int dpToPx(int dp) {
         float density = requireContext().getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
+    }
+
+    private void loadBlockedStatus() {
+        try {
+            String role = ClientUtils.getTokenUtils().getRole();
+            if (!"USER".equals(role)) {
+                return;
+            }
+        } catch (IllegalStateException ignored) {
+            return;
+        }
+
+        com.example.ridenow.service.UserService userService = ClientUtils.getClient(com.example.ridenow.service.UserService.class);
+        userService.getBlockedStatus().enqueue(new Callback<BlockedStatusResponseDTO>() {
+            @Override
+            public void onResponse(Call<BlockedStatusResponseDTO> call, Response<BlockedStatusResponseDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    BlockedStatusResponseDTO status = response.body();
+                    if (status.isBlocked()) {
+                        applyBlockedState(status.getReason());
+                    } else {
+                        clearBlockedState();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<BlockedStatusResponseDTO> call, Throwable t) {
+                Log.w("RideOrdering", "Failed to load blocked status", t);
+            }
+        });
+    }
+
+    private void applyBlockedState(String reason) {
+        isBlockedAccount = true;
+        blockedReason = reason == null || reason.trim().isEmpty() ? "No reason provided" : reason.trim();
+
+        if (chooseRouteBtn != null) {
+            chooseRouteBtn.setEnabled(false);
+            chooseRouteBtn.setClickable(false);
+        }
+
+        if (!isAdded()) {
+            return;
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Account blocked")
+                .setMessage("Your account is blocked.\n\nReason: " + blockedReason)
+                .setPositiveButton("OK", (dialogInterface, which) -> dialogInterface.dismiss())
+                .create();
+        dialog.show();
+    }
+
+    private void clearBlockedState() {
+        isBlockedAccount = false;
+        blockedReason = "";
     }
 
     // Transliterate Serbian Cyrillic to Latin for display
@@ -303,6 +364,8 @@ public class RideOrderingFragment extends Fragment {
             // ClientUtils not initialized; default to enabled (will fail server-side if not authenticated)
         }
 
+        loadBlockedStatus();
+
         // setup suggestions popup (anchored to inputs)
         suggestionsAdapter = new SuggestionAdapter(requireContext(), new java.util.ArrayList<>());
         suggestionsPopup = new ListPopupWindow(requireContext());
@@ -469,7 +532,7 @@ public class RideOrderingFragment extends Fragment {
                                 formCard.bringToFront();
                                 formCard.setClickable(true);
                                 formCard.setFocusable(true);
-                                if (chooseRouteBtn != null) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
+                                if (chooseRouteBtn != null && !isBlockedAccount) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
                             } catch (Exception ignored) {}
                         }).start();
                         isFormRaised = false;
@@ -534,7 +597,7 @@ public class RideOrderingFragment extends Fragment {
                             formCard.bringToFront();
                             formCard.setClickable(true);
                             formCard.setFocusable(true);
-                            if (chooseRouteBtn != null) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
+                            if (chooseRouteBtn != null && !isBlockedAccount) { chooseRouteBtn.setEnabled(true); chooseRouteBtn.setClickable(true); }
                         } catch (Exception ignored) {}
                     }).start();
                     isFormRaised = false;
@@ -704,6 +767,10 @@ public class RideOrderingFragment extends Fragment {
         });
 
         chooseRouteBtn.setOnClickListener(v -> {
+            if (isBlockedAccount) {
+                applyBlockedState(blockedReason);
+                return;
+            }
             if (!hasSelectedStart || !hasSelectedEnd) {
                 Toast.makeText(requireContext(), "Please select pickup and destination from suggestions", Toast.LENGTH_SHORT).show();
                 return;
