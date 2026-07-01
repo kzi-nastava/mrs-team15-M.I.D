@@ -12,6 +12,15 @@ public class ActiveRideDTO {
     private Boolean panic;
     private String panicBy;
     private RouteDTO route;
+    private Long panicAlertId;
+
+    public Long getPanicAlertId() {
+        return panicAlertId;
+    }
+
+    public void setPanicAlertId(Long panicAlertId) {
+        this.panicAlertId = panicAlertId;
+    }
 
     // Getters and setters
     public Long getRideId() {

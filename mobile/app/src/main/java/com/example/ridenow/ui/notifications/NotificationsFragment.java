@@ -126,6 +126,12 @@ public class NotificationsFragment extends Fragment {
         } else if (notification.getType() == NotificationType.RIDE_ASSIGNED) {
             navController.navigate(R.id.upcoming_rides);
         } else if (notification.getType() == NotificationType.PANIC) {
+            Bundle bundle = new Bundle();
+            if(notification.getRelatedEntityId() != null){
+                bundle.putLong("rideId", notification.getRelatedEntityId());
+                bundle.putBoolean("isAdminView", true);
+                bundle.putBoolean("isPanic", true);
+            }
             // For panic notifications, navigate to current ride
             navController.navigate(R.id.current_ride);
         }

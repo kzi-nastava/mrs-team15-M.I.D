@@ -6,8 +6,10 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,6 +18,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ridenow.R;
 import com.example.ridenow.dto.ride.ActiveRideDTO;
+import com.example.ridenow.service.PanicAlertService;
 import com.example.ridenow.service.RideService;
 import com.example.ridenow.util.ClientUtils;
 
@@ -33,6 +36,7 @@ public class ActiveRidesFragment extends Fragment {
     private List<ActiveRideDTO> allRides;
     private List<ActiveRideDTO> filteredRides;
     private RideService rideService;
+    private PanicAlertService panicAlertService;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -56,6 +60,7 @@ public class ActiveRidesFragment extends Fragment {
 
     private void setupRetrofit() {
         rideService = ClientUtils.getClient(RideService.class);
+        panicAlertService = ClientUtils.getClient(PanicAlertService.class);
     }
 
     private void setupSearchFunctionality() {
@@ -136,7 +141,7 @@ public class ActiveRidesFragment extends Fragment {
                 .inflate(R.layout.item_active_ride_card, ridesContainer, false);
 
         // Initialize card with ride data
-        ActiveRideCardHelper.setupCard(cardView, ride);
+        ActiveRideCardHelper.setupCard(cardView, ride, panicAlertId -> resolvePanic(panicAlertId, cardView));
 
         // Make card clickable and navigate to current ride page
         cardView.setOnClickListener(v -> {
@@ -161,6 +166,8 @@ public class ActiveRidesFragment extends Fragment {
                     bundle.putString("passengers", "");
                 }
 
+                bundle.putBoolean("isPanic", ride.getPanic() != null && ride.getPanic());
+
                 // Pass complete RouteDTO object
                 if (ride.getRoute() != null) {
                     bundle.putSerializable("routeDTO", ride.getRoute());
@@ -173,6 +180,36 @@ public class ActiveRidesFragment extends Fragment {
         });
 
         return cardView;
+    }
+
+    private void resolvePanic(Long panicAlertId, View cardView) {
+        panicAlertService.resolvePanicAlert(panicAlertId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if(response.isSuccessful()){
+                    Toast.makeText(getContext(), "Panic alert resolved", Toast.LENGTH_SHORT).show();
+                    TextView panicStatusTextView = cardView.findViewById(R.id.panicStatusTextView);
+                    Button resolveButton = cardView.findViewById(R.id.resolvePanicButton);
+                    panicStatusTextView.setVisibility(View.GONE);
+                    resolveButton.setVisibility(View.GONE);
+
+                    for (ActiveRideDTO ride : allRides) {
+                        if (panicAlertId.equals(ride.getPanicAlertId())) {
+                            ride.setPanic(false);
+                            ride.setPanicAlertId(null);
+                            break;
+                        }
+                    }
+                }else {
+                    showError("Failed to resolve panic alert");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                showError("Network error: " + t.getMessage());
+            }
+        });
     }
 
     private void showError(String message) {

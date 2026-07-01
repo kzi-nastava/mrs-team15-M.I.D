@@ -5,6 +5,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -23,6 +25,7 @@ import retrofit2.Response;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String CHANNEL_ID = "ridenow_notifications";
+    private static final String PANIC_CHANNEL_ID = "ridenow_panic_alerts";
     private static final String TAG = "FCM_Service";
 
     @Override
@@ -30,8 +33,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
         if (remoteMessage.getNotification() != null) {
+            String type = remoteMessage.getData().get("type");
+            boolean isPanic = "PANIC".equals(type);
+
             sendNotification(remoteMessage.getNotification().getTitle(),
-                    remoteMessage.getNotification().getBody());
+                    remoteMessage.getNotification().getBody(), isPanic);
         }
     }
 
@@ -83,7 +89,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void sendNotification(String title, String body) {
+    private void sendNotification(String title, String body, boolean isPanic) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         // Add flag to navigate to notifications
@@ -94,7 +100,9 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         createNotificationChannel();
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        String channelId = isPanic ? PANIC_CHANNEL_ID : CHANNEL_ID;
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(title)
                 .setContentText(body)
@@ -102,14 +110,27 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                 .setContentIntent(pendingIntent);
 
+        if (isPanic) {
+            builder.setPriority(NotificationCompat.PRIORITY_HIGH).setCategory(NotificationCompat.CATEGORY_ALARM);
+        }
+
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         manager.notify((int) System.currentTimeMillis(), builder.build());
     }
 
     private void createNotificationChannel() {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-                    "RideNow Notifications", NotificationManager.IMPORTANCE_DEFAULT);
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(channel);
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        NotificationChannel defaultChannel = new NotificationChannel(CHANNEL_ID, "RideNow Notifications", NotificationManager.IMPORTANCE_DEFAULT);
+        manager.createNotificationChannel(defaultChannel);
+
+        // panic channel
+        NotificationChannel panicChannel = new NotificationChannel(PANIC_CHANNEL_ID, "Panic Alerts", NotificationManager.IMPORTANCE_HIGH);
+        panicChannel.setDescription("Emergency panic alarm notifications");
+        panicChannel.enableVibration(true);
+        panicChannel.setVibrationPattern(new long[]{0, 500, 250, 500});
+        Uri soundUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.panic_alert);
+        AudioAttributes audioAttributes = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
+        panicChannel.setSound(soundUri, audioAttributes);
+        manager.createNotificationChannel(panicChannel);
     }
 }

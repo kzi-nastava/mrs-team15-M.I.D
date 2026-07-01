@@ -76,7 +76,7 @@ public class CurrentRideFragment extends Fragment {
     private Handler trackingHandler;
     private Runnable trackingRunnable;
     private static final long TRACKING_INTERVAL = 10000; // 10 seconds
-
+    private boolean isPanicRide = false;
     private boolean isDriver = false;
     private boolean isAdminView = false;
     private Long adminRideId = null;
@@ -95,12 +95,14 @@ public class CurrentRideFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
         // Check if this is an admin view
         Bundle args = getArguments();
         if (args != null) {
             isAdminView = args.getBoolean("isAdminView", false);
             adminRideId = args.getLong("rideId", -1);
             if (adminRideId == -1) adminRideId = null;
+            isPanicRide = args.getBoolean("isPanic", false);
         }
 
         initViews(view);
@@ -452,6 +454,10 @@ public class CurrentRideFragment extends Fragment {
 
             startAddressText.setText(startAddress);
             endAddressText.setText(endAddress);
+
+            if (isPanicRide) {
+                routeMapView.setPanicMode(true);
+            }
 
             // Display route on map
             routeMapView.displayRoute(
